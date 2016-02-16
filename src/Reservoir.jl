@@ -1,34 +1,33 @@
-# The economy component
+# The reservoir component
 #
-# Determines the available resource for consumption, as a balance between local
-# production, imports, and exports.
+# Manages the storage in reservoirs over time
 
 using Mimi
 
-@defcomp Economy begin
+@defcomp Reservoir begin
+    reservoirs = Index()
     regions = Index()
-    edges = Index()
 
-    # External
-    # Local production from Production
-    produced = Parameter(index=[regions, time])
-    # Imports and exports from Transportation
-    regionimports = Parameter(index=[regions, time])
-    regionexports = Parameter(index=[regions, time])
+    # Streamflow connnections
+    inflows = Parameter(index=[reservoirs, time])
+    outflows = Parameter(index=[reservoirs, time])
 
-    # The balance of available resource
-    marketed = Variable(index=[regions, time])
+    # Municipality connections
+    releases = Parameter(index=[regions, time])
+
+    # Remaining storage
+    storage = Variable(index=[reservoirs, time])
 end
 
 """
 Compute the available local resource for consumption, `marketed`.
 """
-function timestep(c::Economy, tt::Int)
+function timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
 
-    for rr in d.regions
-        v.marketed[rr, tt] = p.produced[rr, tt] + p.regionimports[rr, tt] - p.regionexports[rr, tt]
+    for rr in d.reservoirs
+        # TODO
     end
 end

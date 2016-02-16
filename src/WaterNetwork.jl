@@ -19,7 +19,7 @@ using Distributions
 end
 
 """
-Compute the amount imported and exported by region.
+Compute the amount flowing in and out of each reservoir
 """
 function timestep(c::WaterNetwork, tt::Int)
     v = c.Variables
@@ -38,6 +38,6 @@ function initwaternetwork(m::Model)
     transit
 end
 
-"Default import is 0"
-default_imported(m::Model) = zeros(m.indices_counts[:edges], m.indices_counts[:time])
+"Default streamflow is 0"
+default_streamflow(m::Model) = zeros(m.indices_counts[:edges], m.indices_counts[:time])
 

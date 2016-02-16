@@ -9,7 +9,7 @@ println("Creating model...")
 m = Model()
 
 setindex(m, :time, collect(2000:5:2030))
-setindex(m, :regions, TODO1)
+setindex(m, :counties, TODO1)
 setindex(m, :reservoirs, TODO2)
 setindex(m, :edges, TODO3)
 

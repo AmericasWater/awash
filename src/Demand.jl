@@ -8,18 +8,18 @@ using Mimi
 using Distributions
 
 @defcomp Demand begin
-    regions = Index()
+    counties = Index()
 
     # Internal
     # Resource demands
-    demand = Parameter(index=[regions, time])
+    demand = Parameter(index=[counties, time])
 
     # External
     # Resource availability from Economy
-    releases = Parameter(index=[regions, time])
+    releases = Parameter(index=[counties, time])
 
     # Resource surplus over (or below) demand
-    surplus = Variable(index=[regions, time])
+    surplus = Variable(index=[counties, time])
 end
 
 """
@@ -30,7 +30,7 @@ function timestep(c::Demand, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    for rr in d.regions
+    for rr in d.counties
         v.surplus[rr, tt] = p.releases[rr, tt] - p.demand[rr, tt]
     end
 end
@@ -43,7 +43,7 @@ function initdemand(m::Model)
 
     # Use random demands, from a LogNormal distribution and constant across all
     # time.
-    demand[:demand] = repeat(asmynumeric(rand(LogNormal(log(1000.0), log(10.0)), m.indices_counts[:regions])), outer=[1, m.indices_counts[:time]]);
+    demand[:demand] = repeat(asmynumeric(rand(LogNormal(log(1000.0), log(10.0)), m.indices_counts[:counties])), outer=[1, m.indices_counts[:time]]);
 
     demand
 end

@@ -9,11 +9,13 @@ using Distributions
 @defcomp Aquifer begin
   aquifers = Index()
 
-  #nlayers = Index()
+  #fips indices
+  fips = Parameter(index=[aquifers])
 
   # Aquifer description
   layerthick = Parameter(index=[aquifers])
   depthaquif = Parameter(index=[aquifers])
+  elevation = Parameter(index=[aquifers])
   areaaquif = Parameter(index=[aquifers])
   storagecoef = Parameter(index=[aquifers])
   piezohead0 = Parameter(index=[aquifers]) # used both for t=1, but also to have gw costs proportional to head
@@ -46,7 +48,7 @@ function timestep(c::Aquifer, tt::Int)
     if tt==1
       v.piezohead[aa,tt] = p.piezohead0[aa]
     else
-      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.layerthick[aa]*p.areaaquif[aa])*(p.recharge[aa,tt-1]-p.withdrawal[aa,tt-1]+v.lateralflows[aa,tt-1])
+      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(p.recharge[aa,tt-1]-p.withdrawal[aa,tt-1]+v.lateralflows[aa,tt-1])
     end
   end
 
@@ -63,9 +65,9 @@ function timestep(c::Aquifer, tt::Int)
     end
   end
 
-  # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative
+  # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative. piezohead datum is sea level
   for aa in d.aquifers
-    v.meandepth[aa,tt] = p.depthaquif[aa] + p.layerthick[aa] - p.piezohead0[aa]
+    v.meandepth[aa,tt] = p.elevation[aa] - p.piezohead0[aa]
   end
 end
 
@@ -109,12 +111,39 @@ end
 
 function makeconstraintpiezomax(aa, tt)
     function constraint(model)
-        m[:Aquifer, :piezohead][aa, tt] - m.components[:Aquifer].Parameters.layerthick[aa] - m.components[:Aquifer].Parameters.depthaquif[aa] # piezohead < layerthick + depth (non-artesian well)
+        m[:Aquifer, :piezohead][aa, tt] - m.components[:Aquifer].Parameters.elevation[aa] # piezohead < layerthick + depth (non-artesian well)
     end
 end
 function makeconstraintpiezomin(aa, tt)
     function constraint(model)
-       -m[:Aquifer, :piezohead][aa, tt] + m.components[:Aquifer].Parameters.layerthick[aa] # piezohead > layerthick
+       -m[:Aquifer, :piezohead][aa, tt] - m.components[:Aquifer].Parameters.depthaquif[aa] # piezohead > layerthick
     end
+end
+
+function initaquifercontus(m::Model)
+  aquifer = addcomponent(m, Aquifer)
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/v_FIPS.txt")
+  aquifer[:fips]= temp[:,1];
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_thickness.txt")
+  aquifer[:layerthick] = temp[:,1];
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_depth.txt")
+  aquifer[:depthaquif] = temp[:,1];
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_elecation.txt",Float64)
+  aquifer[:elevation] = temp[:,1];
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/vector_storativity.txt")
+  aquifer[:storagecoef] = temp[:,1];
+  #temp = readdlm
+  aquifer[:piezohead0] = rand(Normal(-50,20), m.indices_counts[:aquifers])
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_area.txt")
+  aquifer[:areaaquif] = temp[:,1];
+
+  aquifer[:withdrawal] = repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
+  aquifer[:recharge] = repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
+
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/matrix_leakage_factor.txt")
+  aquifer[:lateralconductivity] = temp;
+  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/connectivity_matrix.txt")
+  aquifer[:aquiferconnexion] = temp;
+  aquifer
 end
 

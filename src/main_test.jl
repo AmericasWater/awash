@@ -21,8 +21,8 @@ watercost = initwatercost(m);
 # Set links between components
 aquifer[:withdrawal] = allocation[:watergw]
 reservoir[:withdrawal] = allocation[:waterreservoir]
-#allocation[:costfromgw] = watercost[:costgw]
-#allocation[:costfromreservoir] = watercost[:costsw]
+allocation[:costfromgw] = watercost[:costgw]
+allocation[:costfromreservoir] = watercost[:costsw]
 watercost[:depth] = aquifer[:meandepth]
 # Run it and time it!
 @time run(m)
@@ -31,6 +31,16 @@ m.components[:Allocation].Variables.waterallocated
 m.components[:Allocation].Parameters.waterfromgw
 m.components[:Allocation].Parameters.waterfromsupersource
 m.components[:Allocation].Parameters.waterfromreservoir
+m.components[:Allocation].Parameters.costfromgw
+m.components[:Allocation].Parameters.costfromreservoir
+
+m.components[:Watercost].Variables.costsw
+m.components[:Watercost].Variables.costgw
+m.components[:Watercost].Parameters.depth
+
+m.components[:Aquifer].Variables.meandepth
+m.components[:Aquifer].Variables.piezohead
+m.components[:Aquifer].Variables.lateralflows
 
 m.components[:Reservoir].Parameters.inflows
 m.components[:Reservoir].Parameters.outflows

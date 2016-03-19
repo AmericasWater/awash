@@ -48,7 +48,7 @@ function initallocation(m::Model)
     allocation = addcomponent(m, Allocation)
     # Use random demands, from a LogNormal distribution and constant across all
     # time.
-    Adem = rand(Normal(5e5, 1e4), m.indices_counts[:regions]*m.indices_counts[:time]);
+    Adem = rand(Normal(5e10, 1e8), m.indices_counts[:regions]*m.indices_counts[:time]);
     allocation[:waterdemand] = reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
     #demand[:waterdemand] = repeat(rand(LogNormal(log(1000.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:costfromgw] = (1/100)*repeat(rand(Normal(12.5, 1.5), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);

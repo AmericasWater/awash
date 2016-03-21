@@ -18,7 +18,7 @@ setindex(m, :aquifers, collect(1:ncounty))
 
 # Add all of the components
 allocation = initallocation(m);
-aquifer = initaquifercontusmac(m)#contus(m);
+aquifer = initaquifercontus(m);#contus(m);
 #reservoir = initreservoir(m);
 #watercost = initwatercost(m);
 # Set links between components

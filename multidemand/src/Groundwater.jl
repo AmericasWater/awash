@@ -76,7 +76,7 @@ end
 """
 Add an Aquifer component to the model.
 """
-function initaquiferfive(m::Model)
+function initaquifer(m::Model)
   aquifer = addcomponent(m, Aquifer)
 
   #five county test:
@@ -88,7 +88,7 @@ function initaquiferfive(m::Model)
   aquifer[:areaaquif] = [8e8; 6e8; 5e8; 5e8; 3e8];
 
   aquifer[:withdrawal] = repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:recharge] = repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
+  aquifer[:recharge] = repeat(rand(Normal(10000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
 
   aquifer[:lateralconductivity] = 100*[0    1e-6 1e-4 1e-6 0   ;
                                    1e-6 0    0    1e-6 0   ;
@@ -123,7 +123,7 @@ end
 
 function initaquifercontus(m::Model)
   aquifer = addcomponent(m, Aquifer)
-
+  pwd()
   temp = readdlm("data/v_FIPS.txt")
   aquifer[:fips]= temp[:,1];
   temp = readdlm("data/aquifer_thickness.txt")
@@ -148,32 +148,3 @@ function initaquifercontus(m::Model)
   aquifer[:aquiferconnexion] = temp;
   aquifer
 end
-
-function initaquifercontusmac(m::Model)
-  aquifer = addcomponent(m, Aquifer)
-
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/v_FIPS.txt")
-  aquifer[:fips]= temp[:,1];
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_thickness.txt")
-  aquifer[:layerthick] = temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_depth.txt")
-  aquifer[:depthaquif] = rand(Normal(-100,5), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_elecation.txt",Float64)
-  aquifer[:elevation] = rand(Normal(30,5), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/vector_storativity.txt")
-  aquifer[:storagecoef] = 1e-4*rand(Normal(5,1), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm
-  aquifer[:piezohead0] = rand(Normal(-50,0.01), m.indices_counts[:aquifers])
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_area.txt")
-  aquifer[:areaaquif] = temp[:,1];
-  Mtemp = repeat(rand(Normal(19000,1700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:withdrawal] = Mtemp#repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:recharge] = Mtemp#repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/matrix_leakage_factor.txt")
-  aquifer[:lateralconductivity] = temp;
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/connectivity_matrix.txt")
-  aquifer[:aquiferconnexion] = temp;
-  aquifer
-end
-

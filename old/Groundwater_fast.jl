@@ -43,35 +43,20 @@ function timestep(c::Aquifer, tt::Int)
   p = c.Parameters
   d = c.Dimensions
 
-  # piezometric head initialisation and simulation
-  for aa in d.aquifers
-    if tt==1
-      v.piezohead[aa,tt] = p.piezohead0[aa]
-    else
-      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(p.recharge[aa,tt-1]-p.withdrawal[aa,tt-1]+v.lateralflows[aa,tt-1])
-    end
-  end
-
   # computation of lateral flows:
   v.lateralflows[:,tt]=zeros(d.aquifers[end],1)
+  v.meandepth[:,tt] = p.elevation[:] - p.piezohead0[:]
 
-  for aa in 1:d.aquifers[end]
-    for aa_ in (aa+1):(d.aquifers[end]-1)
-      if p.aquiferconnexion[aa,aa_]==1.
-        latflow = p.lateralconductivity[aa,aa_]*(v.piezohead[aa_,tt]-v.piezohead[aa,tt])
-        v.lateralflows[aa,tt] += latflow
-        v.lateralflows[aa_,tt] += -latflow
-      end
-    end
-  end
+  if tt==1
+    v.piezohead[:,tt] = p.piezohead0[:]
+     v.lateralflows[:,tt] = sum((p.aquiferconnexion.*p.lateralconductivity).*(repeat(p.piezohead0[:],outer=[1,m.indices_counts[:aquifers]])-repeat(p.piezohead0[:],outer=[1,m.indices_counts[:aquifers]])'),1)
 
-  # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative. piezohead datum is sea level
-  for aa in d.aquifers
-    v.meandepth[aa,tt] = p.elevation[aa] - p.piezohead0[aa]
+
+  else
+    v.piezohead[:,tt] = v.piezohead[:,tt-1] + 1./(p.storagecoef[:].*p.areaaquif[:]).*(p.recharge[:,tt-1]-p.withdrawal[:,tt-1]+v.lateralflows[:,tt-1])
+    v.lateralflows[:,tt] = sum((p.aquiferconnexion.*p.lateralconductivity).*(repeat(v.piezohead[:,tt],outer=[1,m.indices_counts[:aquifers]])-repeat(v.piezohead[:,tt],outer=[1,m.indices_counts[:aquifers]])'),1)
   end
 end
-
-
 
 """
 Add an Aquifer component to the model.
@@ -123,7 +108,7 @@ end
 
 function initaquifercontus(m::Model)
   aquifer = addcomponent(m, Aquifer)
-
+  pwd()
   temp = readdlm("data/v_FIPS.txt")
   aquifer[:fips]= temp[:,1];
   temp = readdlm("data/aquifer_thickness.txt")
@@ -148,32 +133,3 @@ function initaquifercontus(m::Model)
   aquifer[:aquiferconnexion] = temp;
   aquifer
 end
-
-function initaquifercontusmac(m::Model)
-  aquifer = addcomponent(m, Aquifer)
-
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/v_FIPS.txt")
-  aquifer[:fips]= temp[:,1];
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_thickness.txt")
-  aquifer[:layerthick] = temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_depth.txt")
-  aquifer[:depthaquif] = rand(Normal(-100,5), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_elecation.txt",Float64)
-  aquifer[:elevation] = rand(Normal(30,5), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/vector_storativity.txt")
-  aquifer[:storagecoef] = 1e-4*rand(Normal(5,1), m.indices_counts[:aquifers])#temp[:,1];
-  #temp = readdlm
-  aquifer[:piezohead0] = rand(Normal(-50,0.01), m.indices_counts[:aquifers])
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/county_area.txt")
-  aquifer[:areaaquif] = temp[:,1];
-  Mtemp = repeat(rand(Normal(19000,1700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:withdrawal] = Mtemp#repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:recharge] = Mtemp#repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/matrix_leakage_factor.txt")
-  aquifer[:lateralconductivity] = temp;
-  temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/connectivity_matrix.txt")
-  aquifer[:aquiferconnexion] = temp;
-  aquifer
-end
-

@@ -2,28 +2,32 @@ workspace()
 using OptiMimi
 
 include("Allocation.jl")
-include("Groundwater.jl")
-include("Reservoir.jl")
-include("Watercost.jl")
+include("Groundwater_fast.jl")
+#include("Reservoir.jl")
+#include("Watercost.jl")
 println("Creating model...")
 m = Model()
 
-setindex(m, :time, collect(1:10))
-setindex(m, :regions, collect(1:5))
-setindex(m, :aquifers, collect(1:5))
-setindex(m, :reservoirs, collect(1:5))
+ncounty= 3108;
+#nconnexions=18468;
+setindex(m, :time, collect(1:3))
+setindex(m, :regions, collect(1:ncounty))
+setindex(m, :aquifers, collect(1:ncounty))
+#setindex(m, :connexions, collect(1:ncounty))
+#setindex(m, :reservoirs, collect(1:ncounty))
 
 # Add all of the components
 allocation = initallocation(m);
-aquifer = initaquifer(m);
-reservoir = initreservoir(m);
-watercost = initwatercost(m);
+aquifer = initaquifercontus(m)#contus(m);
+#reservoir = initreservoir(m);
+#watercost = initwatercost(m);
 # Set links between components
 aquifer[:withdrawal] = allocation[:watergw]
-reservoir[:withdrawal] = allocation[:waterreservoir]
-allocation[:costfromgw] = watercost[:costgw]
-allocation[:costfromreservoir] = watercost[:costsw]
-watercost[:depth] = aquifer[:meandepth]
+#reservoir[:withdrawal] = allocation[:waterreservoir]
+#allocation[:costfromgw] = watercost[:costgw]
+#allocation[:costfromreservoir] = watercost[:costsw]
+
+#watercost[:depth] = aquifer[:meandepth]
 # Run it and time it!
 @time run(m)
 m.components[:Allocation].Variables.cost
@@ -33,20 +37,16 @@ m.components[:Allocation].Parameters.waterfromsupersource
 m.components[:Allocation].Parameters.waterfromreservoir
 m.components[:Allocation].Parameters.costfromgw
 m.components[:Allocation].Parameters.costfromreservoir
-
-m.components[:Watercost].Variables.costsw
-m.components[:Watercost].Variables.costgw
-m.components[:Watercost].Parameters.depth
-
+m.components[:Allocation].Parameters.waterdemand
+m.components[:Aquifer].Parameters.storagecoef
 m.components[:Aquifer].Variables.meandepth
 m.components[:Aquifer].Variables.piezohead
 m.components[:Aquifer].Variables.lateralflows
+m.components[:Aquifer].Parameters.withdrawal
 
-m.components[:Reservoir].Parameters.inflows
-m.components[:Reservoir].Parameters.outflows
-m.components[:Reservoir].Parameters.withdrawal
-m.components[:Reservoir].Variables.storage
-
+m.components[:Aquifer].Parameters.depthaquif
+m.components[:Aquifer].Parameters.layerthick
+m.components[:Aquifer].Parameters.lateralconductivity
 println("Optimizing...")
 # Make sure that all constraints are currently satisifed. All must be < 0
 constraints = Function[]
@@ -54,8 +54,8 @@ for tt in 1:m.indices_counts[:time]
     constraints = [constraints; map(aa -> makeconstraintdemandmet(aa, tt), 1:m.indices_counts[:regions])]
     constraints = [constraints; map(aa -> makeconstraintpiezomin(aa, tt), 1:m.indices_counts[:aquifers])]
     constraints = [constraints; map(aa -> makeconstraintpiezomax(aa, tt), 1:m.indices_counts[:aquifers])]
-    constraints = [constraints; map(rr -> makeconstraintresmin(rr, tt), 1:m.indices_counts[:reservoirs])]
-    constraints = [constraints; map(rr -> makeconstraintresmax(rr, tt), 1:m.indices_counts[:reservoirs])]
+    #constraints = [constraints; map(rr -> makeconstraintresmin(rr, tt), 1:m.indices_counts[:reservoirs])]
+    #constraints = [constraints; map(rr -> makeconstraintresmax(rr, tt), 1:m.indices_counts[:reservoirs])]
 end
 
 function objective(m)
@@ -63,11 +63,11 @@ function objective(m)
     return -sum(m.components[:Allocation].Variables.cost)
 end
 
-optprob = problem(m, [:Allocation, :Allocation, :Allocation, :Reservoir], [:waterfromreservoir, :waterfromgw, :waterfromsupersource, :outflows], [0., 0., 0., 0., 0.], [1e9,1e9,1e9,1e9,1e9], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
+optprob = problem(m, [:Allocation, :Allocation, :Allocation], [:waterfromgw, :waterfromreservoir, :waterfromsupersource], [0., 0., 0.], [1e9,1e12,Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
 println("Solving...")
 @time sol = solution(optprob); ###### CANNOT COMPUTE THE BASELINE FOR GRADIENTS
 # re-run model with optimised parameters
-setparameters(m, [:Allocation, :Allocation, :Allocation, :Reservoir], [:waterfromreservoir, :waterfromgw, :waterfromsupersource, :outflows], sol)
+setparameters(m, [:Allocation, :Allocation, :Allocation], [:waterfromgw, :waterfromreservoir, :waterfromsupersource], sol)
 @time run(m)
 objective(m)
 
@@ -80,8 +80,3 @@ m.components[:Allocation].Parameters.waterfromreservoir
 m.components[:Aquifer].Variables.piezohead
 m.components[:Aquifer].Parameters.layerthick
 m.components[:Aquifer].Parameters.withdrawal
-m.components[:Reservoir].Variables.storage
-m.components[:Reservoir].Parameters.storagecapacitymin
-m.components[:Reservoir].Parameters.storagecapacitymax
-m.components[:Reservoir].Parameters.outflows
-

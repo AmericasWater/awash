@@ -4,6 +4,7 @@ function initaquifercontus(m::Model)
   aquifer = addcomponent(m, Aquifer)
   temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/v_FIPS.txt")
   aquifer[:fips]= temp[:,1];
+  aquifer[:edges]= readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/connectivity_matrix_sparse.txt")
   temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_thickness.txt")
   aquifer[:layerthick] = temp[:,1];
   temp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/aquifer_depth.txt")

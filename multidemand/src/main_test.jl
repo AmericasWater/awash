@@ -21,7 +21,7 @@ reservoir = initreservoir(m);
 # Set links between components
 aquifer[:withdrawal] = allocation[:watergw]
 reservoir[:withdrawal] = allocation[:waterreservoir]
-allocation[:depth] = aquifer[:meandepth]
+#allocation[:depth] = aquifer[:meandepth]
 #allocation[:costfromgw] = watercost[:costgw]
 #allocation[:costfromreservoir] = watercost[:costsw]
 #watercost[:depth] = aquifer[:meandepth]
@@ -43,9 +43,9 @@ m.components[:Allocation].Parameters.waterfromreservoirag
 m.components[:Allocation].Parameters.costfromgwag
 m.components[:Allocation].Parameters.costfromreservoirag
 
-m.components[:Watercost].Variables.costsw
-m.components[:Watercost].Variables.costgw
-m.components[:Watercost].Parameters.depth
+#m.components[:Watercost].Variables.costsw
+#m.components[:Watercost].Variables.costgw
+#m.components[:Watercost].Parameters.depth
 
 m.components[:Aquifer].Variables.meandepth
 m.components[:Aquifer].Variables.piezohead
@@ -71,20 +71,23 @@ end
 
 function objective(m)
     # Cost is minimized
-    return -sum(m.components[:Allocation].Variables.cost)
+    return -sum((m.components[:Allocation].Variables.cost).^2)
 end
 
-optprob = problem(m, [:Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Reservoir], [:waterfromreservoirag, :waterfromgwag, :waterfromsupersourceag, :waterfromreservoirdom, :waterfromgwdom, :waterfromsupersourcedom, :outflows], [0., 0., 0., 0., 0., 0., 0.], [1e9,1e9,Inf,1e9,1e9,Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
-#optprob = problem(m, [:Allocation, :Allocation, :Allocation, :Reservoir], [:waterfromreservoir, :waterfromgw, :waterfromsupersource, :outflows], [0., 0., 0., 0., 0.], [1e9,1e9,1e9,1e9,1e9], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
+vectormoduletooptimise=[:Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Reservoir]
+vectorparametertooptimise= [:waterfromreservoirag, :waterfromgwag, :waterfromsupersourceag, :waterfromreservoirdom, :waterfromgwdom, :waterfromsupersourcedom, :outflows]
+optprob = problem(m,vectormoduletooptimise,vectorparametertooptimise, [0., 0., 0., 0., 0., 0., 0.], [1e9,1e9,Inf,1e9,1e9,Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
+
 
 println("Solving...")
 @time sol = solution(optprob); ###### CANNOT COMPUTE THE BASELINE FOR GRADIENTS
 
 # re-run model with optimised parameters
-setparameters(m, [:Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Reservoir], [:waterfromreservoirag, :waterfromgwag, :waterfromsupersourceag, :waterfromreservoirdom, :waterfromgwdom, :waterfromsupersourcedom, :outflows], sol)
+setparameters(m,vectormoduletooptimise,vectorparametertooptimise, sol)
 @time run(m)
 objective(m)
 
+println("Results")
 m.components[:Allocation].Variables.cost
 m.components[:Allocation].Variables.waterallocateddom
 m.components[:Allocation].Parameters.waterfromgwdom
@@ -101,9 +104,9 @@ m.components[:Allocation].Parameters.waterfromreservoirag
 m.components[:Allocation].Parameters.costfromgwag
 m.components[:Allocation].Parameters.costfromreservoirag
 
-m.components[:Watercost].Variables.costsw
-m.components[:Watercost].Variables.costgw
-m.components[:Watercost].Parameters.depth
+#m.components[:Watercost].Variables.costsw
+#m.components[:Watercost].Variables.costgw
+#m.components[:Watercost].Parameters.depth
 
 m.components[:Aquifer].Variables.meandepth
 m.components[:Aquifer].Variables.piezohead
@@ -115,3 +118,4 @@ m.components[:Reservoir].Parameters.outflows
 m.components[:Reservoir].Parameters.withdrawal
 m.components[:Reservoir].Variables.storage
 
+println("Results")

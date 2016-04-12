@@ -48,7 +48,7 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
-function grad_waternetwork_withdrawals_outflows(m::Model)
+function grad_waternetwork_outflows_withdrawals(m::Model)
     waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
     netdata = waternetdata["network"];
 
@@ -79,7 +79,7 @@ function grad_waternetwork_withdrawals_outflows(m::Model)
     roomintersect(m, :WaterNetwork, :outflows, :withdrawals, generate)
 end
 
-function grad_waternetwork_precipitation_antiwithdrawals(m::Model)
+function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
     function generate(A, tt)
         # Fill in CANALS x REGIONS
         # Determine how many canals are in this region

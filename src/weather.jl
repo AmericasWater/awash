@@ -54,8 +54,8 @@ end
 
 # Load data from the water budget
 # Currently summing over all months
-runoff = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "runoff"), fips, names));
-precip = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "precip"), fips, names)); # mm / month
+runoff = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "runoff"), fips, names)); # mm / yr
+precip = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "precip"), fips, names)); # mm / yr
 
 # Convert runoff to a gauge measure
 waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
@@ -85,7 +85,7 @@ for rr in 1:numcounties
     allareas[gauges .<= nrow(stations)] = stationareas
     allareas[isnan(allareas)] = 1
 
-    XX[gauges, rr] = (allareas / sum(allareas)) * countyareas[rr] / 100
+    XX[gauges, rr] = (allareas / sum(allareas)) * countyareas[rr] / 1000 # mm Ha to 1000 m^3
 end
 
 addeds = XX * runoff;

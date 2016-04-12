@@ -107,7 +107,7 @@ function inittransportation(m::Model)
 end
 
 # row: variables, col = parameters
-function grad_transportation_imported_regionimports(m::Model)
+function grad_transportation_regionimports_imported(m::Model)
     function generate(A, cc, tt)
         # Sum over all edges for each region to translate to region-basis
         edge1 = 1
@@ -127,7 +127,7 @@ function grad_transportation_imported_regionimports(m::Model)
 end
 
 # row: variables, col = parameters
-function grad_transportation_imported_regionexports(m::Model)
+function grad_transportation_regionexports_imported(m::Model)
     function generate(A, cc, tt)
         # Sum over all edges for each region to translate to region-basis
         edge1 = 1
@@ -144,7 +144,7 @@ function grad_transportation_imported_regionexports(m::Model)
     roomintersect(m, :Transportation, :regionexports, :imported, generate)
 end
 
-function grad_transportation_imported_cost(m::Model)
+function grad_transportation_cost_imported(m::Model)
     gen(ee, cc, tt) = m.parameters[:cost_edge].values[ee, tt] * volume_per_unit[cc]
     roomdiagonal(m, :Transportation, :cost, :imported, gen)
 end

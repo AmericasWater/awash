@@ -193,17 +193,17 @@ function initagriculture(m::Model)
     agriculture
 end
 
-function grad_agriculture_irrigatedareas_production(m::Model)
+function grad_agriculture_production_irrigatedareas(m::Model)
     roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
-function grad_agriculture_rainfedareas_production(m::Model)
+function grad_agriculture_production_rainfedareas(m::Model)
     gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 # Convert Ha to acres
     roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
 
-function grad_agriculture_irrigatedareas_totalirrigation(m::Model)
+function grad_agriculture_totalirrigation_irrigatedareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numcrops
@@ -216,7 +216,7 @@ function grad_agriculture_irrigatedareas_totalirrigation(m::Model)
     roomintersect(m, :Agriculture, :totalirrigation, :irrigatedareas, generate)
 end
 
-function grad_agriculture_irrigatedareas_allagarea(m::Model)
+function grad_agriculture_allagarea_irrigatedareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numcrops
@@ -230,7 +230,7 @@ function grad_agriculture_irrigatedareas_allagarea(m::Model)
     roomintersect(m, :Agriculture, :allagarea, :irrigatedareas, generate)
 end
 
-function grad_agriculture_rainfedareas_allagarea(m::Model)
+function grad_agriculture_allagarea_rainfedareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numcrops
@@ -248,10 +248,10 @@ function constraintoffset_agriculture_allagarea(m::Model)
     hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr])
 end
 
-function grad_agriculture_rainfedareas_cost(m::Model)
+function grad_agriculture_cost_rainfedareas(m::Model)
     roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
 end
 
-function grad_agriculture_irrigatedareas_cost(m::Model)
+function grad_agriculture_cost_irrigatedareas(m::Model)
     roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
 end

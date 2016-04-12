@@ -84,32 +84,32 @@ function initmarket(m::Model)
     market
 end
 
-function grad_market_regionimports_available(m::Model)
+function grad_market_available_regionimports(m::Model)
     roomdiagonal(m, :Market, :available, :regionimports, (rr, cc, tt) -> 1.)
 end
 
-function grad_market_regionexports_available(m::Model)
+function grad_market_available_regionexports(m::Model)
     roomdiagonal(m, :Market, :available, :regionexports, (rr, cc, tt) -> -1.)
 end
 
-function grad_market_produced_available(m::Model)
+function grad_market_available_produced(m::Model)
     roomdiagonal(m, :Market, :available, :produced, (rr, cc, tt) -> 1.)
 end
 
-function grad_market_internationalsales_available(m::Model)
+function grad_market_available_internationalsales(m::Model)
     roomdiagonal(m, :Market, :available, :internationalsales, (rr, cc, tt) -> -1.)
 end
 
-function deriv_market_produced_totalrevenue(m::Model)
+function deriv_market_totalrevenue_produced(m::Model)
     gen(rr, cc, tt) = m.parameters[:domestic_prices].values[rr, cc, tt]
     hallsingle(m, :Market, :produced, gen)
 end
 
-function deriv_market_internationalsales_totalrevenue(m::Model)
+function deriv_market_totalrevenue_internationalsales(m::Model)
     gen(rr, cc, tt) = -m.parameters[:domestic_prices].values[rr, cc, tt] + m.parameters[:international_prices].values[rr, cc, tt]
     hallsingle(m, :Market, :internationalsales, gen)
 end
 
-function grad_market_available_domesticbalance(m::Model)
+function grad_market_domesticbalance_available(m::Model)
     roomdiagonal(m, :Market, :domesticbalance, :available, (rr, cc, tt) -> 1.)
 end

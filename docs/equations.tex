@@ -1,0 +1,191 @@
+\documentclass[11pt,oneside, landscape]{amsart}
+\usepackage[margin=1in]{geometry}
+\geometry{letterpaper}
+\usepackage[parfill]{parskip}
+\usepackage{graphicx}
+\usepackage{siunitx}
+
+\author{James Rising}
+\date{}
+
+\begin{document}
+
+\section{Setup}
+
+Dimensions:
+
+\begin{minipage}{4in}
+\begin{itemize}
+\item Time ($t$): Currently yearly, solved independently
+\item Counties ($r$): \num{3121} in CONUS
+\item Crops ($c$): \num{9} (alfalfa, other hay, summer barley, winter
+  barley, maize, sorghum, soybeans, spring wheat, winter wheat)
+\item Gauges ($g$): \num{22559} nodes in the water network
+\item Canals ($p$): \num{21598} extraction links between gauges and counties
+\item Edges ($e$): \num{18561} county-to-county transportation
+  connections
+\end{itemize}
+\end{minipage}
+
+Optimization parameters:
+
+\begin{itemize}
+\item Conjunctive Use: Pumping$_{rt}$ ($1000 m^3 / year$)
+\item Conjunctive Use: Withdrawals$_{pt}$ ($1000 m^3 / year$)
+\item Agriculture: IrrigatedArea$_{rct}$ ($Ha$)
+\item Agriculture: RainfedArea$_{rct}$ ($Ha$)
+\item Transportation: Imported$_{ect}$ ($Lb$ or $Bu$ by crop)
+\item Market: InternationalSales$_{rct}$ ($Lb$ or $Bu$ by crop)
+\end{itemize}
+
+Constraint variables:
+
+\begin{itemize}
+\item Water Network: Outflows$_{gt}$ ($1000 m^3 / year$)
+\item Conjunctive Use: SWBalance$_{rt}$ ($1000 m^3 / year$)
+\item Market: Available$_{rct}$ ($Lb$ or $Bu$ by crop)
+\item Market: DomesticCropBalance$_{rct}$ ($Lb$ or $Bu$ by crop)
+\end{itemize}
+
+\section{Agriculture}
+
+Parameters:
+
+\begin{itemize}
+\item LogIrrigatedYield$_{rc}$: intercept of statistical model (later
+  add temperatures)
+\item WaterDemand$_c$ ($mm$): Water requirement by crop
+\item Precipitation$_{rt}$ ($mm$)
+\end{itemize}
+
+Equations:
+
+\[
+Production_{rct} = IrrigatedArea_{rct} e^{LogIrrigatedYield_{rc}} + RainfedArea_{rct}
+e^{LogIrrigatedYield_{rc} - b_{rc} min(0, WaterDemand_c - Precipitation_{rt})}
+\]
+
+\[
+Irrigation_{rt} = IrrigatedArea_{rct} min(0, WaterDemand_c -
+Precipitation_{rt}) / 100
+\]
+
+\section{Conjunctive Use}
+
+Parameters:
+
+\begin{itemize}
+\item PumpingCost$_{rt}$ ($USD / 1000 m^3$): Currently \$100 / 1000
+  $m^3$ everywhere
+\end{itemize}
+
+Equations:
+
+\[
+SWBalance_{rt} = DomesticWaterUse_{rt} + Irrigation_{rt} -
+Pumping_{rt} - \sum_{p \in P(r)} Withdrawals_{pt} > 0
+\]
+
+\[
+PumpingSpending_{rt} = Pumping_{rt} PumpingCost_{rt}
+\]
+
+\section{Domestic Demand}
+
+Parameters:
+
+\begin{itemize}
+\item Population$_{rt}$ ($people$): From census (later from SSPs)
+\item WaterPerPerson ($m^3 / year$): \SI{575}{liter / year}
+\item CropPerPerson$_c$ ($Lb / year$ or $Bu / year$ by crop): In daily
+  units, \SI{1}{Lb} hay, \SI{.005}{Bu} barley, \SI{.05}{Bu} maize,
+  \SI{.01}{Lb} sorghum, \SI{.02}{Bu} soybeans, \SI{.05}{Bu} wheat
+\end{itemize}
+
+Equations:
+
+\[
+DomesticWaterUse_{rt} = WaterPerPerson Population_{rt}
+\]
+
+\[
+DomesticCropDemand_{rct} = CropPerPerson_c Population_{rt}
+\]
+
+\section{Market}
+
+Parameters:
+
+\begin{itemize}
+\item DomesticPrices$_c$ ($USD / Lb$ or $USD / Bu$ by crop): \$0.046 /
+  Lb hay, \$2.62 / Bu barley, \$4.08 / Bu maize, \$4.44 / Lb sorghum,
+  \$9.51 / Bu soybeans, \$4.92 / Bu wheat
+\item InternationalPrices$_c$ ($USD / Lb$ or $USD / Bu$ by crop):
+  DomesticPrices$_c$ / 2
+\end{itemize}
+
+Equations:
+
+\[
+Available_{rct} = Production_{rct} + RegionImports_{rct} -
+RegionExports_{rct} > 0
+\]
+
+\[
+Revenue_{rct} = Available_{rct} DomesticPrices_c +
+(InternationalPrices_c - DomesticPrices_c)
+InternationalSales_{rct}
+\]
+
+\[
+DomesticCropBalance_{rct} = Available_{rct} - InternationalSales_{rct}
+- DomesticCropDemand_{rct} < 0
+\]
+
+\section{Transportation}
+
+Parameters:
+
+\begin{itemize}
+\item EdgeCost$_{et}$ ($USD / m^3$): Set to \$0.76 everywhere (40'
+  container = 76.5 $m^3$, Average rate is \$1.58 per mile, Distance
+  from SF to NYC is 2906 miles, Counties crossed is $.5 X^2$ = 3121,
+  or 79; Average distance between counties = 37 mile
+\item VolumeCrop$_c$ ($m^3 / Lb$ or $m^3 / Bu$ by crop): \num{0.0018}
+  for pound crops, 0.035 for bushel crops
+\end{itemize}
+
+Equations:
+
+\[
+RegionImports_{rct} = \sum_{e \in I(r)} Imported_{ect}
+\]
+
+\[
+RegionExports_{rct} = \sum_{e \in E(r)} Imported_{ect}
+\]
+
+\[
+TransitCost_{ect} = EdgeCost_{et} VolumeCrop_c Imported_{ect}
+\]
+
+\section{Water Network}
+
+Parameters:
+
+\begin{itemize}
+\item Runoff$_{rt}$ ($1000 m^3 / year$): From VIC, scaled by area of county
+\end{itemize}
+
+Equations:
+
+\[
+Added_{gt} = \frac{1}{N(R(g))} Runoff_{R(g),t}
+\]
+
+\[
+Outflows_{gt} = Added_{gt} - Withdrawals_{gt} + \sum_{g \in U(g)}
+Outflows_{gt}
+\]
+
+\end{document}

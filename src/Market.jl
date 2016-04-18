@@ -52,8 +52,8 @@ function timestep(c::Market, tt::Int)
     for rr in d.regions
         for cc in d.crops
             v.available[rr, cc, tt] = p.produced[rr, cc, tt] + p.regionimports[rr, cc, tt] - p.regionexports[rr, cc, tt]
-            v.domestic_revenue[rr, cc, tt] = p.domestic_prices[rr, cc, tt] * (v.available[rr, cc, tt] - p.internationalsales[rr, cc, tt])
-            v.international_revenue[rr, cc, tt] = p.international_prices[rr, cc, tt] * p.internationalsales[rr, cc, tt]
+            v.domesticrevenue[rr, cc, tt] = p.domestic_prices[rr, cc, tt] * (v.available[rr, cc, tt] - p.internationalsales[rr, cc, tt])
+            v.internationalrevenue[rr, cc, tt] = p.international_prices[rr, cc, tt] * p.internationalsales[rr, cc, tt]
         end
     end
 end

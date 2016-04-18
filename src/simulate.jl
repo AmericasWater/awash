@@ -11,6 +11,7 @@ include("world.jl")
 include("weather.jl")
 
 include("Agriculture.jl")
+include("ReturnFlows.jl")
 include("ConjunctiveUse.jl")
 include("DomesticDemand.jl")
 include("Market.jl")
@@ -25,6 +26,7 @@ m = newmodel();
 # Add all of the components
 domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
 agriculture = initagriculture(m); # optimization-only
+returnflows = initreturnflows(m) # exogenous/optimization
 conjunctiveuse = initconjunctiveuse(m); # dep. Agriculture, DomesticDemand
 waternetwork = initwaternetwork(m); # dep. ConjunctiveUse
 transportation = inittransportation(m); # optimization-only
@@ -34,7 +36,8 @@ market = initmarket(m); # dep. Transporation, Agriculture
 conjunctiveuse[:totalirrigation] = agriculture[:totalirrigation];
 conjunctiveuse[:domesticuse] = domesticdemand[:waterdemand];
 
-waternetwork[:removed] = conjunctiveuse[:swdemand];
+waternetwork[:removed] = returnflows[:removed];
+conjunctiveuse[:withdrawals] = returnflows[:copy_withdrawals];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

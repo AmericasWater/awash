@@ -26,11 +26,9 @@ function timestep(c::WaterNetwork, tt::Int)
     for hh in d.gauges
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
-        println("Process $gauge at $gg")
         allflow = 0.
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             allflow += v.outflows[vertex_index(upstream, waternet), tt]
-            println(allflow)
         end
 
         v.inflows[gg, tt] = allflow
@@ -44,6 +42,7 @@ function initwaternetwork(m::Model)
     # addeds loaded by weather.jl
 
     waternetwork[:added] = addeds[:, 1:numsteps]
+    waternetwork[:removed] = zeros(numgauges, numsteps)
 
     waternetwork
 end

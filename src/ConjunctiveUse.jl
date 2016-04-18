@@ -1,4 +1,4 @@
-# The conjunctiveuse component
+# The Conjunctive Use component
 #
 # Combines all of the sources of water demand, and determines the
 # conjunctive use division between surface water and groundwater.
@@ -63,7 +63,7 @@ function timestep(c::ConjunctiveUse, tt::Int)
 end
 
 """
-Add a conjunctiveuse component to the model.
+Add a ConjunctiveUse component to the model.
 """
 function initconjunctiveuse(m::Model)
     conjunctiveuse = addcomponent(m, ConjunctiveUse);

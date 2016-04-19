@@ -14,7 +14,7 @@ include("world.jl")
 include("weather.jl")
 
 include("Agriculture.jl")
-include("ConjunctiveUse.jl")
+include("WaterDemand.jl")
 include("DomesticDemand.jl")
 include("Market.jl")
 include("Transportation.jl")
@@ -29,16 +29,16 @@ m = newmodel();
 # Add all of the components
 domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
 agriculture = initagriculture(m); # optimization-only
-conjunctiveuse = initconjunctiveuse(m); # dep. Agriculture, DomesticDemand
-waternetwork = initwaternetwork(m); # dep. ConjunctiveUse
+waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
+waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :ConjunctiveUse, :Agriculture, :Agriculture, :Transportation, :Market]
+paramcomps = [:Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
 parameters = [:waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
-constcomps = [:Agriculture, :WaterNetwork, :ConjunctiveUse, :Market, :Market]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :swbalance, :available, :domesticbalance]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
@@ -73,7 +73,7 @@ if redohouse
         cwro = deserialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "r"));
     end
 
-    setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :ConjunctiveUse, :withdrawals)) # +
+    setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
     setconstraintoffset!(house, cwro) # +
 
     # Constrain available market > 0
@@ -84,10 +84,10 @@ if redohouse
                    grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m))) # +-
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
-    setconstraint!(house, grad_conjunctiveuse_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
+    setconstraint!(house, grad_waterdemand_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
     setconstraint!(house, -grad_allocation_swbalance_waterfromgw(m)) # -
-    setconstraint!(house, -grad_conjunctiveuse_swbalance_withdrawals(m)) # - THIS IS SUPPLY
-    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :ConjunctiveUse, :swbalance)) # -
+    setconstraint!(house, -grad_allocation_swbalance_withdrawals(m)) # - THIS IS SUPPLY
+    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :Allocation, :swbalance)) # -
 
     # Constrain domesticsales < domesticdemand
     # Reproduce 'available'

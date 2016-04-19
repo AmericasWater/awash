@@ -1,12 +1,11 @@
-# The Conjunctive Use component
+# The Water Demand component
 #
-# Combines all of the sources of water demand, and determines the
-# conjunctive use division between surface water and groundwater.
+# Combines all of the sources of water demand.
 
 using Mimi
 using DataFrames
 
-@defcomp ConjunctiveUse begin
+@defcomp WaterDemand begin
     regions = Index()
 
     # External
@@ -23,7 +22,7 @@ end
 """
 Compute the amount extracted and the cost for doing it.
 """
-function timestep(c::ConjunctiveUse, tt::Int)
+function timestep(c::WaterDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
@@ -35,18 +34,18 @@ function timestep(c::ConjunctiveUse, tt::Int)
 end
 
 """
-Add a ConjunctiveUse component to the model.
+Add a WaterDemand component to the model.
 """
-function initconjunctiveuse(m::Model)
-    conjunctiveuse = addcomponent(m, ConjunctiveUse);
+function initwaterdemand(m::Model)
+    waterdemand = addcomponent(m, WaterDemand);
 
     # Set optimized parameters to 0
-    conjunctiveuse[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
 
-    conjunctiveuse
+    waterdemand
 end
 
-function grad_conjunctiveuse_swbalance_totalirrigation(m::Model)
-    roomdiagonal(m, :ConjunctiveUse, :swbalance, :totalirrigation, (rr, tt) -> 1.)
+function grad_waterdemand_swbalance_totalirrigation(m::Model)
+    roomdiagonal(m, :WaterDemand, :swbalance, :totalirrigation, (rr, tt) -> 1.)
 end
 

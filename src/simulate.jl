@@ -12,7 +12,7 @@ include("weather.jl")
 
 include("Agriculture.jl")
 include("ReturnFlows.jl")
-include("ConjunctiveUse.jl")
+include("WaterDemand.jl")
 include("DomesticDemand.jl")
 include("Market.jl")
 include("Transportation.jl")
@@ -29,20 +29,20 @@ m = newmodel();
 # Add all of the components
 domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
 agriculture = initagriculture(m); # optimization-only
-conjunctiveuse = initconjunctiveuse(m); # dep. Agriculture, DomesticDemand
-allocation = initallocation(m); # dep. ConjunctiveUse
+waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
+allocation = initallocation(m); # dep. WaterDemand
 groundwater = initaquifercontus(m); # Allocation or optimization-only
 reservoir = initreservoir(m); # Allocation or optimization-only
 returnflows = initreturnflows(m); # exogenous/optimization
-waternetwork = initwaternetwork(m); # dep. ConjunctiveUse
+waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
 
 # Connect up the components
-conjunctiveuse[:totalirrigation] = agriculture[:totalirrigation];
-conjunctiveuse[:domesticuse] = domesticdemand[:waterdemand];
+waterdemand[:totalirrigation] = agriculture[:totalirrigation];
+waterdemand[:domesticuse] = domesticdemand[:waterdemand];
 
-allocation[:waterdemand] = conjunctiveuse[:totaldemand];
+allocation[:waterdemand] = waterdemand[:totaldemand];
 waternetwork[:removed] = returnflows[:removed];
 allocation[:withdrawals] = returnflows[:copy_withdrawals];
 

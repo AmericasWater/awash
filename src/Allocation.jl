@@ -107,7 +107,7 @@ function makeconstraintdemandmet(aa, tt)
 end
 
 function soleobjective_allocation(m::Model)
-    sum(model[:ConjunctiveUse, :cost])
+    sum(model[:Allocation, :cost])
 end
 
 function grad_allocation_swbalance_waterfromgw(m::Model)

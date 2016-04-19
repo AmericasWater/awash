@@ -23,22 +23,22 @@ end
 
 # Combine component-specific objectives
 function objective(model::Model)
-    soleobjective_conjunctivecse(model) + soleobjective_transportation(model)
+    soleobjective_waterdemand(model) + soleobjective_transportation(model)
 end
 
 # Create the OptiMimi optimization problem
-optprob = problem(m, [:ConjunctiveUse, :Transportation], [:pumping, :imported], [0., 0.], [Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
+optprob = problem(m, [:WaterDemand, :Transportation], [:pumping, :imported], [0., 0.], [Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
 
 println("Solving...")
 @time sol = solution(optprob)
 println(sol)
 
-setparameters(m, [:ConjunctiveUse, :Transportation], [:pumping, :imported], sol)
+setparameters(m, [:WaterDemand, :Transportation], [:pumping, :imported], sol)
 @time run(m)
 
 df = DataFrame(fips=m.indices_values[:regions], demand=vec(m[:Consumption, :demand]),
-               allotment=vec(m.components[:ConjunctiveUse].Parameters.free_allotment),
-               pumping=vec(m.components[:ConjunctiveUse].Parameters.pumping),
+               allotment=vec(m.components[:WaterDemand].Parameters.free_allotment),
+               pumping=vec(m.components[:WaterDemand].Parameters.pumping),
                imports=vec(m[:Transportation, :regionimports]),
                exports=vec(m[:Transportation, :regionexports]))
 writetable("results/counties$suffix.csv", df)

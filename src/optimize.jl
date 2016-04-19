@@ -19,6 +19,7 @@ include("DomesticDemand.jl")
 include("Market.jl")
 include("Transportation.jl")
 include("WaterNetwork.jl")
+include("Allocation.jl")
 
 println("Creating model...")
 
@@ -35,8 +36,8 @@ market = initmarket(m); # dep. Transporation, Agriculture
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:ConjunctiveUse, :ConjunctiveUse, :Agriculture, :Agriculture, :Transportation, :Market]
-parameters = [:pumping, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+paramcomps = [:Allocation, :ConjunctiveUse, :Agriculture, :Agriculture, :Transportation, :Market]
+parameters = [:waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :ConjunctiveUse, :Market, :Market]
 constraints = [:allagarea, :outflows, :swbalance, :available, :domesticbalance]
 ## Constraint definitions:
@@ -48,7 +49,7 @@ if redohouse
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints);
 
     # Optimize revenue_domestic + revenue_international - pumping_cost - transit_cost
-    setobjective!(house, -varsum(grad_conjunctiveuse_cost_pumping(m)))
+    setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     setobjective!(house, -varsum(grad_transportation_cost_imported(m)))
     setobjective!(house, -varsum(grad_agriculture_cost_rainfedareas(m)))
     setobjective!(house, -varsum(grad_agriculture_cost_irrigatedareas(m)))
@@ -84,7 +85,7 @@ if redohouse
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
     setconstraint!(house, grad_conjunctiveuse_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
-    setconstraint!(house, -grad_conjunctiveuse_swbalance_pumping(m)) # -
+    setconstraint!(house, -grad_allocation_swbalance_waterfromgw(m)) # -
     setconstraint!(house, -grad_conjunctiveuse_swbalance_withdrawals(m)) # - THIS IS SUPPLY
     setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :ConjunctiveUse, :swbalance)) # -
 

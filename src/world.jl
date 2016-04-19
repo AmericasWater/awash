@@ -21,6 +21,8 @@ numsteps = 1 #60
 numcrops = length(crops)
 numcanals = nrow(draws)
 
+naquifers = 3108;
+
 function newmodel()
     m = Model()
 
@@ -30,6 +32,7 @@ function newmodel()
     setindex(m, :gauges, collect(keys(wateridverts)))
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))
+    setindex(m, :aquifers, collect(1:naquifers))
 
     return m
 end

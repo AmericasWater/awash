@@ -72,7 +72,8 @@ else
         add_vertex!(regionnet, regverts[fips])
     end
 
-    for (fips, neighbors) in edges
+    for fips in keys(edges)
+        neighbors = edges[fips]
         for neighbor in neighbors
             if !(neighbor in names)
                 # Retroactive add

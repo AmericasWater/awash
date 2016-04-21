@@ -15,3 +15,12 @@
 4. Open julia (I do this in the terminal) and type,
 
    `Pkg.add("Mimi")`
+   `Pkg.add("Graphs")`
+   `Pkg.add("NetCDF")`
+
+    You may need to install other libraries for NetCDFs.
+
+5. Use the development version of Mimi by calling
+
+   `Pkg.checkout("Mimi")`
+

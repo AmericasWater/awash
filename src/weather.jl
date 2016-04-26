@@ -22,9 +22,9 @@ function reorderfips(weather::DataArrays.DataArray{Float64, 1}, fromfips, tofips
 end
 
 counties[isna(counties[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
-countyareas = reorderfips(counties[:, :TotalArea_sqmi] * 258.999, counties[:FIPS], names) # Ha
+countyareas = reorderfips(counties[:, :TotalArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
 counties[isna(counties[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
-countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], names) # Ha
+countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
 
 function reorderfips(weather::Array{Float64, 2}, fromfips, tofips)
     result = zeros(length(tofips), size(weather, 1))
@@ -54,8 +54,8 @@ end
 
 # Load data from the water budget
 # Currently summing over all months
-runoff = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "runoff"), fips, names)); # mm / yr
-precip = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "precip"), fips, names)); # mm / yr
+runoff = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "runoff"), fips, mastercounties[:fips])); # mm / yr
+precip = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "precip"), fips, mastercounties[:fips])); # mm / yr
 
 # Convert runoff to a gauge measure
 waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
@@ -68,7 +68,7 @@ for rr in 1:numcounties
     if isna(countyareas[rr])
         continue
     end
-    fips = parse(Int64, names[rr])
+    fips = parse(Int64, mastercounties[rr, :fips])
     countygauges = draws[draws[:fips] .== fips, :gaugeid]
     countyindexes = [gaugeid in keys(wateridverts) ? vertex_index(wateridverts[gaugeid]) : 0 for gaugeid in countygauges]
     gauges = convert(Vector{Int64}, countyindexes)

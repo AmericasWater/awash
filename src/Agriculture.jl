@@ -165,7 +165,7 @@ function initagriculture(m::Model)
     deficit_coeff = zeros(numcounties, numcrops)
     for rr in 1:numcounties
         for cc in 1:numcrops
-            fips = parse(Int64, names[rr])
+            fips = parse(Int64, mastercounties[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
                 logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)

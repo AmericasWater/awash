@@ -65,7 +65,7 @@ function timestep(c::Transportation, tt::Int)
         edge1 = 1
         for ii in d.regions
             # Get the number of edges this county imports from
-            numneighbors = out_degree(regverts[names[ii]], regionnet)
+            numneighbors = out_degree(regverts[mastercounties[ii, :fips]], regionnet)
 
             # Sum over all *out-edges* to get import
             v.regionimports[ii, cc, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, tt])
@@ -73,7 +73,9 @@ function timestep(c::Transportation, tt::Int)
             # Sum over the edges that have this as an out-edge
             sources = get(sourceiis, ii, Int64[])
             for source in sources
-                v.regionexports[source, cc, tt] += p.imported[edge1, cc, tt]
+                if source > 0
+                    v.regionexports[source, cc, tt] += p.imported[edge1, cc, tt]
+                end
                 edge1 += 1 # length(sources) == numneighbors
             end
         end
@@ -113,7 +115,7 @@ function grad_transportation_regionimports_imported(m::Model)
         edge1 = 1
         for ii in 1:numcounties
             # Get the number of edges this county imports from
-            numneighbors = out_degree(regverts[names[ii]], regionnet)
+            numneighbors = out_degree(regverts[mastercounties[ii, :fips]], regionnet)
 
             # Sum over all *out-edges* to get import
             for jj in edge1:edge1 + numneighbors - 1

@@ -1,6 +1,13 @@
+using DataFrames
+
 suffix = (filterstate != nothing ? "-$filterstate" : "")
 if (netset == "dummy")
     suffix = "-dummy";
+end
+
+mastercounties = readtable("../data/global/counties.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+if filterstate != nothing
+    mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== filterstate, :]
 end
 
 include("regionnet.jl")
@@ -13,7 +20,7 @@ crops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "
 if netset == "dummy"
     numcounties = 5
 else
-    numcounties = length(names)
+    numcounties = nrow(mastercounties)
 end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts))
@@ -27,7 +34,7 @@ function newmodel()
     m = Model()
 
     setindex(m, :time, collect(2015:2015+numsteps-1))
-    setindex(m, :regions, names)
+    setindex(m, :regions, collect(mastercounties[:fips]))
     setindex(m, :crops, crops)
     setindex(m, :gauges, collect(keys(wateridverts)))
     setindex(m, :edges, collect(1:num_edges(regionnet)))

@@ -83,7 +83,7 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         # Fill in CANALS x REGIONS
         # Determine how many canals are in this region
         for rr in 1:numcounties
-            fips = parse(Int64, names[rr])
+            fips = parse(Int64, mastercounties[rr, :fips])
             thiscanals = find(draws[:fips] .== fips)
             for pp in 1:length(thiscanals)
                 A[thiscanals[pp], rr] = countyarea[rr] / 100.

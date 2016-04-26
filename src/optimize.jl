@@ -123,8 +123,8 @@ using MathProgBase
 
 coning = constraining(house, sol.sol)
 
-rdf = DataFrame(fips=names);
-cdf = DataFrame(fips=repmat(names, numcrops), crop=vec(repeat(crops, inner=[numcounties, 1])));
+rdf = DataFrame(fips=mastercounties[:fips]);
+cdf = DataFrame(fips=repmat(mastercounties[:fips], numcrops), crop=vec(repeat(crops, inner=[numcounties, 1])));
 
 # Look at parameter values
 varlens = varlengths(m, house.paramcomps, house.parameters)

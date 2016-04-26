@@ -11,12 +11,12 @@ using Mimi
     canals = Index()
 
     # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, time])
+    withdrawals = Parameter(index=[canals, time], units="1000 m^3")
 
     # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
-    copy_withdrawals = Variable(index=[canals, time])
+    copy_withdrawals = Variable(index=[canals, time], units="1000 m^3")
     # Water removed from gauge
-    removed = Variable(index=[gauges, time])
+    removed = Variable(index=[gauges, time], units="1000 m^3")
 end
 
 function timestep(c::ReturnFlows, tt::Int)

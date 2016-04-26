@@ -27,18 +27,18 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
 
     # Internal
     # Cost per unit for transportation on a given edge
-    cost_edge = Parameter(index=[edges, time])
+    cost_edge = Parameter(index=[edges, time], units="\$/m^3")
 
     # Optimized
     # Amount of resource imported on each link
-    imported = Parameter(index=[edges, crops, time])
+    imported = Parameter(index=[edges, crops, time], units="lborbu")
 
-    # The costs for each edge's transportation
-    cost = Variable(index=[edges, crops, time])
+    # The costs for each edge"s transportation
+    cost = Variable(index=[edges, crops, time], units="\$")
 
     # The total imported to and exported from each region
-    regionimports = Variable(index=[regions, crops, time])
-    regionexports = Variable(index=[regions, crops, time])
+    regionimports = Variable(index=[regions, crops, time], units="lborbu")
+    regionexports = Variable(index=[regions, crops, time], units="lborbu")
 end
 
 """

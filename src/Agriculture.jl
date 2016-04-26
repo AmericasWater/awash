@@ -90,41 +90,41 @@ end
 
     # Optimized
     # Land area appropriated to each crop, irrigated to full demand (Ha)
-    irrigatedareas = Parameter(index=[regions, crops, time])
-    rainfedareas = Parameter(index=[regions, crops, time])
+    irrigatedareas = Parameter(index=[regions, crops, time], units="Ha")
+    rainfedareas = Parameter(index=[regions, crops, time], units="Ha")
 
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
-    logirrigatedyield = Parameter(index=[regions, crops, time])
+    logirrigatedyield = Parameter(index=[regions, crops, time], units="none")
 
     # Coefficient on the effects of water deficits
-    deficit_coeff = Parameter(index=[regions, crops])
+    deficit_coeff = Parameter(index=[regions, crops], units="1/mm")
 
     # Water requirements per unit area, in mm
-    water_demand = Parameter(index=[crops])
+    water_demand = Parameter(index=[crops], units="mm")
 
     # Precipitation water per unit area, in mm
-    precipitation = Parameter(index=[regions, time])
+    precipitation = Parameter(index=[regions, time], units="mm")
 
     # Computed
     # Land area appropriated to each crop
-    totalareas = Variable(index=[regions, crops, time])
+    totalareas = Variable(index=[regions, crops, time], units="Ha")
     # Total agricultural area
-    allagarea = Variable(index=[regions, time])
+    allagarea = Variable(index=[regions, time], units="Ha")
 
     # Deficit for any unirrigated areas, in mm
-    water_deficit = Variable(index=[regions, crops, time])
+    water_deficit = Variable(index=[regions, crops, time], units="mm")
 
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time])
+    totalirrigation = Variable(index=[regions, time], units="1000 m^3")
 
     # Yield per hectare for rainfed (irrigated has irrigatedyield)
-    lograinfedyield = Variable(index=[regions, crops, time])
+    lograinfedyield = Variable(index=[regions, crops, time], units="none")
 
     # Total production: lb or bu
-    production = Variable(index=[regions, crops, time])
+    production = Variable(index=[regions, crops, time], units="lborbu")
     # Cultivation costs per acre
-    cultivationcost = Variable(index=[regions, crops, time])
+    cultivationcost = Variable(index=[regions, crops, time], units="\$")
 end
 
 function timestep(s::Agriculture, tt::Int)

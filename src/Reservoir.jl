@@ -8,20 +8,20 @@ using Distributions
     regions = Index()
 
     # Streamflow connnections
-    inflows = Parameter(index=[regions, time])
-    outflows = Parameter(index=[regions, time])
+    inflows = Parameter(index=[regions, time], units="m^3")
+    outflows = Parameter(index=[regions, time], units="m^3")
 
     # Municipality connections
-    withdrawal = Parameter(index=[regions, time])
+    withdrawal = Parameter(index=[regions, time], units="m^3")
 
     # Evaporation
-    evaporation = Parameter(index=[regions,time])
+    evaporation = Parameter(index=[regions,time], units="m^3")
 
     # Storage
-    storage = Variable(index=[regions, time])
-    storage0 = Parameter(index=[regions])
-    storagecapacitymin = Parameter(index=[regions])
-    storagecapacitymax = Parameter(index=[regions])
+    storage = Variable(index=[regions, time], units="m^3")
+    storage0 = Parameter(index=[regions], units="m^3")
+    storagecapacitymin = Parameter(index=[regions], units="m^3")
+    storagecapacitymax = Parameter(index=[regions], units="m^3")
 end
 
 """

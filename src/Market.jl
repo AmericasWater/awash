@@ -11,34 +11,34 @@ using Mimi
 
     # Configuration
     # Selling prices
-    domestic_prices = Parameter(index=[regions, crops, time])
-    international_prices = Parameter(index=[regions, crops, time])
+    domestic_prices = Parameter(index=[regions, crops, time], units="\$/lborbu")
+    international_prices = Parameter(index=[regions, crops, time], units="\$/lborbu")
 
     # Optimized
-    internationalsales = Parameter(index=[regions, crops, time])
+    internationalsales = Parameter(index=[regions, crops, time], units="lborbu")
 
     # External
     # Local production from Agriculture
-    produced = Parameter(index=[regions, crops, time])
+    produced = Parameter(index=[regions, crops, time], units="lborbu")
 
     # Imports and exports from Transportation
-    regionimports = Parameter(index=[regions, crops, time])
-    regionexports = Parameter(index=[regions, crops, time])
+    regionimports = Parameter(index=[regions, crops, time], units="lborbu")
+    regionexports = Parameter(index=[regions, crops, time], units="lborbu")
 
     # How much domestic buy if available
-    domestic_interest = Parameter(index=[regions, crops, time])
+    domestic_interest = Parameter(index=[regions, crops, time], units="lborbu")
 
     # Internal
 
     # The balance of available resource
-    available = Variable(index=[regions, crops, time])
+    available = Variable(index=[regions, crops, time], units="lborbu")
 
     # Remaining after international are sold
-    domesticbalance = Variable(index=[regions, crops, time])
+    domesticbalance = Variable(index=[regions, crops, time], units="lborbu")
 
     # Total revenue from selling all available
-    domesticrevenue = Variable(index=[regions, crops, time])
-    internationalrevenue = Variable(index=[regions, crops, time])
+    domesticrevenue = Variable(index=[regions, crops, time], units="\$")
+    internationalrevenue = Variable(index=[regions, crops, time], units="\$")
 end
 
 """

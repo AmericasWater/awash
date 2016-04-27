@@ -1,17 +1,17 @@
 workspace()
-cd("Dropbox/POSTDOC/AW-julia/operational-problem-main/src/")
+#cd("Dropbox/POSTDOC/AW-julia/operational-problem-main/src/")
 using OptiMimi
 
 include("Allocation_contus_GWonly.jl")
 include("Groundwater.jl")
 
 println("Creating model...")
-m = Model()
+m = Model();
 
 ncounty= 3109;
-setindex(m, :time, collect(1))
-setindex(m, :regions, collect(1:ncounty))
-setindex(m, :aquifers, collect(1:ncounty))
+setindex(m, :time, collect(1));
+setindex(m, :regions, collect(1:ncounty));
+setindex(m, :aquifers, collect(1:ncounty));
 
 # Add all of the components
 allocation = initallocationcontus(m);

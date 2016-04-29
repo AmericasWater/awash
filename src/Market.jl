@@ -11,34 +11,34 @@ using Mimi
 
     # Configuration
     # Selling prices
-    domestic_prices = Parameter(index=[regions, crops, time], units="\$/lborbu")
-    international_prices = Parameter(index=[regions, crops, time], units="\$/lborbu")
+    domestic_prices = Parameter(index=[regions, crops, time], unit="\$/lborbu")
+    international_prices = Parameter(index=[regions, crops, time], unit="\$/lborbu")
 
     # Optimized
-    internationalsales = Parameter(index=[regions, crops, time], units="lborbu")
+    internationalsales = Parameter(index=[regions, crops, time], unit="lborbu")
 
     # External
     # Local production from Agriculture
-    produced = Parameter(index=[regions, crops, time], units="lborbu")
+    produced = Parameter(index=[regions, crops, time], unit="lborbu")
 
     # Imports and exports from Transportation
-    regionimports = Parameter(index=[regions, crops, time], units="lborbu")
-    regionexports = Parameter(index=[regions, crops, time], units="lborbu")
+    regionimports = Parameter(index=[regions, crops, time], unit="lborbu")
+    regionexports = Parameter(index=[regions, crops, time], unit="lborbu")
 
     # How much domestic buy if available
-    domestic_interest = Parameter(index=[regions, crops, time], units="lborbu")
+    domestic_interest = Parameter(index=[regions, crops, time], unit="lborbu")
 
     # Internal
 
     # The balance of available resource
-    available = Variable(index=[regions, crops, time], units="lborbu")
+    available = Variable(index=[regions, crops, time], unit="lborbu")
 
     # Remaining after international are sold
-    domesticbalance = Variable(index=[regions, crops, time], units="lborbu")
+    domesticbalance = Variable(index=[regions, crops, time], unit="lborbu")
 
     # Total revenue from selling all available
-    domesticrevenue = Variable(index=[regions, crops, time], units="\$")
-    internationalrevenue = Variable(index=[regions, crops, time], units="\$")
+    domesticrevenue = Variable(index=[regions, crops, time], unit="\$")
+    internationalrevenue = Variable(index=[regions, crops, time], unit="\$")
 end
 
 """

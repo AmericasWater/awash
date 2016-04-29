@@ -5,37 +5,37 @@ using Distributions
     regions = Index()
 
     # Water demand
-    waterdemand = Parameter(index=[regions, time], units="1000 m^3")
+    waterdemand = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Extracted water (m3) to be set by optimisation - super source represents failure.
     # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, time], units="1000 m^3")
+    withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
 
     # How much is taking from groundwater
-    waterfromgw = Parameter(index=[regions, time], units="1000 m^3")
-    waterfromreservoir = Parameter(index=[regions,time], units="1000 m^3")
-    waterfromsupersource = Parameter(index=[regions,time], units="1000 m^3")
-    watergw = Variable(index=[regions, time], units="1000 m^3")
-    waterreservoir = Variable(index=[regions,time], units="1000 m^3")
+    waterfromgw = Parameter(index=[regions, time], unit="1000 m^3")
+    waterfromreservoir = Parameter(index=[regions,time], unit="1000 m^3")
+    waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
+    watergw = Variable(index=[regions, time], unit="1000 m^3")
+    waterreservoir = Variable(index=[regions,time], unit="1000 m^3")
 
     # Unit costs ($/m3)
     # The cost in USD / 1000 m^3 of pumping
-    costfromgw = Parameter(index=[regions,time], units="\$/1000 m^3")
-    costfromreservoir = Parameter(index=[regions,time], units="\$/1000 m^3")
-    costfromsupersource = Parameter(units="\$/1000 m^3")
+    costfromgw = Parameter(index=[regions,time], unit="\$/1000 m^3")
+    costfromreservoir = Parameter(index=[regions,time], unit="\$/1000 m^3")
+    costfromsupersource = Parameter(unit="\$/1000 m^3")
 
     # Total cost and volumes for each county
     # The cost to pump it (USD)
     cost = Variable(index=[regions, time], "\$")
 
     # Combination across all canals supplying the counties
-    swsupply = Variable(index=[regions, time], units="1000 m^3")
+    swsupply = Variable(index=[regions, time], unit="1000 m^3")
 
     # Amount available from all sources
-    waterallocated = Variable(index=[regions,time], units="1000 m^3")
+    waterallocated = Variable(index=[regions,time], unit="1000 m^3")
 
     # Difference between waterallocated and waterdemand
-    balance = Variable(index=[regions, time], units="1000 m^3")
+    balance = Variable(index=[regions, time], unit="1000 m^3")
 end
 
 """

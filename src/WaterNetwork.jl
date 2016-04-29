@@ -8,11 +8,11 @@ using Mimi
     gauges = Index()
 
     # External
-    added = Parameter(index=[gauges, time], units="1000 m^3") # Water added at node <- currently just runoff
-    removed = Parameter(index=[gauges, time], units="1000 m^3") # Water removed from node
+    added = Parameter(index=[gauges, time], unit="1000 m^3") # Water added at node <- currently just runoff
+    removed = Parameter(index=[gauges, time], unit="1000 m^3") # Water removed from node
 
-    inflows = Variable(index=[gauges, time], units="1000 m^3") # Sum of upstream outflows
-    outflows = Variable(index=[gauges, time], units="1000 m^3") # inflow + added - removed
+    inflows = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream outflows
+    outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed
 end
 
 """

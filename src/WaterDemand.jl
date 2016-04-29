@@ -10,13 +10,13 @@ using DataFrames
 
     # External
     # Irrigation water (1000 m^3)
-    totalirrigation = Parameter(index=[regions, time], units="1000 m^3")
+    totalirrigation = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
-    domesticuse = Parameter(index=[regions, time], units="1000 m^3")
+    domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Internal
     # Total water demand (1000 m^3)
-    totaldemand = Variable(index=[regions, time], units="1000 m^3")
+    totaldemand = Variable(index=[regions, time], unit="1000 m^3")
 end
 
 """

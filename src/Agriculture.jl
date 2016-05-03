@@ -2,256 +2,258 @@ using DataFrames
 using Mimi
 
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
-                          "Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
-                          "Maize" => 1.47596435526564,
-                          "Sorghum" => 1.1364914374721,
-                          "Soybeans" => 1.37599595071683,
-                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
+"Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
+"Maize" => 1.47596435526564,
+"Sorghum" => 1.1364914374721,
+"Soybeans" => 1.37599595071683,
+"Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
 
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
-                         "Barley" => 442., "Barley.Winter" => 442.,
-                         "Maize" => 554.,
-                         "Sorghum" => 314.,
-                         "Soybeans" => 221.,
-                         "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
+"Barley" => 442., "Barley.Winter" => 442.,
+"Maize" => 554.,
+"Sorghum" => 314.,
+"Soybeans" => 221.,
+"Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
 
 maximum_yield = 100. # total arbitrary number, because of some crazy outliers
 
 type StatisticalAgricultureModel
-    intercept::Float64
-    interceptse::Float64
-    gdds::Float64
-    gddsse::Float64
-    kdds::Float64
-    kddsse::Float64
-    wreq::Float64
-    wreqse::Float64
+intercept::Float64
+interceptse::Float64
+gdds::Float64
+gddsse::Float64
+kdds::Float64
+kddsse::Float64
+wreq::Float64
+wreqse::Float64
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
-    interceptrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "intercept"))
-    gddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gdds"))
-    kddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kdds"))
-    wreqrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "wreq"))
+interceptrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "intercept"))
+gddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gdds"))
+kddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kdds"))
+wreqrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "wreq"))
 
-    if interceptrow > 0
-        intercept = df[interceptrow, :mean]
-        interceptse = df[interceptrow, :serr]
-    else
-        intercept = 0
-        interceptse = 0
-    end
+if interceptrow > 0
+intercept = df[interceptrow, :mean]
+interceptse = df[interceptrow, :serr]
+else
+intercept = 0
+interceptse = 0
+end
 
-    gdds = df[gddsrow, :mean]
-    gddsse = df[gddsrow, :serr]
-    kdds = df[kddsrow, :mean]
-    kddsse = df[kddsrow, :serr]
-    wreq = df[wreqrow, :mean]
-    wreqse = df[wreqrow, :serr]
+gdds = df[gddsrow, :mean]
+gddsse = df[gddsrow, :serr]
+kdds = df[kddsrow, :mean]
+kddsse = df[kddsrow, :serr]
+wreq = df[wreqrow, :mean]
+wreqse = df[wreqrow, :serr]
 
-    StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
+StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
+(mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
 end
 
 if isfile(joinpath(todata, "agmodels.jld"))
-    println("Loading from saved region network...")
+println("Loading from saved region network...")
 
-    agmodels = deserialize(open(joinpath(todata, "agmodels.jld"), "r"));
+agmodels = deserialize(open(joinpath(todata, "agmodels.jld"), "r"));
 else
-    # Prepare all the agricultural models
-    agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = readtable("../data/nationals.csv")
-    for crop in crops
-        agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
+# Prepare all the agricultural models
+agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
+nationals = readtable("../data/nationals.csv")
+for crop in crops
+agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
-        # Create the national model
-        national = StatisticalAgricultureModel(nationals, :crop, crop)
-        counties = readtable("../data/unpooled-$crop.csv")
-        for fips in unique(counties[:fips])
-            county = StatisticalAgricultureModel(counties, :fips, fips)
-            # Construct a pooled combination
-            gdds, gddsse = gaussianpool(national.gdds, national.gddsse, county.gdds, county.gddsse)
-            kdds, kddsse = gaussianpool(national.kdds, national.kddsse, county.kdds, county.kddsse)
-            wreq, wreqse = gaussianpool(national.wreq, national.wreqse, county.wreq, county.wreqse)
-            agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
-            agmodels[crop][fips] = agmodel
-        end
-    end
+# Create the national model
+national = StatisticalAgricultureModel(nationals, :crop, crop)
+counties = readtable("../data/unpooled-$crop.csv")
+for fips in unique(counties[:fips])
+county = StatisticalAgricultureModel(counties, :fips, fips)
+# Construct a pooled combination
+gdds, gddsse = gaussianpool(national.gdds, national.gddsse, county.gdds, county.gddsse)
+kdds, kddsse = gaussianpool(national.kdds, national.kddsse, county.kdds, county.kddsse)
+wreq, wreqse = gaussianpool(national.wreq, national.wreqse, county.wreq, county.wreqse)
+agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
+agmodels[crop][fips] = agmodel
+end
+end
 
-    serialize(open(joinpath(todata, "agmodels.jld"), "w"), agmodels)
+serialize(open(joinpath(todata, "agmodels.jld"), "w"), agmodels)
 end
 
 @defcomp Agriculture begin
-    regions = Index()
-    crops = Index()
+regions = Index()
+crops = Index()
 
-    # Optimized
-    # Land area appropriated to each crop, irrigated to full demand (Ha)
-    irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
-    rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
+# Optimized
+# Land area appropriated to each crop, irrigated to full demand (Ha)
+irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
+rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
 
-    # Internal
-    # Yield base: combination of GDDs, KDDs, and intercept
-    logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
+# Internal
+# Yield base: combination of GDDs, KDDs, and intercept
+logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
 
-    # Coefficient on the effects of water deficits
-    deficit_coeff = Parameter(index=[regions, crops], unit="1/mm")
+# Coefficient on the effects of water deficits
+deficit_coeff = Parameter(index=[regions, crops], unit="1/mm")
 
-    # Water requirements per unit area, in mm
-    water_demand = Parameter(index=[crops], unit="mm")
+# Water requirements per unit area, in mm
+water_demand = Parameter(index=[crops], unit="mm")
 
-    # Precipitation water per unit area, in mm
-    precipitation = Parameter(index=[regions, time], unit="mm")
+# Precipitation water per unit area, in mm
+precipitation = Parameter(index=[regions, time], unit="mm")
 
-    # Computed
-    # Land area appropriated to each crop
-    totalareas = Variable(index=[regions, crops, time], unit="Ha")
-    # Total agricultural area
-    allagarea = Variable(index=[regions, time], unit="Ha")
+# Computed
+# Land area appropriated to each crop
+totalareas = Variable(index=[regions, crops, time], unit="Ha")
+# Total agricultural area
+allagarea = Variable(index=[regions, time], unit="Ha")
 
-    # Deficit for any unirrigated areas, in mm
-    water_deficit = Variable(index=[regions, crops, time], unit="mm")
+# Deficit for any unirrigated areas, in mm
+water_deficit = Variable(index=[regions, crops, time], unit="mm")
 
-    # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
+# Total irrigation water (1000 m^3)
+totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
-    # Yield per hectare for rainfed (irrigated has irrigatedyield)
-    lograinfedyield = Variable(index=[regions, crops, time], unit="none")
+# Yield per hectare for rainfed (irrigated has irrigatedyield)
+lograinfedyield = Variable(index=[regions, crops, time], unit="none")
 
-    # Total production: lb or bu
-    production = Variable(index=[regions, crops, time], unit="lborbu")
-    # Cultivation costs per acre
-    cultivationcost = Variable(index=[regions, crops, time], unit="\$")
+# Total production: lb or bu
+production = Variable(index=[regions, crops, time], unit="lborbu")
+# Cultivation costs per acre
+cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
 function timestep(s::Agriculture, tt::Int)
-    v = s.Variables
-    p = s.Parameters
-    d = s.Dimensions
+v = s.Variables
+p = s.Parameters
+d = s.Dimensions
 
-    for rr in d.regions
-        totalirrigation = 0.
-        allagarea = 0.
-        for cc in d.crops
-            v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
-            allagarea += v.totalareas[rr, cc, tt]
+for rr in d.regions
+totalirrigation = 0.
+allagarea = 0.
+for cc in d.crops
+v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
+allagarea += v.totalareas[rr, cc, tt]
 
-            # Calculate deficit by crop, for unirrigated areas
-            v.water_deficit[rr, cc, tt] = p.water_demand[cc] - p.precipitation[rr, tt]
+# Calculate deficit by crop, for unirrigated areas
+v.water_deficit[rr, cc, tt] = p.water_demand[cc] - p.precipitation[rr, tt]
 
-            # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
-            totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, tt] / 100
+# Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
+totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, tt] / 100
 
-            # Calculate rainfed yield
-            v.lograinfedyield[rr, cc, tt] = p.logirrigatedyield[rr, cc, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, tt]
+# Calculate rainfed yield
+v.lograinfedyield[rr, cc, tt] = p.logirrigatedyield[rr, cc, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, tt]
 
-            # Calculate total production
-            v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
-        end
+# Calculate total production
+v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+end
 
-        v.totalirrigation[rr, tt] = totalirrigation
-        v.allagarea[rr, tt] = allagarea
-    end
+v.totalirrigation[rr, tt] = totalirrigation
+v.allagarea[rr, tt] = allagarea
+end
 end
 
 function initagriculture(m::Model)
-    # precip loaded by weather.jl
+# precip loaded by weather.jl
 
-    # Match up values by FIPS
-    logirrigatedyield = -Inf * ones(numcounties, numcrops, numsteps)
-    deficit_coeff = zeros(numcounties, numcrops)
-    for rr in 1:numcounties
-        for cc in 1:numcrops
-            fips = parse(Int64, mastercounties[rr, :fips])
-            if fips in keys(agmodels[crops[cc]])
-                thismodel = agmodels[crops[cc]][fips]
-                logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)
-                deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
-            end
-        end
-    end
+# Match up values by FIPS
+logirrigatedyield = -Inf * ones(numcounties, numcrops, numsteps)
+deficit_coeff = zeros(numcounties, numcrops)
+for rr in 1:numcounties
+for cc in 1:numcrops
+fips = parse(Int64, mastercounties[rr, :fips])
+if fips in keys(agmodels[crops[cc]])
+thismodel = agmodels[crops[cc]][fips]
+logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)
+deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
+end
+end
+end
 
-    water_demand = zeros(numcrops)
-    for cc in 1:numcrops
-        water_demand[cc] = water_requirements[crops[cc]] * 1000
-    end
+water_demand = zeros(numcrops)
+for cc in 1:numcrops
+water_demand[cc] = water_requirements[crops[cc]] * 1000
+end
 
-    agriculture = addcomponent(m, Agriculture)
+agriculture = addcomponent(m, Agriculture)
 
-    agriculture[:logirrigatedyield] = repeat(logirrigatedyield, outer=[1, 1, numsteps])
-    agriculture[:deficit_coeff] = deficit_coeff
-    agriculture[:water_demand] = water_demand
-    agriculture[:precipitation] = precip
+agriculture[:logirrigatedyield] = repeat(logirrigatedyield, outer=[1, 1, numsteps])
+agriculture[:deficit_coeff] = deficit_coeff
+agriculture[:water_demand] = water_demand
+agriculture[:precipitation] = precip
 
-    # Zero the optimized parameters
-    agriculture[:rainfedareas] = zeros(numcounties, numcrops, numsteps)
-    agriculture[:irrigatedareas] = zeros(numcounties, numcrops, numsteps)
+# Zero the optimized parameters
+rainfeds = readtable("../data/rainfedareas.csv")
+agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
+irrigateds = readtable("../data/irrigatedareas.csv")
+agriculture[: irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
-    agriculture
+agriculture
 end
 
 function grad_agriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) # Convert Ha to acres
-    # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
+roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) # Convert Ha to acres
+# 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_agriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 # Convert Ha to acres
-    roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
+gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 # Convert Ha to acres
+roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
 
 function grad_agriculture_totalirrigation_irrigatedareas(m::Model)
-    function generate(A, tt)
-        for rr in 1:numcounties
-            for cc in 1:numcrops
-                A[rr, fromindex([rr, cc], [numcounties, numcrops])] = max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt]) / 100
-            end
-        end
+function generate(A, tt)
+for rr in 1:numcounties
+for cc in 1:numcrops
+A[rr, fromindex([rr, cc], [numcounties, numcrops])] = max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt]) / 100
+end
+end
 
-        return A
-    end
-    roomintersect(m, :Agriculture, :totalirrigation, :irrigatedareas, generate)
+return A
+end
+roomintersect(m, :Agriculture, :totalirrigation, :irrigatedareas, generate)
 end
 
 function grad_agriculture_allagarea_irrigatedareas(m::Model)
-    function generate(A, tt)
-        for rr in 1:numcounties
-            for cc in 1:numcrops
-                A[rr, fromindex([rr, cc], [numcounties, numcrops])] = 1.
-            end
-        end
+function generate(A, tt)
+for rr in 1:numcounties
+for cc in 1:numcrops
+A[rr, fromindex([rr, cc], [numcounties, numcrops])] = 1.
+end
+end
 
-        return A
-    end
+return A
+end
 
-    roomintersect(m, :Agriculture, :allagarea, :irrigatedareas, generate)
+roomintersect(m, :Agriculture, :allagarea, :irrigatedareas, generate)
 end
 
 function grad_agriculture_allagarea_rainfedareas(m::Model)
-    function generate(A, tt)
-        for rr in 1:numcounties
-            for cc in 1:numcrops
-                A[rr, fromindex([rr, cc], [numcounties, numcrops])] = 1.
-            end
-        end
+function generate(A, tt)
+for rr in 1:numcounties
+for cc in 1:numcrops
+A[rr, fromindex([rr, cc], [numcounties, numcrops])] = 1.
+end
+end
 
-        return A
-    end
+return A
+end
 
-    roomintersect(m, :Agriculture, :allagarea, :rainfedareas, generate)
+roomintersect(m, :Agriculture, :allagarea, :rainfedareas, generate)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr])
+hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
+roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
 end
 
 function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
+roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
 end

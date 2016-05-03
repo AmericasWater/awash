@@ -13,6 +13,10 @@ using DataFrames
     totalirrigation = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
     domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # Demand for thermoelectric power (1000 m^3)
+    thermoelectricuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # Combined water use for domestic sinks (1000 m^3)
+    livestockuse = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Internal
     # Total water demand (1000 m^3)
@@ -29,7 +33,7 @@ function timestep(c::WaterDemand, tt::Int)
 
     for rr in d.regions
         # Sum all demands
-        v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt]
+        v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
     end
 end
 

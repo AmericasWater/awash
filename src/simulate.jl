@@ -14,6 +14,8 @@ include("Agriculture.jl")
 include("ReturnFlows.jl")
 include("WaterDemand.jl")
 include("DomesticDemand.jl")
+include("Thermoelectric.jl")
+include("Livestock.jl")
 include("Market.jl")
 include("Transportation.jl")
 include("WaterNetwork.jl")
@@ -28,6 +30,8 @@ m = newmodel();
 
 # Add all of the components
 domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
+thermoelectric = initthermoelectric(m); # exogenous
+livestock = initlivestock(m); # exogenous
 agriculture = initagriculture(m); # optimization-only
 waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
 returnflows = initreturnflows(m); # exogenous/optimization
@@ -41,6 +45,8 @@ market = initmarket(m); # dep. Transporation, Agriculture
 # Connect up the components
 waterdemand[:totalirrigation] = agriculture[:totalirrigation];
 waterdemand[:domesticuse] = domesticdemand[:waterdemand];
+waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
+waterdemand[:livestockuse] = livestock[:demand_copy];
 
 allocation[:waterdemand] = waterdemand[:totaldemand];
 waternetwork[:removed] = returnflows[:removed];

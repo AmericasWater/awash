@@ -40,7 +40,6 @@ function initwaternetwork(m::Model)
     waternetwork = addcomponent(m, WaterNetwork)
 
     # addeds loaded by weather.jl
-
     waternetwork[:added] = addeds[:, 1:numsteps]
     waternetwork[:removed] = zeros(numgauges, numsteps)
 

@@ -7,8 +7,8 @@ netset = "usa" # dummy or usa
 # "10" for Delaware (3 counties), "08" for Colorado (64 counties)
 filterstate = nothing #"10"
 
-redohouse = isfile(joinpath(todata, "fullhouse$suffix.jld"))
-redogwwo = isfile(joinpath(todata, "partialhouse2$suffix.jld"))
+redohouse = !isfile(joinpath(todata, "fullhouse$suffix.jld"))
+redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -39,11 +39,11 @@ market = initmarket(m); # dep. Transporation, Agriculture
 paramcomps = [:Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
 parameters = [:waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
-constraints = [:allagarea, :outflows, :swbalance, :available, :domesticbalance]
+constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
-# swbalance is the demand minus supply
+# balance is the demand minus supply
 
 if redohouse
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints);
@@ -85,9 +85,9 @@ if redohouse
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
     setconstraint!(house, grad_waterdemand_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
-    setconstraint!(house, -grad_allocation_swbalance_waterfromgw(m)) # -
-    setconstraint!(house, -grad_allocation_swbalance_withdrawals(m)) # - THIS IS SUPPLY
-    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :Allocation, :swbalance)) # -
+    setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
+    setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
+    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
 
     # Constrain domesticsales < domesticdemand
     # Reproduce 'available'

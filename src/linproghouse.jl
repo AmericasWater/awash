@@ -133,7 +133,7 @@ end
 
 function setconstraint!(house::LinearProgrammingHouse, room::LinearProgrammingRoom)
     @assert room.variable in house.constraints "$(room.variable) not a known variable"
-    @assert room.parameter in house.parameters "$(hall.parameter) not a known parameter"
+    @assert room.parameter in house.parameters "$(room.parameter) not a known parameter"
 
     kk = findfirst((house.paramcomps .== room.paramcomponent) & (house.parameters .== room.parameter))
     ll = findfirst((house.constcomps .== room.varcomponent) & (house.constraints .== room.variable))

@@ -110,15 +110,28 @@ function soleobjective_allocation(m::Model)
     sum(model[:Allocation, :cost])
 end
 
-function grad_allocation_swbalance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :swbalance, :waterfromgw, (rr, tt) -> 1.)
+function grad_allocation_balance_waterfromgw(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
+end
+
+function grad_allocation_balance_waterfromsupersource(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :waterfromsupersource, (rr, tt) -> 1.)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
     roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 100. / 1000.)
 end
 
-function grad_allocation_swbalance_withdrawals(m::Model)
+function grad_allocation_cost_waterfromsupersource(m::Model)
+    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (rr, tt) -> 1000.)
+end
+
+## Optional cost for drawing down a river (environmental change)
+function grad_allocation_cost_withdrawals(m::Model)
+    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (cc, tt) -> .01)
+end
+
+function grad_allocation_balance_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
@@ -130,5 +143,11 @@ function grad_allocation_swbalance_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :swbalance, :withdrawals, generate)
+    roomintersect(m, :Allocation, :balance, :withdrawals, generate)
+end
+
+function constraintoffset_allocation_recordedbalance(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
+    hallsingle(m, :Allocation, :balance, gen)
 end

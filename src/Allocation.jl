@@ -4,32 +4,27 @@ using Distributions
 @defcomp Allocation begin
     regions = Index()
 
-    # Water demand
+    # Water demand aggregated accross all sectors
     waterdemand = Parameter(index=[regions, time], units="1000 m^3")
 
-    # Extracted water (m3) to be set by optimisation - super source represents failure.
-    # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, time], units="1000 m^3")
-
-    # How much is taking from groundwater
+    # Extracted water (1000 m3) to be set by optimisation - super source represents failure. 
     waterfromgw = Parameter(index=[regions, time], units="1000 m^3")
     waterfromreservoir = Parameter(index=[regions,time], units="1000 m^3")
     waterfromsupersource = Parameter(index=[regions,time], units="1000 m^3")
     watergw = Variable(index=[regions, time], units="1000 m^3")
     waterreservoir = Variable(index=[regions,time], units="1000 m^3")
-
-    # Unit costs ($/m3)
-    # The cost in USD / 1000 m^3 of pumping
-    costfromgw = Parameter(index=[regions,time], units="\$/1000 m^3")
-    costfromreservoir = Parameter(index=[regions,time], units="\$/1000 m^3")
-    costfromsupersource = Parameter(units="\$/1000 m^3")
-
-    # Total cost and volumes for each county
-    # The cost to pump it (USD)
-    cost = Variable(index=[regions, time], "\$")
-
+    # How much to send from each gauge to each county
+    withdrawals = Parameter(index=[canals, time], units="1000 m^3")
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, time], units="1000 m^3")
+
+    # The cost in USD / 1000 m^3 of extraction and treatment cost
+    costfromgw = Parameter(index=[regions,time], units="\$/1000 m^3")
+    costfromsw = Parameter(index=[regions,time], units="\$/1000 m^3")
+    costfromsupersource = Parameter(units="\$/1000 m^3")
+
+    # Total cost for eachs county
+    cost = Variable(index=[regions, time], "\$")
 
     # Amount available from all sources
     waterallocated = Variable(index=[regions,time], units="1000 m^3")
@@ -56,14 +51,13 @@ function timestep(c::Allocation, tt::Int)
         end
     end
 
-    for cty in d.regions
-        #v.waterfromSuperSource[cty,tt]= p.waterdemand[cty,tt] - (p.waterfromGW[cty,tt]+p.waterfromreservoir[cty,tt])
-        v.watergw[cty,tt] = p.waterfromgw[cty,tt]
-        v.waterreservoir[cty,tt] = p.waterfromreservoir[cty,tt]
-        v.waterallocated[cty,tt] = p.waterfromgw[cty,tt]+p.waterfromreservoir[cty,tt]+p.waterfromsupersource[cty,tt] + v.swsupply[cty, tt]
-        v.cost[cty, tt] = p.waterfromgw[cty,tt]*p.costfromgw[cty,tt] + p.waterfromreservoir[cty,tt]*p.costfromreservoir[cty,tt] + p.waterfromsupersource[cty,tt]*p.costfromsupersource
+    for rr in d.regions
+        v.watergw[rr,tt] = p.waterfromgw[rr,tt]
+        v.waterreservoir[rr,tt] = p.waterfromreservoir[rr,tt]
+        v.waterallocated[rr,tt] = p.waterfromgw[rr,tt]+p.waterfromreservoir[rr,tt]+p.waterfromsupersource[rr,tt] + v.swsupply[rr, tt]
+        v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + (p.waterfromreservoir[rr,tt] + v.swsupply[rr,tt])*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
 
-        v.balance[cty, tt] = v.waterallocated[cty, tt] - p.waterdemand[cty, tt]
+        v.balance[rr, tt] = v.waterallocated[rr, tt] - p.waterdemand[rr, tt]
     end
 end
 
@@ -71,24 +65,22 @@ end
 Add a demand component to the model.
 """
 function initallocation(m::Model)
-    allocation = addcomponent(m, Allocation)
-    # Use random demands, from a LogNormal distribution and constant across all
-    # time.
-    Adem = rand(Normal(5e4, 1e3), m.indices_counts[:regions]*m.indices_counts[:time]);
-    allocation[:waterdemand] = 1000. * reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
-    #demand[:waterdemand] = repeat(rand(LogNormal(log(1000.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation = addcomponent(m, Allocation);
+    allocation[:waterdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
-    # From http://www.oecd.org/unitedstates/45016437.pdf
-    # Varies between 6.78 to 140 USD / 1000 m^3
     allocation[:costfromgw] = 100. * ones(m.indices_counts[:regions], m.indices_counts[:time]) #(1/100)*repeat(rand(Normal(12.5, 1.5), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    allocation[:costfromreservoir] = 10. * repeat(rand(Normal(35, 3), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costfromsw] = 10. * repeat(rand(Normal(35, 3), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:costfromsupersource] = 100000.0;
-
-    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
-
-    allocation[:waterfromgw] = repeat(0*rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromreservoir] = repeat(0*rand(LogNormal(log(300.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromsupersource] = repeat(0*rand(LogNormal(log(500.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    mingw=readdlm("../data/MIWGWFr.txt");
+    indgw=readdlm("../data/INWGWFr.txt");
+    psgw=readdlm("../data/PSWGWFr.txt");
+    minsw=readdlm("../data/MIWSWFr.txt");
+    indsw=readdlm("../data/INWSWFr.txt");
+    pssw=readdlm("../data/PSWSWFr.txt");
+    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    allocation[:waterfromgw] = mingw + indgw + psgw;
+    allocation[:waterfromreservoir] = minsw + indsw + pssw;
+    allocation[:waterfromsupersource] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     allocation
 end
 

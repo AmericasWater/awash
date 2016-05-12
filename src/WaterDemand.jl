@@ -13,6 +13,8 @@ using DataFrames
     totalirrigation = Parameter(index=[regions, time], units="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
     domesticuse = Parameter(index=[regions, time], units="1000 m^3")
+    industrialuse = Parameter(index=[regions,time],units="1000 m^3")
+    urbanuse = Parameter(index=[regions,time], units="1000 m^3")
 
     # Internal
     # Total water demand (1000 m^3)
@@ -27,10 +29,7 @@ function timestep(c::WaterDemand, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    for rr in d.regions
-        # Sum all demands
-        v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt]
-    end
+        v.totaldemand[:, tt] = p.totalirrigation[:, tt] + p.domesticuse[:, tt] + p.industrialuse[:, tt] + p.urbanuse[:, tt];
 end
 
 """
@@ -40,7 +39,17 @@ function initwaterdemand(m::Model)
     waterdemand = addcomponent(m, WaterDemand);
 
     # Set optimized parameters to 0
-    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+
+    #waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+   
+    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:industrialuse] = readdlm("../data/INWFrTo.txt") + readdlm("../data/MIWFrTo.txt");
+    waterdemand[:urbanuse] = readdlm("../data/PSdem.txt");
+    waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+
 
     waterdemand
 end

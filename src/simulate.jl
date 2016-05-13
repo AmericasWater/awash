@@ -34,11 +34,11 @@ thermoelectric = initthermoelectric(m); # exogenous
 livestock = initlivestock(m); # exogenous
 agriculture = initagriculture(m); # optimization-only
 waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
-returnflows = initreturnflows(m); # exogenous/optimization
-allocation = initallocation(m); # dep. WaterDemand
+allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
+returnflows = initreturnflows(m); # dep. Allocation
 groundwater = initaquifercontus(m); # Allocation or optimization-only
 reservoir = initreservoir(m); # Allocation or optimization-only
-waternetwork = initwaternetwork(m); # dep. WaterDemand
+waternetwork = initwaternetwork(m); # dep. ReturnFlows
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
 
@@ -49,8 +49,11 @@ waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
 
 allocation[:waterdemand] = waterdemand[:totaldemand];
+allocation[:waterreturn] = waterdemand[:totalreturn];
+returnflows[:withdrawals] = allocation[:copy_withdrawals];
+returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
+waternetwork[:added] = returnflows[:added];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

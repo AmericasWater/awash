@@ -8,23 +8,27 @@ using Distributions
   aquifers = Index()
 
   # Aquifer description
-  depthaquif = Parameter(index=[aquifers], units="1 m")
-  areaaquif = Parameter(index=[aquifers], units="1000 m^3")
-  storagecoef = Parameter(index=[aquifers], units="")
-  piezohead0 = Parameter(index=[aquifers], units="1 m") # used for initialisation
+  depthaquif = Parameter(index=[aquifers], unit="1 m")
+  areaaquif = Parameter(index=[aquifers], unit="1000 m^2")
+  storagecoef = Parameter(index=[aquifers], unit="none")
+  drawdown0 = Parameter(index=[aquifers], unit="1 m") # used for initialisation
   # Recharge
-  recharge = Parameter(index=[aquifers, time], units="1000m^3")
+  recharge = Parameter(index=[aquifers, time], unit="1000 m^3")
+
   # Withdrawals - to be optimised
-  withdrawal = Parameter(index=[aquifers, time], units="1000m^3")
+  withdrawal = Parameter(index=[aquifers, time], unit="1000 m^3")
+
   # Lateral flows
-  lateralflows = Variable(index=[aquifers, time], units="1000m^3")
-  aquiferconnexion = Parameter(index=[aquifers, aquifers], units ="") # aquiferconnexion[aa,aa']=1 -> aquifers are connected, 0 otherwise.
-  lateralconductivity = Parameter(index=[aquifers, aquifers], units="1000m^2/month") ## how should I specify per month per year?
-  deltatime = Parameter(units="month")
+  lateralflows = Variable(index=[aquifers, time], unit="1000 m^3")
+  aquiferconnexion = Parameter(index=[aquifers, aquifers], unit ="none") # aquiferconnexion[aa,aa']=1 -> aquifers are connected, 0 otherwise.
+  lateralconductivity = Parameter(index=[aquifers, aquifers], unit="1 m^2/month") ## how should I specify per month per year?
+  deltatime = Parameter(unit="month")
+
   # Piezometric head
-  piezohead = Variable(index=[aquifers, time], units="1 m")
+  drawdown = Variable(index=[aquifers, time], unit="1 m")
+
   # Unit volume cost
-  volumetriccost = Variable(index=[aquifers, time], units="\$/1000m^3")
+  volumetriccost = Variable(index=[aquifers, time], unit="\$/1000 m^3")
 end
 
 """
@@ -40,12 +44,12 @@ function timestep(c::Aquifer, tt::Int)
     for aa_ in (aa+1):(d.aquifers[end]-1)
       if p.aquiferconnexion[aa,aa_]==1.
         if tt==1
-        latflow = p.lateralconductivity[aa,aa_]*(p.piezohead0[aa_]-p.piezohead0[aa])*12; # in m3/month or m3/year if factor 12
+        latflow = p.lateralconductivity[aa,aa_]*(p.drawdown0[aa_]-p.drawdown0[aa])*p.deltatime; # in m3/month or m3/year if factor 12
         else
-        latflow = p.lateralconductivity[aa,aa_]*(v.piezohead[aa_,tt-1]-v.piezohead[aa,tt-1])*12; # in m3/month or m3/year if factor 12
+        latflow = p.lateralconductivity[aa,aa_]*(v.drawdown[aa_,tt-1]-v.drawdown[aa,tt-1])*p.deltatime; # in m3/month or m3/year if factor 12
         end
-        v.lateralflows[aa,tt] += latflow;
-        v.lateralflows[aa_,tt] += -latflow;
+        v.lateralflows[aa,tt] += latflow/1000;
+        v.lateralflows[aa_,tt] += -latflow/1000;
       end
     end
   end
@@ -53,15 +57,15 @@ function timestep(c::Aquifer, tt::Int)
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
   for aa in d.aquifers
     if tt==1
-      v.piezohead[aa,tt] = p.piezohead0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.drawdown[aa,tt] = p.drawdown0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     else
-      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.drawdown[aa,tt] = v.drawdown[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     end
   end
 
   # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative. piezohead datum is sea level
   for aa in d.aquifers
-    v.volumetriccost[aa,tt] = p.piezohead0[aa]
+    v.volumetriccost[aa,tt] = p.drawdown0[aa]
   end
 end
 
@@ -105,24 +109,27 @@ function initaquifercontus(m::Model)
   aquifer = addcomponent(m, Aquifer)
   v=collect(1:3109);
 
-  temp = readdlm("../data/v_FIPS.txt");
-
-  temp = readdlm("../data/aquifer_depth.txt");
+  temp = readdlm("../data/gwmodel/aquifer_depth.txt");
   aquifer[:depthaquif] = temp[v,1];
-  aquifer[:piezohead0] = 0.85*temp[v,1]; # needs to be changed
-  temp = readdlm("../data/vector_storativity.txt");
+  temp = readdlm("../data/gwmodel/piezohead0.txt");
+  aquifer[:drawdown0] = temp[v,1]; # needs to be changed
+  temp = readdlm("../data/gwmodel/vector_storativity.txt");
   aquifer[:storagecoef] = temp[v,1];
-  temp = readdlm("../data/county_area.txt");
-  aquifer[:areaaquif] = temp[v,1];
+  temp = readdlm("../data/gwmodel/county_area.txt");
+  aquifer[:areaaquif] = temp[v,1]/1000;
 
   #Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt");
   M = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
-  aquifer[:withdrawal] = M;
   aquifer[:recharge] = M;
+  #mingw=readdlm("../data/demand/MIWGWFr.txt");
+  #indgw=readdlm("../data/demand/INWGWFr.txt");
+  #psgw=readdlm("../data/demand/PSWGWFr.txt");
+  aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);#psgw+indgw+mingw;
 
-  temp = readdlm("../data/matrix_leakage_factor.txt");
+  temp = readdlm("../data/gwmodel/matrix_leakage_factor.txt");
   aquifer[:lateralconductivity] = temp[v,v];
-  temp = readdlm("../data/connectivity_matrix.txt");
+  aquifer[:deltatime] = 12.0;
+  temp = readdlm("../data/gwmodel/connectivity_matrix.txt");
   aquifer[:aquiferconnexion] = temp[v,v];
   aquifer
 end

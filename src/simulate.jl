@@ -13,6 +13,7 @@ filterstate = nothing #"10"
 include("world.jl")
 include("weather.jl")
 
+<<<<<<< HEAD
 include("Agriculture.jl");
 include("ReturnFlows.jl");
 include("WaterDemand.jl");
@@ -27,6 +28,20 @@ include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
 include("Thermoelectric.jl")
 include("Livestock.jl")
+=======
+include("Agriculture.jl")
+include("ReturnFlows.jl")
+include("WaterDemand.jl")
+include("DomesticDemand.jl")
+include("Thermoelectric.jl")
+include("Livestock.jl")
+include("Market.jl")
+include("Transportation.jl")
+include("WaterNetwork.jl")
+include("Groundwater.jl")
+include("Allocation.jl")
+include("Reservoir.jl")
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 
 println("Creating model...")
 
@@ -34,16 +49,20 @@ println("Creating model...")
 m = newmodel();
 
 # Add all of the components
+<<<<<<< HEAD
 #domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
+=======
+domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 thermoelectric = initthermoelectric(m); # exogenous
 livestock = initlivestock(m); # exogenous
 agriculture = initagriculture(m); # optimization-only
 waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
-returnflows = initreturnflows(m); # exogenous/optimization
-allocation = initallocation(m); # dep. WaterDemand
+allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
+returnflows = initreturnflows(m); # dep. Allocation
 groundwater = initaquifercontus(m); # Allocation or optimization-only
 reservoir = initreservoir(m); # Allocation or optimization-only
-waternetwork = initwaternetwork(m); # dep. WaterDemand
+waternetwork = initwaternetwork(m); # dep. ReturnFlows
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
 industrialdemand = initindustrialdemand(m);
@@ -51,16 +70,29 @@ urbandemand = initurbandemand(m);
 
 # Connect up the components
 waterdemand[:totalirrigation] = agriculture[:totalirrigation];
+<<<<<<< HEAD
 waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
 #waterdemand[:domesticuse] = domesticdemand[:waterdemand];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];
 waterdemand[:industrialuse] = industrialdemand[:waterdemand];
+=======
+waterdemand[:domesticuse] = domesticdemand[:waterdemand];
+waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
+waterdemand[:livestockuse] = livestock[:demand_copy];
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 
 allocation[:waterdemand] = waterdemand[:totaldemand];
+allocation[:waterreturn] = waterdemand[:totalreturn];
+returnflows[:withdrawals] = allocation[:copy_withdrawals];
+returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
+<<<<<<< HEAD
 allocation[:withdrawals] = returnflows[:copy_withdrawals];
 groundwater[:withdrawal] = allocation[:watergw];
+=======
+waternetwork[:added] = returnflows[:added];
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

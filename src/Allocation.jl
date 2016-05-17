@@ -4,6 +4,7 @@ using Distributions
 @defcomp Allocation begin
     regions = Index()
 
+<<<<<<< HEAD
     # Water demand aggregated accross all sectors
     watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
 
@@ -31,6 +32,53 @@ using Distributions
 
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
+=======
+    # Water demand
+    waterdemand = Parameter(index=[regions, time], unit="1000 m^3")
+    # Water return flows
+    waterreturn = Parameter(index=[regions, time], unit="1000 m^3")
+
+    # Extracted water and returned water set by optimisation
+    # How much to send from each gauge to each county
+    withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
+    # How much is returned to each withdrawal source?
+    returns = Parameter(index=[canals, time], unit="1000 m^3")
+
+    # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
+    copy_withdrawals = Variable(index=[canals, time], unit="1000 m^3")
+    # For now, exact copy of returns; later, the amount actually returned?
+    copy_returns = Variable(index=[canals, time], unit="1000 m^3")
+
+    # How much is taking from groundwater
+    waterfromgw = Parameter(index=[regions, time], unit="1000 m^3")
+    waterfromreservoir = Parameter(index=[regions,time], unit="1000 m^3")
+    waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
+    watergw = Variable(index=[regions, time], unit="1000 m^3")
+    waterreservoir = Variable(index=[regions,time], unit="1000 m^3")
+
+    # Unit costs ($/m3)
+    # The cost in USD / 1000 m^3 of pumping
+    costfromgw = Parameter(index=[regions,time], unit="\$/1000 m^3")
+    costfromreservoir = Parameter(index=[regions,time], unit="\$/1000 m^3")
+    costfromsupersource = Parameter(unit="\$/1000 m^3")
+
+    # Total cost and volumes for each county
+    # The cost to pump it (USD)
+    cost = Variable(index=[regions, time], "\$")
+
+    # Combination across all canals supplying the counties
+    swsupply = Variable(index=[regions, time], unit="1000 m^3")
+    # Combination across all canals routing return flow from the counties
+    swreturn = Variable(index=[regions, time], unit="1000 m^3")
+
+    # Amount available from all sources
+    waterallocated = Variable(index=[regions, time], unit="1000 m^3")
+
+    # Difference between waterallocated and waterdemand: should be >= 0
+    balance = Variable(index=[regions, time], unit="1000 m^3")
+    # Difference between swreturn and waterreturn: should be <= 0
+    returnbalance = Variable(index=[regions, time], unit="1000 m^3")
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 end
 
 """
@@ -42,6 +90,7 @@ function timestep(c::Allocation, tt::Int)
     d = c.Dimensions
 
     # Surface water calculations
+<<<<<<< HEAD
     v.swsupply[:, tt] = zeros(3109)#numcounties
     #for pp in 1:21598#nrow(draws)
     #    fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
@@ -58,6 +107,30 @@ function timestep(c::Allocation, tt::Int)
         v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + (p.waterfromreservoir[rr,tt] + v.swsupply[rr,tt])*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
 
         v.balance[rr, tt] = v.waterallocated[rr, tt] - p.watertotaldemand[rr, tt]
+=======
+    v.swsupply[:, tt] = zeros(numcounties)
+    v.swreturn[:, tt] = zeros(numcounties)
+    for pp in 1:nrow(draws)
+        fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
+        rr = findfirst(mastercounties[:fips] .== fips)
+        if rr > 0
+            v.swsupply[rr, tt] += p.withdrawals[pp, tt]
+            v.swreturn[rr, tt] += p.returns[pp, tt]
+        end
+        v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
+        v.copy_returns[pp, tt] = p.returns[pp, tt]
+    end
+
+    for cty in d.regions
+        #v.waterfromSuperSource[cty,tt]= p.waterdemand[cty,tt] - (p.waterfromGW[cty,tt]+p.waterfromreservoir[cty,tt])
+        v.watergw[cty,tt] = p.waterfromgw[cty,tt]
+        v.waterreservoir[cty,tt] = p.waterfromreservoir[cty,tt]
+        v.waterallocated[cty,tt] = p.waterfromgw[cty,tt]+p.waterfromreservoir[cty,tt]+p.waterfromsupersource[cty,tt] + v.swsupply[cty, tt]
+        v.cost[cty, tt] = p.waterfromgw[cty,tt]*p.costfromgw[cty,tt] + p.waterfromreservoir[cty,tt]*p.costfromreservoir[cty,tt] + p.waterfromsupersource[cty,tt]*p.costfromsupersource
+
+        v.balance[cty, tt] = v.waterallocated[cty, tt] - p.waterdemand[cty, tt]
+        v.returnbalance[cty, tt] = v.swreturn[cty, tt] - p.waterreturn[cty, tt]
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
     end
 end
 
@@ -124,6 +197,8 @@ function grad_allocation_cost_withdrawals(m::Model)
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
+<<<<<<< HEAD
+=======
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
@@ -138,8 +213,35 @@ function grad_allocation_balance_withdrawals(m::Model)
     roomintersect(m, :Allocation, :balance, :withdrawals, generate)
 end
 
+function grad_allocation_returnbalance_returns(m::Model)
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
+    function generate(A, tt)
+        # Fill in COUNTIES x CANALS matrix
+        for pp in 1:nrow(draws)
+            fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
+            rr = findfirst(mastercounties[:fips] .== fips)
+            if rr > 0
+                A[rr, pp] = 1.
+            end
+        end
+    end
+
+<<<<<<< HEAD
+    roomintersect(m, :Allocation, :balance, :withdrawals, generate)
+=======
+    roomintersect(m, :Allocation, :returnbalance, :returns, generate)
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
+end
+
 function constraintoffset_allocation_recordedbalance(m::Model)
     recorded = readtable("../data/extraction/USGS-2010.csv")
     gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
     hallsingle(m, :Allocation, :balance, gen)
+<<<<<<< HEAD
+=======
+end
+
+function grad_allocation_returnbalance_waterreturn(m::Model)
+    roomdiagonal(m, :Allocation, :returnbalance, :waterreturn, (rr, tt) -> 1.)
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 end

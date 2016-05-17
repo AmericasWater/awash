@@ -1,6 +1,9 @@
 using DataArrays
+using DataFrames
 using OptiMimi
-
+cd("Dropbox/POSTDOC/AW-julia/operational-problem-main/src")
+pwd()
+workspace()
 netset = "usa" # dummy or usa
 
 # Only include counties within this state (give as 2 digit FIPS)
@@ -22,6 +25,8 @@ include("Allocation.jl");
 include("Reservoir.jl");
 include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
+include("Thermoelectric.jl")
+include("Livestock.jl")
 
 println("Creating model...")
 
@@ -30,6 +35,8 @@ m = newmodel();
 
 # Add all of the components
 #domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
+thermoelectric = initthermoelectric(m); # exogenous
+livestock = initlivestock(m); # exogenous
 agriculture = initagriculture(m); # optimization-only
 waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
 returnflows = initreturnflows(m); # exogenous/optimization
@@ -43,21 +50,47 @@ industrialdemand = initindustrialdemand(m);
 urbandemand = initurbandemand(m);
 
 # Connect up the components
-#waterdemand[:totalirrigation] = agriculture[:totalirrigation];
+waterdemand[:totalirrigation] = agriculture[:totalirrigation];
+waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
+waterdemand[:livestockuse] = livestock[:demand_copy];
 #waterdemand[:domesticuse] = domesticdemand[:waterdemand];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];
 waterdemand[:industrialuse] = industrialdemand[:waterdemand];
 
-#allocation[:waterdemand] = waterdemand[:totaldemand];
-#waternetwork[:removed] = returnflows[:removed];
-#allocation[:withdrawals] = returnflows[:copy_withdrawals];
-#groundwater[:withdrawal] = allocation[:watergw];
+allocation[:waterdemand] = waterdemand[:totaldemand];
+waternetwork[:removed] = returnflows[:removed];
+allocation[:withdrawals] = returnflows[:copy_withdrawals];
+groundwater[:withdrawal] = allocation[:watergw];
 
-#market[:produced] = agriculture[:production];
-#market[:regionimports] = transportation[:regionimports];
-#market[:regionexports] = transportation[:regionexports];
+market[:produced] = agriculture[:production];
+market[:regionimports] = transportation[:regionimports];
+market[:regionexports] = transportation[:regionexports];
 
 # Run it and time it!
 @time run(m)
 
+m.components[:IndustrialDemand].Variables.waterdemand
+m.components[:UrbanDemand].Variables.waterdemand
+m.components[:Allocation].Parameters.withdrawals
+m.components[:Allocation].Parameters.waterdemand
+m.components[:Allocation].Parameters.waterfromgw
+m.components[:Allocation].Parameters.waterfromreservoir
+m.components[:Allocation].Parameters.waterfromsupersource
+m.components[:Allocation].Variables.watergw
+m.components[:Allocation].Variables.waterreservoir
+m.components[:Allocation].Variables.swsupply
+m.components[:Allocation].Parameters.costfromgw
+m.components[:Allocation].Parameters.costfromsw
+m.components[:Allocation].Parameters.costfromsupersource
+m.components[:Allocation].Variables.cost
+m.components[:Allocation].Variables.waterallocated
+m.components[:Allocation].Variables.balance
+
+m.components[:WaterDemand].Variables.totaldemand
+m.components[:WaterDemand].Parameters.totalirrigation
+m.components[:WaterDemand].Parameters.domesticuse
+m.components[:WaterDemand].Parameters.industrialuse
+m.components[:WaterDemand].Parameters.urbanuse
+m.components[:WaterDemand].Parameters.thermoelectricuse
+m.components[:WaterDemand].Parameters.livestockuse
 

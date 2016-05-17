@@ -90,41 +90,41 @@ end
 
     # Optimized
     # Land area appropriated to each crop, irrigated to full demand (Ha)
-    irrigatedareas = Parameter(index=[regions, crops, time], units="Ha")
-    rainfedareas = Parameter(index=[regions, crops, time], units="Ha")
+    irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
+    rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
 
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
-    logirrigatedyield = Parameter(index=[regions, crops, time], units="none")
+    logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
 
     # Coefficient on the effects of water deficits
-    deficit_coeff = Parameter(index=[regions, crops], units="1/mm")
+    deficit_coeff = Parameter(index=[regions, crops], unit="1/mm")
 
     # Water requirements per unit area, in mm
-    water_demand = Parameter(index=[crops], units="mm")
+    water_demand = Parameter(index=[crops], unit="mm")
 
     # Precipitation water per unit area, in mm
-    precipitation = Parameter(index=[regions, time], units="mm")
+    precipitation = Parameter(index=[regions, time], unit="mm")
 
     # Computed
     # Land area appropriated to each crop
-    totalareas = Variable(index=[regions, crops, time], units="Ha")
+    totalareas = Variable(index=[regions, crops, time], unit="Ha")
     # Total agricultural area
-    allagarea = Variable(index=[regions, time], units="Ha")
+    allagarea = Variable(index=[regions, time], unit="Ha")
 
     # Deficit for any unirrigated areas, in mm
-    water_deficit = Variable(index=[regions, crops, time], units="mm")
+    water_deficit = Variable(index=[regions, crops, time], unit="mm")
 
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], units="1000 m^3")
+    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
     # Yield per hectare for rainfed (irrigated has irrigatedyield)
-    lograinfedyield = Variable(index=[regions, crops, time], units="none")
+    lograinfedyield = Variable(index=[regions, crops, time], unit="none")
 
     # Total production: lb or bu
-    production = Variable(index=[regions, crops, time], units="lborbu")
+    production = Variable(index=[regions, crops, time], unit="lborbu")
     # Cultivation costs per acre
-    cultivationcost = Variable(index=[regions, crops, time], units="\$")
+    cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
 function timestep(s::Agriculture, tt::Int)
@@ -140,7 +140,7 @@ function timestep(s::Agriculture, tt::Int)
             allagarea += v.totalareas[rr, cc, tt]
 
             # Calculate deficit by crop, for unirrigated areas
-            v.water_deficit[rr, cc, tt] = p.water_demand[cc] - p.precipitation[rr, tt]
+            v.water_deficit[rr, cc, tt] = max(0., p.water_demand[cc] - p.precipitation[rr, tt])
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
             totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, tt] / 100
@@ -186,9 +186,19 @@ function initagriculture(m::Model)
     agriculture[:water_demand] = water_demand
     agriculture[:precipitation] = precip
 
-    # Zero the optimized parameters
-    agriculture[:rainfedareas] = zeros(numcounties, numcrops, numsteps)
-    agriculture[:irrigatedareas] = zeros(numcounties, numcrops, numsteps)
+    # Load in planted area by water management
+    rainfeds = readtable("../data/agriculture/rainfedareas.csv")
+    irrigateds = readtable("../data/agriculture/irrigatedareas.csv")
+    for cc in 2:ncol(rainfeds)
+        # Replace NAs with 0, and convert to float. TODO: improve this
+        rainfeds[isna(rainfeds[cc]), cc] = 0.
+        irrigateds[isna(irrigateds[cc]), cc] = 0.
+        # Convert to Ha
+        rainfeds[cc] = rainfeds[cc] * 0.404686
+        irrigateds[cc] = irrigateds[cc] * 0.404686
+    end
+    agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
+    agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
     agriculture
 end

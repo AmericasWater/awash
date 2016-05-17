@@ -20,15 +20,15 @@ end
 
     # Internal
     # Resource demands
-    population = Parameter(index=[regions, time], units="person")
+    population = Parameter(index=[regions, time], unit="person")
 
-    waterdemandperperson = Parameter(units="1000 m^3/person")
-    cropinterestperperson = Parameter(index=[crops], units="lborbu/person")
+    waterdemandperperson = Parameter(unit="1000 m^3/person")
+    cropinterestperperson = Parameter(index=[crops], unit="lborbu/person")
 
     # Demanded water
-    waterdemand = Variable(index=[regions, time], units="1000 m^3")
+    waterdemand = Variable(index=[regions, time], unit="1000 m^3")
     # Amount of crops that would buy
-    cropinterest = Variable(index=[regions, crops, time], units="lborbu")
+    cropinterest = Variable(index=[regions, crops, time], unit="lborbu")
 end
 
 """

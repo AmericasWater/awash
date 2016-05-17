@@ -64,7 +64,6 @@ stations = waternetdata["stations"];
 XX = spzeros(numgauges, numcounties) # contributions
 # Fill in XX by column, with columns summing to 1
 for rr in 1:numcounties
-    println(rr)
     if isna(countyareas[rr])
         continue
     end
@@ -89,4 +88,3 @@ for rr in 1:numcounties
 end
 
 addeds = XX * runoff;
-

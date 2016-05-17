@@ -47,7 +47,7 @@ setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
 if redogwwo
     gwwo = grad_waternetwork_outflows_withdrawals(m);
     serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
-    cwro = constraintoffset_waternetwork_runoff(m);
+    cwro = constraintoffset_waternetwork_outflows(m);
     serialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "w"), cwro);
 else
     gwwo = deserialize(open(joinpath(todata, "partialhouse$suffix.jld"), "r"));
@@ -106,3 +106,7 @@ for ii in 1:length(house.parameters)
         println("Sum: $(sum(values))")
     end
 end
+
+# Save the results
+serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], m.indices_counts[:canals], m.indices_counts[:time]))
+serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:end], m.indices_counts[:canals], m.indices_counts[:time]))

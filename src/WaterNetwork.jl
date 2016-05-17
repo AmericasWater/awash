@@ -8,11 +8,12 @@ using Mimi
     gauges = Index()
 
     # External
-    added = Parameter(index=[gauges, time], unit="1000 m^3") # Water added at node <- currently just runoff
+    added = Parameter(index=[gauges, time], unit="1000 m^3") # Water added at node from runoff
     removed = Parameter(index=[gauges, time], unit="1000 m^3") # Water removed from node
+    returned = Parameter(index=[gauges, time], unit="1000 m^3") # Water returns to a node from canals
 
     inflows = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream outflows
-    outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed
+    outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed + returned
 end
 
 """
@@ -32,7 +33,7 @@ function timestep(c::WaterNetwork, tt::Int)
         end
 
         v.inflows[gg, tt] = allflow
-        v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt]
+        v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt] + p.returned[gg, tt]
     end
 end
 
@@ -42,6 +43,7 @@ function initwaternetwork(m::Model)
     # addeds loaded by weather.jl
     waternetwork[:added] = addeds[:, 1:numsteps]
     waternetwork[:removed] = zeros(numgauges, numsteps)
+    waternetwork[:returned] = zeros(numgauges, numsteps)
 
     waternetwork
 end
@@ -93,12 +95,11 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
     roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate)
 end
 
-function constraintoffset_waternetwork_runoff(m::Model)
+function constraintoffset_waternetwork_outflows(m::Model)
     b = copy(addeds) # Start with direct added
 
     # Propogate in downstream order
     for hh in 1:numgauges
-        #println(maximum(b))
         gg = vertex_index(downstreamorder[hh])
         println(gg)
         gauge = downstreamorder[hh].label

@@ -18,7 +18,7 @@ using Mimi
     # Water removed from gauge
     removed = Variable(index=[gauges, time], unit="1000 m^3")
     # Water returned to gauge
-    added = Variable(index=[gauges, time], unit="1000 m^3")
+    returned = Variable(index=[gauges, time], unit="1000 m^3")
 end
 
 function timestep(c::ReturnFlows, tt::Int)
@@ -28,7 +28,7 @@ function timestep(c::ReturnFlows, tt::Int)
 
     for gg in 1:numgauges
         v.removed[gg, tt] = 0.
-        v.added[gg, tt] = 0.
+        v.returned[gg, tt] = 0.
     end
 
     for pp in 1:nrow(draws)
@@ -39,7 +39,7 @@ function timestep(c::ReturnFlows, tt::Int)
                 println("Missing $gaugeid")
             else
                 v.removed[gg, tt] += p.withdrawals[pp, tt]
-                v.added[gg, tt] += p.returns[pp, tt]
+                v.returned[gg, tt] += p.returns[pp, tt]
             end
         end
     end

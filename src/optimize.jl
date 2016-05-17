@@ -66,7 +66,7 @@ if redohouse
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
         serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
-        cwro = constraintoffset_waternetwork_runoff(m);
+        cwro = constraintoffset_waternetwork_outflows(m);
         serialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "w"), cwro);
     else
         gwwo = deserialize(open(joinpath(todata, "partialhouse$suffix.jld"), "r"));

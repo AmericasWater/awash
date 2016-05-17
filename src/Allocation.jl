@@ -1,6 +1,8 @@
 using Mimi
 using Distributions
 
+include("lib/datastore.jl")
+
 @defcomp Allocation begin
     regions = Index()
 
@@ -102,7 +104,9 @@ function initallocation(m::Model)
     allocation[:costfromreservoir] = 10. * repeat(rand(Normal(35, 3), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:costfromsupersource] = 100000.0;
 
-    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
+    # Check if there are saved withdrawals and return flows (from optimize-surface)
+    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+    allocation[:returns] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 
     allocation[:waterfromgw] = repeat(0*rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:waterfromreservoir] = repeat(0*rand(LogNormal(log(300.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);

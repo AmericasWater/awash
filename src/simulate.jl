@@ -53,7 +53,7 @@ allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
-waternetwork[:added] = returnflows[:added];
+waternetwork[:returned] = returnflows[:returned];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

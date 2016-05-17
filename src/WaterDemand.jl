@@ -15,6 +15,17 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     # External
     # Irrigation water (1000 m^3)
     totalirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+<<<<<<< HEAD
+    # Combined water use for domestic sinks (1000 m^3)
+    domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # Industrial and mining demand, self supplied
+    industrialuse = Parameter(index=[regions,time],unit="1000 m^3")
+    urbanuse = Parameter(index=[regions,time], unit="1000 m^3")
+    # Demand for thermoelectric power (1000 m^3)
+    thermoelectricuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # Combined water use for domestic sinks (1000 m^3)
+    livestockuse = Parameter(index=[regions, time], unit="1000 m^3")
+=======
     # Combined water use for domestic sinks (1000 m^3)
     domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
     # Demand for thermoelectric power (1000 m^3)
@@ -23,13 +34,17 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     livestockuse = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for industry and mining (1000 m^3)
     industrymininguse = Parameter(index=[regions, time], unit="1000 m^3")
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 
     # Internal
     # Total water demand (1000 m^3)
     totaldemand = Variable(index=[regions, time], unit="1000 m^3")
+<<<<<<< HEAD
+=======
 
     # How much is returned by region
     totalreturn = Variable(index=[regions, time], unit="1000 m^3")
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 end
 
 """
@@ -42,9 +57,13 @@ function timestep(c::WaterDemand, tt::Int)
 
     for rr in d.regions
         # Sum all demands
+<<<<<<< HEAD
+        v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt] + p.industrialuse[rr, tt] + p.urbanuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
+=======
         v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt] + p.industrymininguse[rr, tt]
 
         v.totalreturn[rr, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, tt] + returnpart["industrial/mining"] * p.industrymininguse[rr, tt]
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
     end
 end
 
@@ -55,11 +74,26 @@ function initwaterdemand(m::Model)
     waterdemand = addcomponent(m, WaterDemand);
 
     # Set optimized parameters to 0
+<<<<<<< HEAD
+
+    #waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+
+    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+=======
     waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
     waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
     waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
     waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
     waterdemand[:industrymininguse] = zeros(m.indices_counts[:regions], m.indices_counts[:time])
+>>>>>>> 7b10aac957a08796b7813dc5ef207fc667d5ce45
 
     waterdemand
 end

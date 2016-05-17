@@ -5,19 +5,20 @@ using DataFrames
 
 @defcomp IndustrialDemand begin
     regions = Index()
+    crops = Index()
 
     # Industrial demand
-    industrywaterdemand = Parameter(index=[regions, time])
-    miningwaterdemand = Parameter([regions, time])
+    industrywaterdemand = Parameter(index=[regions, time],unit="1000 m^3")
+    miningwaterdemand = Parameter(index=[regions, time],unit="1000 m^3")
 
     # Demanded water
-    waterdemand = Variable(index=[regions, time])
+    waterdemand = Variable(index=[regions, time],unit="1000 m^3")
 end
 
 """
 The quantity of water demanded at each timestep
 """
-function timestep(c::DomesticDemand, tt::Int)
+function timestep(c::IndustrialDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
@@ -30,13 +31,12 @@ end
 """
 Add an industrial component to the model.
 """
-function initdomesticdemand(m::Model, years)
-    industrialdemand = addcomponent(m, DomesticDemand);
-    
-    # data from USGS 2010 for the 2000 county definition
+function initindustrialdemand(m::Model)
+    industrialdemand = addcomponent(m, IndustrialDemand);
 
-    industrialdemand[:industrywaterdemand] = readdlm("../data/usgs_industrydemand_2010.txt");
-    industrialdemand[:miningwaterdemand] = readdlm("../data/usgs_miningdemand_2010.txt");
+    # data from USGS 2010 for the 2000 county definition
+    industrialdemand[:industrywaterdemand] = readdlm("../data/demand/INWFrTo.txt");
+    industrialdemand[:miningwaterdemand] = readdlm("../data/demand/MIWFrTo.txt");
     industrialdemand
 end
 

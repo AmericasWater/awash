@@ -4,7 +4,6 @@ import Base.*, Base.-
 
 #export *
 
-# A hallway is a vector of variables
 type LinearProgrammingHall
     component::Symbol
     name::Symbol
@@ -24,35 +23,6 @@ end
 
 function -(hall::LinearProgrammingHall)
     LinearProgrammingHall(hall.component, hall.name, -hall.f)
-end
-
-function +(hall1::LinearProgrammingHall, hall2::LinearProgrammingHall; skipnamecheck=false)
-    if !skipnamecheck
-        @assert hall1.name == hall2.name "Hall + Hall name mismatch: $(hall1.name) <> $(hall2.name); use hall_relabel?"
-    end
-    LinearProgrammingHall(hall1.component, hall1.name, hall1.f + hall2.f)
-end
-
-# A shaft is a transpose of a hallway, used for parameters
-type LinearProgrammingShaft
-    component::Symbol
-    name::Symbol
-    x::Vector{Float64}
-end
-
-function shaftsingle(model::Model, component::Symbol, name::Symbol, gen::Function)
-    LinearProgrammingShaft(component, name, matrixsingle(getdims(model, component, name), gen))
-end
-
-function -(shaft::LinearProgrammingShaft)
-    LinearProgrammingShaft(shaft.component, shaft.name, -shaft.x)
-end
-
-function +(shaft1::LinearProgrammingShaft, shaft2::LinearProgrammingShaft; skipnamecheck=false)
-    if !skipnamecheck
-        @assert shaft1.name == shaft2.name "Shaft + Shaft name mismatch: $(shaft1.name) <> $(shaft2.name); use shaft_relabel?"
-    end
-    LinearProgrammingShaft(shaft1.component, shaft1.name, shaft1.x + shaft2.x)
 end
 
 type LinearProgrammingRoom
@@ -99,17 +69,9 @@ end
 
 function *(hall::LinearProgrammingHall, room::LinearProgrammingRoom; skipnamecheck=false)
     if !skipnamecheck
-        @assert hall.name == room.variable "Hall * Room name mismatch: $(hall.name) <> $(room.variable); use room_relabel?"
+        @assert room.variable == hall.name "Room * Hall name mismatch: $(room.parameter) <> $(hall.name); use room_relabel?"
     end
     LinearProgrammingHall(room.paramcomponent, room.parameter, vec(transpose(hall.f) * room.A))
-end
-
-# Returns a hall, since it then contains variable/constraint information
-function *(room::LinearProgrammingRoom, shaft::LinearProgrammingShaft; skipnamecheck=false)
-    if !skipnamecheck
-        @assert shaft.name == room.parameter "Room * Shaft name mismatch: $(room.parameter) <> $(hall.name); use room_relabel?"
-    end
-    LinearProgrammingHall(room.varcomponent, room.variable, room.A * shaft.x)
 end
 
 function *(room1::LinearProgrammingRoom, room2::LinearProgrammingRoom; skipnamecheck=false)

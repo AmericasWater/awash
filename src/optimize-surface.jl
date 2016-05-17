@@ -12,6 +12,7 @@ include("weather.jl")
 
 redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
 
+include("WaterDemand.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
 include("ReturnFlows.jl")
@@ -20,16 +21,17 @@ include("ReturnFlows.jl")
 m = newmodel();
 
 # Add all of the components
-returnflows = initreturnflows(m); # exogenous/optimization
-allocation = initallocation(m); # dep. WaterDemand
-waternetwork = initwaternetwork(m); # dep. Allocation
+waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
+allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
+returnflows = initreturnflows(m); # dep. Allocation
+waternetwork = initwaternetwork(m); # dep. ReturnFlows
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :Allocation]
-parameters = [:waterfromsupersource, :withdrawals]
-constcomps = [:WaterNetwork, :Allocation]
-constraints = [:outflows, :balance]
+paramcomps = [:Allocation, :Allocation, :Allocation]
+parameters = [:waterfromsupersource, :withdrawals, :returns]
+constcomps = [:WaterNetwork, :Allocation, :Allocation]
+constraints = [:outflows, :balance, :returnbalance]
 
 ## Constraint definitions:
 # outflows is the water in the stream
@@ -53,12 +55,23 @@ else
 end
 
 setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
+setconstraint!(house, room_relabel_parameter(gwwo, :withdrawals, :Allocation, :returns)) # -
 setconstraintoffset!(house, cwro) # +
 
 # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
 setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
 setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
 setconstraintoffset!(house, -constraintoffset_allocation_recordedbalance(m)) # -
+
+# Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
+setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
+setconstraintoffset!(house,
+                     -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m) +
+                                   grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
+                                   grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
+                                   grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
+grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
+-
 
 # Clean up
 

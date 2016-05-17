@@ -6,7 +6,6 @@ include("lib/datastore.jl")
 @defcomp Allocation begin
     regions = Index()
 
-<<<<<<< HEAD
     # Water demand aggregated accross all sectors
     watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
     # Water return flows
@@ -65,7 +64,6 @@ function timestep(c::Allocation, tt::Int)
     d = c.Dimensions
 
     # Surface water calculations
-<<<<<<< HEAD
     v.swsupply[:, tt] = zeros(numcounties)
     v.swreturn[:, tt] = zeros(numcounties)
     for pp in 1:nrow(draws)

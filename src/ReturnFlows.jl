@@ -12,6 +12,8 @@ using Mimi
 
     # How much to send from each gauge to each county
     withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
+    # How much is returned through canals (assuming 2-way canals!)
+    returns = Parameter(index=[canals, time], unit="1000 m^3")
 
     # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
     copy_withdrawals = Variable(index=[canals, time], unit="1000 m^3")
@@ -33,7 +35,7 @@ function timestep(c::ReturnFlows, tt::Int)
 
     for pp in 1:nrow(draws)
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
-        if p.withdrawals[pp, tt] > 0
+        if p.withdrawals[pp, tt] > 0 || p.returns[pp, tt] > 0
             gaugeid = draws[pp, :gaugeid]
             gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
             if (gg == 0)
@@ -53,6 +55,7 @@ function initreturnflows(m::Model)
     returnflows = addcomponent(m, ReturnFlows);
 
     returnflows[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
+    returnflows[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
 
     returnflows
 end

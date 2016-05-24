@@ -8,6 +8,7 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Soybeans" => 1.37599595071683,
                           "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
 
+# Per year costs
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
                          "Barley" => 442., "Barley.Winter" => 442.,
                          "Maize" => 554.,
@@ -56,20 +57,20 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
     (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
 end
 
-if isfile(joinpath(todata, "agmodels.jld"))
+if isfile(joinpath(todata, "cache/agmodels.jld"))
     println("Loading from saved region network...")
 
-    agmodels = deserialize(open(joinpath(todata, "agmodels.jld"), "r"));
+    agmodels = deserialize(open(joinpath(todata, "cache/agmodels.jld"), "r"));
 else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = readtable("../data/nationals.csv")
+    nationals = readtable("../data/agriculture/nationals.csv")
     for crop in crops
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        counties = readtable("../data/unpooled-$crop.csv")
+        counties = readtable("../data/agriculture/unpooled-$crop.csv")
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
             # Construct a pooled combination
@@ -81,7 +82,7 @@ else
         end
     end
 
-    serialize(open(joinpath(todata, "agmodels.jld"), "w"), agmodels)
+    serialize(open(joinpath(todata, "cache/agmodels.jld"), "w"), agmodels)
 end
 
 @defcomp Agriculture begin
@@ -181,7 +182,7 @@ function initagriculture(m::Model)
 
     agriculture = addcomponent(m, Agriculture)
 
-    agriculture[:logirrigatedyield] = repeat(logirrigatedyield, outer=[1, 1, numsteps])
+    agriculture[:logirrigatedyield] = logirrigatedyield
     agriculture[:deficit_coeff] = deficit_coeff
     agriculture[:water_demand] = water_demand
     agriculture[:precipitation] = precip
@@ -204,12 +205,12 @@ function initagriculture(m::Model)
 end
 
 function grad_agriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) # Convert Ha to acres
+    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) / 12 # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_agriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 # Convert Ha to acres
+    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 / 12 # Convert Ha to acres
     roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
 
@@ -259,9 +260,9 @@ function constraintoffset_agriculture_allagarea(m::Model)
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) / 12 # convert acres to Ha
 end
 
 function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) / 12 # convert acres to Ha
 end

@@ -34,7 +34,7 @@ function initthermoelectric(m::Model)
     thermoelectric = addcomponent(m, Thermoelectric)
 
     recorded = readtable("../data/extraction/USGS-2010.csv")
-    thermoelectric[:demand] = repeat(convert(Vector, recorded[:, :PT_To] * 1382592. / 1000.), outer=[1, numsteps])
+    thermoelectric[:demand] = repeat(convert(Vector, recorded[:, :PT_To] * 1382592. / (1000. * 12)), outer=[1, numsteps])
 
     thermoelectric
 end

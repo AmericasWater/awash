@@ -38,24 +38,10 @@ function reorderfips(weather::Array{Float64, 2}, fromfips, tofips)
     result
 end
 
-function sum2year(weather)
-    byyear = zeros(size(weather, 1), round(Int64, size(weather, 2) / 12))
-    for year in 1:round(Int64, size(weather, 2) / 12)
-        allcounties = zeros(size(weather, 1))
-        for month in 1:12
-            allcounties += weather[:, round(Int64, (year - 1) * 12 + month)]
-        end
-
-        byyear[:, year] = allcounties
-    end
-
-    byyear
-end
-
 # Load data from the water budget
 # Currently summing over all months
-runoff = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "runoff"), fips, mastercounties[:fips])); # mm / yr
-precip = sum2year(reorderfips(ncread("../data/VIC_WB.nc", "precip"), fips, mastercounties[:fips])); # mm / yr
+runoff = reorderfips(getweather("runoff"), fips, mastercounties[:fips]); # mm / month
+precip = reorderfips(getweather("precip"), fips, mastercounties[:fips]); # mm / month
 
 # Convert runoff to a gauge measure
 waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);

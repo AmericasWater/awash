@@ -35,8 +35,8 @@ function initindustrialdemand(m::Model)
     industrialdemand = addcomponent(m, IndustrialDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    industrialdemand[:industrywaterdemand] = readdlm("../data/demand/INWFrTo.txt");
-    industrialdemand[:miningwaterdemand] = readdlm("../data/demand/MIWFrTo.txt");
+    industrialdemand[:industrywaterdemand] = readdlm("../data/demand/INWFrTo.txt") / 12;
+    industrialdemand[:miningwaterdemand] = readdlm("../data/demand/MIWFrTo.txt") / 12;
     industrialdemand
 end
 

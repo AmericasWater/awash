@@ -64,17 +64,22 @@ function timestep(c::Allocation, tt::Int)
     d = c.Dimensions
 
     # Surface water calculations
+    println(size(p.withdrawals))
+
     v.swsupply[:, tt] = zeros(numcounties)
     v.swreturn[:, tt] = zeros(numcounties)
     for pp in 1:nrow(draws)
         fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
         rr = findfirst(mastercounties[:fips] .== fips)
         if rr > 0
+            println("A")
             v.swsupply[rr, tt] += p.withdrawals[pp, tt]
             v.swreturn[rr, tt] += p.returns[pp, tt]
         end
+        println("B")
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
         v.copy_returns[pp, tt] = p.returns[pp, tt]
+        println("C")
     end
 
     for rr in d.regions
@@ -84,7 +89,7 @@ function timestep(c::Allocation, tt::Int)
         v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + (p.waterfromreservoir[rr,tt] + v.swsupply[rr,tt])*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
 
         v.balance[rr, tt] = v.waterallocated[rr, tt] - p.watertotaldemand[rr, tt]
-        v.returnbalance[cty, tt] = v.swreturn[cty, tt] - p.waterreturn[cty, tt]
+        v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
     end
 end
 

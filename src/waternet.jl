@@ -11,15 +11,15 @@ filtersincludeupstream = false # true to include all upstream nodes during a fil
 
 empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEdge}}())
 
-if isfile("../data/waternet$suffix.jld")
+if isfile("../data/cache/waternet$suffix.jld")
     println("Loading from saved water network...")
 
-    waternet = deserialize(open("../data/waternet$suffix.jld", "r"));
-    wateridverts = deserialize(open("../data/wateridverts$suffix.jld", "r"));
-    draws = deserialize(open("../data/waterdraws$suffix.jld", "r"));
+    waternet = deserialize(open("../data/cache/waternet$suffix.jld", "r"));
+    wateridverts = deserialize(open("../data/cache/wateridverts$suffix.jld", "r"));
+    draws = deserialize(open("../data/cache/waterdraws$suffix.jld", "r"));
 else
     # Load the network of counties
-    if netset == "usa"
+    if config["netset"] == "usa"
         waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
         drawsdata = read_rda("../data/countydraws.RData", convertdataframes=true);
     else
@@ -39,9 +39,9 @@ else
         draws[ii, :gaugeid] = "$(netdata[row, :collection]).$(netdata[row, :colid])"
     end
 
-    if filterstate != nothing
+    if config["filterstate"] != nothing
         states = round(Int64, draws[:fips] / 1000)
-        draws = draws[states .== parse(Int64, filterstate), :]
+        draws = draws[states .== parse(Int64, config["filterstate"]), :]
 
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
@@ -111,9 +111,9 @@ else
     end
 
     # Construct the network
-    serialize(open("../data/waternet$suffix.jld", "w"), waternet)
-    serialize(open("../data/wateridverts$suffix.jld", "w"), wateridverts)
-    serialize(open("../data/waterdraws$suffix.jld", "w"), draws)
+    serialize(open("../data/cache/waternet$suffix.jld", "w"), waternet)
+    serialize(open("../data/cache/wateridverts$suffix.jld", "w"), wateridverts)
+    serialize(open("../data/cache/waterdraws$suffix.jld", "w"), draws)
 end
 
 # Prepare the model

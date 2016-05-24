@@ -11,8 +11,8 @@ using Mimi
 
     # Configuration
     # Selling prices
-    domestic_prices = Parameter(index=[regions, crops, time], unit="\$/lborbu")
-    international_prices = Parameter(index=[regions, crops, time], unit="\$/lborbu")
+    domestic_prices = Parameter(index=[regions, crops], unit="\$/lborbu")
+    international_prices = Parameter(index=[regions, crops], unit="\$/lborbu")
 
     # Optimized
     internationalsales = Parameter(index=[regions, crops, time], unit="lborbu")
@@ -52,8 +52,8 @@ function timestep(c::Market, tt::Int)
     for rr in d.regions
         for cc in d.crops
             v.available[rr, cc, tt] = p.produced[rr, cc, tt] + p.regionimports[rr, cc, tt] - p.regionexports[rr, cc, tt]
-            v.domesticrevenue[rr, cc, tt] = p.domestic_prices[rr, cc, tt] * (v.available[rr, cc, tt] - p.internationalsales[rr, cc, tt])
-            v.internationalrevenue[rr, cc, tt] = p.international_prices[rr, cc, tt] * p.internationalsales[rr, cc, tt]
+            v.domesticrevenue[rr, cc, tt] = p.domestic_prices[rr, cc] * (v.available[rr, cc, tt] - p.internationalsales[rr, cc, tt])
+            v.internationalrevenue[rr, cc, tt] = p.international_prices[rr, cc] * p.internationalsales[rr, cc, tt]
         end
     end
 end
@@ -75,8 +75,8 @@ function initmarket(m::Model)
               171.50 * .0272155] # wheat.winter
 
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:crops], m.indices_counts[:time]])
-    market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1, m.indices_counts[:time]])
-    market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1, m.indices_counts[:time]])
+    market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
+    market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])
     market[:internationalsales] = zeros(numcounties, numcrops, numsteps)
     market[:regionimports] = zeros(numcounties, numcrops, numsteps)
     market[:regionexports] = zeros(numcounties, numcrops, numsteps)

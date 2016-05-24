@@ -24,12 +24,12 @@ using DataFrames
 
 todata = relpath(joinpath(dirname(@__FILE__), "../data"))
 
-if isfile(joinpath(todata, "regionsources2$suffix.jld"))
+if isfile(joinpath(todata, "cache/regionsources$suffix.jld"))
     println("Loading from saved region network...")
 
-    regionnet = deserialize(open(joinpath(todata, "regionnet2$suffix.jld"), "r")); # The network
-    regverts = deserialize(open(joinpath(todata, "regionvertices2$suffix.jld"), "r")); # Mapping from FIPS to vertex
-    sourceiis = deserialize(open(joinpath(todata, "regionsources2$suffix.jld"), "r")); # Neighbor indexes from region index
+    regionnet = deserialize(open(joinpath(todata, "cache/regionnet$suffix.jld"), "r")); # The network
+    regverts = deserialize(open(joinpath(todata, "cache/regionvertices$suffix.jld"), "r")); # Mapping from FIPS to vertex
+    sourceiis = deserialize(open(joinpath(todata, "cache/regionsources$suffix.jld"), "r")); # Neighbor indexes from region index
 else
     println("Trying to create a new region network...")
 
@@ -48,9 +48,9 @@ else
             end
 
             # Only include if part of filter
-            if filterstate != nothing
-                if fips[1:2] == filterstate
-                    edges[fips] = filter(ff -> ff[1:2] == filterstate, chunks)
+            if config["filterstate"] != nothing
+                if fips[1:2] == config["filterstate"]
+                    edges[fips] = filter(ff -> ff[1:2] == config["filterstate"], chunks)
                 end
             else
                 edges[fips] = chunks
@@ -85,7 +85,7 @@ else
         sourceiis[indexin([fips], mastercounties[:fips])[1]] = indexin(neighbors, mastercounties[:fips])
     end
 
-    serialize(open(joinpath(todata, "regionnet2$suffix.jld"), "w"), regionnet)
-    serialize(open(joinpath(todata, "regionvertices2$suffix.jld"), "w"), regverts)
-    serialize(open(joinpath(todata, "regionsources2$suffix.jld"), "w"), sourceiis)
+    serialize(open(joinpath(todata, "cache/regionnet$suffix.jld"), "w"), regionnet)
+    serialize(open(joinpath(todata, "cache/regionvertices$suffix.jld"), "w"), regverts)
+    serialize(open(joinpath(todata, "cache/regionsources$suffix.jld"), "w"), sourceiis)
 end

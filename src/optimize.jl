@@ -1,14 +1,11 @@
 using Mimi
-include("linproghouse.jl")
+include("lib/linproghouse.jl")
+include("lib/readconfig.jl")
 
-netset = "usa" # dummy or usa
+config = readconfig("../configs/standard.yml")
 
-# Only include counties within this state (give as 2 digit FIPS)
-# "10" for Delaware (3 counties), "08" for Colorado (64 counties)
-filterstate = nothing #"10"
-
-redohouse = !isfile(joinpath(todata, "fullhouse$suffix.jld"))
-redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
+redohouse = !isfile(joinpath(todata, "cache/fullhouse$suffix.jld"))
+redogwwo = !isfile(joinpath(todata, "cache/partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -65,12 +62,12 @@ if redohouse
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
-        serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
+        serialize(open(joinpath(todata, "cache/partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
-        serialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "w"), cwro);
+        serialize(open(joinpath(todata, "cache/partialhouse2$suffix.jld"), "w"), cwro);
     else
-        gwwo = deserialize(open(joinpath(todata, "partialhouse$suffix.jld"), "r"));
-        cwro = deserialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "r"));
+        gwwo = deserialize(open(joinpath(todata, "cache/partialhouse$suffix.jld"), "r"));
+        cwro = deserialize(open(joinpath(todata, "cache/partialhouse2$suffix.jld"), "r"));
     end
 
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
@@ -113,9 +110,9 @@ if redohouse
         house.A[ri[ii], ci[ii]] = 1e9
     end
 
-    serialize(open(joinpath(todata, "fullhouse$suffix.jld"), "w"), house)
+    serialize(open(joinpath(todata, "cache/fullhouse$suffix.jld"), "w"), house)
 else
-    house = deserialize(open(joinpath(todata, "fullhouse$suffix.jld"), "r"));
+    house = deserialize(open(joinpath(todata, "cache/fullhouse$suffix.jld"), "r"));
 end
 
 using MathProgBase

@@ -1,14 +1,9 @@
 using DataArrays
 using DataFrames
 using OptiMimi
-cd("Dropbox/POSTDOC/AW-julia/operational-problem-main/src")
-pwd()
-workspace()
-netset = "usa" # dummy or usa
+include("lib/readconfig.jl")
 
-# Only include counties within this state (give as 2 digit FIPS)
-# "10" for Delaware (3 counties), "08" for Colorado (64 counties)
-filterstate = nothing #"10"
+config = readconfig("../configs/standard.yml")
 
 include("world.jl")
 include("weather.jl")
@@ -54,7 +49,7 @@ waterdemand[:livestockuse] = livestock[:demand_copy];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];
 waterdemand[:industrialuse] = industrialdemand[:waterdemand];
 
-allocation[:waterdemand] = waterdemand[:totaldemand];
+allocation[:watertotaldemand] = waterdemand[:totaldemand];
 allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];

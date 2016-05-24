@@ -1,11 +1,8 @@
 using Mimi
-include("linproghouse.jl")
+include("lib/linproghouse.jl")
+include("lib/readconfig.jl")
 
-netset = "usa" # dummy or usa
-
-# Only include counties within this state (give as 2 digit FIPS)
-# "10" for Delaware (3 counties), "08" for Colorado (64 counties)
-filterstate = nothing #"10"
+config = readconfig("../configs/standard.yml")
 
 include("world.jl")
 include("weather.jl")

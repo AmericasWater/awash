@@ -28,10 +28,6 @@ include("lib/datastore.jl")
     waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
     watergw = Variable(index=[regions, time], unit="1000 m^3")
     waterreservoir = Variable(index=[regions,time], unit="1000 m^3")
-    # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    # Combination across all canals supplying the counties
-    swsupply = Variable(index=[regions, time], unit="1000 m^3")
 
     # The cost in USD / 1000 m^3 of extraction and treatment cost
     costfromgw = Parameter(index=[regions,time], unit="\$/1000 m^3")
@@ -64,22 +60,17 @@ function timestep(c::Allocation, tt::Int)
     d = c.Dimensions
 
     # Surface water calculations
-    println(size(p.withdrawals))
-
     v.swsupply[:, tt] = zeros(numcounties)
     v.swreturn[:, tt] = zeros(numcounties)
     for pp in 1:nrow(draws)
         fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
         rr = findfirst(mastercounties[:fips] .== fips)
         if rr > 0
-            println("A")
             v.swsupply[rr, tt] += p.withdrawals[pp, tt]
             v.swreturn[rr, tt] += p.returns[pp, tt]
         end
-        println("B")
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
         v.copy_returns[pp, tt] = p.returns[pp, tt]
-        println("C")
     end
 
     for rr in d.regions
@@ -106,7 +97,7 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
     allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-    allocation[:returns] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 
     mingw=readdlm("../data/demand/MIWGWFr.txt");
     indgw=readdlm("../data/demand/INWGWFr.txt");
@@ -115,8 +106,8 @@ function initallocation(m::Model)
     indsw=readdlm("../data/demand/INWSWFr.txt");
     pssw=readdlm("../data/demand/PSWSWFr.txt");
 
-    allocation[:waterfromgw] = mingw + indgw + psgw;
-    allocation[:waterfromreservoir] = minsw + indsw + pssw;
+    allocation[:waterfromgw] = repeat(mingw + indgw + psgw, outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromreservoir] = repeat(minsw + indsw + pssw, outer=[1, m.indices_counts[:time]]);
     allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     allocation
 end

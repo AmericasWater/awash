@@ -18,7 +18,7 @@ include("ReturnFlows.jl")
 m = newmodel();
 
 # Add all of the components
-waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
+waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(m); # dep. Allocation
 waternetwork = initwaternetwork(m); # dep. ReturnFlows
@@ -63,11 +63,11 @@ setconstraintoffset!(house, -constraintoffset_allocation_recordedbalance(m)) # -
 # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
 setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
 setconstraintoffset!(house,
-                     -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m) +
-                                   grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
-                                   grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
-                                   grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
-grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
+                     -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedsurfaceirrigation(m) +
+                                   grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordedsurfacedomestic(m) +
+                                   grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedsurfaceindustrial(m) +
+                                   grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedsurfacethermoelectric(m) +
+grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedsurfacelivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
 -
 
 # Clean up

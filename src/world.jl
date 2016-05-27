@@ -24,7 +24,11 @@ else
 end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts))
-numsteps = (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"]
+numsteps = convert(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
+if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
+    println("Configuration does not describe an integer number of timesteps")
+end
+
 numcrops = length(crops)
 numcanals = nrow(draws)
 
@@ -33,7 +37,7 @@ naquifers = 3108;
 function newmodel()
     m = Model()
 
-    setindex(m, :time, collect(parsemonth(config["startmonth"]):parsemonth(config["endmonth"])))
+    setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     setindex(m, :regions, collect(mastercounties[:fips]))
     setindex(m, :crops, crops)
     setindex(m, :gauges, collect(keys(wateridverts)))

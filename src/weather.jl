@@ -40,18 +40,17 @@ end
 
 function sum2timestep(weather)
     if config["timestep"] == 1
-        return weather[:, config["startweather"]:end]
+        return weather[config["startweather"]:config["startweather"]+numstep-1, :]
     end
 
-    timesteps = round(Int64, (size(weather, 2) - config["startweather"] + 1) / config["timestep"])
-    bytimestep = zeros(size(weather, 1), timesteps)
-    for timestep in 1:timesteps
-        allcounties = zeros(size(weather, 1))
+    bytimestep = zeros(numsteps, size(weather, 2))
+    for timestep in 1:numsteps
+        allcounties = zeros(1, size(weather, 2))
         for month in 1:config["timestep"]
-            allcounties += weather[:, round(Int64, (timestep - 1) * config["timestep"] + month + config["startweather"] - 1)]
+            allcounties += weather[round(Int64, (timestep - 1) * config["timestep"] + month + config["startweather"] - 1), :]
         end
 
-        bytimestep[:, timestep] = allcounties
+        bytimestep[timestep, :] = allcounties
     end
 
     bytimestep
@@ -59,8 +58,8 @@ end
 
 # Load data from the water budget
 # Currently summing over all months
-runoff = sum2timestep(reorderfips(getweather("runoff"), fips, mastercounties[:fips])); # mm / timestep
-precip = sum2timestep(reorderfips(getweather("precip"), fips, mastercounties[:fips])); # mm / timestep
+runoff = reorderfips(sum2timestep(ncread("../data/VIC_WB.nc", "runoff")), fips, mastercounties[:fips]); # mm / timestep
+precip = reorderfips(sum2timestep(ncread("../data/VIC_WB.nc", "precip")), fips, mastercounties[:fips]); # mm / timestep
 
 # Convert runoff to a gauge measure
 waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);

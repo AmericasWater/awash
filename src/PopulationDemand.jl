@@ -1,4 +1,4 @@
-# The domestic demand component
+# The population demand component
 
 using Mimi
 using DataFrames
@@ -14,7 +14,7 @@ function getpopulation(fips, year)
     end
 end
 
-@defcomp DomesticDemand begin
+@defcomp PopulationDemand begin
     regions = Index()
     crops = Index()
 
@@ -22,11 +22,8 @@ end
     # Resource demands
     population = Parameter(index=[regions, time], unit="person")
 
-    waterdemandperperson = Parameter(unit="1000 m^3/person")
     cropinterestperperson = Parameter(index=[crops], unit="lborbu/person")
 
-    # Demanded water
-    waterdemand = Variable(index=[regions, time], unit="1000 m^3")
     # Amount of crops that would buy
     cropinterest = Variable(index=[regions, crops, time], unit="lborbu")
 end
@@ -34,13 +31,12 @@ end
 """
 Compute the `surplus` as `available` - `demand`.
 """
-function timestep(c::DomesticDemand, tt::Int)
+function timestep(c::PopulationDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
 
     for rr in d.regions
-        v.waterdemand[rr, tt] = p.population[rr, tt] * p.waterdemandperperson
         for cc in d.crops
             v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
         end
@@ -48,16 +44,13 @@ function timestep(c::DomesticDemand, tt::Int)
 end
 
 """
-Add a domesticdemand component to the model.
+Add a populationdemand component to the model.
 """
-function initdomesticdemand(m::Model, years)
-    domesticdemand = addcomponent(m, DomesticDemand)
-
-    # Blue water from http://waterfootprint.org/media/downloads/Hoekstra_and_Chapagain_2006.pdf
-    domesticdemand[:waterdemandperperson] = 575 * 365.25 * .001 * .001 / config["timestep"] # 1000 m^3 / month
+function initpopulationdemand(m::Model, years)
+    populationdemand = addcomponent(m, PopulationDemand)
 
     # How much of each crop will people buy per year?
-    domesticdemand[:cropinterestperperson] = (365.25 / config["timestep"]) * [1., # .2 pounds meat (alfalfa / 10) per day
+    populationdemand[:cropinterestperperson] = (365.25 / config["timestep"]) * [1., # .2 pounds meat (alfalfa / 10) per day
                                                               1., # .2 pounds meat (otherhay / 10) per day
                                                               .005, # bushels Barley per day
                                                               .005, # bushels Barley.Winter per day
@@ -92,18 +85,13 @@ function initdomesticdemand(m::Model, years)
         end
     end
 
-    domesticdemand[:population] = allpops
+    populationdemand[:population] = allpops
 
-    domesticdemand
+    populationdemand
 end
 
-function constraintoffset_domesticdemand_waterdemand(m::Model)
-    gen(rr, tt) = m.parameters[:population].values[rr, tt] * m.parameters[:waterdemandperperson].value
-    hallsingle(m, :DomesticDemand, :waterdemand, gen)
-end
-
-function constraintoffset_domesticdemand_cropinterest(m::Model)
+function constraintoffset_populationdemand_cropinterest(m::Model)
     gen(rr, cc, tt) = -m.parameters[:population].values[rr, tt] * m.parameters[:cropinterestperperson].values[cc]
-    hallsingle(m, :DomesticDemand, :cropinterest, gen)
+    hallsingle(m, :PopulationDemand, :cropinterest, gen)
 end
 

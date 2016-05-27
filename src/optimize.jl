@@ -12,7 +12,7 @@ include("weather.jl")
 
 include("Agriculture.jl")
 include("WaterDemand.jl")
-include("DomesticDemand.jl")
+include("PopulationDemand.jl")
 include("Market.jl")
 include("Transportation.jl")
 include("WaterNetwork.jl")
@@ -24,9 +24,9 @@ println("Creating model...")
 m = newmodel();
 
 # Add all of the components
-domesticdemand = initdomesticdemand(m, m.indices_values[:time]); # exogenous
+populationdemand = initpopulationdemand(m, m.indices_values[:time]); # exogenous
 agriculture = initagriculture(m); # optimization-only
-waterdemand = initwaterdemand(m); # dep. Agriculture, DomesticDemand
+waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
@@ -84,7 +84,7 @@ if redohouse
     setconstraint!(house, grad_waterdemand_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
-    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
+    setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
 
     # Constrain domesticsales < domesticdemand
     # Reproduce 'available'
@@ -93,7 +93,7 @@ if redohouse
     setconstraint!(house, room_relabel(grad_market_available_internationalsales(m), :available, :Market, :domesticbalance)) # -
     setconstraint!(house, room_relabel(grad_market_available_regionimports(m) * grad_transportation_regionimports_imported(m) +
                                        grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m), :available, :Market, :domesticbalance)) # +-
-    setconstraintoffset!(house, -hall_relabel(constraintoffset_domesticdemand_cropinterest(m), :cropinterest, :Market, :domesticbalance)) # -
+    setconstraintoffset!(house, -hall_relabel(constraintoffset_populationdemand_cropinterest(m), :cropinterest, :Market, :domesticbalance)) # -
 
     # Clean up
 

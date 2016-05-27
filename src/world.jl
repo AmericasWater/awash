@@ -24,7 +24,7 @@ else
 end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts))
-numsteps = parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1
+numsteps = (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"]
 numcrops = length(crops)
 numcanals = nrow(draws)
 

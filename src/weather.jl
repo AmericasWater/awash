@@ -42,7 +42,7 @@ function sum2timestep(weather)
     if config["timestep"] == 1
         return weather[:, config["startweather"]:end]
     end
-    
+
     timesteps = round(Int64, (size(weather, 2) - config["startweather"] + 1) / config["timestep"])
     bytimestep = zeros(size(weather, 1), timesteps)
     for timestep in 1:timesteps

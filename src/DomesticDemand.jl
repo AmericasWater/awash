@@ -54,10 +54,10 @@ function initdomesticdemand(m::Model, years)
     domesticdemand = addcomponent(m, DomesticDemand)
 
     # Blue water from http://waterfootprint.org/media/downloads/Hoekstra_and_Chapagain_2006.pdf
-    domesticdemand[:waterdemandperperson] = 575 * 365.25 * .001 * .001 / 12 # 1000 m^3 / month
+    domesticdemand[:waterdemandperperson] = 575 * 365.25 * .001 * .001 / config["timestep"] # 1000 m^3 / month
 
     # How much of each crop will people buy per year?
-    domesticdemand[:cropinterestperperson] = (365.25 / 12) * [1., # .2 pounds meat (alfalfa / 10) per day
+    domesticdemand[:cropinterestperperson] = (365.25 / config["timestep"]) * [1., # .2 pounds meat (alfalfa / 10) per day
                                                               1., # .2 pounds meat (otherhay / 10) per day
                                                               .005, # bushels Barley per day
                                                               .005, # bushels Barley.Winter per day

@@ -128,7 +128,7 @@ function initaquifercontus(m::Model)
 
   temp = readdlm("../data/gwmodel/matrix_leakage_factor.txt");
   aquifer[:lateralconductivity] = temp[v,v];
-  aquifer[:deltatime] = 12.0;
+  aquifer[:deltatime] = convert(Float64, config["timestep"])
   temp = readdlm("../data/gwmodel/connectivity_matrix.txt");
   aquifer[:aquiferconnexion] = temp[v,v];
   aquifer

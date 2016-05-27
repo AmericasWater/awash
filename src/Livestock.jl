@@ -34,7 +34,7 @@ function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
     recorded = readtable("../data/extraction/USGS-2010.csv")
-    livestock[:demand] = repeat(convert(Vector, recorded[:, :LI_To] * 1382592. / (12 * 1000.)), outer=[1, numsteps])
+    livestock[:demand] = repeat(convert(Vector, recorded[:, :LI_To] * 1382592. / (config["timestep"] * 1000.)), outer=[1, numsteps])
 
     livestock
 end

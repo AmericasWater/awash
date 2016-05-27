@@ -34,7 +34,7 @@ function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    urbandemand[:domesticdemand] = repeat(readdlm("../data/demand/PSdem.txt") / 12, outer=[1, m.indices_counts[:time]]);
+    urbandemand[:domesticdemand] = repeat(readdlm("../data/demand/PSdem.txt") / config["timestep"], outer=[1, m.indices_counts[:time]]);
     M = zeros(m.indices_counts[:regions], m.indices_counts[:time]);#readdlm("../data/COandINPSDel.txt");
     urbandemand[:commercialdemand] = 0*M;
     urbandemand

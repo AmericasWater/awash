@@ -35,8 +35,8 @@ function initindustrialdemand(m::Model)
     industrialdemand = addcomponent(m, IndustrialDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    industrialdemand[:industrywaterdemand] = repeat(readdlm("../data/demand/INWFrTo.txt") / 12, outer=[1, m.indices_counts[:time]]);
-    industrialdemand[:miningwaterdemand] = repeat(readdlm("../data/demand/MIWFrTo.txt") / 12, outer=[1, m.indices_counts[:time]]);
+    industrialdemand[:industrywaterdemand] = repeat(readdlm("../data/demand/INWFrTo.txt") / config["timestep"], outer=[1, m.indices_counts[:time]]);
+    industrialdemand[:miningwaterdemand] = repeat(readdlm("../data/demand/MIWFrTo.txt") / config["timestep"], outer=[1, m.indices_counts[:time]]);
     industrialdemand
 end
 

@@ -6,11 +6,11 @@ filterstate: null
 netset: usa
 
 # First and last month of the simulation
-startmonth: 10/1999
-endmonth: 9/2010
+startmonth: 10/1949
+endmonth: 12/2010
 
 # First entry in VIC_WB to include
 startweather: 1
 
 # Months per time step
-timestep: 6
+timestep: 1

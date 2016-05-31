@@ -99,12 +99,13 @@ function initallocation(m::Model)
     allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
     allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 
-    mingw=readdlm("../data/demand/MIWGWFr.txt");
-    indgw=readdlm("../data/demand/INWGWFr.txt");
-    psgw=readdlm("../data/demand/PSWGWFr.txt");
-    minsw=readdlm("../data/demand/MIWSWFr.txt");
-    indsw=readdlm("../data/demand/INWSWFr.txt");
-    pssw=readdlm("../data/demand/PSWSWFr.txt");
+    demdat = readtable("../data/demand/simulation2010demanddata.csv");
+    mingw=convert(Vector,demdat[:,:MI_WGWTo]);
+    indgw=convert(Vector,demdat[:,:IN_WGWTo]);
+    psgw=convert(Vector,demdat[:,:PS_WGWTo]);
+    minsw=convert(Vector,demdat[:,:MI_WSWTo]);
+    indsw=convert(Vector,demdat[:,:IN_WSWTo]);
+    pssw=convert(Vector,demdat[:,:PS_WSWTo]);
 
     allocation[:waterfromgw] = repeat(mingw + indgw + psgw, outer=[1, m.indices_counts[:time]]);
     allocation[:waterfromreservoir] = repeat(minsw + indsw + pssw, outer=[1, m.indices_counts[:time]]);

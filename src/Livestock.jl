@@ -33,8 +33,7 @@ Add a Livestock component to the model.
 function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    livestock[:demand] = repeat(convert(Vector, recorded[:, :LI_To] * 1382592. / (config["timestep"] * 1000.)), outer=[1, numsteps])
+    livestock[:demand] = repeat(convert(Vector,readtable("../data/demand/simulation2010demanddata.csv")[:,:LI_WFrTo]) / config["timestep"], outer=[1, numsteps])
 
     livestock
 end

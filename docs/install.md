@@ -24,3 +24,9 @@
 
    `Pkg.checkout("Mimi")`
 
+## Basic usage
+
+To simulate the model, run the `simulate.jl` script in julia:
+```include("simulate.jl")```
+
+Then to see the results, call `getdataframe(m, <component>, <name>)`, where `<component>` is a symbol for one of the components, for example `:Agriculture`; and `<name>` is a symbol for a output variable, for example `:production`.

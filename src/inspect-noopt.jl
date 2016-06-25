@@ -2,7 +2,6 @@
 ## Possible options:
 ## initialized constant (later: possible sources)
 ## default connection (later: possible connections)
-## optimization constraint (later: possible optimizations)
 
 include("model.jl")
 

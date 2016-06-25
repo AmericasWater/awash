@@ -11,5 +11,5 @@ Rows may be excluded, to represent that a given reservoir should be modeled as a
 stream at the specified timestep (in months).
 """
 function getreservoirs(timestep::Int)
-    read_rda(datapath("reservoirs/allreservoirs.RData"))
+    readtable(datapath("reservoirs/allreservoirs.csv"))
 end

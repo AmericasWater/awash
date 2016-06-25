@@ -36,7 +36,7 @@ end
 """
 Compute the amount extracted and the cost for doing it.
 """
-function timestep(c::WaterDemand, tt::Int)
+function run_timestep(c::WaterDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

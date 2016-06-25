@@ -27,7 +27,7 @@ end
 """
 Compute the storage for the reservoirs as they change in time
 """
-function timestep(c::Reservoir, tt::Int)
+function run_timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

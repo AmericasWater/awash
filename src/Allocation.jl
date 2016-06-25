@@ -54,7 +54,7 @@ end
 """
 Sums the water from various sources and computes the cost
 """
-function timestep(c::Allocation, tt::Int)
+function run_timestep(c::Allocation, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

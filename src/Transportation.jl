@@ -44,7 +44,7 @@ end
 """
 Compute the amount imported and exported by region.
 """
-function timestep(c::Transportation, tt::Int)
+function run_timestep(c::Transportation, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

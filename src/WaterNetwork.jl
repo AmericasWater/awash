@@ -19,7 +19,7 @@ end
 """
 Compute the inflows and outflows at each node
 """
-function timestep(c::WaterNetwork, tt::Int)
+function run_timestep(c::WaterNetwork, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

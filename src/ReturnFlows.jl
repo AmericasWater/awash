@@ -23,7 +23,7 @@ using Mimi
     returned = Variable(index=[gauges, time], unit="1000 m^3")
 end
 
-function timestep(c::ReturnFlows, tt::Int)
+function run_timestep(c::ReturnFlows, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

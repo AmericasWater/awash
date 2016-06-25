@@ -17,7 +17,7 @@ end
 """
 The quantity of water demanded at each timestep
 """
-function timestep(c::UrbanDemand, tt::Int)
+function run_timestep(c::UrbanDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

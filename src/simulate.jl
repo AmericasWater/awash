@@ -4,30 +4,30 @@ using OptiMimi
 include("model.jl")
 
 # Run it and time it!
-@time run(m)
+@time run(model)
 
-m.components[:IndustrialDemand].Variables.waterdemand
-m.components[:UrbanDemand].Variables.waterdemand
-m.components[:Allocation].Parameters.withdrawals
-m.components[:Allocation].Parameters.waterdemand
-m.components[:Allocation].Parameters.waterfromgw
-m.components[:Allocation].Parameters.waterfromreservoir
-m.components[:Allocation].Parameters.waterfromsupersource
-m.components[:Allocation].Variables.watergw
-m.components[:Allocation].Variables.waterreservoir
-m.components[:Allocation].Variables.swsupply
-m.components[:Allocation].Parameters.costfromgw
-m.components[:Allocation].Parameters.costfromsw
-m.components[:Allocation].Parameters.costfromsupersource
-m.components[:Allocation].Variables.cost
-m.components[:Allocation].Variables.waterallocated
-m.components[:Allocation].Variables.balance
+model.components[:IndustrialDemand].Variables.waterdemand
+model.components[:UrbanDemand].Variables.waterdemand
+model.components[:Allocation].Parameters.withdrawals
+model.components[:Allocation].Parameters.waterdemand
+model.components[:Allocation].Parameters.waterfromgw
+model.components[:Allocation].Parameters.waterfromreservoir
+model.components[:Allocation].Parameters.waterfromsupersource
+model.components[:Allocation].Variables.watergw
+model.components[:Allocation].Variables.waterreservoir
+model.components[:Allocation].Variables.swsupply
+model.components[:Allocation].Parameters.costfromgw
+model.components[:Allocation].Parameters.costfromsw
+model.components[:Allocation].Parameters.costfromsupersource
+model.components[:Allocation].Variables.cost
+model.components[:Allocation].Variables.waterallocated
+model.components[:Allocation].Variables.balance
 
-m.components[:WaterDemand].Variables.totaldemand
-m.components[:WaterDemand].Parameters.totalirrigation
-m.components[:WaterDemand].Parameters.domesticuse
-m.components[:WaterDemand].Parameters.industrialuse
-m.components[:WaterDemand].Parameters.urbanuse
-m.components[:WaterDemand].Parameters.thermoelectricuse
-m.components[:WaterDemand].Parameters.livestockuse
+model.components[:WaterDemand].Variables.totaldemand
+model.components[:WaterDemand].Parameters.totalirrigation
+model.components[:WaterDemand].Parameters.domesticuse
+model.components[:WaterDemand].Parameters.industrialuse
+model.components[:WaterDemand].Parameters.urbanuse
+model.components[:WaterDemand].Parameters.thermoelectricuse
+model.components[:WaterDemand].Parameters.livestockuse
 

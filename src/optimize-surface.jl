@@ -2,8 +2,8 @@ using Mimi
 using OptiMimi
 include("lib/readconfig.jl")
 
-#config = readconfig("../configs/standard.yml")
-config = readconfig("../configs/dummy3.yml")
+config = readconfig("../configs/standard.yml")
+#config = readconfig("../configs/dummy3.yml")
 
 include("world.jl")
 if config["netset"] == "three"
@@ -46,7 +46,7 @@ house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraint
 
 # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
 setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
-setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
+#setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
 
 # Constrain outflows + runoff > 0, or -outflows < runoff
 if redogwwo
@@ -110,32 +110,15 @@ for ii in find(!isfinite(vv))
     house.A[ri[ii], ci[ii]] = 1e9
 end
 
-house.lowers[19:20] = -Inf
+setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numregions * numsteps) * -Inf))
 
 using MathProgBase
 using Gurobi
 solver = GurobiSolver()
-@time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers, solver)
 
-import OptiMimi: varlengths
+@time sol = houseoptimize(house, solver)
 
-# Look at parameter values
-varlens = varlengths(m, house.paramcomps, house.parameters)
-for ii in 1:length(house.parameters)
-    println(house.parameters[ii])
-    index1 = sum(varlens[1:ii-1]) + 1
-    index2 = sum(varlens[1:ii])
-
-    values = sol.sol[index1:index2]
-
-    if (sum(values .!= 0) == 0)
-        println("All zero.")
-    else
-        println(values[1:min(100, index2 - index1 + 1)])
-        println("Sum: $(sum(values))")
-    end
-end
-
+summarizeparameters(house, sol.sol)
 constraining(house, sol.sol)
 
 # Save the results

@@ -149,14 +149,14 @@ end
 
 ## Optional cost for drawing down a river (environmental change)
 function grad_allocation_cost_withdrawals(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (cc, tt) -> .01)
+    roomdiagonal(m, :Allocation, :cost, :withdrawals, (cc, tt) -> .01)
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
+            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
                 A[rr, pp] = 1.
@@ -171,7 +171,7 @@ function grad_allocation_returnbalance_returns(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
+            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
                 A[rr, pp] = 1.
@@ -183,9 +183,14 @@ function grad_allocation_returnbalance_returns(m::Model)
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
-    hallsingle(m, :Allocation, :balance, gen)
+    if config["netset"] == "three"
+        gen(rr, tt) = 1. * (rr > 1)
+        hallsingle(m, :Allocation, :balance, gen)
+    else
+        recorded = readtable("../data/extraction/USGS-2010.csv")
+        gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
+        hallsingle(m, :Allocation, :balance, gen)
+    end
 end
 
 function grad_allocation_returnbalance_waterreturn(m::Model)

@@ -34,7 +34,7 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    counties = readtable("../data/county-info.csv", eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    counties = readtable("../data/county-info$suffix.csv", eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 
     edges = Dict{UTF8String, Vector{UTF8String}}()
 
@@ -48,9 +48,9 @@ else
             end
 
             # Only include if part of filter
-            if config["filterstate"] != nothing
-                if fips[1:2] == config["filterstate"]
-                    edges[fips] = filter(ff -> ff[1:2] == config["filterstate"], chunks)
+            if get(config, "filterstate", nothing) != nothing
+                if fips[1:2] == get(config, "filterstate", nothing)
+                    edges[fips] = filter(ff -> ff[1:2] == get(config, "filterstate", nothing), chunks)
                 end
             else
                 edges[fips] = chunks

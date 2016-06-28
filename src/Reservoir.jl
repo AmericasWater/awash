@@ -5,23 +5,22 @@ using Mimi
 using Distributions
 
 @defcomp Reservoir begin
-    regions = Index()
+    reservoirs = Index()
 
     # Streamflow connnections
-    inflows = Parameter(index=[regions, time], unit="m^3")
-    outflows = Parameter(index=[regions, time], unit="m^3")
-
-    # Municipality connections
-    withdrawal = Parameter(index=[regions, time], unit="m^3")
+    inflows = Parameter(index=[reservoirs, time], unit="m^3")
+    captures = Parameter(index=[reservoirs, time], unit="m^3") # positive or negative
+    # releases = inflows - captures
+    releases = Variable(index=[reservoirs, time], unit="m^3")
 
     # Evaporation
-    evaporation = Parameter(index=[regions,time], unit="m^3")
+    evaporation = Parameter(index=[reservoirs, time], unit="m^3")
 
     # Storage
-    storage = Variable(index=[regions, time], unit="m^3")
-    storage0 = Parameter(index=[regions], unit="m^3")
-    storagecapacitymin = Parameter(index=[regions], unit="m^3")
-    storagecapacitymax = Parameter(index=[regions], unit="m^3")
+    storage = Variable(index=[reservoirs, time], unit="m^3")
+    storage0 = Parameter(index=[reservoirs], unit="m^3")
+    storagecapacitymin = Parameter(index=[reservoirs], unit="m^3")
+    storagecapacitymax = Parameter(index=[reservoirs], unit="m^3")
 end
 
 """
@@ -32,13 +31,15 @@ function run_timestep(c::Reservoir, tt::Int)
     p = c.Parameters
     d = c.Dimensions
     if tt==1
-        for rr in d.regions
-          v.storage[rr,tt] = (1-p.evaporation[rr,tt])*p.storage0[rr] + sum(p.withdrawal[rr,tt]) + p.inflows[rr,tt] - p.outflows[rr,tt] ### by LJ - temporary
+        for rr in d.reservoirs
+            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
+            v.storage[rr,tt] = (1-p.evaporation[rr,tt])*p.storage0[rr] + p.captures[rr, tt]
         end
     else
-      for rr in d.regions
-        v.storage[rr,tt] = (1-p.evaporation[rr,tt])*v.storage[rr,tt-1] + sum(p.withdrawal[rr,tt]) + p.inflows[rr,tt] - p.outflows[rr,tt] ### by LJ - temporary
-      end
+        for rr in d.reservoirs
+            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
+            v.storage[rr,tt] = (1-p.evaporation[rr,tt])*v.storage[rr,tt-1] + p.captures[rr, tt]
+        end
     end
 end
 
@@ -55,15 +56,58 @@ end
 
 function initreservoir(m::Model)
     reservoir = addcomponent(m, Reservoir)
-    Ainf = rand(Normal(5e5, 7e4), m.indices_counts[:regions]*m.indices_counts[:time]);
-    Aout = rand(Normal(5e5, 7e4), m.indices_counts[:regions]*m.indices_counts[:time]);
-    reservoir[:inflows] = reshape(Ainf,m.indices_counts[:regions],m.indices_counts[:time]);
-    reservoir[:outflows] = reshape(Ainf,m.indices_counts[:regions],m.indices_counts[:time]);
-    reservoir[:withdrawal] = repeat(0*rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    rcmax = rand(Normal(3e6,4e5), m.indices_counts[:regions])
-    reservoir[:storagecapacitymax] = rcmax;
-    reservoir[:storagecapacitymin] = 0.1*rcmax;
-    reservoir[:storage0] = 0.75*rcmax; #initial storate value: 3/4 max capacity
-    reservoir[:evaporation] = 0.01*ones(m.indices_counts[:regions],m.indices_counts[:time]);
+    Ainf = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
+    Aout = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
+    reservoir[:inflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir[:captures] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+
+    if config["netset"] == "three"
+        reservoir[:storagecapacitymax] = ones(numreservoirs) * Inf
+        reservoir[:storagecapacitymin] = zeros(numreservoirs)
+        reservoir[:storage0] = zeros(numreservoirs)
+        reservoir[:evaporation] = zeros(numreservoirs, numsteps)
+    else
+        rcmax = rand(Normal(3e6,4e5), m.indices_counts[:reservoirs])
+        reservoir[:storagecapacitymax] = rcmax;
+        reservoir[:storagecapacitymin] = 0.1*rcmax;
+        reservoir[:storage0] = 0.75*rcmax; #initial storate value: 3/4 max capacity
+        reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    end
     reservoir
+end
+
+function grad_reservoir_outflows_captures(m::Model)
+    function generate(A, tt)
+        # Fill in GAUGES x RESERVOIRS matrix
+        # Propogate in downstream order
+        for hh in 1:numgauges
+            gg = vertex_index(downstreamorder[hh])
+            gauge = downstreamorder[hh].label
+            for upstream in out_neighbors(wateridverts[gauge], waternet)
+                index = vertex_index(upstream, waternet)
+                println(index)
+                if isreservoir[index] > 0
+                    A[gg, isreservoir[index]] = -1
+                else
+                    A[gg, :] += A[index, :]
+                end
+            end
+        end
+    end
+
+    roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate)
+end
+
+function grad_reservoir_storage_captures(m::Model)
+    roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> 1. * ((vrr == prr) && (vtt >= ptt)))
+end
+
+function constraintoffset_reservoir_storagecapacitymin(m::Model)
+    gen(rr, tt) = m.parameters[:storagecapacitymin].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen)
+end
+
+function constraintoffset_reservoir_storagecapacitymax(m::Model)
+    gen(rr, tt) = m.parameters[:storagecapacitymax].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen)
 end

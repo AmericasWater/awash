@@ -14,9 +14,11 @@
 
 4. Open julia (I do this in the terminal) and type,
 
-   `Pkg.add("Mimi")`
-   `Pkg.add("Graphs")`
-   `Pkg.add("NetCDF")`
+   ```
+   Pkg.add("Mimi")
+   Pkg.add("Graphs")
+   Pkg.add("NetCDF")
+   ```
 
     You may need to install other libraries for NetCDFs.
 

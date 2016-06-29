@@ -128,7 +128,7 @@ end
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
-function timestep(s::Agriculture, tt::Int)
+function run_timestep(s::Agriculture, tt::Int)
     v = s.Variables
     p = s.Parameters
     d = s.Dimensions

@@ -31,7 +31,7 @@ end
 """
 Compute the `surplus` as `available` - `demand`.
 """
-function timestep(c::PopulationDemand, tt::Int)
+function run_timestep(c::PopulationDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

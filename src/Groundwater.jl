@@ -35,7 +35,7 @@ end
 """
 Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
 """
-function timestep(c::Aquifer, tt::Int)
+function run_timestep(c::Aquifer, tt::Int)
   v = c.Variables
   p = c.Parameters
   d = c.Dimensions

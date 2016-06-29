@@ -17,7 +17,7 @@ end
 """
 Just copy through
 """
-function timestep(c::Thermoelectric, tt::Int)
+function run_timestep(c::Thermoelectric, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

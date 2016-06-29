@@ -19,7 +19,7 @@ end
 """
 Compute the inflows and outflows at each node
 """
-function timestep(c::WaterNetwork, tt::Int)
+function run_timestep(c::WaterNetwork, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
@@ -49,12 +49,9 @@ function initwaternetwork(m::Model)
 end
 
 function grad_waternetwork_outflows_withdrawals(m::Model)
-    waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
-    netdata = waternetdata["network"];
-
     function generate(A, tt)
         # Fill in GAUGES x CANALS matrix
-        # First do locals
+        # First do local withdrawal
         for pp in 1:nrow(draws)
             gaugeid = draws[pp, :gaugeid]
             gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
@@ -71,12 +68,13 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
             println(gg)
             gauge = downstreamorder[hh].label
             for upstream in out_neighbors(wateridverts[gauge], waternet)
-                A[gg, :] += A[vertex_index(upstream, waternet), :]
+                index = vertex_index(upstream, waternet)
+                A[gg, :] += A[index, :]
             end
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)

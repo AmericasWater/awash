@@ -22,6 +22,9 @@ else
     if config["netset"] == "usa"
         waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
         drawsdata = read_rda("../data/countydraws.RData", convertdataframes=true);
+    elseif config["netset"] == "three"
+        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
+        drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     else
         waternetdata = read_rda("../data/dummynet.RData", convertdataframes=true);
         drawsdata = read_rda("../data/dummydraws.RData", convertdataframes=true);
@@ -39,9 +42,9 @@ else
         draws[ii, :gaugeid] = "$(netdata[row, :collection]).$(netdata[row, :colid])"
     end
 
-    if config["filterstate"] != nothing
+    if get(config, "filterstate", nothing) != nothing
         states = round(Int64, draws[:fips] / 1000)
-        draws = draws[states .== parse(Int64, config["filterstate"]), :]
+        draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
 
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
@@ -119,3 +122,16 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
+# Flag every gauge that's a reservoir
+include("lib/reservoirs.jl")
+reservoirs = getreservoirs(config)
+
+# Zero if not a reservoir, else its index
+isreservoir = zeros(length(wateridverts))
+
+for ii in 1:nrow(reservoirs)
+    resid = "$(reservoirs[ii, :collection]).$(reservoirs[ii, :colid])"
+    if haskey(wateridverts, resid) # Not all reservoirs in network!
+        isreservoir[vertex_index(wateridverts[resid])] = ii
+    end
+end

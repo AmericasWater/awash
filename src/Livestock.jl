@@ -17,7 +17,7 @@ end
 """
 Just copy through
 """
-function timestep(c::Livestock, tt::Int)
+function run_timestep(c::Livestock, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

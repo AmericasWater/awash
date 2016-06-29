@@ -14,9 +14,11 @@
 
 4. Open julia (I do this in the terminal) and type,
 
-   `Pkg.add("Mimi")`
-   `Pkg.add("Graphs")`
-   `Pkg.add("NetCDF")`
+   ```
+   Pkg.add("Mimi")
+   Pkg.add("Graphs")
+   Pkg.add("NetCDF")
+   ```
 
     You may need to install other libraries for NetCDFs.
 
@@ -24,3 +26,9 @@
 
    `Pkg.checkout("Mimi")`
 
+## Basic usage
+
+To simulate the model, run the `simulate.jl` script in julia:
+```include("simulate.jl")```
+
+Then to see the results, call `getdataframe(m, <component>, <name>)`, where `<component>` is a symbol for one of the components, for example `:Agriculture`; and `<name>` is a symbol for a output variable, for example `:production`.

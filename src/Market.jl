@@ -44,7 +44,7 @@ end
 """
 Compute the available local resource for consumption, `available`.
 """
-function timestep(c::Market, tt::Int)
+function run_timestep(c::Market, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions

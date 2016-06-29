@@ -11,7 +11,8 @@ using Distributions
   depthaquif = Parameter(index=[aquifers], unit="1 m")
   areaaquif = Parameter(index=[aquifers], unit="1000 m^2")
   storagecoef = Parameter(index=[aquifers], unit="none")
-  drawdown0 = Parameter(index=[aquifers], unit="1 m") # used for initialisation
+  piezohead0 = Parameter(index=[aquifers], unit="1 m") # used for initialisation
+  elevation = Parameter(index=[aquifers], unit="1 m")
   # Recharge
   recharge = Parameter(index=[aquifers, time], unit="1000 m^3")
 
@@ -25,7 +26,7 @@ using Distributions
   deltatime = Parameter(unit="month")
 
   # Piezometric head
-  drawdown = Variable(index=[aquifers, time], unit="1 m")
+  piezohead = Variable(index=[aquifers, time], unit="1 m")
 
   # Unit volume cost
   volumetriccost = Variable(index=[aquifers, time], unit="\$/1000 m^3")
@@ -44,9 +45,9 @@ function run_timestep(c::Aquifer, tt::Int)
     for aa_ in (aa+1):(d.aquifers[end]-1)
       if p.aquiferconnexion[aa,aa_]==1.
         if tt==1
-        latflow = p.lateralconductivity[aa,aa_]*(p.drawdown0[aa_]-p.drawdown0[aa])*p.deltatime; # in m3/month or m3/year if factor 12
+        latflow = p.lateralconductivity[aa,aa_]*(p.piezohead0[aa_]-p.piezohead0[aa])*p.deltatime; # in m3/month or m3/year if factor 12
         else
-        latflow = p.lateralconductivity[aa,aa_]*(v.drawdown[aa_,tt-1]-v.drawdown[aa,tt-1])*p.deltatime; # in m3/month or m3/year if factor 12
+        latflow = p.lateralconductivity[aa,aa_]*(v.piezohead[aa_,tt-1]-v.piezohead[aa,tt-1])*p.deltatime; # in m3/month or m3/year if factor 12
         end
         v.lateralflows[aa,tt] += latflow/1000;
         v.lateralflows[aa_,tt] += -latflow/1000;
@@ -57,26 +58,26 @@ function run_timestep(c::Aquifer, tt::Int)
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
   for aa in d.aquifers
     if tt==1
-      v.drawdown[aa,tt] = p.drawdown0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.piezohead[aa,tt] = p.piezohead0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     else
-      v.drawdown[aa,tt] = v.drawdown[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     end
   end
 
   # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative. piezohead datum is sea level
   for aa in d.aquifers
-    v.volumetriccost[aa,tt] = p.drawdown0[aa]
+    v.volumetriccost[aa,tt] = p.piezohead0[aa]
   end
 end
 
 function makeconstraintpiezomin(aa, tt)
     function constraint(model)
-        -m[:Aquifer, :piezohead][aa, tt]# piezohead > 0 (non-artesian well)
+        -m.components[:Aquifer].Parameters.elevation[aa]+m[:Aquifer, :piezohead][aa, tt]# piezohead < elevation (non-artesian well)
     end
 end
 function makeconstraintpiezomax(aa, tt)
     function constraint(model)
-       +m[:Aquifer, :piezohead][aa, tt] - m.components[:Aquifer].Parameters.depthaquif[aa] # piezohead > layerthick
+       -m[:Aquifer, :piezohead][aa, tt] + m.components[:Aquifer].Parameters.depthaquif[aa] # piezohead > aquifer depth (remains confined)
     end
 end
 
@@ -112,12 +113,13 @@ function initaquifercontus(m::Model)
   temp = readdlm("../data/gwmodel/aquifer_depth.txt");
   aquifer[:depthaquif] = temp[v,1];
   temp = readdlm("../data/gwmodel/piezohead0.txt");
-  aquifer[:drawdown0] = temp[v,1]; # needs to be changed
+  aquifer[:piezohead0] = temp[v,1]; # needs to be changed
   temp = readdlm("../data/gwmodel/vector_storativity.txt");
   aquifer[:storagecoef] = temp[v,1];
   temp = readdlm("../data/gwmodel/county_area.txt");
   aquifer[:areaaquif] = temp[v,1]/1000;
-
+  temp = readdlm("../data/gwmodel/county_elevation.txt");
+  aquifer[:elevation] = temp[v,1];
   #Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt");
   M = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
   aquifer[:recharge] = M;

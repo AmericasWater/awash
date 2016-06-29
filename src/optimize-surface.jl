@@ -110,7 +110,9 @@ for ii in find(!isfinite(vv))
     house.A[ri[ii], ci[ii]] = 1e9
 end
 
-setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numregions * numsteps) * -Inf))
+setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
+
+serialize(open("../data/fullhouse$suffix.jld", "w"), house)
 
 using MathProgBase
 using Gurobi

@@ -26,9 +26,19 @@
 
    `Pkg.checkout("Mimi")`
 
+6. If you want to do optimization, install James's version of OptiMimi:
+
+```
+Pkg.add("OptiMimi")
+Pkg.checkout("OptiMimi")
+```
+
 ## Basic usage
 
 To simulate the model, run the `simulate.jl` script in julia:
-```include("simulate.jl")```
+
+```
+include("simulate.jl")
+```
 
 Then to see the results, call `getdataframe(m, <component>, <name>)`, where `<component>` is a symbol for one of the components, for example `:Agriculture`; and `<name>` is a symbol for a output variable, for example `:production`.

@@ -28,10 +28,10 @@
 
 6. If you want to do optimization, install James's version of OptiMimi:
 
-```
-Pkg.add("OptiMimi")
-Pkg.checkout("OptiMimi")
-```
+   ```
+   Pkg.add("OptiMimi")
+   Pkg.checkout("OptiMimi")
+   ```
 
 ## Basic usage
 

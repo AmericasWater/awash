@@ -2,7 +2,7 @@ using Mimi
 using OptiMimi
 include("lib/readconfig.jl")
 
-config = readconfig("../configs/standard.yml")
+config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 #config = readconfig("../configs/dummy3.yml")
 
 include("world.jl")
@@ -85,13 +85,15 @@ else
     grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedsurfacelivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
 end
 
-# Constrain storage > min or -storage < -min
+# Reservoir constraints:
+# We don't consider an initial storage, so min storage is 0 and max storage is reservoir max - reservoir min
+
+# Constrain storage > 0 or -storage < 0
 setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
-setconstraintoffset!(house, -hall_relabel(constraintoffset_reservoir_storagecapacitymin(m), :storage, :Reservoir, :storagemin))
 
 # Constrain storage < max
 setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
-setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m), :storage, :Reservoir, :storagemax))
+setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m) - constraintoffset_reservoir_storagecapacitymin(m), :storage, :Reservoir, :storagemax))
 
 # Clean up
 
@@ -114,15 +116,29 @@ setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs
 
 serialize(open("../data/fullhouse$suffix.jld", "w"), house)
 
+##house = deserialize(open(joinpath(todata, "fullhouse$suffix.jld"), "r"));
+
 using MathProgBase
 using Gurobi
 solver = GurobiSolver()
 
 @time sol = houseoptimize(house, solver)
 
+# If model is infeasible, figure out what's causing that
+#topbot = findinfeasiblepair(house, solver)
+#sol = linprog(-house.f, house.A[1:topbot[1],:], '<', house.b[1:topbot[1]], house.lowers, house.uppers, solver)
+#sol = linprog(-house.f, house.A[1:topbot[1]-1,:], '<', house.b[1:topbot[1]-1], house.lowers, house.uppers, solver)
+#sol = linprog(-house.f, house.A[topbot[2]:end,:], '<', house.b[topbot[2]:end], house.lowers, house.uppers, solver)
+#sol = linprog(-house.f, house.A[topbot[2]+1:end,:], '<', house.b[topbot[2]+1:end], house.lowers, house.uppers, solver)
+
 summarizeparameters(house, sol.sol)
-constraining(house, sol.sol)
+
+# Look at the constraints: only possible for small models
+#constraining(house, sol.sol)
 
 # Save the results
+varlens = varlengths(house.model, house.paramcomps, house.parameters)
+
 serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], m.indices_counts[:canals], m.indices_counts[:time]))
-serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:end-2], m.indices_counts[:canals], m.indices_counts[:time]))
+serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], m.indices_counts[:canals], m.indices_counts[:time]))
+serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], m.indices_counts[:reservoirs], m.indices_counts[:time]))

@@ -4,12 +4,13 @@ using OptiMimi
 include("model.jl")
 
 # Run it and time it!
+println("Running model...")
 @time run(model)
 
 model.components[:IndustrialDemand].Variables.waterdemand
 model.components[:UrbanDemand].Variables.waterdemand
 model.components[:Allocation].Parameters.withdrawals
-model.components[:Allocation].Parameters.waterdemand
+model.components[:Allocation].Parameters.watertotaldemand
 model.components[:Allocation].Parameters.waterfromgw
 model.components[:Allocation].Parameters.waterfromreservoir
 model.components[:Allocation].Parameters.waterfromsupersource

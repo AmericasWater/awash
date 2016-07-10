@@ -57,9 +57,14 @@ Return a matrix of MONTH x GAUGES (to match order for `sum2timestep`).
   with the data; the result matrix will have the same number of rows.
 """
 function getadded(stations::DataFrame)
-    gage_latitude = ncread(datapath("contributing_runoff_by_gage.nc"), "gage_latitude")
-    gage_longitude = ncread(datapath("contributing_runoff_by_gage.nc"), "gage_longitude")
-    gage_totalflow = ncread(datapath("contributing_runoff_by_gage.nc"), "totalflow")
+    # Check if the weather file needs to be downloaded
+    if !isfile(datapath("cache/contributing_runoff_by_gage.nc"))
+        download("https://drive.google.com/file/d/0BwjYswM_266EVHQ5OGRfSUNxN1E/view?usp=sharing", datapath("cache/contributing_runoff_by_gage.nc"))
+    end
+
+    gage_latitude = ncread(datapath("cache/contributing_runoff_by_gage.nc"), "gage_latitude")
+    gage_longitude = ncread(datapath("cache/contributing_runoff_by_gage.nc"), "gage_longitude")
+    gage_totalflow = ncread(datapath("cache/contributing_runoff_by_gage.nc"), "totalflow")
 
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions
 

@@ -1,4 +1,5 @@
 using DataFrames
+include("lib/datastore.jl")
 
 suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
 if config["netset"] == "dummy"
@@ -7,7 +8,7 @@ elseif config["netset"] == "three"
     suffix = "-three";
 end
 
-mastercounties = readtable("../data/global/counties$suffix.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 if get(config, "filterstate", nothing) != nothing
     mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
 end

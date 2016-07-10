@@ -1,4 +1,11 @@
 using Base.Test
 
-# Nothing to see here yet!
-@test 1 == 1
+## Create a simple model and run it
+using DataArrays
+using DataFrames
+using OptiMimi
+include("model.jl")
+
+println("Running model...")
+@time run(model)
+

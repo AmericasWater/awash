@@ -75,3 +75,4 @@ for component in model.components
     end
 end
 
+println(df)

@@ -11,23 +11,23 @@ filtersincludeupstream = false # true to include all upstream nodes during a fil
 
 empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEdge}}())
 
-if isfile("../data/cache/waternet$suffix.jld")
+if isfile(datapath("cache/waternet$suffix.jld"))
     println("Loading from saved water network...")
 
-    waternet = deserialize(open("../data/cache/waternet$suffix.jld", "r"));
-    wateridverts = deserialize(open("../data/cache/wateridverts$suffix.jld", "r"));
-    draws = deserialize(open("../data/cache/waterdraws$suffix.jld", "r"));
+    waternet = deserialize(open(datapath("cache/waternet$suffix.jld"), "r"));
+    wateridverts = deserialize(open(datapath("cache/wateridverts$suffix.jld"), "r"));
+    draws = deserialize(open(datapath("cache/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
     if config["netset"] == "usa"
-        waternetdata = read_rda("../data/waternet.RData", convertdataframes=true);
-        drawsdata = read_rda("../data/countydraws.RData", convertdataframes=true);
+        waternetdata = read_rda(datapath("waternet.RData"), convertdataframes=true);
+        drawsdata = read_rda(datapath("countydraws.RData"), convertdataframes=true);
     elseif config["netset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     else
-        waternetdata = read_rda("../data/dummynet.RData", convertdataframes=true);
-        drawsdata = read_rda("../data/dummydraws.RData", convertdataframes=true);
+        waternetdata = read_rda(datapath("dummynet.RData"), convertdataframes=true);
+        drawsdata = read_rda(datapath("dummydraws.RData"), convertdataframes=true);
     end
 
     netdata = waternetdata["network"];
@@ -114,9 +114,9 @@ else
     end
 
     # Construct the network
-    serialize(open("../data/cache/waternet$suffix.jld", "w"), waternet)
-    serialize(open("../data/cache/wateridverts$suffix.jld", "w"), wateridverts)
-    serialize(open("../data/cache/waterdraws$suffix.jld", "w"), draws)
+    serialize(open(datapath("cache/waternet$suffix.jld"), "w"), waternet)
+    serialize(open(datapath("cache/wateridverts$suffix.jld"), "w"), wateridverts)
+    serialize(open(datapath("cache/waterdraws$suffix.jld"), "w"), draws)
 end
 
 # Prepare the model

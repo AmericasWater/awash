@@ -2,7 +2,7 @@
 Return the full path to a standard data file.
 """
 function datapath(filename)
-    "../data/$filename"
+    joinpath(dirname(@__FILE__), "../../data/$filename")
 end
 
 """

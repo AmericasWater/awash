@@ -11,7 +11,7 @@ Pkg.checkout("OptiMimi")
 using DataArrays
 using DataFrames
 using OptiMimi
-include("model.jl")
+include("../model.jl")
 
 println("Running model...")
 @time run(model)

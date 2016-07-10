@@ -1,6 +1,10 @@
 using YAML
 
 function readconfig(ymlpath)
+    if ymlpath[1:11] == "../configs/"
+        ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
+    end
+
     YAML.load(open(ymlpath))
 end
 

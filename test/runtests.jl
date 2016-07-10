@@ -1,5 +1,6 @@
 using Base.Test
 
+Pkg.add("YAML")
 Pkg.add("Mimi")
 Pkg.add("Graphs")
 Pkg.add("NetCDF")

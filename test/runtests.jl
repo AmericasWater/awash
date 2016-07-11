@@ -3,8 +3,7 @@ using Base.Test
 function requirepackage(pkg, checkout=false)
     try
         println("Checking $pkg")
-        Pkg.installed(pkg)
-        println("Installed.")
+        println(Pkg.installed(pkg));
     catch
         println("Install $pkg")
         Pkg.add(pkg)

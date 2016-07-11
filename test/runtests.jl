@@ -1,12 +1,22 @@
 using Base.Test
 
-Pkg.add("YAML")
-Pkg.add("Mimi")
-Pkg.add("Graphs")
-Pkg.add("NetCDF")
-Pkg.add("DataArrays")
-Pkg.add("OptiMimi")
-Pkg.checkout("OptiMimi")
+function requirepackage(pkg, checkout=false)
+    try
+        Pkg.installed(pkg)
+    catch
+        Pkg.add(pkg)
+        if checkout
+            Pkg.checkout(pkg)
+        end
+    end
+end
+
+requirepackage("YAML")
+requirepackage("Mimi")
+requirepackage("Graphs")
+requirepackage("NetCDF")
+requirepackage("DataArrays")
+requirepackage("OptiMimi", true)
 
 ## Create a simple model and run it
 using DataArrays

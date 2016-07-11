@@ -59,7 +59,7 @@ Return a matrix of MONTH x GAUGES (to match order for `sum2timestep`).
 function getadded(stations::DataFrame)
     # Check if the weather file needs to be downloaded
     if !isfile(datapath("cache/contributing_runoff_by_gage.nc"))
-        download("https://drive.google.com/file/d/0BwjYswM_266EVHQ5OGRfSUNxN1E/view?usp=sharing", datapath("cache/contributing_runoff_by_gage.nc"))
+        download("https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=0", datapath("cache/contributing_runoff_by_gage.nc"))
     end
 
     gage_latitude = ncread(datapath("cache/contributing_runoff_by_gage.nc"), "gage_latitude")

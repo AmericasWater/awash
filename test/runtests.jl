@@ -2,12 +2,16 @@ using Base.Test
 
 function requirepackage(pkg, checkout=false)
     try
+        println("Checking $pkg")
         Pkg.installed(pkg)
+        println("Installed.")
     catch
+        println("Install $pkg")
         Pkg.add(pkg)
         if checkout
             Pkg.checkout(pkg)
         end
+        println("Done.")
     end
 end
 

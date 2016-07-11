@@ -2,15 +2,15 @@ using Base.Test
 
 function requirepackage(pkg, checkout=false)
     try
-        println("Checking $pkg")
-        println(Pkg.installed(pkg));
+        version = Pkg.installed(pkg)
+        if version == nothing
+            error("Needs to be installed.")
+        end
     catch
-        println("Install $pkg")
         Pkg.add(pkg)
         if checkout
             Pkg.checkout(pkg)
         end
-        println("Done.")
     end
 end
 

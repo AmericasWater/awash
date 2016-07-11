@@ -110,28 +110,28 @@ function initaquifercontus(m::Model)
   aquifer = addcomponent(m, Aquifer)
   v=collect(1:3109);
 
-  temp = readdlm("../data/gwmodel/aquifer_depth.txt");
+  temp = readdlm(datapath("gwmodel/aquifer_depth.txt"));
   aquifer[:depthaquif] = temp[v,1];
-  temp = readdlm("../data/gwmodel/piezohead0.txt");
+  temp = readdlm(datapath("gwmodel/piezohead0.txt"));
   aquifer[:piezohead0] = temp[v,1]; # needs to be changed
-  temp = readdlm("../data/gwmodel/vector_storativity.txt");
+  temp = readdlm(datapath("gwmodel/vector_storativity.txt"));
   aquifer[:storagecoef] = temp[v,1];
-  temp = readdlm("../data/gwmodel/county_area.txt");
+  temp = readdlm(datapath("gwmodel/county_area.txt"));
   aquifer[:areaaquif] = temp[v,1]/1000;
-  temp = readdlm("../data/gwmodel/county_elevation.txt");
+  temp = readdlm(datapath("gwmodel/county_elevation.txt"));
   aquifer[:elevation] = temp[v,1];
   #Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt");
   M = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
   aquifer[:recharge] = M;
-  #mingw=readdlm("../data/demand/MIWGWFr.txt");
-  #indgw=readdlm("../data/demand/INWGWFr.txt");
-  #psgw=readdlm("../data/demand/PSWGWFr.txt");
+  #mingw=readdlm(datapath("demand/MIWGWFr.txt"));
+  #indgw=readdlm(datapath("demand/INWGWFr.txt"));
+  #psgw=readdlm(datapath("demand/PSWGWFr.txt"));
   aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);#psgw+indgw+mingw;
 
-  temp = readdlm("../data/gwmodel/matrix_leakage_factor.txt");
+  temp = readdlm(datapath("gwmodel/matrix_leakage_factor.txt"));
   aquifer[:lateralconductivity] = temp[v,v];
   aquifer[:deltatime] = convert(Float64, config["timestep"])
-  temp = readdlm("../data/gwmodel/connectivity_matrix.txt");
+  temp = readdlm(datapath("gwmodel/connectivity_matrix.txt"));
   aquifer[:aquiferconnexion] = temp[v,v];
   aquifer
 end

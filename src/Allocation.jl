@@ -99,7 +99,7 @@ function initallocation(m::Model)
     allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
     allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 
-    demdat = readtable("../data/demand/simulation2010demanddata.csv");
+    demdat = readtable(datapath("demand/simulation2010demanddata.csv"));
     mingw=convert(Vector,demdat[:,:MI_WGWTo]);
     indgw=convert(Vector,demdat[:,:IN_WGWTo]);
     psgw=convert(Vector,demdat[:,:PS_WGWTo]);
@@ -187,7 +187,7 @@ function constraintoffset_allocation_recordedbalance(m::Model)
         gen(rr, tt) = 1. * (rr > 1)
         hallsingle(m, :Allocation, :balance, gen)
     else
-        recorded = readtable("../data/extraction/USGS-2010.csv")
+        recorded = readtable(datapath("extraction/USGS-2010.csv"))
         gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
         hallsingle(m, :Allocation, :balance, gen)
     end

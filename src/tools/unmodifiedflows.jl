@@ -2,7 +2,7 @@ using Mimi
 using OptiMimi
 
 include("../lib/readconfig.jl")
-config = readconfig("../../configs/complete.yml")
+config = readconfig(joinpath(dirname(@__FILE__), "../../configs/complete.yml"))
 
 include("../world.jl")
 include("../weather.jl")

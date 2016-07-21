@@ -1,6 +1,4 @@
-include("lib/readconfig.jl")
-
-config = readconfig("../configs/standard.yml")
+## `config` must be defined before loading this file!
 
 include("world.jl")
 include("weather.jl")

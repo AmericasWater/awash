@@ -1,11 +1,10 @@
 # Can only be called after loading regionnet.jl
 
 using DataFrames
-using NetCDF
 include("lib/weather.jl")
 
-statefips = ncread(datapath("VIC_WB.nc"), "state_fips")
-countyfips = ncread(datapath("VIC_WB.nc"), "county_fips")
+statefips = dncload("weather", "state_fips", ["county"])
+countyfips = dncload("weather", "county_fips", ["county"])
 fips = map(fipsnum -> (fipsnum < 10000 ? "0$fipsnum" : "$fipsnum"), round(Int, statefips * 1000 + countyfips))
 
 counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
@@ -17,7 +16,7 @@ counties[isna(counties[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
 countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather
-precip = reorderfips(sum2timestep(ncread(datapath("VIC_WB.nc"), "precip")), fips, mastercounties[:fips]); # mm / timestep
+precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month"])), fips, mastercounties[:fips]); # mm / timestep
 
 # Load data from the water budget
 

@@ -25,6 +25,10 @@ requirepackage("OptiMimi", true)
 using DataArrays
 using DataFrames
 using OptiMimi
+
+include("../src/lib/readconfig.jl")
+config = readconfig("../configs/standard-1year.yml")
+
 include("../src/model.jl")
 
 println("Running model...")

@@ -1,0 +1,2 @@
+toilet -f mono12 --filter border:metal -F metal AWASH >
+intro-banner.txt

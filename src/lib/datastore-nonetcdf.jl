@@ -1,5 +1,19 @@
 using DataFrames
 
+"""
+Download all the datasets that we will need
+"""
+function predownload()
+    for name in keys(ncdatasets)
+        filepath = datapath("cache/" * ncdatasets[name]["filename"] * ".csv")
+
+        if !isfile(filepath)
+            println("Downloading $name...")
+            download(ncdatasets[name]["csvurl"], filepath)
+        end
+    end
+end
+
 if !isdefined(:currentCSVFiles)
     """
     Store previously opened CSVs

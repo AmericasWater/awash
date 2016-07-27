@@ -96,20 +96,21 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+     if config["netset"] == "three"
+	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
-    demdat = readtable("../data/demand/simulation2010demanddata.csv");
-    mingw=convert(Vector,demdat[:,:MI_WGWTo]);
-    indgw=convert(Vector,demdat[:,:IN_WGWTo]);
-    psgw=convert(Vector,demdat[:,:PS_WGWTo]);
-    minsw=convert(Vector,demdat[:,:MI_WSWTo]);
-    indsw=convert(Vector,demdat[:,:IN_WSWTo]);
-    pssw=convert(Vector,demdat[:,:PS_WSWTo]);
-
-    allocation[:waterfromgw] = repeat(mingw + indgw + psgw, outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromreservoir] = repeat(minsw + indsw + pssw, outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+     else
+	allocation[:withdrawals] = deserialize(open("../data/extraction/withdrawals.jld"))#, () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+    	allocation[:returns] = deserialize(open("../data/extraction/returns.jld"))#, () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+    	#allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+	allocation[:waterfromgw] = deserialize(open("../data/extraction/waterfromgw.jld"));#, () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
+    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);#deserialize(open("../data/extraction/captures.jld"));
+    	allocation[:waterfromsupersource] = deserialize(open("../data/extraction/supersource.jld"))#, () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+    end
     allocation
 end
 
@@ -137,6 +138,10 @@ end
 
 function grad_allocation_balance_waterfromsupersource(m::Model)
     roomdiagonal(m, :Allocation, :balance, :waterfromsupersource, (rr, tt) -> 1.)
+end
+
+function grad_allocation_balance_waterfromgw(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
@@ -184,11 +189,20 @@ end
 
 function constraintoffset_allocation_recordedbalance(m::Model)
     if config["netset"] == "three"
-        gen(rr, tt) = 1. * (rr > 1)
-        hallsingle(m, :Allocation, :balance, gen)
+		if config["optimtype"] == "SW"
+			gen(rr, tt) = 1. * (rr > 1)
+		elseif config["optimtype"] == "SWGW" 
+			gen(rr, tt) = 2. * (rr > 1)
+		end
+	        hallsingle(m, :Allocation, :balance, gen)
     else
-        recorded = readtable("../data/extraction/USGS-2010.csv")
-        gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
+		if config["optimtype"] == "SW"
+        		recorded = readtable("../data/extraction/USGS-2010.csv")
+        		gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
+		elseif config["optimtype"] == "SWGW" 
+        		recorded = readtable("../data/extraction/USGS-2010.csv")
+        		gen(rr, tt) = recorded[rr, :TO_To] * 1382592. / 1000.
+		end
         hallsingle(m, :Allocation, :balance, gen)
     end
 end

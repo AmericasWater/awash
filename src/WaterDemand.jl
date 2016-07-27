@@ -132,3 +132,33 @@ function values_waterdemand_recordedsurfacethermoelectric(m::Model)
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 
+
+function values_waterdemand_recordedgrounddomestic(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1382592. / (1000. * config["timestep"])
+    shaftsingle(m, :WaterDemand, :domesticuse, gen)
+end
+
+function values_waterdemand_recordedgroundindustrial(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1382592. / (1000. * config["timestep"])
+    shaftsingle(m, :WaterDemand, :industrialuse, gen)
+end
+
+function values_waterdemand_recordedgroundirrigation(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = recorded[rr, :IR_GW] * 1382592. / (1000. * config["timestep"])
+    shaftsingle(m, :WaterDemand, :totalirrigation, gen)
+end
+
+function values_waterdemand_recordedgroundlivestock(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = recorded[rr, :LI_GW] * 1382592. / (1000. * config["timestep"])
+    shaftsingle(m, :WaterDemand, :livestockuse, gen)
+end
+
+function values_waterdemand_recordedgroundthermoelectric(m::Model)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = recorded[rr, :PT_GW] * 1382592. / (1000. * config["timestep"])
+    shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
+end

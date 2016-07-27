@@ -96,7 +96,6 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-<<<<<<< HEAD
      if config["netset"] == "three"
 	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
@@ -197,10 +196,10 @@ function constraintoffset_allocation_recordedbalance(m::Model)
 	        hallsingle(m, :Allocation, :balance, gen)
     else
 		if config["optimtype"] == "SW"
-        		recorded = readtable(datapath("extraction/USGS-2010.csv")
+        		recorded = readtable(datapath("extraction/USGS-2010.csv"))
         		gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
 		elseif config["optimtype"] == "SWGW" 
-        		recorded = readtable(datapath("extraction/USGS-2010.csv")
+        		recorded = readtable(datapath("extraction/USGS-2010.csv"))
         		gen(rr, tt) = recorded[rr, :TO_To] * 1382592. / 1000.
 		end
 		hallsingle(m, :Allocation, :balance, gen)

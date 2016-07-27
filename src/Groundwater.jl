@@ -108,8 +108,7 @@ end
 
 function initaquifer(m::Model)
   aquifer = addcomponent(m, Aquifer)
-<<<<<<< HEAD
-  
+
   if config["netset"] == "three"
   	aquifer[:depthaquif] = [-100.; -90.; -95.];
 	aquifer[:storagecoef] = [5e-4; 5e-4; 5e-4];
@@ -126,25 +125,25 @@ function initaquifer(m::Model)
   	aquifer[:aquiferconnexion] = [0. 1. 0.; 1. 0. 1.; 0 1. 0];
   else
 	v=collect(1:3109);
-  	temp = readdlm(datapath("gwmodel/aquifer_depth.txt");
+  	temp = readdlm(datapath("gwmodel/aquifer_depth.txt"));
   	aquifer[:depthaquif] = temp[v,1];
-  	temp = readdlm(datapath("gwmodel/piezohead0.txt");
+  	temp = readdlm(datapath("gwmodel/piezohead0.txt"));
   	aquifer[:piezohead0] = 50*ones(m.indices_counts[:regions]);#temp[v,1]; # needs to be changed
-  	temp = readdlm(datapath("gwmodel/vector_storativity.txt");
+  	temp = readdlm(datapath("gwmodel/vector_storativity.txt"));
   	aquifer[:storagecoef] = temp[v,1];
-  	temp = readdlm(datapath("gwmodel/county_area.txt");
+  	temp = readdlm(datapath("gwmodel/county_area.txt"));
   	aquifer[:areaaquif] = temp[v,1]/1000;
-  	temp = readdlm(datapath("gwmodel/county_elevation.txt");
+  	temp = readdlm(datapath("gwmodel/county_elevation.txt"));
   	aquifer[:elevation] = temp[v,1];
-  	#Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt");
+  	#Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt"));
   	M = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
   	aquifer[:recharge] = M;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);#psgw+indgw+mingw;
 
-  	temp = readdlm(datapath("gwmodel/matrix_leakage_factor.txt");
+  	temp = readdlm(datapath("gwmodel/matrix_leakage_factor.txt"));
   	aquifer[:lateralconductivity] = temp[v,v];
   	aquifer[:deltatime] = convert(Float64, config["timestep"])
-  	temp = readdlm(datapath("gwmodel/connectivity_matrix.txt");
+  	temp = readdlm(datapath("gwmodel/connectivity_matrix.txt"));
   	aquifer[:aquiferconnexion] = temp[v,v];
   end
   aquifer

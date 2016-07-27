@@ -4,6 +4,9 @@
 ## default connection (later: possible connections)
 ## optimization constraint (later: possible optimizations)
 
+include("lib/readconfig.jl")
+config = readconfig("../configs/standard.yml")
+
 include("model.jl")
 
 using DataFrames
@@ -75,3 +78,4 @@ for component in model.components
     end
 end
 
+println(df)

@@ -4,9 +4,10 @@
 
 using Mimi
 using DataFrames
+include("lib/datastore.jl")
 
 # Load consumptive use data
-consumption = readtable("../data/returnflows/consumption.csv")
+consumption = readtable(datapath("returnflows/consumption.csv"))
 returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)]
 
 @defcomp WaterDemand begin
@@ -103,31 +104,31 @@ function grad_waterdemand_totalreturn_livestockuse(m::Model)
 end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1382592. / (1000. * config["timestep"])
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1382592. / (1000. * config["timestep"])
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = recorded[rr, :IR_SW] * 1382592. / (1000. * config["timestep"])
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = recorded[rr, :LI_SW] * 1382592. / (1000. * config["timestep"])
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = recorded[rr, :PT_SW] * 1382592. / (1000. * config["timestep"])
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end

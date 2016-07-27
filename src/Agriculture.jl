@@ -64,13 +64,13 @@ if isfile(joinpath(todata, "cache/agmodels.jld"))
 else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = readtable("../data/agriculture/nationals.csv")
+    nationals = readtable(joinpath(todata, "agriculture/nationals.csv"))
     for crop in crops
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        counties = readtable("../data/agriculture/unpooled-$crop.csv")
+        counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
             # Construct a pooled combination
@@ -188,8 +188,8 @@ function initagriculture(m::Model)
     agriculture[:precipitation] = precip
 
     # Load in planted area by water management
-    rainfeds = readtable("../data/agriculture/rainfedareas.csv")
-    irrigateds = readtable("../data/agriculture/irrigatedareas.csv")
+    rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
+    irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.

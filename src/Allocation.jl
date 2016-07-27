@@ -96,6 +96,7 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
+<<<<<<< HEAD
      if config["netset"] == "three"
 	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
@@ -104,9 +105,8 @@ function initallocation(m::Model)
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
      else
-	allocation[:withdrawals] = deserialize(open("../data/extraction/withdrawals.jld"))#, () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-    	allocation[:returns] = deserialize(open("../data/extraction/returns.jld"))#, () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-    	#allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:waterfromgw] = deserialize(open("../data/extraction/waterfromgw.jld"));#, () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
     	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);#deserialize(open("../data/extraction/captures.jld"));
     	allocation[:waterfromsupersource] = deserialize(open("../data/extraction/supersource.jld"))#, () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
@@ -197,13 +197,13 @@ function constraintoffset_allocation_recordedbalance(m::Model)
 	        hallsingle(m, :Allocation, :balance, gen)
     else
 		if config["optimtype"] == "SW"
-        		recorded = readtable("../data/extraction/USGS-2010.csv")
+        		recorded = readtable(datapath("extraction/USGS-2010.csv")
         		gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
 		elseif config["optimtype"] == "SWGW" 
-        		recorded = readtable("../data/extraction/USGS-2010.csv")
+        		recorded = readtable(datapath("extraction/USGS-2010.csv")
         		gen(rr, tt) = recorded[rr, :TO_To] * 1382592. / 1000.
 		end
-        hallsingle(m, :Allocation, :balance, gen)
+		hallsingle(m, :Allocation, :balance, gen)
     end
 end
 

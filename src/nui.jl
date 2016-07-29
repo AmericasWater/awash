@@ -22,6 +22,10 @@ if Pkg.installed("RCall") == nothing
     Pkg.add("RCall")
 end
 
+if Pkg.installed("YAML") == nothing
+    Pkg.add("YAML")
+end
+
 @windows_only iswindows = true
 if !isdefined(:windows) && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")

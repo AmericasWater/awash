@@ -4,6 +4,8 @@
 using Mimi
 using Distributions
 
+reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
+
 @defcomp Reservoir begin
     reservoirs = Index()
 
@@ -71,10 +73,11 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = zeros(numreservoirs)
         reservoir[:evaporation] = zeros(numreservoirs, numsteps)
     else
-        rcmax = rand(Normal(3e6,4e5), m.indices_counts[:reservoirs])
+        rcmax = reservoirdata[:MAXCAP]
+        rcmax = rcmax*1233.48
         reservoir[:storagecapacitymax] = rcmax;
         reservoir[:storagecapacitymin] = 0.1*rcmax;
-        reservoir[:storage0] = 0.75*rcmax; #initial storate value: 3/4 max capacity
+        reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
         reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
     end
     reservoir

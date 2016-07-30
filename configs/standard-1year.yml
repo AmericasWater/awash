@@ -10,7 +10,10 @@ startmonth: 10/2009
 endmonth: 9/2010
 
 # First entry in VIC_WB to include
-startweather: 1
+startweather: 720
 
 # Months per time step
 timestep: 6
+
+# Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
+optimtype: SWGW

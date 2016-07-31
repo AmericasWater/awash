@@ -62,6 +62,7 @@ function initreservoir(m::Model, name=nothing)
     else
         reservoir = addcomponent(m, Reservoir, name)
     end
+
     Ainf = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
     Aout = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
     reservoir[:inflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);

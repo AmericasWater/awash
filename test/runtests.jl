@@ -34,3 +34,5 @@ include("../src/model.jl")
 println("Running model...")
 @time run(model)
 
+include("test_Aquaculture.jl")
+include("test_Reservoir_optimization.jl")

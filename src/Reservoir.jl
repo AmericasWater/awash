@@ -74,7 +74,7 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = zeros(numreservoirs)
         reservoir[:evaporation] = zeros(numreservoirs, numsteps)
     else
-        rcmax = reservoirdata[:MAXCAP]
+        rcmax = repeat(reservoirdata[:MAXCAP], outer=[1, m.indices_counts[:time]])
         rcmax = rcmax*1233.48
         reservoir[:storagecapacitymax] = rcmax;
         reservoir[:storagecapacitymin] = 0.1*rcmax;

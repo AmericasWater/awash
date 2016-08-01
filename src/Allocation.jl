@@ -106,7 +106,7 @@ function initallocation(m::Model)
     else
 	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
+	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end

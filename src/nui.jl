@@ -27,7 +27,7 @@ if Pkg.installed("YAML") == nothing
 end
 
 @windows_only iswindows = true
-if !isdefined(:windows) && Pkg.installed("NetCDF") == nothing
+if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end
 

@@ -1,12 +1,7 @@
 using DataFrames
 include("lib/datastore.jl")
 
-suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
-if config["netset"] == "dummy"
-    suffix = "-dummy";
-elseif config["netset"] == "three"
-    suffix = "-three";
-end
+suffix = getsuffix()
 
 mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 if get(config, "filterstate", nothing) != nothing

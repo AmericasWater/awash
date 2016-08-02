@@ -36,3 +36,4 @@ println("Running model...")
 
 include("test_Aquaculture.jl")
 include("test_Reservoir_optimization.jl")
+include("test_caching.jl")

@@ -62,6 +62,7 @@ function initreservoir(m::Model, name=nothing)
     else
         reservoir = addcomponent(m, Reservoir, name)
     end
+
     Ainf = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
     Aout = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
     reservoir[:inflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
@@ -73,7 +74,7 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = zeros(numreservoirs)
         reservoir[:evaporation] = zeros(numreservoirs, numsteps)
     else
-        rcmax = reservoirdata[:MAXCAP]
+        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
         rcmax = rcmax*1233.48
         reservoir[:storagecapacitymax] = rcmax;
         reservoir[:storagecapacitymin] = 0.1*rcmax;

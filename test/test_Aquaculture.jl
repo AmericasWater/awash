@@ -21,4 +21,4 @@ run(m)
 
 # Check that it matches 2010
 demand_baseline = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]), outer=[1, m.indices_counts[:time]])
-println(m[:Aquaculture, :demand] - demand_baseline)
+@test m[:Aquaculture, :demand] == demand_baseline

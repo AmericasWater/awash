@@ -205,7 +205,7 @@ function initagriculture(m::Model)
 end
 
 function grad_agriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99) / config["timestep"] # Convert Ha to acres
+    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 / config["timestep"]) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
@@ -260,9 +260,9 @@ function constraintoffset_agriculture_allagarea(m::Model)
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) / config["timestep"] # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
 end
 
 function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105) / config["timestep"] # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
 end

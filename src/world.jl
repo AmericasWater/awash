@@ -23,7 +23,7 @@ end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts))
 if config["netset"] == "three"
-    numsteps = 2
+    numsteps = 3
 else
     numsteps = convert(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
@@ -45,7 +45,7 @@ function newmodel()
     m = Model()
 
     if config["netset"] == "three"
-        setindex(m, :time, collect(1:2))
+        setindex(m, :time, collect(1:3))
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end

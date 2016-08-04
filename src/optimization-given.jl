@@ -111,12 +111,12 @@ function optimization_given(allowgw=false)
     # max storage is reservoir max
 
     # Constrain storage > min or -storage < -min
-    setconstraint!(house, -room_relabel(grad_reservoir_storage_captures_evap(m), :storage, :Reservoir, :storagemin)) # -
-    setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0_evap(m), :storage, :Reservoir, :storagemin))
+    setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
+    setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
 
     # Constrain storage < max
-    setconstraint!(house, room_relabel(grad_reservoir_storage_captures_evap(m), :storage, :Reservoir, :storagemax)) # +
-    setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0_evap(m), :storage, :Reservoir, :storagemax))
+    setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
+    setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
 
 
     # Clean up

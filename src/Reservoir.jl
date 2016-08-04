@@ -105,12 +105,8 @@ function grad_reservoir_outflows_captures(m::Model)
     roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate)
 end
 
-function grad_reservoir_storage_captures(m::Model)
-    roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> 1. * ((vrr == prr) && (vtt >= ptt)))
-end
-
 # with evaporation
-function grad_reservoir_storage_captures_evap(m::Model)
+function grad_reservoir_storage_captures(m::Model)
     roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> (1-m.parameters[:evaporation].values[prr])^(vtt-ptt) * ((vrr == prr) && (vtt >= ptt)))
 end
 
@@ -129,7 +125,7 @@ function constraintoffset_reservoir_storage0(m::Model)
     hallsingle(m, :Reservoir, :storage, gen)
 end
 
-function constraintoffset_reservoir_storage0_evap(m::Model)
+function constraintoffset_reservoir_storage0(m::Model)
     gen(rr, tt) = (1-m.parameters[:evaporation].values[rr])^(tt-1) * m.parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end

@@ -69,9 +69,9 @@ function initreservoir(m::Model, name=nothing)
     reservoir[:captures] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
 
     if config["netset"] == "three"
-        reservoir[:storagecapacitymax] = [8.2]#ones(numreservoirs) * Inf
-        reservoir[:storagecapacitymin] = [0.5]#zeros(numreservoirs)
-        reservoir[:storage0] = [1.3]#zeros(numreservoirs)
+        reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
+        reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
+        reservoir[:storage0] = 1.3*ones(numreservoirs)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
     else
         rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
@@ -105,7 +105,6 @@ function grad_reservoir_outflows_captures(m::Model)
     roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate)
 end
 
-# with evaporation
 function grad_reservoir_storage_captures(m::Model)
     roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> (1-m.parameters[:evaporation].values[prr])^(vtt-ptt) * ((vrr == prr) && (vtt >= ptt)))
 end
@@ -117,11 +116,6 @@ end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
     gen(rr, tt) = m.parameters[:storagecapacitymax].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen)
-end
-
-function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, tt) = m.parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 

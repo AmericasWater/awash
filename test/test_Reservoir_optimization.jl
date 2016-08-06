@@ -9,7 +9,7 @@ include("../src/model.jl")
 # Set evaporation to 0 to match current implementation of captures matrix
 function myinitreservoir(m::Model, name)
     reservoir = initreservoir(m, name)
-    reservoir[:evaporation] = zeros(numreservoirs, numsteps)
+    #reservoir[:evaporation] = zeros(numreservoirs, numsteps)
     reservoir
 end
 

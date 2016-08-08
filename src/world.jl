@@ -36,9 +36,9 @@ numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
 if config["netset"] == "three"
-    naquifers = 3;
+    numaquifers = 3;
 else
-    naquifers = 3108;
+    numaquifers = 3109;
 end
 
 function newmodel()
@@ -55,7 +55,7 @@ function newmodel()
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
-    setindex(m, :aquifers, collect(1:naquifers))
+    setindex(m, :aquifers, collect(1:numaquifers))
 
     return m
 end

@@ -198,10 +198,10 @@ function constraintoffset_allocation_recordedbalance(m::Model)
     else
 		if config["optimtype"] == "SW"
         		recorded = readtable(datapath("extraction/USGS-2010.csv"))
-        		gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
+        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1382592. / (1000. * 12)
 		elseif config["optimtype"] == "SWGW"
         		recorded = readtable(datapath("extraction/USGS-2010.csv"))
-        		gen(rr, tt) = recorded[rr, :TO_To] * 1382592. / 1000.
+        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1382592. / (1000. * 12)
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

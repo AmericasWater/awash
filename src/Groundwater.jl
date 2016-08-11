@@ -58,9 +58,9 @@ function run_timestep(c::Aquifer, tt::Int)
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
   for aa in d.aquifers
     if tt==1
-      v.piezohead[aa,tt] = p.piezohead0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.piezohead[aa,tt] = p.piezohead0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(+ p.recharge[aa,tt] - p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     else
-      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(- p.recharge[aa,tt] + p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
+      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(+ p.recharge[aa,tt] - p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
     end
   end
 

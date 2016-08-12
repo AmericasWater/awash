@@ -136,11 +136,9 @@ function initaquifer(m::Model)
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
-  	temp = readdlm(datapath("gwmodel/matrix_leakage_factor.txt"));
-  	aquifer[:lateralconductivity] = temp[1:numcounties,1:numcounties];
-  	aquifer[:deltatime] = convert(Float64, config["timestep"])
-  	temp = readdlm(datapath("gwmodel/connectivity_matrix.txt"));
-  	aquifer[:aquiferconnexion] = temp[1:numcounties,1:numcounties];
+  	aquifer[:lateralconductivity] = reshape(gw["matrix_leakage_factor"].data, numcounties, numcounties);
+  	aquifer[:deltatime] = convert(Float64, config["timestep"]);
+  	aquifer[:aquiferconnexion] = reshape(gw["connectivity_matrix"].data,numcounties,numcounties);
   end
   aquifer
 end

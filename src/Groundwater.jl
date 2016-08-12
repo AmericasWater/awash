@@ -4,6 +4,10 @@
 
 using Mimi
 using Distributions
+
+gw = read_rda(datapath("gwmodel/contusgwmodel.RData"), convertdataframes = true)
+
+
 @defcomp Aquifer begin
   aquifers = Index()
 
@@ -124,27 +128,19 @@ function initaquifer(m::Model)
 
   	aquifer[:aquiferconnexion] = [0. 1. 0.; 1. 0. 1.; 0 1. 0];
   else
-	v=collect(1:3109);
-  	temp = readdlm(datapath("gwmodel/aquifer_depth.txt"));
-  	aquifer[:depthaquif] = temp[v,1];
-  	temp = readdlm(datapath("gwmodel/piezohead0.txt"));
-  	aquifer[:piezohead0] = 50*ones(m.indices_counts[:regions]);#temp[v,1]; # needs to be changed
-  	temp = readdlm(datapath("gwmodel/vector_storativity.txt"));
-  	aquifer[:storagecoef] = temp[v,1];
-  	temp = readdlm(datapath("gwmodel/county_area.txt"));
-  	aquifer[:areaaquif] = temp[v,1]/1000;
-  	temp = readdlm(datapath("gwmodel/county_elevation.txt"));
-  	aquifer[:elevation] = temp[v,1];
-  	#Mtemp = readdlm("Dropbox/POSTDOC/AW-julia/operational-problem/data/oneyearrecharge.txt"));
-  	M = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
-  	aquifer[:recharge] = M;
-  	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);#psgw+indgw+mingw;
+  	aquifer[:depthaquif] = gw["aquifer_depth"].data;
+  	aquifer[:piezohead0] = gw["piezohead0"].data;
+  	aquifer[:storagecoef] = gw["vector_storativity"].data;
+  	aquifer[:areaaquif] = gw["county_area"].data/1000;
+  	aquifer[:elevation] = gw["county_elevation"][:V1];
+  	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
+  	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
   	temp = readdlm(datapath("gwmodel/matrix_leakage_factor.txt"));
-  	aquifer[:lateralconductivity] = temp[v,v];
+  	aquifer[:lateralconductivity] = temp[1:numcounties,1:numcounties];
   	aquifer[:deltatime] = convert(Float64, config["timestep"])
   	temp = readdlm(datapath("gwmodel/connectivity_matrix.txt"));
-  	aquifer[:aquiferconnexion] = temp[v,v];
+  	aquifer[:aquiferconnexion] = temp[1:numcounties,1:numcounties];
   end
   aquifer
 end

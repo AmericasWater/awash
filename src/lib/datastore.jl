@@ -26,13 +26,15 @@ Does not save fallback generation: for saving, use cache_store
 function cached_fallback(filename, generate)
     suffix = getsuffix()
     confighash = hash(config) # make specific to configs
-    if isfile(datapath("$filename$suffix-$confighash.jld"))
-        deserialize(open(datapath("$filename$suffix-$confighash.jld")))
-    elseif isfile(datapath("$filename$suffix.jld"))
-        deserialize(open(datapath("$filename$suffix.jld")))
-    else
-        generate()
+    try
+        if isfile(datapath("$filename$suffix-$confighash.jld"))
+            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+        elseif isfile(datapath("$filename$suffix.jld"))
+            return deserialize(open(datapath("$filename$suffix.jld")))
+        end
     end
+
+    generate()
 end
 
 """

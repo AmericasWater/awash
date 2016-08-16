@@ -5,7 +5,7 @@ mapinited = false
 """
 df must have columns fips and the value column.
 """
-function usmap(df)
+function usmap(df, centered=false)
     global mapinited
 
     if !mapinited
@@ -22,8 +22,16 @@ function usmap(df)
         mapinited = true
     end
 
-    R"ggplot($df, aes(map_id=fips)) +
+    if centered
+        R"ggplot($df, aes(map_id=fips)) +
+        geom_map(aes(fill=value), map=shapes) +
+        expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
+        theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('') +
+        scale_fill_gradient2()"
+    else
+        R"ggplot($df, aes(map_id=fips)) +
         geom_map(aes(fill=value), map=shapes) +
         expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
         theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')"
+    end
 end

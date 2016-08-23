@@ -50,7 +50,6 @@ returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
 groundwater[:withdrawal] = allocation[:watergw];
 
 market[:produced] = agriculture[:production];

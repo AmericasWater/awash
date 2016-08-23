@@ -1,19 +1,8 @@
-# Only include counties within this state (give as 2 digit FIPS)
-# "10" for Delaware (3 counties), "08" for Colorado (64 counties)
 filterstate: null
-
-# Current options: usa (full-country), dummy (5-counties)
 netset: usa
-
-# First and last month of the simulation
-startmonth: 10/2009
-endmonth: 9/2010
-
-# First entry in VIC_WB to include
-startweather: 720
-
-# Months per time step
+startmonth: 10/2010
+endmonth: 9/2011
+startweather: 600
 timestep: 6
-
-# Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
 optimtype: SWGW
+rescap: zero

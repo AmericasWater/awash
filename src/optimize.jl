@@ -3,7 +3,7 @@ using OptiMimi
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
-config = readconfig("../configs/standard-1year.yml")
+config = readconfig("../configs/single.yml")
 suffix = getsuffix()
 
 include("optimization.jl")

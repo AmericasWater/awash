@@ -79,7 +79,7 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storagecapacitymax] = rcmax;
         reservoir[:storagecapacitymin] = 0.1*rcmax;
         reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
-        reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+	reservoir[:evaporation] = 0.01*config["timestep"]*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
     end
     reservoir
 end

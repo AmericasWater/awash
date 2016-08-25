@@ -3,7 +3,12 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+if config["netset"] == "three"
+	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+else
+	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+end
+
 if get(config, "filterstate", nothing) != nothing
     mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
 end
@@ -38,7 +43,7 @@ numreservoirs = nrow(getreservoirs(config))
 if config["netset"] == "three"
     numaquifers = 3;
 else
-    numaquifers = 3109;
+    numaquifers = numcounties;
 end
 
 function newmodel()

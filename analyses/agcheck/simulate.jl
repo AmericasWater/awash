@@ -60,15 +60,15 @@ for crop in keys(targetcrops)
     production = readtable(datapath("agriculture/allyears/$(sourcefiles[crop][2])"));
     if isperennial[crop]
         if isirrigated[crop]
-            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], -1.)
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], NA)
         else
-            getyields[crop] = (fips, fid, year) -> (-1., production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
+            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
         end
     else
         if isirrigated[crop]
-            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1], -1.)
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1], NA)
         else
-            getyields[crop] = (fips, fid, year) -> (-1., production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1])
+            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1])
         end
     end
 end
@@ -149,15 +149,7 @@ for crop in keys(targetcrops)
             rainfedproductionvalue = rainfedproduction[rainfedproductionindex, :xvalue][1]
         end
 
-        irrigatedyield = irrigatedproductionvalue / irrigatedvalue
-        rainfedyield = rainfedproductionvalue / rainfedvalue
-        if isna(irrigatedyield)
-            irrigatedyield = -1.
-        end
-        if isna(rainfedyield)
-            rainfedyield = -1.
-        end
-        (irrigatedyield, rainfedyield)
+        (irrigatedproductionvalue / irrigatedvalue, rainfedproductionvalue / rainfedvalue)
     end
 
     getyields[crop] = getyield
@@ -199,6 +191,12 @@ for crop in allcrops
 
             for year in 1950:2010
                 irrigatedyield, rainfedyield = getyields[crop](parse(Int64, mastercounties[ii, :fips]), fid, year)
+                if isna(irrigatedyield)
+                    irrigatedyield = -1.
+                end
+                if isna(rainfedyield)
+                    rainfedyield = -1.
+                end
                 push!(dfbycy, @data([crop mastercounties[ii, :fips] year irrigatedyield exp(model.parameters[:logirrigatedyield].values[ii, jj, year - 1949]) rainfedyield exp(model[:Agriculture, :lograinfedyield][ii, jj, year - 1949])]))
             end
         end

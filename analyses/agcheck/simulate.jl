@@ -57,10 +57,18 @@ end
 for crop in keys(targetcrops)
     areas = readtable(datapath("agriculture/allyears/$(sourcefiles[crop][1])"));
     production = readtable(datapath("agriculture/allyears/$(sourcefiles[crop][2])"));
-    if isirrigated[crop]
-        getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], NA)
+    if isperennial[crop]
+        if isirrigated[crop]
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], NA)
+        else
+            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
+        end
     else
-        getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
+        if isirrigated[crop]
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1], NA)
+        else
+            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1])
+        end
     end
 end
 
@@ -76,7 +84,7 @@ for crop in keys(targetcrops)
     rainfed[:fips] = [isna(rainfed[ii, :County_ANSI]) ? 0 : rainfed[ii, :State_ANSI] * 1000 + rainfed[ii, :County_ANSI] for ii in 1:nrow(rainfed)];
     rainfed[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), rainfed[:Value]);
 
-    function getareas(fips, year)
+    function getareas(fips::Int64, year::Int64)
         irrigatedindex = find((irrigated[:fips] .== fips) & (irrigated[:Year] .== year))
         if length(irrigatedindex) == 0
             irrigatedvalue = NA
@@ -111,7 +119,7 @@ for crop in keys(targetcrops)
     rainfedproduction[:fips] = [isna(rainfedproduction[ii, :County_ANSI]) ? 0 : rainfedproduction[ii, :State_ANSI] * 1000 + rainfedproduction[ii, :County_ANSI] for ii in 1:nrow(rainfedproduction)];
     rainfedproduction[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), rainfedproduction[:Value]);
 
-    function getyield(fips, fid, year)
+    function getyield(fips::Int64, fid::Int64, year::Int64)
         irrigatedindex = find((irrigated[:fips] .== fips) & (irrigated[:Year] .== year))
         if length(irrigatedindex) == 0
             irrigatedvalue = NA

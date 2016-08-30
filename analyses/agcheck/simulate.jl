@@ -205,10 +205,10 @@ end
 
 writetable("byyear.csv", dfbycy)
 
-dfbyww = DataFrame(fips=[], year=[], obsirrigation=[], estirrigation=[])
-for crop in allcrops
-    println("Recording $crop...")
+recorded = readtable(datapath("extraction/USGS-2010.csv"))
 
-    ## TODO: Record 2010 comparison
-end
+dfbyww = DataFrame(fips=mastercounties[:fips], year=2010,
+                   obsirrigation=recorded[:, :IR_To] * 1382592. / 1000,
+                   estirrigation=model[:Agriculture, :totalirrigation][:, end])
 
+writetable("irrigation.csv", dfbyww)

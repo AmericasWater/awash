@@ -49,6 +49,8 @@ function newmodel()
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
+    setindex(m, :year, collect(parseyear(config["startmonth"]):parseyear(config["endmonth"])))
+
     setindex(m, :regions, collect(mastercounties[:fips]))
     setindex(m, :crops, crops)
     setindex(m, :gauges, collect(keys(wateridverts)))

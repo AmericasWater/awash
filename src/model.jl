@@ -3,6 +3,7 @@
 include("world.jl")
 include("weather.jl")
 
+include("PopulationDemand.jl");
 include("Agriculture.jl");
 include("ReturnFlows.jl");
 include("WaterDemand.jl");

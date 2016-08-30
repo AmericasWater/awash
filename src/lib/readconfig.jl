@@ -17,6 +17,22 @@ function parsemonth(mmyyyy)
     (parse(UInt16, parts[2]) - 1) * 12 + parse(UInt8, parts[1])
 end
 
+function parseyear(mmyyyy)
+    parts = split(mmyyyy, '/')
+    parse(UInt16, parts[2])
+end
+
+function index2time(tt::Int64)
+    times = parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])
+    times[tt]
+end
+
+function index2yearindex(tt::Int64)
+    startmonth = parsemonth(config["startmonth"])
+    times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
+    div(times[tt], 12) - div(startmonth, 12) + 1
+end
+
 if !isdefined(:configtransforms)
     configtransforms = Dict{AbstractString, Function}()
     configtransforms["identity"] = (index, x) -> x

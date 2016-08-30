@@ -86,17 +86,18 @@ else
 end
 
 @defcomp Agriculture begin
+    year = Index()
     regions = Index()
     crops = Index()
 
     # Optimized
     # Land area appropriated to each crop, irrigated to full demand (Ha)
-    irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
-    rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
+    irrigatedareas = Parameter(index=[regions, crops, year], unit="Ha") # vs. year
+    rainfedareas = Parameter(index=[regions, crops, year], unit="Ha") # vs. year
 
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
-    logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
+    logirrigatedyield = Parameter(index=[regions, crops, year], unit="none") # vs. year
 
     # Coefficient on the effects of water deficits
     deficit_coeff = Parameter(index=[regions, crops], unit="1/mm")
@@ -109,9 +110,9 @@ end
 
     # Computed
     # Land area appropriated to each crop
-    totalareas = Variable(index=[regions, crops, time], unit="Ha")
+    totalareas = Variable(index=[regions, crops, year], unit="Ha") # vs. year
     # Total agricultural area
-    allagarea = Variable(index=[regions, time], unit="Ha")
+    allagarea = Variable(index=[regions, year], unit="Ha") # vs. year
 
     # Deficit for any unirrigated areas, in mm
     water_deficit = Variable(index=[regions, crops, time], unit="mm")
@@ -120,10 +121,10 @@ end
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
     # Yield per hectare for rainfed (irrigated has irrigatedyield)
-    lograinfedyield = Variable(index=[regions, crops, time], unit="none")
+    lograinfedyield = Variable(index=[regions, crops, year], unit="none") # vs. year
 
     # Total production: lb or bu
-    production = Variable(index=[regions, crops, time], unit="lborbu")
+    production = Variable(index=[regions, crops, year], unit="lborbu") # vs. year
     # Cultivation costs per acre
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
@@ -133,28 +134,33 @@ function run_timestep(s::Agriculture, tt::Int)
     p = s.Parameters
     d = s.Dimensions
 
+    yy = index2yearindex(tt)
+
     for rr in d.regions
         totalirrigation = 0.
         allagarea = 0.
         for cc in d.crops
-            v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
-            allagarea += v.totalareas[rr, cc, tt]
-
             # Calculate deficit by crop, for unirrigated areas
-            v.water_deficit[rr, cc, tt] = max(0., p.water_demand[cc] - p.precipitation[rr, tt])
+            v.water_deficit[rr, cc, tt] = max(0., p.water_demand[cc] * config["timestep"] / 12. - p.precipitation[rr, tt]) # mm / month
+
+            # Calculate every time, even though it's the same
+            v.totalareas[rr, cc, yy] = p.irrigatedareas[rr, cc, yy] + p.rainfedareas[rr, cc, yy]
+            allagarea += v.totalareas[rr, cc, yy]
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
-            totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, tt] / 100
+            totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, yy] / 100
 
-            # Calculate rainfed yield
-            v.lograinfedyield[rr, cc, tt] = p.logirrigatedyield[rr, cc, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, tt]
+            if index2month(tt) % 12 == 0 && tt >= 12 / config["timestep"] # December
+                # Calculate rainfed yield
+                v.lograinfedyield[rr, cc, yy] = p.logirrigatedyield[rr, cc, yy] + p.deficit_coeff[rr, cc] * sum(v.water_deficit[rr, cc, tt-11:tt])
 
-            # Calculate total production
-            v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+                # Calculate total production
+                v.production[rr, cc, yy] = exp(p.logirrigatedyield[rr, cc, yy]) * p.irrigatedareas[rr, cc, yy] * 2.47105 + exp(v.lograinfedyield[rr, cc, yy]) * p.rainfedareas[rr, cc, yy] * 2.47105 # convert acres to Ha
+            end
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
-        v.allagarea[rr, tt] = allagarea
+        v.allagarea[rr, yy] = allagarea
     end
 end
 

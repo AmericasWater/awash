@@ -18,4 +18,4 @@ timestep: 6
 urbandemand-path: demand/urbandemand_May11.csv
 urbandemand-column: per_capita
 urbandemand-transform: repcap
-urbandemand-index: FIPS_standard
+urbandemand-index: FIPS_county

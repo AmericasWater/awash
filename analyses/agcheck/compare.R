@@ -1,4 +1,4 @@
-setwd("~/projects/water/model/awash/analyses/agcheck")
+setwd("~/research/water/model/awash/analyses/agcheck")
 
 dfbycy <- read.csv("byyear.csv")
 
@@ -8,5 +8,9 @@ df1 <- data.frame(crop=rep(dfbycy$crop, 4), isobs=rep(c(T, F, T, F), each=nrow(d
 df2 <- data.frame(crop=rep(dfbycy$crop, 2), isirrig=rep(c(T, F), each=nrow(dfbycy)), obsyield=c(dfbycy$obsirrigatedyield, dfbycy$obsrainfedyield), estyield=c(dfbycy$estirrigatedyield, dfbycy$estrainfedyield))
 
 ggplot(df2, aes(x=obsyield, y=estyield)) +
+    facet_grid(isirrig ~ crop) +
+    geom_point()
+
+ggplot(df2[1:10000,], aes(x=obsyield, y=estyield)) +
     facet_grid(isirrig ~ crop) +
     geom_point()

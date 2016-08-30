@@ -55,19 +55,20 @@ for crop in keys(targetcrops)
 end
 
 for crop in keys(targetcrops)
+    # use -1 for NA, because of DataFrames error
     areas = readtable(datapath("agriculture/allyears/$(sourcefiles[crop][1])"));
     production = readtable(datapath("agriculture/allyears/$(sourcefiles[crop][2])"));
     if isperennial[crop]
         if isirrigated[crop]
-            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], NA)
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1], -1.)
         else
-            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
+            getyields[crop] = (fips, fid, year) -> (-1., production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_HARVESTED_$year")][1])
         end
     else
         if isirrigated[crop]
-            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1], NA)
+            getyields[crop] = (fips, fid, year) -> (production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1], -1.)
         else
-            getyields[crop] = (fips, fid, year) -> (NA, production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1])
+            getyields[crop] = (fips, fid, year) -> (-1., production[production[:, :cnty_FID] .== fid, symbol("PRODUCTION_$year")][1] / areas[areas[:, :cnty_FID] .== fid, symbol("AREA_PLANTED_$year")][1])
         end
     end
 end
@@ -148,7 +149,15 @@ for crop in keys(targetcrops)
             rainfedproductionvalue = rainfedproduction[rainfedproductionindex, :xvalue][1]
         end
 
-        (irrigatedproductionvalue / irrigatedvalue, rainfedproductionvalue / rainfedvalue)
+        irrigatedyield = irrigatedproductionvalue / irrigatedvalue
+        rainfedyield = rainfedproductionvalue / rainfedvalue
+        if isna(irrigatedyield)
+            irrigatedyield = -1.
+        end
+        if isna(rainfedyield)
+            rainfedyield = -1.
+        end
+        (irrigatedyield, rainfedyield)
     end
 
     getyields[crop] = getyield

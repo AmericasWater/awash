@@ -150,7 +150,7 @@ function run_timestep(s::Agriculture, tt::Int)
             # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
             totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, yy] / 100
 
-            if index2month(tt) % 12 == 0 && tt >= 12 / config["timestep"] # December
+            if index2time(tt) % 12 == 0 && tt >= 12 / config["timestep"] # December
                 # Calculate rainfed yield
                 v.lograinfedyield[rr, cc, yy] = p.logirrigatedyield[rr, cc, yy] + p.deficit_coeff[rr, cc] * sum(v.water_deficit[rr, cc, tt-11:tt])
 

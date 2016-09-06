@@ -57,6 +57,14 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
     (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
 end
 
+function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
+    if isna(mean1)
+        meanfallback, sdevfallback
+    else
+        mean1, sdev1
+    end
+endo
+
 if isfile(joinpath(todata, "cache/agmodels.jld"))
     println("Loading from saved region network...")
 
@@ -72,15 +80,19 @@ else
         national = StatisticalAgricultureModel(nationals, :crop, crop)
         if isfile(joinpath(todata, "agriculture/bayesian/$crop.csv"))
             counties = readtable(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+            combiner = fallbackpool
         else
             counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+            combiner = gaussianpool
         end
+
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
-            # Construct a pooled combination
-            gdds, gddsse = gaussianpool(national.gdds, national.gddsse, county.gdds, county.gddsse)
-            kdds, kddsse = gaussianpool(national.kdds, national.kddsse, county.kdds, county.kddsse)
-            wreq, wreqse = gaussianpool(national.wreq, national.wreqse, county.wreq, county.wreqse)
+            
+            # Construct a pooled or fallback combination
+            gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
+            kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
+            wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
             agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
             agmodels[crop][fips] = agmodel
         end

@@ -70,7 +70,11 @@ else
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+        if isfile(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+            counties = readtable(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+        else
+            counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+        end
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
             # Construct a pooled combination

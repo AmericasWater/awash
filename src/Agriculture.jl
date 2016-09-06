@@ -168,12 +168,30 @@ function initagriculture(m::Model)
     # Match up values by FIPS
     logirrigatedyield = -Inf * ones(numcounties, numcrops, numsteps)
     deficit_coeff = zeros(numcounties, numcrops)
-    for rr in 1:numcounties
-        for cc in 1:numcrops
+    for cc in 1:numcrops
+        # Load degree day data
+        gdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-gdd.csv"))
+        kdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-kdd.csv"))
+        
+        for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
-                logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)
+                for tt in 1:numsteps
+                    numgdds = gdds[rr, "x$(index2year(tt))"]
+                    if isna(numgdds)
+                        numgdds = 0
+                    end
+
+                    numkdds = kdds[rr, "x$(index2year(tt))"]
+                    if isna(numkdds)
+                        numkdds = 0
+                    end
+
+                    logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
+                    logirrigatedyield[rr, cc, tt] = min(modelyield, log(maximum_yield))
+                end
+                
                 deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
             end
         end

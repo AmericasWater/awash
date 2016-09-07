@@ -31,9 +31,6 @@ vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
 
   # Piezometric head
   piezohead = Variable(index=[aquifers, time], unit="1 m")
-
-  # Unit volume cost
-  volumetriccost = Variable(index=[aquifers, time], unit="\$/1000 m^3")
 end
 
 """
@@ -43,35 +40,37 @@ function run_timestep(c::Aquifer, tt::Int)
   v = c.Variables
   p = c.Parameters
   d = c.Dimensions
-  # computation of lateral flows:
-  v.lateralflows[:,tt]=zeros(d.aquifers[end],1)
-  for aa in 1:d.aquifers[end]
-    for aa_ in (aa+1):(d.aquifers[end]-1)
-      if p.aquiferconnexion[aa,aa_]==1.
-        if tt==1
-        latflow = p.lateralconductivity[aa,aa_]*(p.piezohead0[aa_]-p.piezohead0[aa])*p.deltatime; # in m3/month or m3/year if factor 12
-        else
-        latflow = p.lateralconductivity[aa,aa_]*(v.piezohead[aa_,tt-1]-v.piezohead[aa,tt-1])*p.deltatime; # in m3/month or m3/year if factor 12
-        end
-        v.lateralflows[aa,tt] += latflow/1000;
-        v.lateralflows[aa_,tt] += -latflow/1000;
-      end
-    end
+  ## initialization
+  if tt==1
+	  head = p.piezohead0;
+  else
+	  head = v.piezohead[:,tt-1]; 
   end
+  flow = zeros(d.aquifers[end],1);
+  v.lateralflows[:,tt] = flow;
+  ## repeat simulation timestep time
+  for mm in 1:config["timestep"]
+  
+  	# computation of lateral flows:
+  	lflows=zeros(d.aquifers[end],1)
+  	for aa in 1:d.aquifers[end]
+    		for aa_ in (aa+1):(d.aquifers[end]-1)
+      			if p.aquiferconnexion[aa,aa_]==1.
+				latflow = p.lateralconductivity[aa,aa_]*(head[aa_]-head[aa]); # in m3/month
+				lflows[aa] += latflow/1000;
+				v.lateralflows[aa,tt] += latflow/1000;
+				lflows[aa_] += -latflow/1000;
+				v.lateralflows[aa_,tt] -= latflow/1000;
+			end
+		end
+	end
 
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
-  for aa in d.aquifers
-    if tt==1
-      v.piezohead[aa,tt] = p.piezohead0[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(+ p.recharge[aa,tt] - p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
-    else
-      v.piezohead[aa,tt] = v.piezohead[aa,tt-1] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(+ p.recharge[aa,tt] - p.withdrawal[aa,tt] + v.lateralflows[aa,tt])
-    end
+	for aa in d.aquifers
+		head[aa] = head[aa] + 1/(p.storagecoef[aa]*p.areaaquif[aa])*(+ p.recharge[aa,tt]/config["timestep"] - p.withdrawal[aa,tt]/config["timestep"] + lflows[aa])
+	end  
   end
-
-  # variable to pass to watercost component. assumption: piezohead does not vary much and it's initial value is representative. piezohead datum is sea level
-  for aa in d.aquifers
-    v.volumetriccost[aa,tt] = p.piezohead0[aa]
-  end
+  v.piezohead[:,tt] = head;
 end
 
 function makeconstraintpiezomin(aa, tt)
@@ -136,7 +135,7 @@ function initaquifer(m::Model)
 		subfips = 1:3109;
 	end
 	aquifer[:depthaquif] = gw["aquifer_depth"].data[subfips[1:3109]];
-  	aquifer[:piezohead0] = gw["piezohead0"].data[subfips[1:3109]];
+	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips[1:3109]];
   	aquifer[:storagecoef] = gw["vector_storativity"].data[subfips[1:3109]];
   	aquifer[:areaaquif] = gw["county_area"].data[subfips[1:3109]]/1000;
 	aquifer[:elevation] = gw["county_elevation"][:V1][subfips[1:3109]];

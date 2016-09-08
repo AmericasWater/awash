@@ -26,6 +26,10 @@ if Pkg.installed("YAML") == nothing
     Pkg.add("YAML")
 end
 
+if Pkg.installed("RData") == nothing
+    Pkg.add("RData")
+end
+
 @windows_only iswindows = true
 if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")

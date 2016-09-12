@@ -16,5 +16,5 @@ ggplot(df2, aes(x=obsyield, y=estyield)) +
 
 dfbyww <- read.csv("irrigation.csv")
 
-ggplot(dfbyww, aes(x=obsirrigation, y=estirrigation)) + stat_smooth(method=lm) +
+ggplot(dfbyww, aes(x=obsirrigation, y=estirrigation)) + stat_smooth(method=lm, formula=y ~ 0 + x) +
     geom_point(alpha=.1) + theme_bw() + xlab("Observed Irrigation") + ylab("Estimated Irrigation")

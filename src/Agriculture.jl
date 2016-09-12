@@ -16,7 +16,12 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
                          "Soybeans" => 221.,
                          "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
 
-maximum_yield = 100. # total arbitrary number, because of some crazy outliers
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
+                      "Barley" => 200., "Barley.Winter" => 200.,
+                      "Maize" => 250.,
+                      "Sorghum" => 150.,
+                      "Soybeans" => 100.,
+                      "Wheat" => 250., "Wheat.Winter" => 250.
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -88,7 +93,7 @@ else
 
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
-            
+
             # Construct a pooled or fallback combination
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
             kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
@@ -184,7 +189,7 @@ function initagriculture(m::Model)
         # Load degree day data
         gdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-gdd.csv"))
         kdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-kdd.csv"))
-        
+
         for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
@@ -201,9 +206,9 @@ function initagriculture(m::Model)
                     end
 
                     logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
-                    logirrigatedyield[rr, cc, tt] = min(modelyield, log(maximum_yield))
+                    logirrigatedyield[rr, cc, tt] = min(modelyield, log(maximum_yields[crops[cc]]))
                 end
-                
+
                 deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
             end
         end

@@ -115,6 +115,10 @@ end
     irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
     rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
 
+    # Inputs
+    othercropsarea = Parameter(index=[regions, time], unit="Ha")
+    othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
     logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
@@ -155,8 +159,8 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        totalirrigation = 0.
-        allagarea = 0.
+        totalirrigation = p.othercropirrigation[rr, tt]
+        allagarea = p.othercroparea[rr, tt]
         for cc in d.crops
             v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
             allagarea += v.totalareas[rr, cc, tt]
@@ -240,6 +244,12 @@ function initagriculture(m::Model)
     agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
+    knownareas = readtable(datapath("agriculture/knownareas.csv"))
+    agriculture[:othercroparea] = repeat(knownareas[:total] - knownareas[:known], outer=[1, numsteps])
+
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    agriculture[:othercropirrigation] = repeat(((knownareas[:total] - knownareas[:known]) / knownareas[:total]) * config["timestep"] * recorded[:, :IR_To] * 1382592. / (1000. * 12), outer=[1, numsteps])
+
     agriculture
 end
 
@@ -295,7 +305,7 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropareas][rr, tt])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)

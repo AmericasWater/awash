@@ -37,3 +37,24 @@ for (fips in unique(all2010$fips)) {
     df <- rbind(df, subdf)
 }
 
+## Drop subsets
+cleandf <- df[grep("IRRIGATED", df$crop, invert=T),]
+cleandf <- cleandf[!(cleandf$crop %in% c("CORN, GRAIN", "SORGHUM, GRAIN", "CORN, SILAGE", "SWEET CORN, PROCESSING", "BEANS, DRY EDIBLE, PINTO")),]
+
+cleandf$is.known <- F
+cleandf$is.known[grep("ALFALFA|HAY|BARLEY|CORN|SORGHUM|SOYBEANS|WHEAT", cleandf$crop)] <- T
+
+counties <- read.csv("../../data/global/counties.csv")
+
+byfips <- data.frame(fips=c(), known=c(), total=c())
+for (ii in 1:nrow(counties)) {
+    fips <- counties$fips[ii]
+    byfips <- rbind(byfips, data.frame(fips, known=sum(cleandf$area[cleandf$fips == fips & cleandf$is.known]), total=sum(cleandf$area[cleandf$fips == fips])))
+}
+
+write.csv(byfips, "../../data/agriculture/knownareas.csv", row.names=F)
+
+library(ggplot2)
+
+ggplot(byfips, aes(x=total, y=known)) +
+    geom_point() + scale_x_log10() + scale_y_log10() + xlab("Total Area") + ylab("Known Crops Area")

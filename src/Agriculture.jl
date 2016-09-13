@@ -21,7 +21,7 @@ maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
                       "Maize" => 250.,
                       "Sorghum" => 150.,
                       "Soybeans" => 100.,
-                      "Wheat" => 250., "Wheat.Winter" => 250.
+                      "Wheat" => 250., "Wheat.Winter" => 250.)
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -159,8 +159,8 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        totalirrigation = p.othercropirrigation[rr, tt]
-        allagarea = p.othercroparea[rr, tt]
+        totalirrigation = p.othercropsirrigation[rr, tt]
+        allagarea = p.othercropsarea[rr, tt]
         for cc in d.crops
             v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
             allagarea += v.totalareas[rr, cc, tt]
@@ -199,18 +199,23 @@ function initagriculture(m::Model)
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
                 for tt in 1:numsteps
-                    numgdds = gdds[rr, "x$(index2year(tt))"]
-                    if isna(numgdds)
-                        numgdds = 0
-                    end
+                    year = index2year(tt)
+                    if year >= 1949 && year <= 2009
+                        numgdds = gdds[rr, symbol("x$year")]
+                        if isna(numgdds)
+                            numgdds = 0
+                        end
 
-                    numkdds = kdds[rr, "x$(index2year(tt))"]
-                    if isna(numkdds)
-                        numkdds = 0
+                        numkdds = kdds[rr, symbol("x$year")]
+                        if isna(numkdds)
+                            numkdds = 0
+                        end
+                    else
+                        numgdds = numkdds = 0
                     end
 
                     logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
-                    logirrigatedyield[rr, cc, tt] = min(modelyield, log(maximum_yields[crops[cc]]))
+                    logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
                 end
 
                 deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
@@ -245,10 +250,10 @@ function initagriculture(m::Model)
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
     knownareas = readtable(datapath("agriculture/knownareas.csv"))
-    agriculture[:othercroparea] = repeat(knownareas[:total] - knownareas[:known], outer=[1, numsteps])
+    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    agriculture[:othercropirrigation] = repeat(((knownareas[:total] - knownareas[:known]) / knownareas[:total]) * config["timestep"] * recorded[:, :IR_To] * 1382592. / (1000. * 12), outer=[1, numsteps])
+    agriculture[:othercropsirrigation] = repeat(convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1382592. / (1000. * 12)), outer=[1, numsteps])
 
     agriculture
 end

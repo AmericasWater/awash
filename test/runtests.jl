@@ -20,6 +20,7 @@ requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
+requirepackage("RData")
 
 ## Create a simple model and run it
 using DataArrays

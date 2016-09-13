@@ -63,9 +63,7 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
-    Ainf = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
-    Aout = rand(Normal(5e5, 7e4), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
-    reservoir[:inflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir[:inflows] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
     reservoir[:captures] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
 
     if config["netset"] == "three"
@@ -74,15 +72,25 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = 1.3*ones(numreservoirs)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
     else
-        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
-        rcmax = rcmax*1233.48
-        reservoir[:storagecapacitymax] = rcmax;
-        reservoir[:storagecapacitymin] = 0.1*rcmax;
-        reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
-        reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+	   if config["rescap"] == "zero"
+             reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
+     	   reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
+     	   reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
+     	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
+        else
+	        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
+     	   rcmax = rcmax*1233.48
+     	   reservoir[:storagecapacitymax] = rcmax;
+     	   reservoir[:storagecapacitymin] = 0.1*rcmax;
+     	   reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
+     	   reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
+	   end
     end
     reservoir
 end
+
 
 function grad_reservoir_outflows_captures(m::Model)
     function generate(A, tt)

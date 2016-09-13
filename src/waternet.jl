@@ -1,6 +1,7 @@
 using Mimi
 using Graphs
 using DataFrames
+using RData
 
 typealias RegionNetwork{R, E} IncidenceList{R, E}
 typealias OverlaidRegionNetwork RegionNetwork{ExVertex, ExEdge}
@@ -20,14 +21,14 @@ if isfile(datapath("cache/waternet$suffix.jld"))
 else
     # Load the network of counties
     if config["netset"] == "usa"
-        waternetdata = read_rda(datapath("waternet.RData"), convertdataframes=true);
-        drawsdata = read_rda(datapath("countydraws.RData"), convertdataframes=true);
+        waternetdata = load(datapath("waternet.RData"));
+        drawsdata = load(datapath("countydraws.RData"));
     elseif config["netset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     else
-        waternetdata = read_rda(datapath("dummynet.RData"), convertdataframes=true);
-        drawsdata = read_rda(datapath("dummydraws.RData"), convertdataframes=true);
+        waternetdata = load(datapath("dummynet.RData"));
+        drawsdata = load(datapath("dummydraws.RData"));
     end
 
     netdata = waternetdata["network"];

@@ -16,7 +16,12 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
                          "Soybeans" => 221.,
                          "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
 
-maximum_yield = 100. # total arbitrary number, because of some crazy outliers
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
+                      "Barley" => 200., "Barley.Winter" => 200.,
+                      "Maize" => 250.,
+                      "Sorghum" => 150.,
+                      "Soybeans" => 100.,
+                      "Wheat" => 250., "Wheat.Winter" => 250.)
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -57,6 +62,14 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
     (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
 end
 
+function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
+    if isna(mean1)
+        meanfallback, sdevfallback
+    else
+        mean1, sdev1
+    end
+end
+
 if isfile(joinpath(todata, "cache/agmodels.jld"))
     println("Loading from saved region network...")
 
@@ -70,13 +83,21 @@ else
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+        if isfile(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+            counties = readtable(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+            combiner = fallbackpool
+        else
+            counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+            combiner = gaussianpool
+        end
+
         for fips in unique(counties[:fips])
             county = StatisticalAgricultureModel(counties, :fips, fips)
-            # Construct a pooled combination
-            gdds, gddsse = gaussianpool(national.gdds, national.gddsse, county.gdds, county.gddsse)
-            kdds, kddsse = gaussianpool(national.kdds, national.kddsse, county.kdds, county.kddsse)
-            wreq, wreqse = gaussianpool(national.wreq, national.wreqse, county.wreq, county.wreqse)
+
+            # Construct a pooled or fallback combination
+            gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
+            kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
+            wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
             agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
             agmodels[crop][fips] = agmodel
         end
@@ -93,6 +114,10 @@ end
     # Land area appropriated to each crop, irrigated to full demand (Ha)
     irrigatedareas = Parameter(index=[regions, crops, time], unit="Ha")
     rainfedareas = Parameter(index=[regions, crops, time], unit="Ha")
+
+    # Inputs
+    othercropsarea = Parameter(index=[regions, time], unit="Ha")
+    othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
@@ -134,8 +159,8 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        totalirrigation = 0.
-        allagarea = 0.
+        totalirrigation = p.othercropsirrigation[rr, tt]
+        allagarea = p.othercropsarea[rr, tt]
         for cc in d.crops
             v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
             allagarea += v.totalareas[rr, cc, tt]
@@ -164,12 +189,35 @@ function initagriculture(m::Model)
     # Match up values by FIPS
     logirrigatedyield = -Inf * ones(numcounties, numcrops, numsteps)
     deficit_coeff = zeros(numcounties, numcrops)
-    for rr in 1:numcounties
-        for cc in 1:numcrops
+    for cc in 1:numcrops
+        # Load degree day data
+        gdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-gdd.csv"))
+        kdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-kdd.csv"))
+
+        for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
-                logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)
+                for tt in 1:numsteps
+                    year = index2year(tt)
+                    if year >= 1949 && year <= 2009
+                        numgdds = gdds[rr, symbol("x$year")]
+                        if isna(numgdds)
+                            numgdds = 0
+                        end
+
+                        numkdds = kdds[rr, symbol("x$year")]
+                        if isna(numkdds)
+                            numkdds = 0
+                        end
+                    else
+                        numgdds = numkdds = 0
+                    end
+
+                    logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
+                    logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
+                end
+
                 deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
             end
         end
@@ -200,6 +248,12 @@ function initagriculture(m::Model)
     end
     agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
+
+    knownareas = readtable(datapath("agriculture/knownareas.csv"))
+    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
+
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    agriculture[:othercropsirrigation] = repeat(convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1382592. / (1000. * 12)), outer=[1, numsteps])
 
     agriculture
 end
@@ -256,7 +310,7 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropareas][rr, tt])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)

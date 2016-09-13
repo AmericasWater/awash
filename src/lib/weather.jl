@@ -26,6 +26,20 @@ function reorderfips(weather::Array{Float64, 2}, fromfips, tofips)
     result
 end
 
+"Reorder `weather`, a N(`fromfips`) x T matrix, into a N(`tofips`) x T matrix."
+function reorderfips_notranspose(weather::DataFrame, fromfips, tofips)
+    result = zeros(length(tofips), size(weather, 2))
+    for rr in 1:length(tofips)
+        ii = findfirst(fromfips .== tofips[rr])
+        if ii > 0
+            println(weather[ii, :])
+            result[rr, :] = weather[ii, :]
+        end
+    end
+
+    result
+end
+
 """
 Sum values within each timestep, returning a T x N(columns) matrix.
 

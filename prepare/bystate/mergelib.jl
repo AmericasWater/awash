@@ -1,3 +1,12 @@
+using Graphs
+using DataFrames
+
+typealias RegionNetwork{R, E} IncidenceList{R, E}
+typealias OverlaidRegionNetwork RegionNetwork{ExVertex, ExEdge}
+
+# Water network has OUT nodes to UPSTREAM
+empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEdge}}())
+
 function mergedown(nodes, waternet)
     outedges = Dict{ExVertex, Vector{ExVertex}}() # all destined newwaternet nodes (but some might be dropped for region)
     merging = Dict{ExVertex, ExVertex}(); # feed runoff from waternet A to newwaternet B
@@ -11,7 +20,8 @@ function mergedown(nodes, waternet)
     newwateridverts["missing"] = ExVertex(index += 1, "missing")
     add_vertex!(newwaternet, newwateridverts["missing"])
     push!(result, ["missing", ""])
-
+    outedges[newwateridverts["missing"]] = []
+    
     for region in allregions()
         newwateridverts[region] = ExVertex(index += 1, region)
         add_vertex!(newwaternet, newwateridverts[region])
@@ -31,10 +41,13 @@ function mergedown(nodes, waternet)
         #elseif in(node, keys(merging))
         if in(node, keys(merging))
             newnode = merging[node]
+        elseif in(node.label, keys(newwateridverts))
+            newnode = newwateridverts[node.label]
         else
             # Make a new node
             newnode = ExVertex(index += 1, node.label)
-            add_vertex!(newwaternet, newnode)
+            newwateridverts[node.label] = newnode
+            add_vertex!(newwaternet, newwateridverts[node.label])
             outedges[newnode] = []
         end
 
@@ -57,22 +70,52 @@ function mergedown(nodes, waternet)
             # Are these all in the same region?
             if length(byregion) == 1
                 # Merge them all together
-                for upstream in upstreams
-                    merging[upstream] = newnode
+                if collect(keys(byregion))[1] == getregion(node.label)
+                    for upstream in upstreams
+                        merging[upstream] = newnode
+                    end
+                else
+                    mergelabel = collect(values(byregion))[1][1].label
+                    mergenode = ExVertex(index += 1, mergelabel)
+                    newwateridverts[mergelabel] = mergenode
+                    
+                    add_vertex!(newwaternet, mergenode)
+                    outedges[mergenode] = []
+                    
+                    for upstream in upstreams
+                        merging[upstream] = mergenode
+                    end
+
+                    push!(outedges[newnode], mergenode)
                 end
             else
                 for (region, upstreams) in byregion
-                    regionnode = ExVertex(index += 1, upstreams[1].label)
-                    add_vertex!(newwaternet, regionnode)
-                    outedges[regionnode] = []
-                    for upstream in upstreams
-                        merging[upstream] = regionnode
+                    if region == getregion(newnode.label)
+                        for upstream in upstreams
+                            merging[upstream] = newnode
+                        end
+                    else
+                        regionlabel = upstreams[1].label
+                        regionnode = ExVertex(index += 1, regionlabel)
+                        newwateridverts[regionlabel] = regionnode
+                    
+                        add_vertex!(newwaternet, regionnode)
+                        outedges[regionnode] = []
+                        for upstream in upstreams
+                            merging[upstream] = regionnode
+                        end
+                        push!(outedges[newnode], regionnode)
                     end
-                    push!(outedges[newnode], regionnode)
                 end
             end
         end
     end
+
+    #println("Outedges:")
+    #println(outedges)
+
+    #println("Merging:")
+    #println(merging)
 
     # Now construct the final network
     for (newnode, outnewnodes) in outedges
@@ -81,18 +124,14 @@ function mergedown(nodes, waternet)
             for node in keys(merging)
                 if merging[node] == newnode
                     region = getregion(node.label)
-                    if !in(region, keys(newwateridverts)) # missing if Alaska, etc.
+                    if in(region, keys(newwateridverts)) # missing if Alaska, etc.
                         merging[node] = newwateridverts[region]
                     end
                 end
             end
         else
-            newwateridverts[newnode.label] = newnode
-            add_vertex!(newwaternet, newnode)
             for newoutnode in outnewnodes
-                if !in(newoutnode.label, keys(newwateridverts))
-                    add_vertex!(newwaternet, newoutnode)
-                end
+                # Trace merging to the end
                 add_edge!(newwaternet, newnode, newoutnode)
                 push!(result, [newnode.label, newoutnode.label])
             end
@@ -100,4 +139,42 @@ function mergedown(nodes, waternet)
     end
 
     newwateridverts, newwaternet, result
+end
+
+function clearunconnected(wateridverts, waternet, result)
+    connections = [node => length(out_neighbors(node, waternet)) for node = vertices(waternet)]
+    for node in vertices(waternet)
+        for neighbor in out_neighbors(node, waternet)
+            connections[neighbor] += 1
+        end
+    end
+
+    #println("Connects:")
+    #println(connections)
+    
+    newwateridverts = Dict{UTF8String, ExVertex}();
+    newwaternet = empty_extnetwork(); # The final network (need to add nodes in initial loop)
+    newresult = DataFrame(node=UTF8String[], outnode=UTF8String[])
+
+    index = 0
+    for node in keys(connections)
+        if connections[node] > 0
+            if !in(node.label, keys(newwateridverts))
+                newwateridverts[node.label] = ExVertex(index += 1, node.label)
+                add_vertex!(newwaternet, newwateridverts[node.label])
+            end
+            for neighbor in out_neighbors(node, waternet)
+                if connections[neighbor] > 0
+                    if !in(neighbor.label, keys(newwateridverts))
+                        newwateridverts[neighbor.label] = ExVertex(index += 1, neighbor.label)
+                        add_vertex!(newwaternet, newwateridverts[neighbor.label])
+                    end
+                    add_edge!(newwaternet, newwateridverts[node.label], newwateridverts[neighbor.label])
+                    push!(newresult, [node.label, neighbor.label])
+                end
+            end
+        end
+    end
+
+    newwateridverts, newwaternet, newresult
 end

@@ -1,4 +1,4 @@
-setwd("~/research/water/model/awash/prepare/bystate")
+setwd("~/projects/water/model/awash/prepare/bystate")
 
 source("../../rlib/load_display.R")
 load("../../data/waternet.RData")

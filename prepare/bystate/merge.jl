@@ -27,11 +27,6 @@ mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8
 function getregion(label)
     regions = round(Int64, floor(draws[(draws[:gaugeid] .== label) & (draws[:justif] .== "contains"), :source] / 1000))
     if length(regions) == 1
-        #if regions[1] == 30
-        #    "montana"
-        #else
-        #    "otherus"
-        #end
         regions[1] < 10 ? "0$(regions[1])" : "$(regions[1])"
     elseif length(regions) == 0
         "missing"
@@ -40,14 +35,19 @@ function getregion(label)
     end
 end
 
-allregions() = unique(map(fips -> fips[1:2], mastercounties[:fips])) #["montana", "otherus"]
+allregions() = unique(map(fips -> fips[1:2], mastercounties[:fips]))
 
 newwateridverts, newwaternet, result = mergedown(downstreamorder[length(downstreamorder):-1:1], waternet)
+println(nrow(result))
+newwateridverts, newwaternet, result = clearunconnected(newwateridverts, newwaternet, result)
+println(nrow(result))
 minrows = Inf
 while nrow(result) < minrows
-    println(nrow(result))
+    println("$(nrow(result)) < $minrows")
     minrows = nrow(result)
     newwateridverts, newwaternet, result = mergedown(values(newwateridverts), newwaternet)
+    println(nrow(result))
+    newwateridverts, newwaternet, result = clearunconnected(newwateridverts, newwaternet, result)
 end
 
 map(ii -> "$(getregion(result[ii, :node])) -> $(getregion(result[ii, :outnode]))", 100:200)

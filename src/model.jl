@@ -9,9 +9,9 @@ include("WaterDemand.jl");
 include("Market.jl");
 include("Transportation.jl");
 include("WaterNetwork.jl");
-include("Groundwater.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
+include("Groundwater.jl");
 include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
 include("Thermoelectric.jl")
@@ -31,9 +31,10 @@ urbandemand = initurbandemand(model); # exogenous
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
+waternetwork = initwaternetwork(model); # dep. ReturnFlows
 groundwater = initaquifer(model); # Allocation or optimization-only
 reservoir = initreservoir(model); # Allocation or optimization-only
-waternetwork = initwaternetwork(model); # dep. ReturnFlows
+waternetwork = initwaternetwork(model); # dep. ReturnFlows and WaterNetwork
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 
@@ -50,8 +51,8 @@ returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
 groundwater[:withdrawal] = allocation[:watergw];
+reservoir[:inflowsgauges] = waternetwork[:inflows];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

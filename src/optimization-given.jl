@@ -15,7 +15,7 @@ include("WaterNetwork.jl")
 include("Allocation.jl")
 include("ReturnFlows.jl")
 include("Reservoir.jl")
-include("Groundwater.jl")
+#include("Groundwater.jl")
 
 function optimization_given(allowgw=false)
     # First solve entire problem in a single timestep
@@ -27,7 +27,7 @@ function optimization_given(allowgw=false)
     reservoir = initreservoir(m); # Allocation or optimization-only
     returnflows = initreturnflows(m); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
-    aquifer = initaquifer(m);
+    #aquifer = initaquifer(m);
 
     # Only include variables needed in constraints and parameters needed in optimization
 

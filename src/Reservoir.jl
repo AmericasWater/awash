@@ -34,14 +34,25 @@ function run_timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
+   
+    rr = 1
+    for gg in 1:numgauges
+       index = vertex_index(downstreamorder[gg])
+       if isreservoir[index] > 0
+	     v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000; 
+	     rr += 1
+       end
+    end
+
+    
     if tt==1
         for rr in d.reservoirs
-            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
+            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
 	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
         end
     else
         for rr in d.reservoirs
-            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
+            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
 	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
         end
     end

@@ -39,3 +39,18 @@ function initthermoelectric(m::Model)
 
     thermoelectric
 end
+
+
+function initthermoelectriccolorado(m::Model)
+    thermoelectric = addcomponent(m, Thermoelectric)
+    recorded = readtable(datapath("Colorado/thermo.csv"));
+    thermoelectric[:demand] = convert(Matrix, recorded)/1000.;
+
+    thermoelectric
+end
+
+
+
+
+
+

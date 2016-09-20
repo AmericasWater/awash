@@ -41,7 +41,43 @@ function initurbandemand(m::Model)
     urbandemand
 end
 
+#######COLORADO FUNCTION###########
+
+function initurbandemandcolorado(m::Model)
+    urbandemand = addcomponent(m, UrbanDemand);
+
+    # data from USGS 2010 for the 2000 county definition
+    urbandemand[:domesticdemand] = repeat(convert(Vector,readtable(datapath("demand/simulation2010demanddata.csv"))[:,:PS_WTotl])
+ / config["timestep"], outer=[1, m.indices_counts[:time]]);
+    
+    M = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    urbandemand[:commercialdemand] = 0*M;
+    urbandemand
+end
+
+
 function constraintoffset_urbandemand_waterdemand(m::Model)
     gen(rr, tt) = m.parameters[:commercialdemand].values[rr, tt] + m.parameters[:domesticdemand].values[rr,tt]
     hallsingle(m, :UrbanDemand, :waterdemand, gen)
 end
+
+
+
+function initurbandemandcolorado(m::Model)
+    urbandemand = addcomponent(m, UrbanDemand)
+    recorded = readtable(datapath("Colorado/domestic.csv"));
+
+    urbandemand[:domesticdemand] = convert(Matrix, recorded)/1000.;
+    M = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    urbandemand[:commercialdemand] = 0*M;
+    urbandemand
+end
+
+
+
+
+
+
+
+
+

@@ -158,23 +158,51 @@ function run_timestep(s::Agriculture, tt::Int)
     end
 end
 
+
+
+
+
 function initagriculture(m::Model)
     # precip loaded by weather.jl
 
     # Match up values by FIPS
     logirrigatedyield = -Inf * ones(numcounties, numcrops, numsteps)
     deficit_coeff = zeros(numcounties, numcrops)
-    for rr in 1:numcounties
-        for cc in 1:numcrops
+    for cc in 1:numcrops
+        # Load degree day data
+        gdds = readtable(joinpath(todata, "agriculture/$(crops[cc])-gdd.csv"))
+        kdds = readtable(joinpath(todata, "agriculture/$(crops[cc])-kdd.csv"))
+
+        for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
-                logirrigatedyield[rr, cc, :] = repmat([min(thismodel.intercept, log(maximum_yield))], numsteps)
+                for tt in 1:numsteps
+                    year = index2year(tt)
+                    if year >= 1949 && year <= 2009
+                        numgdds = gdds[rr, symbol("x$year")]
+                        if isna(numgdds)
+                            numgdds = 0
+                        end
+
+                        numkdds = kdds[rr, symbol("x$year")]
+                        if isna(numkdds)
+                            numkdds = 0
+                        end
+                    else
+                        numgdds = numkdds = 0
+                    end
+
+                    logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
+                    logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
+                end
+
                 deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
             end
         end
     end
-
+    
+    
     water_demand = zeros(numcrops)
     for cc in 1:numcrops
         water_demand[cc] = water_requirements[crops[cc]] * 1000
@@ -201,8 +229,20 @@ function initagriculture(m::Model)
     agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
+    knownareas = readtable(datapath("agriculture/knownareas.csv"))
+    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
+
+    recorded = readtable(datapath("Colorado/agriculture.csv"))
+    recorded=convert(Matrix,recorded)/1000.
+    agriculture[:othercropsirrigation] = repeat(convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"].*recorded), outer=[1, numsteps])
+
+    
+    
     agriculture
 end
+
+
+
 
 function grad_agriculture_production_irrigatedareas(m::Model)
     roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 / config["timestep"]) # Convert Ha to acres

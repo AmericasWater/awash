@@ -6,12 +6,12 @@ include("../../src/lib/datastore.jl")
 include("../../src/lib/reservoirs.jl")
 include("../../src/waternet.jl")
 
-waternetdata = rdataload(datapath("waternet.RData"));
+waternetdata = load(datapath("waternet.RData"));
 netdata = waternetdata["network"];
 
-drawsdata = rdataload(datapath("countydraws.RData"));
+drawsdata = load(datapath("countydraws.RData"));
 draws = drawsdata["draws"];
-draws[:source] = round(Int64, draws[:source])
+draws[:source] = round(Int64, draws[:source]);
 
 # Label all with the node name
 draws[:gaugeid] = ""
@@ -22,7 +22,7 @@ end
 
 mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 
-getregion(label) = round(Int64, floor(draws[(draws[:gaugeid] .== label) & (draws[:justif] .== "contains"), :source] / 1000))
+getregion(label) = "$(round(Int64, floor(draws[(draws[:gaugeid] .== label) & (draws[:justif] .== "contains"), :source] / 1000)))"
 allregions() = unique(map(fips -> fips[1:2], mastercounties[:state]))
 
 outedges = Dict{ExVertex, Vector{ExVertex}}() # all destined newwaternet nodes (but some might be dropped for region)
@@ -36,7 +36,7 @@ for hh in length(downstreamorder):-1:1 # start at most downstream
     if in(node, keys(merging))
         newnode = merging[node]
     else
-        newnode = ExVertex(index += 1, label(node))
+        newnode = ExVertex(index += 1, node.label)
         outedges[newnode] = []
     end
     
@@ -45,7 +45,10 @@ for hh in length(downstreamorder):-1:1 # start at most downstream
         # Group into sets in the same region
         byregion = Dict{UTF8String, Vector{ExVertex}}()
         for upstream in upstreams
-            region = getregion(label(upstream))
+            region = getregion(upstream.label)
+            if length(region) != 1
+                region = "missing"
+            end
             if !in(region, keys(byregion))
                 byregion[region] = []
             end
@@ -59,8 +62,8 @@ for hh in length(downstreamorder):-1:1 # start at most downstream
                 merging[upstream] = newnode
             end
         else
-            for region, upstreams in byregion
-                regionnode = ExVertex(index += 1, label(upstreams[1]))
+            for (region, upstreams) in byregion
+                regionnode = ExVertex(index += 1, upstreams[1].label)
                 for upstream in upstreams
                     merging[upstream] = regionnode
                 end
@@ -75,13 +78,16 @@ end
 newwateridverts = Dict{UTF8String, ExVertex}();
 newwaternet = empty_extnetwork();
 
+result = DataFrame(node=UTF8String[], outnode=UTF8String[])
+
 # Add node for each region
 for region in allregions()
     newwateridverts[region] = ExVertex(length(newwateridverts), region)
     add_vertex!(newwaternet, newwateridverts[region])
+    push!(result, [region, ""])
 end
 
-for newnode, outnewnodes in outedges
+for (newnode, outnewnodes) in outedges
     if length(outnewnodes) == 0
         # Replace this merged region node with the whole state
         for node in keys(merging)
@@ -92,5 +98,15 @@ for newnode, outnewnodes in outedges
     else
         newwateridverts[label(newnode)] = newnode
         add_vertex!(newaternet, newnode)
+        for newoutnode in outnewnodes
+            add_edge!(newwaternet, newnode, newoutnode)
+            push!(result, [newnode.label, newoutnode.label])
+        end
     end
 end
+
+serialize(open(datapath("cache/newwaternet.jld"), "w"), newwaternet)
+serialize(open(datapath("cache/newwateridverts.jld"), "w"), newwateridverts)
+#serialize(open(datapath("cache/waterdraws$suffix.jld"), "w"), draws)
+
+writetable("newnetwork.csv", result)

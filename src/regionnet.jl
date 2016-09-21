@@ -34,8 +34,11 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    counties = readtable(joinpath(todata, "county-info$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
-
+    if config["netset"] == "usa"
+    counties = readtable(joinpath(todata, "county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    else
+    counties = readtable(joinpath(todata, "county-info$suffix.csv"), eltypes=[UTF8String,     UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64,       Float64, Float64])
+    end
     edges = Dict{UTF8String, Vector{UTF8String}}()
 
     for row in 1:size(counties, 1)

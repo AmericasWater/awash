@@ -38,6 +38,14 @@ end
 allregions() = unique(map(fips -> fips[1:2], mastercounties[:fips]))
 
 newwateridverts, newwaternet, result = mergedown(downstreamorder[length(downstreamorder):-1:1], waternet)
+
+serialize(open(datapath("cache/newwaternet.jld"), "w"), newwaternet)
+serialize(open(datapath("cache/newwateridverts.jld"), "w"), newwateridverts)
+
+writetable("newnetwork.csv", result)
+
+exit()
+
 println(nrow(result))
 newwateridverts, newwaternet, result = clearunconnected(newwateridverts, newwaternet, result)
 println(nrow(result))

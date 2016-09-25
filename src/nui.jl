@@ -19,7 +19,7 @@ if Pkg.installed("MathProgBase") == nothing
 end
 
 if Pkg.installed("RCall") == nothing
-    Pkg.add("RCall")
+    warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
 end
 
 if Pkg.installed("YAML") == nothing

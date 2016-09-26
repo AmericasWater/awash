@@ -1,5 +1,5 @@
-redohouse = !isfile(joinpath(todata, "cache/fullhouse$suffix.jld"))
-redogwwo = !isfile(joinpath(todata, "cache/partialhouse2$suffix.jld"))
+redohouse = !isfile(datapath("cache/fullhouse$suffix.jld"))
+redogwwo = !isfile(datapath("cache/partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -21,6 +21,7 @@ m = newmodel();
 populationdemand = initpopulationdemand(m, m.indices_values[:time]); # exogenous
 agriculture = initagriculture(m); # optimization-only
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
+allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture

@@ -15,11 +15,12 @@ function requirepackage(pkg, checkout=false)
 end
 
 requirepackage("YAML")
-requirepackage("Mimi")
+requirepackage("Mimi", true)
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
+requirepackage("RData")
 
 ## Create a simple model and run it
 using DataArrays
@@ -34,3 +35,6 @@ include("../src/model.jl")
 println("Running model...")
 @time run(model)
 
+include("test_Aquaculture.jl")
+include("test_Reservoir_optimization.jl")
+include("test_caching.jl")

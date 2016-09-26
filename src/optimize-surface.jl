@@ -1,11 +1,12 @@
-using Mimi
-using OptiMimi
 include("lib/readconfig.jl")
-
 config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 #config = readconfig("../configs/dummy3.yml")
 
-include("optimization-surface.jl")
+include("optimization-given.jl")
+
+house = optimization_given(false)
+
+serialize(open("../data/fullhouse$suffix.jld", "w"), house)
 
 using MathProgBase
 using Gurobi
@@ -31,3 +32,11 @@ varlens = varlengths(house.model, house.paramcomps, house.parameters)
 serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], m.indices_counts[:canals], m.indices_counts[:time]))
 serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], m.indices_counts[:canals], m.indices_counts[:time]))
 serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], m.indices_counts[:reservoirs], m.indices_counts[:time]))
+
+# How much water is in the streams?
+values = getconstraintsolution(house, sol, :outflows)
+offset = cwro.f
+offset[isnan(offset)] = 0
+outflows = offset - values
+outflows = reshape(outflows, m.indices_counts[:gauges], m.indices_counts[:time])
+writecsv("outflows-forcarolyn.csv", outflows)

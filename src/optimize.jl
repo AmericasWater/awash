@@ -1,8 +1,10 @@
 using Mimi
-include("lib/linproghouse.jl")
+using OptiMimi
 include("lib/readconfig.jl")
+include("lib/datastore.jl")
 
-config = readconfig("../configs/standard.yml")
+config = readconfig("../configs/single.yml")
+suffix = getsuffix()
 
 include("optimization.jl")
 

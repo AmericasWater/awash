@@ -26,6 +26,8 @@ model = newmodel();
 thermoelectric = initthermoelectric(model); # exogenous
 livestock = initlivestock(model); # exogenous
 agriculture = initagriculture(model); # optimization-only
+industrialdemand = initindustrialdemand(model); # exogenous
+urbandemand = initurbandemand(model); # exogenous
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
@@ -34,8 +36,6 @@ reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
-industrialdemand = initindustrialdemand(model);
-urbandemand = initurbandemand(model);
 
 # Connect up the components
 waterdemand[:totalirrigation] = agriculture[:totalirrigation];
@@ -50,7 +50,6 @@ returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
 groundwater[:withdrawal] = allocation[:watergw];
 
 market[:produced] = agriculture[:production];

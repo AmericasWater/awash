@@ -1,4 +1,7 @@
-# operational-problem
-Operational Problem Model
+# awash
+The America's Water Analysis, Synthesis, and Heuristics model
 
-This is the current full version of the optimization-simulation model of water in the US.
+The AWASH model is a combined simulation-optimization model of the
+supply and demand of water, food, and other sectors.  For more
+information, see the [introduction
+document](https://github.com/AmericasWater/awash/blob/master/docs/introduction.ipynb).

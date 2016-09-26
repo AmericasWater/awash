@@ -16,7 +16,7 @@ include("lib/datastore.jl")
     production_baseline = Parameter(index=[time], unit="MT") # 299,396
     production = Parameter(index=[time], unit="MT")
 
-    production_anomaly = Variable(index=[regions, time], unit="1000 m^3")
+    production_adjusted = Variable(index=[regions, time], unit="1000 m^3")
 
     entrant_demandpermt = Parameter(unit="1000 m^3 / MT") # water demand per additional MT
     entrant_demand = Variable(index=[regions, time], unit="1000 m^3")
@@ -36,16 +36,15 @@ function run_timestep(c::Aquaculture, tt::Int)
     v, p, d = getvpd(c)
 
     # Production effect
-    v.production_anomaly[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
+    v.production_adjusted[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
 
     if tt > 1 && p.production[tt] > p.production[tt-1]
         mygrowth = p.production[tt] - p.production[tt-1]
         theirgrowth = p.production_baseline[tt] - p.production_baseline[tt-1]
         # Only include this if we have more entrants than they estimate fewer than me
         if mygrowth > theirgrowth
-            totalproduction = p.demand_baseline[:, tt] + v.production_anomaly[:, tt]
-            # Pattern according to totalproduction
-            v.entrant_demand[:, tt] = (mygrowth - theirgrowth) * entrant_demandpermt * totalproduction / sum(totalproduction)
+            # Pattern according to v.production_anomaly[:, tt]
+            v.entrant_demand[:, tt] = (mygrowth - theirgrowth) * entrant_demandpermt * v.production_anomaly[:, tt] / sum(v.production_anomaly[:, tt])
         end
     else
         v.entrant_demand[:, tt] = 0
@@ -55,7 +54,7 @@ function run_timestep(c::Aquaculture, tt::Int)
     v.temperature_anomaly[:, tt] = (p.temperature[:, tt] - p.temperature_baseline[:, tt]) * p.temperature_demandperdeg
 
     # Combine all effects
-    v.demand[:, tt] = p.demand_baseline[:, tt] + v.production_anomaly[:, tt] + v.entrant_demand[:, tt] + v.temperature_anomaly[:, tt]
+    v.demand[:, tt] = v.production_adjusted[:, tt] + v.entrant_demand[:, tt] + v.temperature_anomaly[:, tt]
 end
 
 function initaquaculture(m::Model)

@@ -1,14 +1,14 @@
 using DataFrames
 include("lib/datastore.jl")
 
-suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
-if config["netset"] == "dummy"
-    suffix = "-dummy";
-elseif config["netset"] == "three"
-    suffix = "-three";
+suffix = getsuffix()
+
+if config["netset"] == "three"
+	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+else
+	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 end
 
-mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 if get(config, "filterstate", nothing) != nothing
     mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
 end
@@ -28,9 +28,9 @@ end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts))
 if config["netset"] == "three"
-    numsteps = 2
+    numsteps = 3
 else
-    numsteps = convert(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
+    numsteps = round(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end
@@ -41,16 +41,16 @@ numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
 if config["netset"] == "three"
-    naquifers = 3;
+    numaquifers = 3;
 else
-    naquifers = 3108;
+    numaquifers = numcounties;
 end
 
 function newmodel()
     m = Model()
 
     if config["netset"] == "three"
-        setindex(m, :time, collect(1:2))
+        setindex(m, :time, collect(1:3))
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
@@ -60,7 +60,7 @@ function newmodel()
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
-    setindex(m, :aquifers, collect(1:naquifers))
+    setindex(m, :aquifers, collect(1:numaquifers))
 
     return m
 end

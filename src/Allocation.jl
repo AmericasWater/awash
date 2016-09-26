@@ -96,20 +96,21 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-     if config["netset"] == "three"
-	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    if config["netset"] == "three"
+	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
-     else
-	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	allocation[:waterfromgw] = deserialize(open("../data/extraction/waterfromgw.jld"));#, () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
-    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);#deserialize(open("../data/extraction/captures.jld"));
-    	allocation[:waterfromsupersource] = deserialize(open("../data/extraction/supersource.jld"))#, () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+    else
+	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end
+
     allocation
 end
 
@@ -190,17 +191,17 @@ function constraintoffset_allocation_recordedbalance(m::Model)
     if config["netset"] == "three"
 		if config["optimtype"] == "SW"
 			gen(rr, tt) = 1. * (rr > 1)
-		elseif config["optimtype"] == "SWGW" 
+		elseif config["optimtype"] == "SWGW"
 			gen(rr, tt) = 2. * (rr > 1)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
 		if config["optimtype"] == "SW"
         		recorded = readtable(datapath("extraction/USGS-2010.csv"))
-        		gen(rr, tt) = recorded[rr, :TO_SW] * 1382592. / 1000.
-		elseif config["optimtype"] == "SWGW" 
+        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1382592. / (1000. * 12)
+		elseif config["optimtype"] == "SWGW"
         		recorded = readtable(datapath("extraction/USGS-2010.csv"))
-        		gen(rr, tt) = recorded[rr, :TO_To] * 1382592. / 1000.
+        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1382592. / (1000. * 12)
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

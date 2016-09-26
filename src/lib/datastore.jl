@@ -6,15 +6,51 @@ function datapath(filename)
 end
 
 """
+Return the normal data suffix
+"""
+function getsuffix()
+    suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
+    if config["netset"] == "dummy"
+        suffix = "-dummy";
+    elseif config["netset"] == "three"
+        suffix = "-three";
+    end
+
+    suffix
+end
+
+"""
 Either get data from a cached source, or produce it by a fallback generation
-Does not save fallback generation: for saving, use ...
+Does not save fallback generation: for saving, use cache_store
 """
 function cached_fallback(filename, generate)
+    suffix = getsuffix()
     confighash = hash(config) # make specific to configs
-    if isfile(datapath("$filename$suffix-$confighash.jld"))
-        deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+    try
+        if isfile(datapath("$filename$suffix-$confighash.jld"))
+            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+        elseif isfile(datapath("$filename$suffix.jld"))
+            return deserialize(open(datapath("$filename$suffix.jld")))
+        end
+    end
+
+    generate()
+end
+
+"""
+Save data to later be restored using cached_fallback or deserialize
+"""
+function cached_store(filename, object, usehash=true)
+    suffix = getsuffix()
+    if usehash
+        confighash = hash(config) # make specific to configs
+        fp = open(datapath("$filename$suffix-$confighash.jld"), "w")
+        serialize(fp, object)
+        close(fp)
     else
-        generate()
+        fp = open(datapath("$filename$suffix.jld"), "w")
+        serialize(fp, object)
+        close(fp)
     end
 end
 

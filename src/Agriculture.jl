@@ -150,6 +150,7 @@ function initagriculture(m::Model)
     agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
+
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1382592. / (1000. * 12)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])

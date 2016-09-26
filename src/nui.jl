@@ -35,6 +35,14 @@ if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end
 
+using DataFrames
+
+if !isdefined(:isna)
+    function isna(xx)
+        convert(BitArray, map(x -> isequal(NA, x), xx))
+    end
+end
+
 using OptiMimi
 using MathProgBase
 

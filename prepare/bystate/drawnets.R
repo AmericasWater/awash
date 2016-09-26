@@ -1,4 +1,4 @@
-setwd("~/projects/water/model/awash/prepare/bystate")
+setwd("~/research/water/model/awash/prepare/bystate")
 
 source("../../rlib/load_display.R")
 load("../../data/waternet.RData")
@@ -35,4 +35,4 @@ for (ii in 1:nrow(newnetwork)) {
 }
 
 map("state")
-drawNetwork(newnetwork, xlim=c(-105, -95), ylim=c(25, 35), col=3)
+drawNetwork(newnetwork, col=3)

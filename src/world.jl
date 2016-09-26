@@ -30,7 +30,7 @@ numgauges = length(keys(wateridverts))
 if config["netset"] == "three"
     numsteps = 3
 else
-    numsteps = convert(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
+    numsteps = round(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end

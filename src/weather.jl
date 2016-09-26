@@ -1,6 +1,7 @@
 # Can only be called after loading regionnet.jl
 
 using DataFrames
+using RData
 include("lib/weather.jl")
 
 statefips = dncload("weather", "state_fips", ["county"])
@@ -21,5 +22,6 @@ precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month
 # Load data from the water budget
 
 # Match up gages to stations
-waternetdata = read_rda(datapath("waternet.RData"));
+waternetdata = load(datapath("waternet.RData"));
+
 addeds = sum2timestep(getadded(waternetdata["network"]))' # transpose, so N x T.

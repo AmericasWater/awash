@@ -201,7 +201,7 @@ function constraintoffset_allocation_recordedbalance(m::Model)
             gen(rr, tt) = convert(Matrix,recorded)/1000.;
 		elseif config["optimtype"] == "SWGW"
             recorded = readtable(datapath("Colorado/Total.csv"))
-        		gen(rr, tt) = convert(Matrix,recorded)/1000.;
+        	gen(rr, tt) = convert(Matrix,recorded)/1000.;
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

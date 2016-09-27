@@ -5,7 +5,7 @@
 using Mimi
 using Distributions
 
-gw = read_rda(datapath("gwmodel/contusgwmodel.RData"), convertdataframes = true)
+gw = load(datapath("gwmodel/contusgwmodel.RData"))
 vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
 
 @defcomp Aquifer begin

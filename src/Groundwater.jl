@@ -56,14 +56,14 @@ function run_timestep(c::Aquifer, tt::Int)
   	for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
 		for aa_ in find(connections) + aa
-			latflow = p.lateralconductivity[aa,aa_]*(head[aa_]-head[aa]); # in m3/month
+			latflow = p.lateralconductivity[aa,aa_]*(v.piezohead[aa_,tt]-v.piezohead[aa,tt]); # in m3/month
 			lflows[aa] += latflow/1000;
 			lflows[aa_] -= latflow/1000;
+	                v.lateralflows[aa,tt] += latflow/1000;
+	                v.lateralflows[aa_,tt] -= latflow/1000;
 		end
 	end
 
-	v.lateralflows[aa,tt] += lflows[aa];
-	v.lateralflows[aa_,tt] += lflows[aa_];
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
 	for aa in d.aquifers
 		v.piezohead[aa,tt] = v.piezohead[aa,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,tt]/config["timestep"] - p.withdrawal[aa,tt]/config["timestep"] + lflows[aa])

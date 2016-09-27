@@ -35,9 +35,12 @@ function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    urbandemand[:domesticdemand] = repeat(convert(Vector, configdata("urbandemand", "demand/simulation2010demanddata.csv", :PS_WTotl, :regions)) / config["timestep"], outer=[1, m.indices_counts[:time]]);
-    M = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    urbandemand[:commercialdemand] = 0*M;
+    if config["urban"] =="USGS"
+         urbandemand[:domesticdemand] = repeat(convert(Vector,readtable(datapath("demand/simulation2010demanddata.csv"))[:,:PS_WTotl])/12*config["timestep"], outer=[1, m.indices_counts[:time]]);
+    else
+         urbandemand[:domesticdemand] = repeat(convert(Vector, configdata("urbandemand", "demand/simulation2010demanddata.csv", :PS_WTotl, :regions)) / config["timestep"], outer=[1, m.indices_counts[:time]]);
+    end
+    urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     urbandemand
 end
 

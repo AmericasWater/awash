@@ -14,9 +14,9 @@ include("Allocation.jl");
 include("Reservoir.jl");
 include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
-include("Thermoelectric.jl")
-include("Livestock.jl")
-
+include("Thermoelectric.jl");
+include("Livestock.jl");
+include("WaterCost.jl");
 println("Creating model...")
 
 # First solve entire problem in a single timestep
@@ -30,6 +30,7 @@ industrialdemand = initindustrialdemand(model); # exogenous
 urbandemand = initurbandemand(model); # exogenous
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
+watercost = initwatercost(model); # dep. Allocation
 returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
 reservoir = initreservoir(model); # Allocation or optimization-only
@@ -44,14 +45,16 @@ waterdemand[:livestockuse] = livestock[:demand_copy];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];
 waterdemand[:industrialuse] = industrialdemand[:waterdemand];
 
-allocation[:watertotaldemand] = waterdemand[:totaldemand];
-allocation[:waterreturn] = waterdemand[:totalreturn];
-returnflows[:withdrawals] = allocation[:copy_withdrawals];
-returnflows[:returns] = allocation[:copy_returns];
+allocation[:totalwaterdemand] = waterdemand[:totaldemand];
+allocation[:totaldemandreturn] = waterdemand[:totalreturn];
+watercost[:gwextraction] = allocation[:gwextraction_copy];
+watercost[:swwithdrawals] = allocation[:withdrawals_copy];
+watercost[:supersourcesupply] = allocation[:supersourcesupply_copy];
+returnflows[:withdrawals] = allocation[:withdrawals_copy];
+returnflows[:returns] = allocation[:returns_copy];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
-groundwater[:withdrawal] = allocation[:watergw];
+groundwater[:withdrawal] = allocation[:gwextraction_copy];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

@@ -17,3 +17,8 @@ timestep: 6
 
 # Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
 optimtype: SWGW
+
+# Cost configuration : choices are basic/extractiongw/extractionswgw
+watercostmodel: extractiongw
+
+# Groundwater configuration : initialisation of head. choices: null/drawdown2010

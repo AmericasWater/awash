@@ -16,6 +16,7 @@ include("Allocation.jl")
 include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
+include("WaterCost.jl")
 
 function optimization_given(allowgw=false)
     # First solve entire problem in a single timestep
@@ -24,6 +25,7 @@ function optimization_given(allowgw=false)
     # Add all of the components
     waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
     allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
+    watercost = initwatercost(m);
     reservoir = initreservoir(m); # Allocation or optimization-only
     returnflows = initreturnflows(m); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
@@ -51,10 +53,10 @@ function optimization_given(allowgw=false)
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
-        setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
+        setobjective!(house, -varsum(grad_costgw(m))) 
     end
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
-    setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
+    setobjective!(house, -varsum(grad_costsupersource(m)))
 
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo

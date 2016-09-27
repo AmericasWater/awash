@@ -2,17 +2,24 @@
 
 using Mimi
 using DataFrames
+include("lib/readconfig.jl")
 
 populations = readtable("../data/county-pops.csv", eltypes=[Int64, UTF8String, UTF8String, Int64, Float64]);
 
 function getpopulation(fips, year)
-    pop = populations[(populations[:FIPS] .== parse(Int64, fips)) & (populations[:year] .== year), :population]
+    if typeof(fips) <: Int
+        pop = populations[(populations[:FIPS] .== fips) & (populations[:year] .== year), :population]
+    else
+        pop = populations[(populations[:FIPS] .== parse(Int64, fips)) & (populations[:year] .== year), :population]
+    end
     if length(pop) != 1
         NA
     else
         pop[1]
     end
 end
+
+configtransforms["repcap"] = (fips, x) -> getpopulation(fips, 2010) * x
 
 @defcomp PopulationDemand begin
     regions = Index()

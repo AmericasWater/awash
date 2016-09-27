@@ -1,0 +1,9 @@
+crop,yieldfile,split1,split2,unit,deficitfile,eddprefix1,eddprefix2,gdd0,kdd0,valid,notes
+sorghum,sorghum_yield_in_lb_per_acre.csv,,,lb,sorghum__unit_area_deficit_in_meter.csv,Sorghum,Sorghum.2,8,29,true,From SorghumGDD.CRO - 1
+hay,hay_yield_in_lb_per_acre.csv,,,lb,hay__unit_area_deficit_in_meter.csv,alfalfa,otherhay,0,30,true,Made it up.
+wheat,wheat_yield_in_bu_per_acre.csv,wheat-irrigated,wheat-nonirrigated,bu,wheat__unit_area_deficit_in_meter.csv,Wheat,Wheat.Winter,0,26,true,From WheatGDD.CRO
+soybeans,soybeans_yield_in_bu_per_acre.csv,,,bu,soybean__unit_area_deficit_in_meter.csv,Soybeans,NA,5,29,true,From SoybeanGDD.CRO - 1
+barley,barley_yield_in_bu_per_acre.csv,,,bu,barley__unit_area_deficit_in_meter.csv,Barley,Barley.Winter,0,15,true,From BarleyGDD.CRO
+corn,corn_yield_in_bu_per_acre.csv,maize-irrigated,maize-nonirrigated,bu,corn__unit_area_deficit_in_meter.csv,Maize,Maize.2,8,29,true,From Shlenker and Roberts
+cotton,cotton_yield_in_lb_per_acre.csv,cotton-irrigated,cotton-nonirrigated,lb,cotton__unit_area_deficit_in_meter.csv,Cotton,NA,12,31,true,From CottonGDD.CRO cap at 31
+rice,rice_yield_in_lb_per_acre.csv,rice-california,rice-noncalifornia,lb,rice__unit_area_deficit_in_meter.csv,Rice,Rice.2,8,29,true,From PaddyRiceGDD.CRO - 1

@@ -1,3 +1,5 @@
+Consider following the extended [tutorial 1](Tutorial%201%20-%20Running%20the%20model.ipynb) for more detailed directions.~
+
 ## Installation instructions
 
 1. Install "git", if you don't already have it.
@@ -12,25 +14,10 @@
 
    `git clone https://github.com/AmericasWater/operational-problem.git`
 
-4. Open julia (I do this in the terminal) and type,
+4. Open julia from the `src` directory (I do this in the terminal) and type,
 
    ```
-   Pkg.add("Mimi")
-   Pkg.add("Graphs")
-   Pkg.add("NetCDF")
-   ```
-
-    You may need to install other libraries for NetCDFs.
-
-5. Use the development version of Mimi by calling
-
-   `Pkg.checkout("Mimi")`
-
-6. If you want to do optimization, install James's version of OptiMimi:
-
-   ```
-   Pkg.add("OptiMimi")
-   Pkg.checkout("OptiMimi")
+   include("nui.jl")
    ```
 
 ## Basic usage

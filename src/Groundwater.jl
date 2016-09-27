@@ -53,7 +53,7 @@ function run_timestep(c::Aquifer, tt::Int)
   
   	# computation of lateral flows:
   	lflows=zeros(d.aquifers[end],1)
-  	for aa in 1:d.aquifers[end]i
+  	for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
 		for aa_ in find(connections) + aa
 			latflow = p.lateralconductivity[aa,aa_]*(head[aa_]-head[aa]); # in m3/month
@@ -85,28 +85,6 @@ end
 """
 Add an Aquifer component to the model.
 """
-function initaquiferfive(m::Model)
-  aquifer = addcomponent(m, Aquifer)
-
-  #five county test:
-  aquifer[:depthaquif] = [-100.; -90.; -100.; -80.; -80.];
-  aquifer[:storagecoef] = [5e-4; 5e-4; 5e-4; 5e-4; 5e-4];
-  aquifer[:piezohead0] = [-55.; -45.; -53.; -33.; -35.];
-  aquifer[:areaaquif] = [8e8; 6e8; 5e8; 5e8; 3e8];
-
-  aquifer[:withdrawal] = repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  aquifer[:recharge] = repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-
-  aquifer[:lateralconductivity] = 100*[0    1e-6 1e-4 1e-6 0   ;
-                                   1e-6 0    0    1e-6 0   ;
-                                   1e-4 0    0    1e-6 0
-                                   1e-6 1e-6 1e-6 0    1e-3;
-                                   0    0    0    1e-3 0   ];
-
-  aquifer[:aquiferconnexion] = [ 1. 1. 1. 1. 0.; 1. 0 0 1. 0; 1. 0 0 1. 0; 1. 1. 1. 0 1.; 0 0 0 1. 0];
-  aquifer
-end
-
 function initaquifer(m::Model)
   aquifer = addcomponent(m, Aquifer)
 
@@ -128,23 +106,21 @@ function initaquifer(m::Model)
 
   	if config["filterstate"] != nothing
 		vstates = round(Int64, floor(vfips / 1000));
-		subfips = (vstates .== parse(Int64, get(config,"filterstate",              nothing)));
+		subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
 	else
 		subfips = 1:3109;
 	end
-	aquifer[:depthaquif] = gw["aquifer_depth"].data[subfips[1:3109]];
+	aquifer[:depthaquif] = gw["aquifer_depth"][subfips[1:3109]];
 	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips[1:3109]];
-  	aquifer[:storagecoef] = gw["vector_storativity"].data[subfips[1:3109]];
-  	aquifer[:areaaquif] = gw["county_area"].data[subfips[1:3109]]/1000;
+  	aquifer[:storagecoef] = gw["vector_storativity"][subfips[1:3109]];
+  	aquifer[:areaaquif] = gw["county_area"][subfips[1:3109]]/1000;
 	aquifer[:elevation] = gw["county_elevation"][:V1][subfips[1:3109]];
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
-  	alatcon = reshape(gw["matrix_leakage_factor"].data, 3109, 3109);
-	aquifer[:lateralconductivity] = alatcon[subfips[1:3109],subfips[1:3109]];
+  	aquifer[:lateralconductivity] = gw["matrix_leakage_factor"][subfips[1:3109],subfips[1:3109]];
   	aquifer[:deltatime] = convert(Float64, config["timestep"]);
-  	acon = reshape(gw["connectivity_matrix"].data,3109,3109);
-	aquifer[:aquiferconnexion] = acon[subfips[1:3109],subfips[1:3109]];
+	aquifer[:aquiferconnexion] =  gw["connectivity_matrix"][subfips[1:3109],subfips[1:3109]];
   end
   aquifer
 end

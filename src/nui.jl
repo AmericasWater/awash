@@ -66,7 +66,8 @@ function prepoptimizesurface(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
-    include("optimization-surface.jl")
+    include("optimization-given.jl")
+    house = optimization_given(false)
     model = house
 end
 

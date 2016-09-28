@@ -3,8 +3,9 @@
 using Mimi
 using DataFrames
 include("lib/readconfig.jl")
+include("lib/datastore.jl")
 
-populations = readtable("../data/county-pops.csv", eltypes=[Int64, UTF8String, UTF8String, Int64, Float64]);
+populations = readtable(datapath("county-pops.csv"), eltypes=[Int64, UTF8String, UTF8String, Int64, Float64]);
 
 function getpopulation(fips, year)
     if typeof(fips) <: Int

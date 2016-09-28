@@ -35,10 +35,10 @@ function optimization_given(allowgw=false)
 
     if allowgw
         paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Allocation]
-        parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :waterfromgw]
+        parameters = [:supersourcesupply, :withdrawals, :returns, :captures, :gwextraction]
     else
         paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir]
-        parameters = [:waterfromsupersource, :withdrawals, :returns, :captures]
+        parameters = [:supersourcesupply, :withdrawals, :returns, :captures]
     end
 
     constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir]

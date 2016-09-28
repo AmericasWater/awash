@@ -16,6 +16,7 @@ include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
 include("Thermoelectric.jl")
 include("Livestock.jl")
+include("PopulationDemand.jl")
 
 ## Check if the optimize-surface script has been called
 storedresult = cached_fallback("extraction/captures", () -> false)

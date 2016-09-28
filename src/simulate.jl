@@ -10,5 +10,3 @@ include("model.jl")
 # Run it and time it!
 println("Running model...")
 @time run(model)
-
-

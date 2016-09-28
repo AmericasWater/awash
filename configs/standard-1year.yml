@@ -24,8 +24,7 @@ optimtype: "SWGW"
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"
 
-# Urban demand: set "urban" to "USGS" to use USGS estimates
-urban: "USGS"
+# Urban demand: 
 urbandemand-path: demand/urbandemand_May11.csv
 urbandemand-column: per_capita
 urbandemand-transform: repcap

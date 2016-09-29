@@ -53,10 +53,10 @@ function optimization_given(allowgw=false)
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
-        setobjective!(house, -varsum(grad_costgw(m))) 
+	    setobjective!(house, hall_relabel(-varsum(grad_costgw(m)),:gwextraction,:Allocation,:gwextraction)) 
     end
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
-    setobjective!(house, -varsum(grad_costsupersource(m)))
+    setobjective!(house, hall_relabel(-varsum(grad_costsupersource(m)),:supersourcesupply,:Allocation,:supersourcesupply))
 
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo

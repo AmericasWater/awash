@@ -63,11 +63,12 @@ function initwatercost(m::Model)
 	    watercost[:unitswcost] = 1*ones(m.indices_counts[:canals], m.indices_counts[:time]);
     
     elseif config["watercostmodel"] == "extractiongw"
-	    watercost[:unitgwcost] = repeat(convert(Vector{Float64},read(datapath("cost/drawdown0.txt"))), outer=[1, m.indices_counts[:time]]);
+	    watercost[:unitgwcost] = 1e2+repeat(readdlm(datapath("cost/drawdown0.txt")), outer=[1, m.indices_counts[:time]]);
 	    watercost[:unitswcost] = 1*ones(m.indices_counts[:canals], m.indices_counts[:time]);
-    
+	   
     elseif config["watercostmodel"] == "extractionswgw"
-	    watercost[:unitgwcost] = repeat(convert(Vector{Float64},read(datapath("cost/drawdown0.txt"))), outer=[1, m.indices_counts[:time]]);
+	    watercost[:unitgwcost] = 1e2+repeat(readdlm(datapath("cost/drawdown0.txt")), outer=[1, m.indices_counts[:time]]);
+ 	    
 	    watercost[:unitswcost] = 1*ones(m.indices_counts[:canals], m.indices_counts[:time]); #to be changed
     end
 
@@ -85,11 +86,11 @@ function soleobjective_allocation(m::Model)
 end
 
 function grad_costgw(m::Model)
-	roomintersect(m, :WaterCost, :totalcost, :Allocation, :gwextraction, (vrr, vtt, prr, ptt) -> m.parameters[:unitgwcost].values[prr,ptt]*((vrr==prr)&&(vtt==ptt)))
+	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, tt) -> m.parameters[:unitgwcost].values[rr,tt])
 end
  
 function grad_costsupersource(m::Model)
-	roomintersect(m, :WaterCost, :totalcost, :Allocation, :supersourcesupply, (vrr, vtt, prr, ptt) -> 1000.*((vrr==prr)&&(vtt==ptt)))
+	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, tt) -> m.parameters[:unitsupersourcecost].values[rr,tt])
 end
  
 ## Optional cost for drawing down a river (environmental change)

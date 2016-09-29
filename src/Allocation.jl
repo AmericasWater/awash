@@ -113,16 +113,13 @@ function makeconstraintdemandmet(aa, tt)
 end
 
 function grad_allocation_balance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :gwextraction, (rr, tt) -> 1.)
 end
 
 function grad_allocation_balance_waterfromsupersource(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromsupersource, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :supersourcesupply, (rr, tt) -> 1.)
 end
 
-function grad_allocation_balance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
-end
 
 
 function grad_allocation_balance_withdrawals(m::Model)

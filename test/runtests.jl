@@ -21,6 +21,7 @@ requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
 requirepackage("RData")
+requirepackage("Clp")
 
 include("test_optimize_surface.jl")
 include("test_simulate.jl")

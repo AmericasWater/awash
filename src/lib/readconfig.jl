@@ -26,7 +26,7 @@ function index2year(tt::Int64)
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
     
-    years[div(times[tt], 12) - div(startmonth, 12) + 1]
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
 end
 
 if !isdefined(:configtransforms)

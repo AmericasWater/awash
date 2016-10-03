@@ -46,17 +46,6 @@ end
 
 #######COLORADO FUNCTION###########
 
-function initurbandemandcolorado(m::Model)
-    urbandemand = addcomponent(m, UrbanDemand);
-
-    # data from USGS 2010 for the 2000 county definition
-    urbandemand[:domesticdemand] = repeat(convert(Vector,readtable(datapath("demand/simulation2010demanddata.csv"))[:,:PS_WTotl])
- / config["timestep"], outer=[1, m.indices_counts[:time]]);
-    
-    M = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    urbandemand[:commercialdemand] = 0*M;
-    urbandemand
-end
 
 
 function constraintoffset_urbandemand_waterdemand(m::Model)

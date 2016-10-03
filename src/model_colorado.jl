@@ -22,9 +22,7 @@ model = newmodel();
 thermoelectric = initthermoelectriccolorado(model); # exogenous
 #agriculture = initagriculturecolorado(model); # optimization-only
 urbandemand = initurbandemandcolorado(model); # exogenous
-#thermoelectric = initthermoelectric(model); # exogenous
 agriculture = initagriculture(model); # optimization-only
-#urbandemand = initurbandemand(model); # exogenous
 
 
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
@@ -32,7 +30,6 @@ allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawal
 groundwater = initaquifer(model); # Allocation or optimization-only
 reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
-#transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 
 # Connect up the components

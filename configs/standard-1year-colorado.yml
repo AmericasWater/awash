@@ -1,4 +1,3 @@
-<<<<<<< HEAD:configs/standard-1year-colorado.yml
 # Only include counties within this state (give as 2 digit FIPS)
 # "10" for Delaware (3 counties), "08" for Colorado (64 counties)
 filterstate: "08"
@@ -17,13 +16,6 @@ startweather: 720
 timestep: 1
 
 # Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
-=======
-filterstate: null
-netset: usa
-startmonth: 10/2010
-endmonth: 9/2011
-startweather: 600
-timestep: 6
->>>>>>> master:configs/standard-1year.yml
-optimtype: SWGW
-rescap: zero
+optimtype: "SWGW"
+# Reservoir capacity : set rescap to zero 
+rescap: "zero"

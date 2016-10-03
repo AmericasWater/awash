@@ -23,4 +23,5 @@ precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month
 
 # Match up gages to stations
 waternetdata = load(datapath("waternet.RData"));
+
 addeds = sum2timestep(getadded(waternetdata["network"]))' # transpose, so N x T.

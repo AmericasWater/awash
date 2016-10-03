@@ -118,6 +118,7 @@ function initaquifer(m::Model)
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
+
   	aquifer[:lateralconductivity] = gw["matrix_leakage_factor"][subfips[1:3109],subfips[1:3109]];
   	aquifer[:deltatime] = convert(Float64, config["timestep"]);
 	aquifer[:aquiferconnexion] =  gw["connectivity_matrix"][subfips[1:3109],subfips[1:3109]];

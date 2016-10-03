@@ -152,7 +152,7 @@ function initagriculture(m::Model)
     recorded= readtable(datapath("Colorado/agriculture.csv"));
     recorded = convert(Matrix, recorded)/1000.;
 
-    othercropirrigation = convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded)
+    othercropirrigation = convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total])* recorded)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
  

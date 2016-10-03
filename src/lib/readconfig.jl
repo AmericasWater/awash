@@ -29,6 +29,10 @@ function index2year(tt::Int64)
 
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
+
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
+
+
 end
 
 if !isdefined(:configtransforms)
@@ -93,14 +97,11 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
-<<<<<<< HEAD
                         newvalue = transform(data[rr, indexcol], data[rr, column])
                         if !isna(newvalue)
                             values[ii] = newvalue
                         end
-=======
-                        values[ii] = transform(data[rr, indexcol], data[rr, column])
->>>>>>> adaptation for Colorado with update agriculture
+
                     end
                 end
 

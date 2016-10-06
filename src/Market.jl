@@ -69,7 +69,7 @@ function initmarket(m::Model)
               120.12 * .021772, # barley
               120.12 * .021772, # barley.winter
               160.63 * .0254, # maize
-              174.90 * .0254, # sorghum
+              174.90 / 2204.62, # sorghum: $/MT / lb/MT
               349.52 * .0272155, # soybeans
               5.1675, # wheat
               171.50 * .0272155] # wheat.winter

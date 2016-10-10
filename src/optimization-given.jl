@@ -56,7 +56,8 @@ function optimization_given(allowgw=false)
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 
-    # Constrain outflows + runoff > 0, or -outflows < runoff
+    # Constrain that the water in the stream is non-negative:
+    # That is, outflows + runoff > 0, or -outflows < runoff
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
         serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
@@ -70,9 +71,11 @@ function optimization_given(allowgw=false)
         gror = deserialize(open(joinpath(todata, "partialhouse-gror$suffix.jld"), "r"));
     end
 
+    # Specify the components affecting outflow: withdrawals, returns, captures
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
     setconstraint!(house, room_relabel_parameter(gwwo, :withdrawals, :Allocation, :returns)) # -
     setconstraint!(house, -gror) # +
+    # Specify that these can at most equal the cummulative runoff
     setconstraintoffset!(house, cwro) # +
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
@@ -117,7 +120,6 @@ function optimization_given(allowgw=false)
     # Constrain storage < max
     setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
     setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
-
 
     # Clean up
 

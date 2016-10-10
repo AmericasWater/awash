@@ -36,3 +36,4 @@ for (ii in 1:nrow(newnetwork)) {
 
 map("state")
 drawNetwork(newnetwork, col=3)
+drawNetwork(network)

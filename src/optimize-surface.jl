@@ -1,3 +1,5 @@
+#### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
+
 include("lib/readconfig.jl")
 config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 #config = readconfig("../configs/dummy3.yml")
@@ -29,14 +31,16 @@ summarizeparameters(house, sol.sol)
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
-serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], m.indices_counts[:canals], m.indices_counts[:time]))
-serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], m.indices_counts[:canals], m.indices_counts[:time]))
-serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], m.indices_counts[:reservoirs], m.indices_counts[:time]))
+serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], house.model.indices_counts[:canals], house.model.indices_counts[:time]))
+serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], house.model.indices_counts[:canals], house.model.indices_counts[:time]))
+serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], house.model.indices_counts[:reservoirs], house.model.indices_counts[:time]))
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)
+
+cwro = deserialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "r"));
 offset = cwro.f
 offset[isnan(offset)] = 0
 outflows = offset - values
-outflows = reshape(outflows, m.indices_counts[:gauges], m.indices_counts[:time])
-writecsv("outflows-forcarolyn.csv", outflows)
+outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
+writecsv("../data/extraction/outflows-bygauge.csv", outflows)

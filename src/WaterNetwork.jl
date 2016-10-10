@@ -48,6 +48,9 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
+"""
+Construct a matrix that represents the decrease in outflow caused by withdrawal
+"""
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in GAUGES x CANALS matrix
@@ -93,6 +96,9 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
     roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate)
 end
 
+"""
+Construct a vector of maximum outflows, as the sum downstream of all contributing runoff.
+"""
 function constraintoffset_waternetwork_outflows(m::Model)
     b = copy(addeds) # Start with direct added
 

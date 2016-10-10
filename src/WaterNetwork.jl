@@ -54,7 +54,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         # First do local withdrawal
         for pp in 1:nrow(draws)
             gaugeid = draws[pp, :gaugeid]
-            gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
+            gg = vertex_index(wateridverts[gaugeid])
             if (gg == 0)
                 println("Missing $gaugeid")
             else

@@ -37,7 +37,7 @@ function run_timestep(c::ReturnFlows, tt::Int)
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
         if p.withdrawals[pp, tt] > 0 || p.returns[pp, tt] > 0
             gaugeid = draws[pp, :gaugeid]
-            gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
+            gg = vertex_index(wateridverts[gaugeid])
             if (gg == 0)
                 println("Missing $gaugeid")
             else

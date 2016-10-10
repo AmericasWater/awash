@@ -15,8 +15,11 @@ empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{Ex
 if isfile(datapath("cache/waternet$suffix.jld"))
     println("Loading from saved water network...")
 
+    # The Graph object
     waternet = deserialize(open(datapath("cache/waternet$suffix.jld"), "r"));
+    # Dictionary from gaugeid to vertex
     wateridverts = deserialize(open(datapath("cache/wateridverts$suffix.jld"), "r"));
+    # DataFrame with information about canals, including fips and gaugeid
     draws = deserialize(open(datapath("cache/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties

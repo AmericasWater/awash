@@ -86,7 +86,7 @@ function optimization_given(allowgw=false)
     # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
     setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
     if config["netset"] == "three"
-        setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0.]))
+        setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
         if allowgw
             setconstraintoffset!(house,

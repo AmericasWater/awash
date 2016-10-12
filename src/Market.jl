@@ -64,15 +64,15 @@ Add a market component to the model.
 function initmarket(m::Model)
     market = addcomponent(m, Market)
 
-    prices = [102.51 / 2204.62, # alfalfa
-              102.51 / 2204.62, # otherhay
-              120.12 * .021772, # barley
-              120.12 * .021772, # barley.winter
-              160.63 * .0254, # maize
-              174.90 * .0254, # sorghum
-              349.52 * .0272155, # soybeans
-              5.1675, # wheat
-              171.50 * .0272155] # wheat.winter
+    prices = [124 / 2204.62, # alfalfa
+              124 / 2204.62, # otherhay 
+              3.65, # barley
+              3.65, # barley.winter
+              3.68 , # maize
+              4.93, # sorghum in bu 
+              11.70, # soybeans
+              5.6, # wheat (bu)
+              5.6] # wheat.winter
 
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:crops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])

@@ -15,7 +15,10 @@ include("lib/agriculture.jl")
     # Inputs
     othercropsarea = Parameter(index=[regions, time], unit="Ha")
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
-
+    
+    #Unit cultivation cost 
+    #cultivation_costs=Parameter(index=[crops],unit="dollar per Acre")
+    
     # Internal
     # Yield base: combination of GDDs, KDDs, and intercept
     logirrigatedyield = Parameter(index=[regions, crops, time], unit="none")
@@ -67,12 +70,15 @@ function run_timestep(s::Agriculture, tt::Int)
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
             totalirrigation += v.water_deficit[rr, cc, tt] * p.irrigatedareas[rr, cc, tt] / 100
-
+            
             # Calculate rainfed yield
             v.lograinfedyield[rr, cc, tt] = p.logirrigatedyield[rr, cc, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, tt]
-
+            
             # Calculate total production
             v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+            # Calculate cultivation cost 
+            v.cultivationcost[rr,cc,tt]=v.totalareas[rr,cc,tt]*cultivation_costs[crops[cc]]*2.47105
+            
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -133,8 +139,8 @@ function initagriculture(m::Model)
     agriculture[:precipitation] = precip
 
     # Load in planted area by water management
-    rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
-    irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
+    rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
+    irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.
@@ -146,17 +152,19 @@ function initagriculture(m::Model)
     agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
-    knownareas = readtable(datapath("agriculture/knownareas.csv"))
+    knownareas = readtable(datapath("Colorado/knownareas_colorado.csv"))
+    #knownareas = readtable(datapath("agriculture/knownareas.csv"))
     agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
-   
+    
     recorded= readtable(datapath("Colorado/agriculture.csv"));
-    recorded = convert(Matrix, recorded)/1000.;
+    #recorded = readtable(datapath("extraction/USGS-2010.csv"))
 
-    othercropirrigation = convert(Vector, ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total])* recorded)
+    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, 3] * 1382592. / (1000. * 12)
+
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
- 
 
+    
     agriculture
 end
 

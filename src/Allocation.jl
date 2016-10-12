@@ -24,6 +24,7 @@ include("lib/datastore.jl")
 
     # Extracted water (1000 m3) to be set by optimisation - super source represents failure.
     waterfromgw = Parameter(index=[regions, time], unit="1000 m^3")
+    waterfromsw = Parameter(index=[regions, time], unit="1000 m^3")
     waterfromreservoir = Parameter(index=[regions,time], unit="1000 m^3")
     waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
     watergw = Variable(index=[regions, time], unit="1000 m^3")
@@ -72,6 +73,7 @@ function run_timestep(c::Allocation, tt::Int)
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
         v.copy_returns[pp, tt] = p.returns[pp, tt]
     end
+
 
     for rr in d.regions
         v.watergw[rr,tt] = p.waterfromgw[rr,tt]

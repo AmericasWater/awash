@@ -134,6 +134,26 @@ function mapdata(component, variable, subset=nothing)
     usmap(df)
 end
 
+
+function mapdata_colorado(component, variable, subset=nothing)
+    if subset == nothing
+        data = vec(getdata(component, variable))
+    else
+        data = vec(getdata(component, variable)[subset...])
+    end
+
+    if length(data) != numcounties
+        error("This does not appear to be a county result.")
+    end
+    fips=readtable("../data/Colorado/fips_colorado.csv")
+    
+    df = DataFrame(fips, value=data)
+    usmap_colorado(df)
+end
+
+
+
+
 open("../docs/intro.txt") do fp
     println(readall(fp))
 end

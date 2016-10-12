@@ -1,5 +1,6 @@
 if Pkg.installed("RCall") != nothing
     include("graphing-rcall.jl")
+    
 else
     if Pkg.installed("Shapefile") == nothing
         Pkg.add("Shapefile")

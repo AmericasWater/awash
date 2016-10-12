@@ -77,9 +77,8 @@ function run_timestep(c::Allocation, tt::Int)
 
     for rr in d.regions
         v.watergw[rr,tt] = p.waterfromgw[rr,tt]
-        v.waterreservoir[rr,tt] = p.waterfromreservoir[rr,tt]
-        v.waterallocated[rr,tt] = p.waterfromgw[rr,tt]+p.waterfromreservoir[rr,tt]+p.waterfromsupersource[rr,tt] + v.swsupply[rr, tt]
-        v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + (p.waterfromreservoir[rr,tt] + v.swsupply[rr,tt])*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
+        v.waterallocated[rr,tt] = p.waterfromgw[rr,tt]+p.waterfromsupersource[rr,tt] + v.swsupply[rr, tt]
+        v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + v.swsupply[rr,tt]*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
 
         v.balance[rr, tt] = v.waterallocated[rr, tt] - p.watertotaldemand[rr, tt]
         v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
@@ -109,7 +108,6 @@ function initallocation(m::Model)
 	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
-    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end
 
@@ -189,22 +187,21 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
-function constraintoffset_allocation_recordedbalance(m::Model)
+function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["netset"] == "three"
-		if config["optimtype"] == "SW"
+		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
-		elseif config["optimtype"] == "SWGW"
+		elseif optimtype == true
 			gen(rr, tt) = 2. * (rr > 1)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-		if config["optimtype"] == "SW"
+		if optimtype
             recorded = readtable(datapath("Colorado/SW_Total.csv"))
-            gen(rr, tt) = convert(Matrix,recorded)/1000.;
-		elseif config["optimtype"] == "SWGW"
+            gen(rr, tt) = recorded[rr, tt] / 1000.
+		elseif optimtype
             recorded = readtable(datapath("Colorado/Total.csv"))
-        	gen(rr, tt) = convert(Matrix,recorded)/1000.;
-		end
+        	gen(rr, tt) = recorded[rr, tt] / 1000.
 		hallsingle(m, :Allocation, :balance, gen)
     end
 end

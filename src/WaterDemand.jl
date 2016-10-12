@@ -105,21 +105,21 @@ end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
     recorded=readtable(datapath("Colorado/domestic_SW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 #industrial=mining
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
     recorded = readtable(datapath("Colorado/mining_SW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
     recorded=readtable(datapath("Colorado/irrigation_SW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
@@ -127,7 +127,7 @@ end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
     recorded = readtable(datapath("Colorado/livestock_SW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
@@ -135,40 +135,40 @@ end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
     recorded = readtable(datapath("Colorado/thermo_SW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
     recorded = readtable(datapath("Colorado/domestic_GW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 #industrial=Mining 
 function values_waterdemand_recordedgroundindustrial(m::Model)
     recorded = readtable(datapath("Colorado/mining_GW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
     recorded = readtable(datapath("Colorado/agriculture_GW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
     recorded = readtable(datapath("Colorado/livestock_GW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
     recorded = readtable(datapath("Colorado/thermo_GW.csv"));
-    gen(rr,tt)=convert(Matrix,recorded)/1000.;
+    gen(rr,tt)=recorded[rr, tt] / 1000.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end

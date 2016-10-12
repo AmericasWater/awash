@@ -3,3 +3,4 @@ netset: three
 
 # Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
 optimtype: SWGW
+timestep: 1

@@ -1,3 +1,5 @@
+#### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
+
 include("lib/readconfig.jl")
 if !isdefined(:config)
     config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization

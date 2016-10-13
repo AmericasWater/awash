@@ -37,7 +37,6 @@ include("lib/datastore.jl")
 
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, time], unit="1000 m^3")
-    swsupplyusgs = Parameter(index=[regions, time], unit="1000 m^3")
     # Combination across all canals routing return flow from the counties
     swreturn = Variable(index=[regions, time], unit="1000 m^3")
 
@@ -46,7 +45,6 @@ include("lib/datastore.jl")
 
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
-    balanceusgs = Variable(index=[regions, time], unit="1000 m^3")
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
 end
@@ -79,7 +77,6 @@ function run_timestep(c::Allocation, tt::Int)
         v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.costfromgw[rr,tt] + v.swsupply[rr,tt]*p.costfromsw[rr,tt] + p.waterfromsupersource[rr,tt]*p.costfromsupersource
 
         v.balance[rr, tt] = v.waterallocated[rr, tt] - p.watertotaldemand[rr, tt]
-	v.balanceusgs[rr, tt] = p.swsupplyusgs[rr, tt] + p.waterfromgw[rr,tt] - p.watertotaldemand[rr, tt]
         v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
     end
 end
@@ -97,22 +94,21 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
     if config["netset"] == "three"
-	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+        allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
     else
-	    recorded = readtable(datapath("extraction/USGS-2010.csv"))
-         if get(config, "filterstate", nothing) != nothing
-              recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
-         end
-	    allocation[:swsupplyusgs] = repeat(convert(Vector, recorded[:, :TO_SW]) * 1383./12.*config["timestep"],outer=[1,numsteps])
+        recorded = readtable(datapath("extraction/USGS-2010.csv"))
+        if get(config, "filterstate", nothing) != nothing
+            recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
+        end
 
-	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end
 
@@ -150,11 +146,11 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 1./ 1000.)
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 100./ 1000.)
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (rr, tt) -> 10./1000.)
+    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (rr, tt) -> 1000.)
 end
 
 ## Optional cost for drawing down a river (environmental change)
@@ -165,7 +161,7 @@ function grad_allocation_cost_withdrawals(m::Model)
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
-                A[rr, pp] = 1000./1000.
+                A[rr, pp] = 1./1000.
             end
         end
     end

@@ -21,20 +21,10 @@ requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
 requirepackage("RData")
+requirepackage("Clp")
 
-## Create a simple model and run it
-using DataArrays
-using DataFrames
-using OptiMimi
-
-include("../src/lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml")
-
-include("../src/model.jl")
-
-println("Running model...")
-@time run(model)
-
+include("test_optimize_surface.jl")
+include("test_simulate.jl")
 include("test_Aquaculture.jl")
 include("test_Reservoir_optimization.jl")
 include("test_caching.jl")

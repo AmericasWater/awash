@@ -19,7 +19,7 @@ if Pkg.installed("MathProgBase") == nothing
 end
 
 if Pkg.installed("RCall") == nothing
-    Pkg.add("RCall")
+    warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
 end
 
 if Pkg.installed("YAML") == nothing
@@ -33,6 +33,14 @@ end
 @windows_only iswindows = true
 if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
+end
+
+using DataFrames
+
+if !isdefined(:isna)
+    function isna(xx)
+        convert(BitArray, map(x -> isequal(NA, x), xx))
+    end
 end
 
 using OptiMimi
@@ -58,7 +66,8 @@ function prepoptimizesurface(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
-    include("optimization-surface.jl")
+    include("optimization-given.jl")
+    house = optimization_given(false)
     model = house
 end
 
@@ -110,6 +119,13 @@ function savedata(filename, component, variable, subset=nothing)
     end
 end
 
+"""
+Produce a choropleth map of an output variable from a model run.
+
+# Arguments:
+* `component`: a symbol for a component (e.g., :Allocation)
+* `variable`: a symbol for a variable (e.g., :waterallocated)
+"""
 function mapdata(component, variable, subset=nothing)
     if subset == nothing
         data = vec(getdata(component, variable))

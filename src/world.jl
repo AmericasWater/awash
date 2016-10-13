@@ -3,7 +3,12 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+if config["netset"] == "three"
+	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+else
+	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+end
+
 if get(config, "filterstate", nothing) != nothing
     mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
 end
@@ -21,7 +26,7 @@ else
     numcounties = nrow(mastercounties)
 end
 numedges = num_edges(regionnet)
-numgauges = length(keys(wateridverts))
+numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["netset"] == "three"
     numsteps = 3
 else
@@ -36,9 +41,9 @@ numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
 if config["netset"] == "three"
-    naquifers = 3;
+    numaquifers = 3;
 else
-    naquifers = 3108;
+    numaquifers = numcounties;
 end
 
 function newmodel()
@@ -55,7 +60,7 @@ function newmodel()
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
-    setindex(m, :aquifers, collect(1:naquifers))
+    setindex(m, :aquifers, collect(1:numaquifers))
 
     return m
 end

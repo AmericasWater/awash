@@ -2,7 +2,7 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
+    Pkg.pin("Mimi", v"0.2.0")
 end
 
 if Pkg.installed("OptiMimi") == nothing

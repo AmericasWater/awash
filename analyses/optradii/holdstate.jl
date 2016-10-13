@@ -51,6 +51,7 @@ solver = GurobiSolver()
 @time sol = houseoptimize(house, solver)
 
 findinfeasiblepair(house, solver)
+#sol = houseoptimize(house, solver, collect(51338:length(house.b)))
 
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)

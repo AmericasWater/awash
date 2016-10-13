@@ -87,20 +87,22 @@ function optimization_given(allowgw=false)
     setconstraintoffset!(house, -constraintoffset_allocation_recordedbalance(m,allowgw)) # -
 
     # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
+    # `waterreturn` is by region, and is then distributed into canals as `returns`
+    # `returns` must be less than `waterreturn`, so that additional water doesn't appear in streams
     setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
     if config["netset"] == "three"
         setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
-	if allowgw
+	    if allowgw
             setconstraintoffset!(house,
                                  -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * (values_waterdemand_recordedsurfaceirrigation(m)+values_waterdemand_recordedgroundirrigation(m)) +
                                                grad_waterdemand_totalreturn_domesticuse(m) * (values_waterdemand_recordedsurfacedomestic(m)+values_waterdemand_recordedgrounddomestic(m)) +
                                                grad_waterdemand_totalreturn_industrialuse(m) * (values_waterdemand_recordedsurfaceindustrial(m)+values_waterdemand_recordedgroundindustrial(m)) +
             grad_waterdemand_totalreturn_thermoelectricuse(m) * (values_waterdemand_recordedsurfacethermoelectric(m)+values_waterdemand_recordedgroundthermoelectric(m)) +
             grad_waterdemand_totalreturn_livestockuse(m) * (values_waterdemand_recordedsurfacelivestock(m)+values_waterdemand_recordedgroundlivestock(m)), :totalreturn, :Allocation, :returnbalance)) # +
-	else
-	     setconstraintoffset!(house, -hall_relabel( grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedsurfaceirrigation(m)+grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordedsurfacedomestic(m) +			grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedsurfaceindustrial(m) + grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedsurfacethermoelectric(m) + grad_waterdemand_totalreturn_livestockuse(m) *values_waterdemand_recordedsurfacelivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
-
+	    else
+	        setconstraintoffset!(house, -hall_relabel( grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedsurfaceirrigation(m)+grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordedsurfacedomestic(m) +			grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedsurfaceindustrial(m) + grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedsurfacethermoelectric(m) + grad_waterdemand_totalreturn_livestockuse(m) *values_waterdemand_recordedsurfacelivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
+        end
     end
 
     # Reservoir constraints:

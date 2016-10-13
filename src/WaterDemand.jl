@@ -61,7 +61,10 @@ function initwaterdemand(m::Model)
     waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :DO_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
     waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
@@ -106,61 +109,91 @@ end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :PS_SW] + recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :DO_SW]) * 1383. / 12.
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end    
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :IN_SW] + recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :MI_SW]) * 1383. / 12.
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :IR_SW] * 1383. / 12.
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :LI_SW] * 1383. / 12.
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :PT_SW] * 1383. / 12.
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = config["timestep"] * (recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :PS_GW] + recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :DO_GW]) * 1383. / (12.)
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.         
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedgroundindustrial(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = config["timestep"] * (recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :IN_GW] + recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :MI_GW]) * 1383. / 12
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :IR_GW] * 1383. / 12
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.                
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :LI_GW] * 1383. / 12
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.                
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
-    recorded = readtable("../data/extraction/USGS-2010.csv")
-    gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :PT_GW] * 1383. / 12
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.        
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end

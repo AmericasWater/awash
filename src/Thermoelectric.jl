@@ -35,7 +35,11 @@ function initthermoelectric(m::Model)
     thermoelectric = addcomponent(m, Thermoelectric)
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    thermoelectric[:demand] = repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
+    if get(config, "filterstate", nothing) != nothing
+        thermoelectric[:demand] = repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
+    else
+        thermoelectric[:demand] = repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
+    end
 
     thermoelectric
 end

@@ -134,9 +134,11 @@ function initagriculture(m::Model)
 
     # Load in planted area by water management
     rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
-    rainfeds = rainfeds[find(floor(rainfeds[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
     irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
-    irrigateds = irrigateds[find(floor(irrigateds[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    if get(config, "filterstate", nothing) != nothing
+        rainfeds = rainfeds[find(floor(rainfeds[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+        irrigateds = irrigateds[find(floor(irrigateds[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
+    end
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.
@@ -149,11 +151,16 @@ function initagriculture(m::Model)
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
 
     knownareas = readtable(datapath("agriculture/knownareas.csv"))
-    knownareas = knownareas[find(convert(Vector,floor(knownareas[:fips]./1e3)) .== parse(Float64,config["filterstate"])),:]
+    if get(config, "filterstate", nothing) != nothing
+        knownareas = knownareas[find(convert(Vector,floor(knownareas[:fips]./1e3)) .== parse(Int64,config["filterstate"])),:]
+    end
     agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])), :IR_To] * 1383. / 12
+    if get(config, "filterstate", nothing) != nothing
+          recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Float64, config["filterstate"])), :]
+    end
+    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 

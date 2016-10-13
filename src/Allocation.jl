@@ -24,10 +24,8 @@ include("lib/datastore.jl")
 
     # Extracted water (1000 m3) to be set by optimisation - super source represents failure.
     waterfromgw = Parameter(index=[regions, time], unit="1000 m^3")
-    waterfromreservoir = Parameter(index=[regions,time], unit="1000 m^3")
     waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
     watergw = Variable(index=[regions, time], unit="1000 m^3")
-    waterreservoir = Variable(index=[regions,time], unit="1000 m^3")
 
     # The cost in USD / 1000 m^3 of extraction and treatment cost
     costfromgw = Parameter(index=[regions,time], unit="\$/1000 m^3")
@@ -107,7 +105,10 @@ function initallocation(m::Model)
 
     else
 	    recorded = readtable(datapath("extraction/USGS-2010.csv"))
-	    allocation[:swsupplyusgs] = repeat(convert(Vector, recorded[find(recorded[:STATEFIPS] .==parse(Int64,config["filterstate"])), :TO_SW]) * 1383./12.*config["timestep"],outer=[1,numsteps])
+         if get(config, "filterstate", nothing) != nothing
+              recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
+         end
+	    allocation[:swsupplyusgs] = repeat(convert(Vector, recorded[:, :TO_SW]) * 1383./12.*config["timestep"],outer=[1,numsteps])
 
 	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
@@ -149,7 +150,7 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 100./ 1000.)
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 1./ 1000.)
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -214,12 +215,15 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-        	recorded = readtable(datapath("extraction/USGS-2010.csv"))
+          recorded = readtable(datapath("extraction/USGS-2010.csv"))
+          if get(config, "filterstate", nothing) != nothing
+		  recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
+          end
 		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
 		if optimtype == false
-			gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :TO_SW] * 1383. / 12
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
 		elseif optimtype == true
-			gen(rr, tt) = config["timestep"] * recorded[find(recorded[:FIPS] .== parse(Int64, mastercounties[:fips][rr])), :TO_To] * 1383. / 12
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

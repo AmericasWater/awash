@@ -34,12 +34,10 @@ function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"));
-
     if get(config, "filterstate", nothing) != nothing
-        livestock[:demand] = repeat(convert(Vector,recorded[find(recorded[:STATEFIPS] .== parse(Int64,config["filterstate"])),:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
-    else
-        livestock[:demand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
+        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
     end
+    livestock[:demand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
 
     livestock
 end

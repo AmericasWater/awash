@@ -126,6 +126,11 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
+gaugeorder = Vector{UTF8String}(length(wateridverts))
+for vertex in downstreamorder
+    gaugeorder[vertex_index(vertex)] = vertex.label
+end
+
 # Flag every gauge that's a reservoir
 include("lib/reservoirs.jl")
 reservoirs = getreservoirs(config)

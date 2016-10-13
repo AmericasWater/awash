@@ -1,4 +1,4 @@
-drawNetwork <- function(network, xlim=NA, ylim=NA, col="#000000", labels=F, include=c()) {
+drawNetwork <- function(network, xlim=NA, ylim=NA, col="#000000", labels=F, include=c(), lwd=1) {
     if (length(include) == 0)
         include <- 1:nrow(network)
 
@@ -12,7 +12,7 @@ drawNetwork <- function(network, xlim=NA, ylim=NA, col="#000000", labels=F, incl
                                      (network$lat[ii] > ylim[2] && downstream$lat > ylim[2])))
                 next
 
-            lines(c(network$lon[ii], downstream$lon), c(network$lat[ii], downstream$lat), col=col)
+            lines(c(network$lon[ii], downstream$lon), c(network$lat[ii], downstream$lat), col=col, lwd=lwd)
         }
         if (labels) {
             if (!is.na(xlim) && (network$lon[ii] < xlim[1] || network$lon[ii] > xlim[2]))

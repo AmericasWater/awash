@@ -35,5 +35,5 @@ for (ii in 1:nrow(newnetwork)) {
 }
 
 map("state")
-drawNetwork(newnetwork, col=3)
-drawNetwork(network)
+drawNetwork(network, col=2)
+drawNetwork(newnetwork, col=3, lwd=2)

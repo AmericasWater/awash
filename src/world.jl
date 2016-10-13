@@ -51,7 +51,7 @@ function newmodel()
     end
     setindex(m, :regions, collect(mastercounties[:fips]))
     setindex(m, :crops, crops)
-    setindex(m, :gauges, collect(keys(wateridverts)))
+    setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))

@@ -15,7 +15,8 @@ function requirepackage(pkg, checkout=false)
 end
 
 requirepackage("YAML")
-requirepackage("Mimi", true)
+requirepackage("Mimi")
+Pkg.pin("Mimi", v"0.2.0")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")

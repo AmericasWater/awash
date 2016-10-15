@@ -6,7 +6,6 @@ if !isdefined(:config)
 end
 
 include("optimization-given.jl")
-
 house = optimization_given(false)
 
 serialize(open("../data/fullhouse$suffix.jld", "w"), house)

@@ -5,3 +5,4 @@ config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optim
 include("optimization-given.jl")
 
 house = optimization_given(false)
+

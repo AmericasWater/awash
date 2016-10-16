@@ -104,62 +104,62 @@ function grad_waterdemand_totalreturn_livestockuse(m::Model)
 end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_WSWTo] + recorded[rr, :PS_WSWTo]) / 12.
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_WSWTo] + recorded[rr, :MI_WSWTo]) / 12.
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_WSWFr] / 12.
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_WSWFr] / 12.
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_WSWTo] / 12.
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_WGWTo] + recorded[rr, :DO_WGWFr]) / 12.
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / (12.)
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedgroundindustrial(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_WGWTo] + recorded[rr, :MI_WGWTo]) / (1000. * 12)
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_WGWFr] / 12.
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_WGWFr] / 12.
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
-    recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_WGWTo] / 12. 
+    recorded = readtable("../data/extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end

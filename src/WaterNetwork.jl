@@ -2,6 +2,8 @@
 #
 # Determines how flows added and removed from the network propogate through.
 
+# Requires `addeds` from weather.jl
+
 using Mimi
 
 @defcomp WaterNetwork begin
@@ -48,16 +50,20 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
+"""
+Construct a matrix that represents the decrease in outflow caused by withdrawal
+"""
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in GAUGES x CANALS matrix
         # First do local withdrawal
         for pp in 1:nrow(draws)
             gaugeid = draws[pp, :gaugeid]
-            gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
-            if (gg == 0)
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex == nothing
                 println("Missing $gaugeid")
             else
+                gg = vertex_index(vertex)
                 A[gg, pp] = -1.
             end
         end
@@ -93,6 +99,9 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
     roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate)
 end
 
+"""
+Construct a vector of maximum outflows, as the sum downstream of all contributing runoff.
+"""
 function constraintoffset_waternetwork_outflows(m::Model)
     b = copy(addeds) # Start with direct added
 

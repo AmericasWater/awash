@@ -15,12 +15,14 @@ function requirepackage(pkg, checkout=false)
 end
 
 requirepackage("YAML")
-requirepackage("Mimi", true)
+requirepackage("Mimi")
+Pkg.pin("Mimi", v"0.2.0")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
 requirepackage("RData")
+requirepackage("Clp")
 
 include("test_optimize_surface.jl")
 include("test_simulate.jl")

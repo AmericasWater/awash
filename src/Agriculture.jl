@@ -150,7 +150,7 @@ function initagriculture(m::Model)
     agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
 
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1382592. / (1000. * 12)
+    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
@@ -158,12 +158,12 @@ function initagriculture(m::Model)
 end
 
 function grad_agriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 / config["timestep"]) # Convert Ha to acres
+    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_agriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 / config["timestep"] # Convert Ha to acres
+    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
     roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
 
@@ -213,9 +213,9 @@ function constraintoffset_agriculture_allagarea(m::Model)
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
 
 function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end

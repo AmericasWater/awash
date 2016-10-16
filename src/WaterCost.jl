@@ -63,7 +63,7 @@ function initwatercost(m::Model)
 	    watercost[:unitswcost] = 1*ones(m.indices_counts[:canals], m.indices_counts[:time]);
     
     elseif config["watercostmodel"] == "extractiongw"
-	    watercost[:unitgwcost] = 1e3+repeat(readdlm(datapath("cost/drawdown0.txt")), outer=[1, m.indices_counts[:time]]);
+	    watercost[:unitgwcost] = 1e2+repeat(readdlm(datapath("cost/drawdown0.txt"))/2e2, outer=[1, m.indices_counts[:time]]);
 	    watercost[:unitswcost] = 1*ones(m.indices_counts[:canals], m.indices_counts[:time]);
 	   
     elseif config["watercostmodel"] == "extractionswgw"

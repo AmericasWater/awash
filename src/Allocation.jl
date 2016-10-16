@@ -152,21 +152,21 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
-function constraintoffset_allocation_recordedbalance(m::Model)
+function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["netset"] == "three"
-		if config["optimtype"] == "SW"
+		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
-		elseif config["optimtype"] == "SWGW"
+		elseif optimtype == true
 			gen(rr, tt) = 2. * (rr > 1)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-		if config["optimtype"] == "SW"
-        		recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_WSWTo] / 12.
-		elseif config["optimtype"] == "SWGW"
-        		recorded = readtable(datapath("demand/simulation2010demanddata.csv"))
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_WTotl] / 12.
+        	recorded = readtable(datapath("extraction/USGS-2010.csv"))
+		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
+		if optimtype == false
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
+		elseif optimtype == true
+        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

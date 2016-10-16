@@ -2,7 +2,7 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
+    Pkg.pin("Mimi", v"0.2.0")
 end
 
 if Pkg.installed("OptiMimi") == nothing
@@ -119,6 +119,13 @@ function savedata(filename, component, variable, subset=nothing)
     end
 end
 
+"""
+Produce a choropleth map of an output variable from a model run.
+
+# Arguments:
+* `component`: a symbol for a component (e.g., :Allocation)
+* `variable`: a symbol for a variable (e.g., :waterallocated)
+"""
 function mapdata(component, variable, subset=nothing)
     if subset == nothing
         data = vec(getdata(component, variable))

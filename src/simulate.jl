@@ -3,7 +3,9 @@ using DataFrames
 using OptiMimi
 
 include("lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml")
+if !isdefined(:config)
+    config = readconfig("../configs/standard-1year.yml")
+end
 
 include("model.jl")
 

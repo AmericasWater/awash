@@ -185,6 +185,14 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
+function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Model=nothing)
+    if demandmodel == nothing
+        constraintoffset_allocation_recordedbalance(m, includegw)
+    else
+        hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
+    end
+end
+
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["netset"] == "three"
 		if optimtype == false

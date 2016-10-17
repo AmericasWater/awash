@@ -17,10 +17,15 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
         warn("Config does not contain netset; assuming USA.")
         netset = "usa"
     end
-    
+
     if netset == "three"
         DataFrame(collection="three", colid=2)
     else
-        readtable(datapath("reservoirs/allreservoirs.csv"))
+        reservoirs = readtable(datapath("reservoirs/allreservoirs.csv"))
+        if get(config, "filterstate", nothing) != nothing
+            reservoirs = reservoirs[floor(reservoirs[:fips] / 1000) .== parse(Int64, config["filterstate"]), :]
+        end
+
+        reservoirs
     end
 end

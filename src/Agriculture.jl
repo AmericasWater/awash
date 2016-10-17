@@ -1,3 +1,4 @@
+
 using DataFrames
 using Mimi
 
@@ -46,7 +47,7 @@ include("lib/agriculture.jl")
 
     # Total production: lb or bu
     production = Variable(index=[regions, crops, time], unit="lborbu")
-    # Cultivation costs per acre
+    # Total cultivation costs per crop
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
@@ -73,6 +74,9 @@ function run_timestep(s::Agriculture, tt::Int)
 
             # Calculate total production
             v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+
+            # Calculate cultivation costs
+            v.cultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[crops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -130,16 +134,11 @@ function initagriculture(m::Model)
     agriculture[:logirrigatedyield] = logirrigatedyield
     agriculture[:deficit_coeff] = deficit_coeff
     agriculture[:water_demand] = water_demand
-
-    # Sum precip to a yearly level
-    stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]])
-    agriculture[:precipitation] = rollingsum
+    agriculture[:precipitation] = precip
 
     # Load in planted area by water management
-    
-    rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
-    irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
+    rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
+    irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.
@@ -150,13 +149,12 @@ function initagriculture(m::Model)
     end
     agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
     agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
-    knownareas = readtable(datapath("Colorado/knownareas_colorado.csv"))
-    #knownareas = readtable(datapath("agriculture/knownareas.csv"))
+
+    knownareas = readtable(datapath("agriculture/knownareas.csv"))
     agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
-    
-    recorded= readtable(datapath("Colorado/agriculture.csv"));
-    #recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, 3] * 1382592. / (1000. * 12)
+
+    recorded = readtable(datapath("extraction/USGS-2010.csv"))
+    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
@@ -164,12 +162,12 @@ function initagriculture(m::Model)
 end
 
 function grad_agriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 / config["timestep"]) # Convert Ha to acres
+    roomdiagonal(m, :Agriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_agriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 / config["timestep"] # Convert Ha to acres
+    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
     roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
 
@@ -219,9 +217,10 @@ function constraintoffset_agriculture_allagarea(m::Model)
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
 
 function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 / config["timestep"]) # convert acres to Ha
+    roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
+

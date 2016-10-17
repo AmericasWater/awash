@@ -17,7 +17,7 @@ include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
 
-function optimization_given(allowgw=false)
+function optimization_given(allowgw=false, allowreservoirs=true)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -31,16 +31,26 @@ function optimization_given(allowgw=false)
 
     # Only include variables needed in constraints and parameters needed in optimization
 
+    paramcomps = [:Allocation, :Allocation, :Allocation]
+    parameters = [:waterfromsupersource, :withdrawals, :returns]
+
+    constcomps = [:WaterNetwork, :Allocation, :Allocation]
+    constraints = [:outflows, :balance, :returnbalance]
+
     if allowgw
-        paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Allocation]
-        parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :waterfromgw]
-    else
-        paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir]
-        parameters = [:waterfromsupersource, :withdrawals, :returns, :captures]
+        # Include groundwater
+        paramcomps = [paramcomps; :Allocation]
+        parameters = [parameters; :waterfromgw]
     end
 
-    constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir]
-    constraints = [:outflows, :balance, :returnbalance, :storagemin, :storagemax]
+    if allowreservoirs
+        # Include reservoir logic
+        paramcomps = [paramcomps; :Reservoir]
+        parameters = [parameters; :captures]
+
+        constcomps = [constcomps; :Reservoir; :Reservoir]
+        constraints = [constraints; :storagemin; :storagemax]
+    end
 
     ## Constraint definitions:
     # outflows is the water in the stream
@@ -74,7 +84,9 @@ function optimization_given(allowgw=false)
     # Specify the components affecting outflow: withdrawals, returns, captures
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
     setconstraint!(house, room_relabel_parameter(gwwo, :withdrawals, :Allocation, :returns)) # -
-    setconstraint!(house, -gror) # +
+    if allowreservoirs
+        setconstraint!(house, -gror) # +
+    end
     # Specify that these can at most equal the cummulative runoff
     setconstraintoffset!(house, cwro) # +
 
@@ -98,18 +110,22 @@ function optimization_given(allowgw=false)
 	   setconstraintoffset!(house, -hall_relabel( grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedsurfaceirrigation(m)+grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordedsurfacedomestic(m) +			grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedsurfaceindustrial(m) + grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedsurfacethermoelectric(m) + grad_waterdemand_totalreturn_livestockuse(m) *values_waterdemand_recordedsurfacelivestock(m), :totalreturn, :Allocation, :returnbalance)) # +
     end
 
-    # Reservoir constraints:
-    # initial storage and evaporation have been added
-    # min storage is reservoir min
-    # max storage is reservoir max
+    if allowreservoirs
+        # Reservoir constraints:
+        # initial storage and evaporation have been added
+        # min storage is reservoir min
+        # max storage is reservoir max
 
-    # Constrain storage > min or -storage < -min
-    setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
-    setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
+        # Constrain storage > min or -storage < -min
+        setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
+        setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
 
-    # Constrain storage < max
-    setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
-    setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
+        # Constrain storage < max
+        setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
+        setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
+
+        setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
+    end
 
     # Clean up
 
@@ -127,8 +143,6 @@ function optimization_given(allowgw=false)
     for ii in find(!isfinite(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
-
-    setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
 
     house
 end

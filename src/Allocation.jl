@@ -15,18 +15,21 @@ include("lib/datastore.jl")
 
     # SUPPLY
     # How much to send from each gauge to each county - set by optimization
-    withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    withdrawals_copy = Variable(index=[canals, time], unit="1000 m^3")
+    swwithdrawals = Parameter(index=[canals, time], unit="1000 m^3")
+    swwithdrawals_copy = Variable(index=[canals, time], unit="1000 m^3")
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, time], unit="1000 m^3")
+    
     # Groundwater extracted from each aquifer 
     gwextraction = Parameter(index=[aquifers, time], unit="1000 m^3")
     gwextraction_copy = Variable(index=[aquifers, time], unit="1000 m^3")
     # Groundwater supplied per region
     gwsupply = Variable(index=[regions, time], unit="1000 m^3")
+    
     # Supersource supplied per region
     supersourcesupply = Parameter(index=[regions,time], unit="1000 m^3")
     supersourcesupply_copy = Variable(index=[regions,time], unit="1000 m^3")
+    
     # Total supply per region
     totalsupply = Variable(index=[regions, time], unit="1000 m^3")
     # Difference between totalsupply and watertotaldemand
@@ -58,11 +61,11 @@ function run_timestep(c::Allocation, tt::Int)
         fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
         rr = findfirst(mastercounties[:fips] .== fips)
         if rr > 0
-            v.swsupply[rr, tt] += p.withdrawals[pp, tt]
+            v.swsupply[rr, tt] += p.swwithdrawals[pp, tt]
         
 	    v.swreturn[rr, tt] += p.returns[pp, tt]
         end
-        v.withdrawals_copy[pp, tt] = p.withdrawals[pp, tt]
+        v.swwithdrawals_copy[pp, tt] = p.swwithdrawals[pp, tt]
         v.returns_copy[pp, tt] = p.returns[pp, tt]
     end
 
@@ -86,13 +89,13 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
     if config["netset"] == "three"
-    	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:supersourcesupply] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
     else
-	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	    allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
 	    allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
@@ -102,7 +105,6 @@ function initallocation(m::Model)
 end
 
 """
-The objective is to minimize water allocation costs at all time
 """
 
 function makeconstraintdemandmet(aa, tt)

@@ -15,11 +15,10 @@ startweather: 612
 # Months per time step
 timestep: 6
 
-# Cost configuration : choices are basic/extractiongw/extractionswgw
-watercostmodel: extractiongw
+# Cost configuration
+watercost-extraction: true
+watercost-treatment: true
 
-# Type of optimization: "SW" for only surface water, "SWGW" for the conjunctive use of both resources
-optimtype: "SWGW"
 
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"

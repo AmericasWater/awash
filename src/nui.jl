@@ -126,19 +126,24 @@ Produce a choropleth map of an output variable from a model run.
 * `component`: a symbol for a component (e.g., :Allocation)
 * `variable`: a symbol for a variable (e.g., :waterallocated)
 """
-function mapdata(component, variable, subset=nothing)
-    if subset == nothing
-        data = vec(getdata(component, variable))
+function mapdata(component, variable=nothing, subset=nothing, center=false)
+    if variable !=nothing
+	if subset == nothing
+            data = vec(getdata(component, variable))
+        elseif subset == "sum"
+	    data = vec(sum(getdata(component, variable),2))
+        else
+            data = vec(getdata(component, variable)[subset...])
+        end
     else
-        data = vec(getdata(component, variable)[subset...])
+	data = vec(component)
     end
-
     if length(data) != numcounties
         error("This does not appear to be a county result.")
     end
 
     df = DataFrame(fips=collect(mastercounties[:fips]), value=data)
-    usmap(df)
+    usmap(df,center)
 end
 
 open("../docs/intro.txt") do fp

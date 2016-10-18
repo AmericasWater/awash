@@ -35,10 +35,10 @@ function optimization_given(allowgw=false)
 
     if allowgw
         paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Allocation]
-        parameters = [:supersourcesupply, :withdrawals, :returns, :captures, :gwextraction]
+        parameters = [:supersourcesupply, :swwithdrawals, :returns, :captures, :gwextraction]
     else
         paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir]
-        parameters = [:supersourcesupply, :withdrawals, :returns, :captures]
+        parameters = [:supersourcesupply, :swwithdrawals, :returns, :captures]
     end
 
     constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir]
@@ -53,10 +53,10 @@ function optimization_given(allowgw=false)
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
-	    setobjective!(house, hall_relabel(-varsum(grad_costgw(m)),:gwextraction,:Allocation,:gwextraction)) 
+	    setobjective!(house, hall_relabel(-varsum(grad_watercost_costgw(m)),:gwextraction,:Allocation,:gwextraction)) 
     end
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
-    setobjective!(house, hall_relabel(-varsum(grad_costsupersource(m)),:supersourcesupply,:Allocation,:supersourcesupply))
+    setobjective!(house, hall_relabel(-varsum(grad_watercost_costsupersource(m)),:supersourcesupply,:Allocation,:supersourcesupply))
 
     # Constrain that the water in the stream is non-negative:
     # That is, outflows + runoff > 0, or -outflows < runoff
@@ -74,7 +74,7 @@ function optimization_given(allowgw=false)
     end
 
     # Specify the components affecting outflow: withdrawals, returns, captures
-    setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
+    setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :swwithdrawals)) # +
     setconstraint!(house, room_relabel_parameter(gwwo, :withdrawals, :Allocation, :returns)) # -
     setconstraint!(house, -gror) # +
     # Specify that these can at most equal the cummulative runoff
@@ -85,7 +85,7 @@ function optimization_given(allowgw=false)
     if allowgw
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     end
-    setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
+    setconstraint!(house, -grad_allocation_balance_swwithdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedbalance(m,allowgw)) # -
 
     # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn

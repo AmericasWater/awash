@@ -124,7 +124,7 @@ end
 
 
 
-function grad_allocation_balance_withdrawals(m::Model)
+function grad_allocation_balance_swwithdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
@@ -136,7 +136,7 @@ function grad_allocation_balance_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :balance, :withdrawals, generate)
+    roomintersect(m, :Allocation, :balance, :swwithdrawals, generate)
 end
 
 function grad_allocation_returnbalance_returns(m::Model)

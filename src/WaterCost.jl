@@ -85,7 +85,7 @@ function soleobjective_allocation(m::Model)
      sum(model[:WaterCost, :totalcost])
 end
 
-function grad_watercost_costgwextraction(m::Model)
+function grad_watercost_costgw(m::Model)
 	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, tt) -> m.parameters[:unitgwextractioncost].values[rr,tt] + m.parameters[:unitgwtreatmentcost].values[rr,tt] + m.parameters[:unitdistributioncost].values[rr,tt])
 end
  

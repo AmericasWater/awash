@@ -119,7 +119,7 @@ function initagriculture(m::Model)
                     logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
                 end
 
-                deficit_coeff[rr, cc] = min(0., thismodel.wreq) # must be negative
+                deficit_coeff[rr, cc] = min(0., thismodel.wreq/1000) # must be negative
             end
         end
     end

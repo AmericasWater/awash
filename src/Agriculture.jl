@@ -47,7 +47,7 @@ include("lib/agriculture.jl")
 
     # Total production: lb or bu
     production = Variable(index=[regions, crops, time], unit="lborbu")
-    # Total cultivation costs per crop
+    # Cultivation costs per acre
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
@@ -74,9 +74,6 @@ function run_timestep(s::Agriculture, tt::Int)
 
             # Calculate total production
             v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
-
-            # Calculate cultivation costs
-            v.cultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[crops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -119,7 +116,7 @@ function initagriculture(m::Model)
                     logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
                 end
 
-                deficit_coeff[rr, cc] = min(0., thismodel.wreq/1000) # must be negative
+                deficit_coeff[rr, cc] = min(0., thismodel.wreq / 1000) # must be negative, convert to 1/mm
             end
         end
     end
@@ -223,4 +220,3 @@ end
 function grad_agriculture_cost_irrigatedareas(m::Model)
     roomdiagonal(m, :Agriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[crops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
-

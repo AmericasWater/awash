@@ -40,7 +40,13 @@ if config["watercost-extraction"]
 	end
 
 # gw: extraction cost prop to drawdown to watertable
-	aquiferextractioncost = readdlm(datapath("cost/drawdown0.txt"))
+	aquiferextractioncost = zeros(numcounties)
+        drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"))
+	fipsaquifer = readdlm(datapath("gwmodel/v_FIPS.txt"))
+	for ii in 1:numcounties
+                 county_id = parse(Float64, mastercounties[:fips][ii])
+		 aquiferextractioncost[ii] = drawdowndeepaquifer[find(fipsaquifer .== county_id)][1]
+	end
 	aquiferextractioncost[find(aquiferextractioncost .<naelev)] = naelev
 
 # compute costs

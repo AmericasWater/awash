@@ -133,7 +133,7 @@ function initagriculture(m::Model)
 
     # Sum precip to a yearly level
     stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]])
+    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
     agriculture[:precipitation] = rollingsum
 
     # Load in planted area by water management

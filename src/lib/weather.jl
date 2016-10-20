@@ -87,5 +87,7 @@ function getadded(stations::DataFrame)
         added[:, ii] = vec(gage_totalflow[gage[1], :])
     end
 
+    added[isnan(added)] = 0 # if NaN, set to 0 so doesn't propagate
+
     added
 end

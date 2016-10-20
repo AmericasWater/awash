@@ -29,7 +29,10 @@ include("lib/agriculture.jl")
 
     # Precipitation water per unit area, in mm
     precipitation = Parameter(index=[regions, time], unit="mm")
-
+    
+    #cropdemand per crop
+    cropdemand=Parameter(index=[crops], unit="buorlb")
+    
     # Computed
     # Land area appropriated to each crop
     totalareas = Variable(index=[regions, crops, time], unit="Ha")
@@ -49,6 +52,9 @@ include("lib/agriculture.jl")
     production = Variable(index=[regions, crops, time], unit="lborbu")
     # Cultivation costs per acre
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
+    
+    
+    
 end
 
 function run_timestep(s::Agriculture, tt::Int)
@@ -78,6 +84,9 @@ function run_timestep(s::Agriculture, tt::Int)
 
         v.totalirrigation[rr, tt] = totalirrigation
         v.allagarea[rr, tt] = allagarea
+    end
+    for cc in d.crops
+        p.cropdemand[cc]=crop_demand[cc]
     end
 end
 
@@ -122,8 +131,11 @@ function initagriculture(m::Model)
     end
 
     water_demand = zeros(numcrops)
+    crop_demand=zeros(numcrops)
+    
     for cc in 1:numcrops
         water_demand[cc] = water_requirements[crops[cc]] * 1000
+        crop_demand[cc]=crop_demands[crops[cc]]
     end
 
     agriculture = addcomponent(m, Agriculture)
@@ -132,10 +144,12 @@ function initagriculture(m::Model)
     agriculture[:deficit_coeff] = deficit_coeff
     agriculture[:water_demand] = water_demand
     agriculture[:precipitation] = precip
+    agriculture[:cropdemand]=crop_demand
+        
 
     # Load in planted area by water management
-    rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
-    irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
+    rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
+    irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.
@@ -144,14 +158,12 @@ function initagriculture(m::Model)
         rainfeds[cc] = rainfeds[cc] * 0.404686
         irrigateds[cc] = irrigateds[cc] * 0.404686
     end
-    agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
-    agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
+    agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 1:end]), outer=[1, 1, numsteps])
+    agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 1:end]), outer=[1, 1, numsteps])
 
-    knownareas = readtable(datapath("agriculture/knownareas.csv"))
-    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
-
-    recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
+    knownareas = readtable(datapath("Colorado/knownareas_colorado.csv"))
+    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])   
+    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] 
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
@@ -167,6 +179,7 @@ function grad_agriculture_production_rainfedareas(m::Model)
     gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
     roomdiagonal(m, :Agriculture, :production, :rainfedareas, gen)
 end
+
 
 function grad_agriculture_totalirrigation_irrigatedareas(m::Model)
     function generate(A, tt)
@@ -210,7 +223,11 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropareas][rr, tt])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] )
+end
+
+function constraintoffset_agriculture_cropdemand(m::Model)
+    hallsingle(m, :Agriculture, :cropdemand, (cc) ->crop_demand[cc])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)

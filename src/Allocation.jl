@@ -89,6 +89,8 @@ end
 Add a demand component to the model.
 """
 function initallocation(m::Model)
+    gwtotal = readtable(joinpath(todata, "Colorado/GW_Total.csv"));
+    gwtotal=convert(Matrix, gwtotal)/1000.;
     allocation = addcomponent(m, Allocation);
     allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
@@ -107,7 +109,7 @@ function initallocation(m::Model)
     else
 	    allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+        allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> gwtotal);
     	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end
 
@@ -197,11 +199,12 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 	        hallsingle(m, :Allocation, :balance, gen)
     else
 		if optimtype
-            recorded = readtable(datapath("Colorado/SW_Total.csv"))
-            gen(rr, tt) = recorded[rr, tt] / 1000.
-		elseif optimtype
             recorded = readtable(datapath("Colorado/Total.csv"))
+            gen(rr, tt) = recorded[rr, tt] / 1000.
+		else optimtype
+            recorded = readtable(datapath("Colorado/SW_Total.csv"))
         	gen(rr, tt) = recorded[rr, tt] / 1000.
+        end 
 		hallsingle(m, :Allocation, :balance, gen)
     end
 end

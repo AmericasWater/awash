@@ -83,6 +83,27 @@ function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
     roomdiagonal(m, :Allocation, :balance, :livestockuse, (rr, tt) -> 1.)
 end
 
+#############GW Part Missing?Industrial?######################################
+function grad_waterdemand_gwdemandbalance_totalirrigation(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :totalirrigation, (rr, tt) -> 1.)
+end
+
+function grad_waterdemand_gwdemandbalance_domesticuse(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :domesticuse, (rr, tt) -> 1.)
+end
+
+function grad_waterdemand_gwdemandbalance_thermoelectricuse(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, (rr, tt) -> 1.)
+end
+
+function grad_waterdemand_gwdemandbalance_livestockuse(m::Model)
+    roomdiagonal(m, :Allocation, :balance, :livestockuse, (rr, tt) -> 1.)
+end
+
+
+################################################################
+
+
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
     roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, (rr, tt) -> -returnpart["irrigation/livestock"])
 end

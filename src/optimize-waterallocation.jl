@@ -4,9 +4,14 @@ include("lib/readconfig.jl")
 
 config = readconfig("../configs/standard-1year-colorado.yml") # Just use 1 year for optimization
 
-include("optimization-given.jl")
+# Run the water demand simulation to determine values
+include("model-waterdemand.jl")
 
-house = optimization_given(true)
+println("Running model...")
+@time run(model)
+
+include("optimization-given.jl")
+house = optimization_given(true, true, model)
 
 using MathProgBase
 using Gurobi
@@ -31,5 +36,5 @@ varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
 serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
 serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numreservoirs, numsteps))
-serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numcounties, numsteps))
+serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))

@@ -3,6 +3,7 @@ using OptiMimi
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
+
 config = readconfig("../configs/standard-1year-colorado.yml");
 suffix = getsuffix()
 
@@ -12,7 +13,7 @@ include("optimization-colorado.jl")
 using MathProgBase
 @time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
 
-coning = constraining(house, sol.sol)
+coning = constraining(house, convert(Vector{Float64}, sol.sol))
 
 rdf = DataFrame(fips=mastercounties[:fips]);
 cdf = DataFrame(fips=repmat(mastercounties[:fips], numcrops), crop=vec(repeat(crops, inner=[numcounties, 1])));

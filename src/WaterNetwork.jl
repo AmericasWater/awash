@@ -80,7 +80,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :swwithdrawals, generate)
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)

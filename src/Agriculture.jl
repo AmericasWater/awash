@@ -46,7 +46,7 @@ include("lib/agriculture.jl")
 
     # Total production: lb or bu
     production = Variable(index=[regions, crops, time], unit="lborbu")
-    # Cultivation costs per acre
+    # Total cultivation costs per crop
     cultivationcost = Variable(index=[regions, crops, time], unit="\$")
 end
 
@@ -73,6 +73,9 @@ function run_timestep(s::Agriculture, tt::Int)
 
             # Calculate total production
             v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+
+            # Calculate cultivation costs
+            v.cultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[crops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -130,7 +133,11 @@ function initagriculture(m::Model)
     agriculture[:logirrigatedyield] = logirrigatedyield
     agriculture[:deficit_coeff] = deficit_coeff
     agriculture[:water_demand] = water_demand
-    agriculture[:precipitation] = precip
+
+    # Sum precip to a yearly level
+    stepsperyear = floor(Int64, 12 / config["timestep"])
+    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
+    agriculture[:precipitation] = rollingsum
 
     # Load in planted area by water management
     rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
@@ -209,7 +216,7 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropareas][rr, tt])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)

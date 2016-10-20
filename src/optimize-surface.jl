@@ -6,7 +6,6 @@ if !isdefined(:config)
 end
 
 include("optimization-given.jl")
-
 house = optimization_given(false)
 
 serialize(open("../data/fullhouse$suffix.jld", "w"), house)
@@ -27,7 +26,7 @@ solver = GurobiSolver()
 summarizeparameters(house, sol.sol)
 
 # Look at the constraints: only possible for small models
-#constraining(house, sol.sol)
+#constdf = constraining(house, sol.sol)
 
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)

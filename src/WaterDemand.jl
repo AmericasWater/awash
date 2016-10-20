@@ -103,6 +103,66 @@ function grad_waterdemand_totalreturn_livestockuse(m::Model)
     roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, (rr, tt) -> -returnpart["irrigation/livestock"])
 end
 
+function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        if includegw
+            values_waterdemand_recordedsurfaceirrigation(m) + values_waterdemand_recordedgroundirrigation(m)
+        else
+            values_waterdemand_recordedsurfaceirrigation(m)
+        end
+    else
+        shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:Agriculture, :totalirrigation])
+    end
+end
+
+function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        if includegw
+            values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
+        else
+            values_waterdemand_recordedsurfacedomestic(m)
+        end
+    else
+        shaftvalues(m, :WaterDemand, :domesticuse, demandmodel[:UrbanDemand, :waterdemand])
+    end
+end
+
+function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        if includegw
+            values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
+        else
+            values_waterdemand_recordedsurfaceindustrial(m)
+        end
+    else
+        shaftvalues(m, :WaterDemand, :industrialuse, demandmodel[:IndustrialDemand, :waterdemand])
+    end
+end
+
+function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        if includegw
+            values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
+        else
+            values_waterdemand_recordedsurfacethermoelectric(m)
+        end
+    else
+        shaftvalues(m, :WaterDemand, :thermoelectricuse, demandmodel[:Thermoelectric, :demand_copy])
+    end
+end
+
+function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        if includegw
+            values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
+        else
+            values_waterdemand_recordedsurfacelivestock(m)
+        end
+    else
+        shaftvalues(m, :WaterDemand, :livestockuse, demandmodel[:Livestock, :demand_copy])
+    end
+end
+
 function values_waterdemand_recordedsurfacedomestic(m::Model)
     recorded = readtable(datapath("extraction/USGS-2010.csv"))
     gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.

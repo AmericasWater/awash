@@ -11,24 +11,24 @@ include("lib/datastore.jl")
     canals = Index()
 
     # WATER DEMAND aggregated accross all sectors per region
-    totalwaterdemand = Parameter(index=[regions, time], unit="1000 m^3")
+    watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
 
     # SUPPLY
     # How much to send from each gauge to each county - set by optimization
     swwithdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    swwithdrawals_copy = Variable(index=[canals, time], unit="1000 m^3")
+    copy_swwithdrawals = Variable(index=[canals, time], unit="1000 m^3")
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, time], unit="1000 m^3")
     
     # Groundwater extracted from each aquifer 
     gwextraction = Parameter(index=[aquifers, time], unit="1000 m^3")
-    gwextraction_copy = Variable(index=[aquifers, time], unit="1000 m^3")
+    copy_gwextraction = Variable(index=[aquifers, time], unit="1000 m^3")
     # Groundwater supplied per region
     gwsupply = Variable(index=[regions, time], unit="1000 m^3")
     
     # Supersource supplied per region
     supersourcesupply = Parameter(index=[regions,time], unit="1000 m^3")
-    supersourcesupply_copy = Variable(index=[regions,time], unit="1000 m^3")
+    copy_supersourcesupply = Variable(index=[regions,time], unit="1000 m^3")
     
     # Total supply per region
     totalsupply = Variable(index=[regions, time], unit="1000 m^3")
@@ -38,9 +38,9 @@ include("lib/datastore.jl")
     # RETURN FLOWS
     # How much is returned to each withdrawal source - set by optimization
     returns = Parameter(index=[canals, time], unit="1000 m^3")
-    returns_copy = Variable(index=[canals, time], unit="1000 m^3")
+    copy_returns = Variable(index=[canals, time], unit="1000 m^3")
     # Combination across all canals routing return flow from the counties
-    totaldemandreturn = Parameter(index=[regions, time], unit="1000 m^3")
+    waterreturn = Parameter(index=[regions, time], unit="1000 m^3")
     swreturn = Variable(index=[regions, time], unit="1000 m^3")
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
@@ -65,19 +65,19 @@ function run_timestep(c::Allocation, tt::Int)
         
 	    v.swreturn[rr, tt] += p.returns[pp, tt]
         end
-        v.swwithdrawals_copy[pp, tt] = p.swwithdrawals[pp, tt]
-        v.returns_copy[pp, tt] = p.returns[pp, tt]
+        v.copy_swwithdrawals[pp, tt] = p.swwithdrawals[pp, tt]
+        v.copy_returns[pp, tt] = p.returns[pp, tt]
     end
 
     for rr in d.regions
         aa = rr
-	v.gwextraction_copy[aa,tt] = p.gwextraction[aa,tt]
+	v.copy_gwextraction[aa,tt] = p.gwextraction[aa,tt]
 	v.gwsupply[rr,tt] = p.gwextraction[aa,tt]
-	v.supersourcesupply_copy[rr,tt] = p.supersourcesupply[rr,tt]
-	v.totalsupply[rr,tt] = v.swsupply[rr,tt] + v.gwsupply[rr,tt] + v.supersourcesupply_copy[rr,tt]
+	v.copy_supersourcesupply[rr,tt] = p.supersourcesupply[rr,tt]
+	v.totalsupply[rr,tt] = v.swsupply[rr,tt] + v.gwsupply[rr,tt] + v.copy_supersourcesupply[rr,tt]
 
-        v.balance[rr, tt] = v.totalsupply[rr, tt] - p.totalwaterdemand[rr, tt]
-        v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.totaldemandreturn[rr, tt]
+        v.balance[rr, tt] = v.totalsupply[rr, tt] - p.watertotaldemand[rr, tt]
+        v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
     end
 end
 
@@ -152,6 +152,14 @@ function grad_allocation_returnbalance_returns(m::Model)
     end
 
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
+end
+
+function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        constraintoffset_allocation_recordedbalance(m, includegw)
+    else
+        hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
+    end
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)

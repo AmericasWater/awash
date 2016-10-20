@@ -1,5 +1,5 @@
-redohouse = !isfile(datapath("cache/fullhouse$suffix.jld"))
-redogwwo = !isfile(datapath("cache/partialhouse2$suffix.jld"))
+redohouse = true #!isfile(datapath("cache/fullhouse$suffix.jld"))
+redogwwo = true #!isfile(datapath("cache/partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -11,6 +11,7 @@ include("Market.jl")
 include("Transportation.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
+include("UrbanDemand.jl")
 
 println("Creating model...")
 
@@ -25,6 +26,7 @@ allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
+urbandemand = initurbandemand(m) # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
@@ -76,7 +78,7 @@ if redohouse
                    grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m))) # +-
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
-    setconstraint!(house, grad_waterdemand_swbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
+    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
     setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -

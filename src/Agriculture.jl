@@ -133,7 +133,11 @@ function initagriculture(m::Model)
     agriculture[:logirrigatedyield] = logirrigatedyield
     agriculture[:deficit_coeff] = deficit_coeff
     agriculture[:water_demand] = water_demand
-    agriculture[:precipitation] = precip
+
+    # Sum precip to a yearly level
+    stepsperyear = floor(Int64, 12 / config["timestep"])
+    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
+    agriculture[:precipitation] = rollingsum
 
     # Load in planted area by water management
     rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))

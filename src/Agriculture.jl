@@ -209,7 +209,7 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropareas][rr, tt])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
 end
 
 function grad_agriculture_cost_rainfedareas(m::Model)

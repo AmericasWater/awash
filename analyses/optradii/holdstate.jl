@@ -3,7 +3,14 @@ include("lib/readconfig.jl")
 config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 
 include("optimization-given.jl")
-house = optimization_given(true)
+house = optimization_given(true);
+
+using MathProgBase
+using Gurobi
+solver = GurobiSolver()
+
+@time sol_before = houseoptimize(house, solver)
+summarizeparameters(house, sol_before.sol)
 
 include("../prepare/bystate/statelib.jl")
 
@@ -41,22 +48,16 @@ end
 
 ## Allow supersource feeding of gauges
 addparameter!(house, :WaterNetwork, :added) # include as supersource
-setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, (gg, tt) -> 1.))
-setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> 1000.))
+setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, (gg, tt) -> -1.))
+setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> -1000.))
 
-using MathProgBase
-using Gurobi
-solver = GurobiSolver()
+@time sol_after = houseoptimize(house, solver)
+summarizeparameters(house, sol_after.sol)
 
-@time sol = houseoptimize(house, solver)
+getparametersolution(house, sol_before.sol, :waterfromgw) - getparametersolution(house, sol_after.sol, :waterfromgw)
+getparametersolution(house, sol_before.sol, :withdrawals) - getparametersolution(house, sol_after.sol, :withdrawals)
 
-findinfeasiblepair(house, solver)
-#sol = houseoptimize(house, solver, collect(51338:length(house.b)))
-
-# Save the results
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
-
-serialize(open("statewithdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open("statereturns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-serialize(open("statecaptures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numreservoirs, numsteps))
-serialize(open("statewaterfromgw$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numcounties, numsteps))
+## Also look at total USGS withdrawals
+recorded = readtable(datapath("extraction/USGS-2010.csv"))
+sum(recorded[:TO_SW]) * 1383.
+sum(recorded[:TO_GW]) * 1383.

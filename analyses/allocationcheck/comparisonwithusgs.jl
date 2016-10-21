@@ -1,4 +1,5 @@
 include("../../src/nui.jl")
+include("../../src/optimize-surface.jl")
 include("../../src/optimize-waterallocation.jl")
 include("../../src/simulate.jl")
 

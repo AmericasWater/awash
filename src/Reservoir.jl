@@ -64,7 +64,7 @@ function initreservoir(m::Model, name=nothing)
     end
 
     reservoir[:inflows] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-    reservoir[:captures] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]));
 
     if config["netset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)

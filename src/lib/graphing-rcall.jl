@@ -7,6 +7,7 @@ df must have columns fips and the value column.
 """
 function usmap(df, centered=false)
     global mapinited
+
     if !mapinited
         RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
         R"library(ggplot2)"
@@ -20,7 +21,6 @@ function usmap(df, centered=false)
 
         mapinited = true
     end
-    
     if centered
         R"ggplot($df, aes(map_id=fips)) +
         geom_map(aes(fill=value), map=shapes) +

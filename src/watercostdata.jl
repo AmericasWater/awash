@@ -4,8 +4,10 @@
 using DataFrames
 using RData
 
+
+
 # energy cost to lift 1000m3 by 1m
-energycostperlift = 1.
+energycostperlift = 0.02 # in $/1000m /m of lift | value from CALVIN
 
 
 
@@ -13,6 +15,12 @@ energycostperlift = 1.
 # sw: compute relative elevation if source downhill, 0 otherwise
 # if missing information, default value is specified by naelev
 if config["watercost-extraction"]
+if isfile(datapath("cache/canalextractioncost$suffix.jld"))
+    println("Loading extraction cost from saved data...")
+    canalextractioncost = deserialize(open(datapath("cache/canalextractioncost$suffix.jld"), "r"));
+    aquiferextractioncost = deserialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "r"));
+else
+
 	naelev = 5.
 	canalextractioncost = zeros(numcanals)
 	for ii in 1:numcanals
@@ -52,6 +60,12 @@ if config["watercost-extraction"]
 # compute costs
 	canalextractioncost *= energycostperlift
 	aquiferextractioncost *= energycostperlift
+
+# save
+	serialize(open(datapath("cache/canalextractioncost$suffix.jld"), "w"), canalextractioncost)
+	serialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "w"), aquiferextractioncost)
+
+end
 else
 	canalextractioncost = ones(numcanals)
 	aquiferextractioncost = 100*ones(numaquifers)

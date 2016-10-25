@@ -153,7 +153,7 @@ end
 ## Optional cost for drawing down a river (environmental change)
 function grad_allocation_cost_withdrawals(m::Model)
     # This is really affecting total cost-per-canal, not "withdrawals_copy", but need a similar variable dimension
-    roomdiagonal(m, :Allocation, :copy_withdrawals, :withdrawals, (cc, tt) -> 1e6)#.01)
+    roomdiagonal(m, :Allocation, :copy_withdrawals, :withdrawals, (cc, tt) -> .01)
 end
 
 function grad_allocation_balance_withdrawals(m::Model)

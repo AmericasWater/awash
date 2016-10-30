@@ -15,12 +15,12 @@ supwc = getdata(:WaterCost, :supersourcecost);
 # mapping total volumes per source type
 mapdata(:Allocation, :swsupply, "sum")
 mapdata(:Allocation, :gwsupply, "sum")
-mapdata(:Allocation, :supersourcesupply, "sum")
+#mapdata(:Allocation, :supersourcesupply, "sum")
 
 # mapping total costs per source type
 mapdata(:WaterCost, :swcost, "sum")
 mapdata(:WaterCost, :gwcost, "sum")
-mapdata(:WaterCost, :supersourcecost,"sum")
+#mapdata(:WaterCost, :supersourcecost,"sum")
 
 # cost of water per 1000m3
 mapdata(sum((supwc+gwc+swc)./(supw+gw+sw),2))

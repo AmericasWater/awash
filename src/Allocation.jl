@@ -122,8 +122,6 @@ function grad_allocation_balance_waterfromsupersource(m::Model)
     roomdiagonal(m, :Allocation, :balance, :supersourcesupply, (rr, tt) -> 1.)
 end
 
-
-
 function grad_allocation_balance_swwithdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix

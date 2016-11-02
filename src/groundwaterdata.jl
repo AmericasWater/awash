@@ -2,42 +2,41 @@ using DataFrames
 using RData
 
 
-
-
-if isfile(datapath("cache/gwmodel/dfgw$suffix.jld"))
+if isfile(datapath("cache/gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = deserialize(open(datapath("cache/gwmodel/dfgw$suffix.jld"), "r"));
-    lateralconductivity = deserialize(open(datapath("cache/gwmodel/lateralconductivity$suffix.jld"), "r"));
-    aquiferconnexion = deserialize(open(datapath("cache/gwmodel/aquiferconnexion$suffix.jld"), "r"));
+    dfgw = readtable(datapath("cache/gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, readtable(datapath("cache/gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, readtable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv")));
 
 else
     if config["netset"] == "usa"
-        println("Generating groundwater model...")
-        gw = load(datapath("gwmodel/contusgwmodel.RData"))
-        vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
+        dfgw = readtable(datapath("gwmodel/dfgw.csv"));
+        lateralconductivity = deserialize(open(datapath("gwmodel/lateralconductivity.jld"), "r"));
+        aquiferconnexion = deserialize(open(datapath("gwmodel/aquiferconnexion.jld"), "r"));
         
         if config["filterstate"] != nothing
-	    vstates = round(Int64, floor(vfips / 1000));
-	    subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
-        else
-	    subfips = 1:3109;
-	end
+            println("Generating regionnal groundwater model...")
+	    vstates = round(Int64, floor(dfgw[:fips] ./ 1000));
+	    subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
 	
-        d = gw["aquifer_depth"][subfips[1:3109]];
-	p0 = zeros(numaquifers);#gw["piezohead0"].data[subfips[1:3109]];
-  	s = gw["vector_storativity"][subfips[1:3109]];
-  	a = gw["county_area"][subfips[1:3109]]/1000;
-	el = gw["county_elevation"][:V1][subfips[1:3109]];
+            dfgw = dfgw[subfips,:];
 
-  	lateralconductivity = gw["matrix_leakage_factor"][subfips[1:3109],subfips[1:3109]];
-  	aquiferconnexion = gw["connectivity_matrix"][subfips[1:3109],subfips[1:3109]];
+  	    lateralconductivity = lateralconductivity[subfips,subfips];
+  	    aquiferconnexion = aquiferconnexion[subfips,subfips];
 
+            # Save groundwater model
+            writetable(datapath("cache/gwmodel/dfgw$suffix.csv"), dfgw)
+            writetable(datapath("cache/gwmodel/lateralconductivity$suffix.csv"), convert(DataFrame, lateralconductivity))
+            writetable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
+
+        end
     elseif config["netset"] == "three"
-        depthaquif = [-100.; -90.; -95.];
-        storagecoef = [5e-4; 5e-4; 5e-4];
-        piezohead0 = [-55.; -45.; -53.];
-        areaaquif = [8e8; 6e8; 5e8];
-
+        d = [-100.; -90.; -95.];
+        s = [5e-4; 5e-4; 5e-4];
+        p0 = [-55.; -45.; -53.];
+        a = [8e8; 6e8; 5e8];
+        el = [10; 14; 9];
+        dfgw = DataFrame(Any[[1 2 3], d, p0, s, a, el], [:fips, :depthaquif, :piezohead0, :storagecoef, :areaaquif, :elevation]);
      
         lateralconductivity = [  0  1e-4     0;
                               1e-4     0  1e-4;
@@ -45,10 +44,4 @@ else
 
         aquiferconnexion = [0. 1. 0.; 1. 0. 1.; 0 1. 0];
     end
-    
-    dfgw = DataFrame(Any[d, p0, s, a, el], [:depthaquif, :piezohead0, :storagecoef, :areaaquif, :elevation]) 
-    # Save groundwater model
-    serialize(open(datapath("cache/gwmodel/dfgw$suffix.jld"), "w"), dfgw)
-    serialize(open(datapath("cache/gwmodel/lateralconductivity$suffix.jld"), "w"), lateralconductivity)
-    serialize(open(datapath("cache/gwmodel/aquiferconnexion$suffix.jld"), "w"), aquiferconnexion)
 end

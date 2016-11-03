@@ -65,7 +65,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if allowgw
 	    setobjective!(house, hall_relabel(-varsum(grad_watercost_costgw(m)),:gwextraction,:Allocation,:gwextraction)) 
     end
-    #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
+    setobjective!(house, hall_relabel(-varsum(grad_watercost_costswwithdrawals(m)),:swwithdrawals,:Allocation,:swwithdrawals))
     setobjective!(house, hall_relabel(-varsum(grad_watercost_costsupersource(m)),:supersourcesupply,:Allocation,:supersourcesupply))
 
     # Constrain that the water in the stream is non-negative:

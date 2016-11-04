@@ -1,8 +1,7 @@
-cd("../../src")
-include("lib/readconfig.jl")
+include("../../src/lib/readconfig.jl")
 config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 
-include("optimization-given.jl")
+include("../../src/optimization-given.jl")
 house = optimization_given(true);
 
 using MathProgBase
@@ -12,10 +11,10 @@ solver = GurobiSolver()
 @time sol_before = houseoptimize(house, solver)
 summarizeparameters(house, sol_before.sol)
 
-include("../prepare/bystate/statelib.jl")
+include("../../prepare/bystate/statelib.jl")
 
 ## Add constraints on all cross-state flows
-outflows = readtable("../data/extraction/outflows-bygauge.csv", header=false)
+outflows = readtable("../../data/extraction/outflows-bygauge.csv", header=false)
 outflows = convert(Matrix{Float64}, outflows)
 # outflows constrained as cumulative runoff
 

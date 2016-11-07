@@ -7,7 +7,7 @@ using RData
 
 
 # energy cost to lift 1000m3 by 1m
-energycostperlift = 0.02 # in $/1000m3 /m of lift | value from CALVIN
+energycostperlift = 0.5 # in $/1000m3 /m of lift | value from CALVIN
 
 
 

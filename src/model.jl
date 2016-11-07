@@ -1,11 +1,6 @@
-## `config` must be defined before loading this file!
+include("model-waterdemand.jl")
 
-include("world.jl")
-include("weather.jl")
-
-include("Agriculture.jl");
 include("ReturnFlows.jl");
-include("WaterDemand.jl");
 include("Market.jl");
 include("Transportation.jl");
 include("WaterNetwork.jl");
@@ -28,16 +23,6 @@ end
 
 println("Creating model...")
 
-# First solve entire problem in a single timestep
-model = newmodel();
-
-# Add all of the components
-thermoelectric = initthermoelectric(model); # exogenous
-livestock = initlivestock(model); # exogenous
-agriculture = initagriculture(model); # optimization-only
-industrialdemand = initindustrialdemand(model); # exogenous
-urbandemand = initurbandemand(model); # exogenous
-waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
@@ -48,12 +33,6 @@ transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 
 # Connect up the components
-waterdemand[:totalirrigation] = agriculture[:totalirrigation];
-waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
-waterdemand[:livestockuse] = livestock[:demand_copy];
-waterdemand[:urbanuse] = urbandemand[:waterdemand];
-waterdemand[:industrialuse] = industrialdemand[:waterdemand];
-
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
 allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];

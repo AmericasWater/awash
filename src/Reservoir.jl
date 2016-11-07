@@ -8,10 +8,12 @@ reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 
 @defcomp Reservoir begin
     reservoirs = Index()
-
-    # Streamflow connnections
-    inflows = Parameter(index=[reservoirs, time], unit="m^3")
-    captures = Parameter(index=[reservoirs, time], unit="m^3") # positive or negative
+    gauges = Index()
+    # Streamflow connections from optim
+    inflowsgauges = Parameter(index=[gauges, time], unit="1000 m^3")
+    captures = Parameter(index=[reservoirs, time], unit="1000 m^3") # positive or negative
+    # Reservoir inflows
+    inflows = Variable(index=[reservoirs, time], unit="m^3")
     # releases = inflows - captures
     releases = Variable(index=[reservoirs, time], unit="m^3")
 
@@ -32,27 +34,39 @@ function run_timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
+   
+    rr = 1
+    for gg in 1:numgauges
+       index = vertex_index(downstreamorder[gg])
+       if isreservoir[index] > 0
+	     v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000; 
+	     rr += 1
+       end
+    end
+
+    
     if tt==1
         for rr in d.reservoirs
-            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
-            v.storage[rr,tt] = (1-p.evaporation[rr,tt])*p.storage0[rr] + p.captures[rr, tt]
+            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
+	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
         end
     else
         for rr in d.reservoirs
-            v.releases[rr, tt] = p.inflows[rr,tt] - p.captures[rr, tt]
-            v.storage[rr,tt] = (1-p.evaporation[rr,tt])*v.storage[rr,tt-1] + p.captures[rr, tt]
+            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
+	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
         end
     end
 end
 
 function makeconstraintresmin(rr, tt)
     function constraint(model)
-       -m[:Reservoir, :storage][rr, tt] + m.components[:Reservoir].Parameters.storagecapacitymin[rr] # piezohead > layerthick
+       -m[:Reservoir, :storage][rr, tt] + m.components[:Reservoir].Parameters.storagecapacitymin[rr]
     end
 end
+
 function makeconstraintresmax(rr, tt)
     function constraint(model)
-       m[:Reservoir, :storage][rr, tt] - m.components[:Reservoir].Parameters.storagecapacitymax[rr] # piezohead > layerthick
+       m[:Reservoir, :storage][rr, tt] - m.components[:Reservoir].Parameters.storagecapacitymax[rr] #
     end
 end
 
@@ -64,7 +78,8 @@ function initreservoir(m::Model, name=nothing)
     end
 
     reservoir[:inflows] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-    reservoir[:captures] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
+
 
     if config["netset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)

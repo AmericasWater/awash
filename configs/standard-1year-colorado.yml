@@ -10,7 +10,14 @@ startmonth: 1/2010
 endmonth: 12/2010
 
 # First entry in VIC_WB to include
-startweather: 720
+#startweather: 292 #10th percentile 
+#startweather: 340 #median number 29 
+#startweather: 424 #90th 
+startweather: 628 #extreme drought year 2002
+
+# Cost configuration
+watercost-extraction: true
+watercost-treatment: false
 
 # Months per time step
 timestep: 1

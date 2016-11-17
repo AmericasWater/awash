@@ -10,9 +10,13 @@ fips = map(fipsnum -> (fipsnum < 10000 ? "0$fipsnum" : "$fipsnum"), round(Int, s
 
 counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 counties[:FIPS] = map(fips -> length(fips) == 4 ? "0$fips" : fips, counties[:FIPS])
+areas=readtable(datapath("agarea.csv"))
+
+
 
 counties[isna(counties[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
 countyareas = reorderfips(counties[:, :TotalArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
+#countyareas = areas[:,:x1]
 counties[isna(counties[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
 countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
 

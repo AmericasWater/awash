@@ -22,10 +22,6 @@ function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
     startyear = parse(UInt16, split(config["startmonth"], '/')[2])
     endyear = parse(UInt16, split(config["endmonth"], '/')[2])
-    println(tt)
-    println(startmonth)
-    println(startyear)
-    println(endyear)
 
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear

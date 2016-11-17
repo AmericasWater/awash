@@ -5,7 +5,7 @@
 using Mimi
 using Distributions
 
-gw = load(datapath("gwmodel/contusgwmodel.RData"))
+gw = load(datapath("gwmodel/contusgwmodel-colorado.RData"))
 vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
 
 @defcomp Aquifer begin
@@ -103,25 +103,18 @@ function initaquifer(m::Model)
 
   	aquifer[:aquiferconnexion] = [0. 1. 0.; 1. 0. 1.; 0 1. 0];
   else
-
-  	if config["filterstate"] != nothing
-		vstates = round(Int64, floor(vfips / 1000));
-		subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
-	else
-		subfips = 1:3109;
-	end
-	aquifer[:depthaquif] = gw["aquifer_depth"][subfips[1:3109]];
+    aquifer[:depthaquif] =  gw["aquifer_depth1"];
 	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips[1:3109]];
-  	aquifer[:storagecoef] = gw["vector_storativity"][subfips[1:3109]];
-  	aquifer[:areaaquif] = gw["county_area"][subfips[1:3109]]/1000;
-	aquifer[:elevation] = gw["county_elevation"][:V1][subfips[1:3109]];
+  	aquifer[:storagecoef] = gw["vector_storativity"];
+  	aquifer[:areaaquif] = gw["county_area"]/1000;
+        aquifer[:elevation] = gw["county_elevation1"][:county_elevation1];
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
 
-  	aquifer[:lateralconductivity] = gw["matrix_leakage_factor"][subfips[1:3109],subfips[1:3109]];
+  	aquifer[:lateralconductivity] = gw["matrix_leakage_factor1"];
   	aquifer[:deltatime] = convert(Float64, config["timestep"]);
-	aquifer[:aquiferconnexion] =  gw["connectivity_matrix"][subfips[1:3109],subfips[1:3109]];
+	aquifer[:aquiferconnexion] =  gw["connectivity_matrix1"];
   end
   aquifer
 end

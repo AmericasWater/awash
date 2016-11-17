@@ -4,11 +4,11 @@ include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
 
-config = readconfig("../configs/standard-1year-colorado.yml");
+config = readconfig("../configs/standard-60year-colorado.yml");
 suffix = getsuffix()
 
-#include("optimization.jl")
 include("optimization-colorado.jl")
+#include("optimization-colorado-fixedarea.jl")
 
 using MathProgBase
 @time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
@@ -43,6 +43,17 @@ for ii in 1:length(house.parameters)
     end
 end
 
+serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1])+1:sum(varlens[1:2])], numcounties, numsteps)) #should be 756
+serialize(open("../data/extraction/supersource$suffix.jld", "w"), reshape(sol.sol[1:varlens[1]], numcounties, numsteps))
+#756
+serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+#should be 11532
+serialize(open("../data/extraction/rainfedareas$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties,numcrops, numsteps))
+#should be 6804
+serialize(open("../data/extraction/irrigatedareas$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:4])+1:sum(varlens[1:5])], numcounties,numcrops, numsteps))
+#should be 6804
+
+
 # Get constraint values
 constvalues = house.A * sol.sol
 
@@ -71,3 +82,5 @@ end
 
 writetable("../results/regionout.csv", rdf)
 writetable("../results/cropsout.csv", cdf)
+print("Total production")
+println(round(constvalues[sum(varlens[1:(end-1)])+1:end]))

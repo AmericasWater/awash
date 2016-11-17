@@ -7,13 +7,30 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Soybeans" => 1.37599595071683,
                           "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
 
+
+crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4.66905e6, "Barley.Winter" => 0,"Maize" => 7.70103e7,"Sorghum" => 3.95951e6 ,"Soybeans" => 0.0,"Wheat" => 1.10917e5, "Wheat.Winter" => 5.19694e7) 
+
+#crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9) 
+
+areas=convert(Matrix,readtable(datapath("agarea.csv")))
+
+
+
+rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
+irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
+rainfeds=convert(Matrix, rainfeds)*0.404686
+irrigateds=convert(Matrix, irrigateds)*0.404686
+sumareas=rainfeds+irrigateds
+sum_areas=sum(sumareas,2)
+
+
 # Per year costs
-cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
-                         "Barley" => 442., "Barley.Winter" => 442.,
-                         "Maize" => 554.,
-                         "Sorghum" => 314.,
-                         "Soybeans" => 221.,
-                         "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
+cultivation_costs = Dict("alfalfa" => 426.55, "otherhay" => 426.55,
+                         "Barley" => 394.71, "Barley.Winter" => 394.71,
+                         "Maize" => 511.65,
+                         "Sorghum" => 327.78,
+                         "Soybeans" => 359.06,
+                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
                       "Barley" => 200., "Barley.Winter" => 200.,

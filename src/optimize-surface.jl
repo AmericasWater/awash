@@ -1,11 +1,17 @@
 #### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
 
 include("lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year-delaware.yml") # Just use 1 year for optimization
-config = readconfig("../configs/standard-1year-colorado.yml") # Just use 1 year for optimization
+config = readconfig("../configs/standard-60year-colorado.yml") # Just use 1 year for optimization
+
+
+# Run the water demand simulation to determine values
+#include("model-waterdemand.jl")
+#println("Running model...")
+#@time run(model)
 
 include("optimization-given.jl")
-house = optimization_given(false)
+house = optimization_given(false,true,nothing) #No GW, Reservoir, No demand simulation
+#house = optimization_given(false,true,model) #No GW, REservoir, Demand Simulation 
 
 serialize(open("../data/fullhouse$suffix.jld", "w"), house)
 
@@ -31,6 +37,8 @@ summarizeparameters(house, sol.sol)
 varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
 serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
+serialize(open("../data/extraction/supersource$suffix.jld", "w"), reshape(sol.sol[1:varlens[1]], numcounties, numsteps))
+
 serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
 

@@ -1,4 +1,4 @@
-include("model-waterdemand.jl")
+include("model-waterdemand.jl");
 
 include("ReturnFlows.jl");
 include("Market.jl");

@@ -8,6 +8,7 @@ else
     include("weather.jl")
 end
 
+#redogwwo=true 
 redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
 
 include("WaterDemand.jl")
@@ -37,6 +38,10 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     constcomps = [:WaterNetwork, :Allocation, :Allocation]
     constraints = [:outflows, :balance, :returnbalance]
 
+    if demandmodel==nothing 
+        println("demandmodel is nothing")
+    end 
+        
     if allowgw
         # Include groundwater
         paramcomps = [paramcomps; :Allocation]
@@ -62,6 +67,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
+        println("allow gw") 
     end
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
@@ -94,6 +100,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
     if allowgw
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
+        println("allow gw") 
     end
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -

@@ -11,10 +11,14 @@ reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
     gauges = Index()
     # Streamflow connections from optim
     inflowsgauges = Parameter(index=[gauges, time], unit="1000 m^3")
+    outflowsgauges = Parameter(index=[gauges, time], unit="1000 m^3")
     captures = Parameter(index=[reservoirs, time], unit="1000 m^3") # positive or negative
     # Reservoir inflows
     inflows = Variable(index=[reservoirs, time], unit="m^3")
-    # releases = inflows - captures
+    outflows = Variable(index=[reservoirs, time], unit="m^3")
+    # withdrawals
+    withdrawals = Variable(index=[reservoirs, time], unit="m^3")
+    # releases
     releases = Variable(index=[reservoirs, time], unit="m^3")
 
     # Evaporation
@@ -40,20 +44,29 @@ function run_timestep(c::Reservoir, tt::Int)
        index = vertex_index(downstreamorder[gg])
        if isreservoir[index] > 0
 	     v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000; 
+	     v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000; 
 	     rr += 1
        end
     end
 
     
-    if tt==1
-        for rr in d.reservoirs
-            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
+    for rr in d.reservoirs
+        if tt==1
 	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
-        end
-    else
-        for rr in d.reservoirs
-            v.releases[rr, tt] = v.inflows[rr,tt] - p.captures[rr, tt]
+	else
 	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
+        end
+	
+	if p.captures[rr,tt]<0
+	    v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
+	    if v.inflows[rr,tt]<v.outflows[rr,tt]
+                v.releases[rr,tt] = v.outflows[rr,tt] - v.inflows[rr, tt]
+	    else
+		v.releases[rr,tt] = 0
+            end
+        else
+            v.releases[rr,tt] = 0
+	    v.withdrawals[rr,tt] = 0
         end
     end
 end
@@ -77,7 +90,6 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
-    reservoir[:inflows] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
     reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
 
 
@@ -87,21 +99,21 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = 1.3*ones(numreservoirs)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
     else
-	   if config["rescap"] == "zero"
-             reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
+	if config["rescap"] == "zero"
+           reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
      	   reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
      	   reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
      	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
      	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
         else
-	        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
+	   rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
      	   rcmax = rcmax*1233.48
      	   reservoir[:storagecapacitymax] = rcmax;
-     	   reservoir[:storagecapacitymin] = 0*0.1*rcmax;
-     	   reservoir[:storage0] = 0*(rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
-     	   reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+	   reservoir[:storagecapacitymin] = zeros(numreservoirs);
+	   reservoir[:storage0] = rcmax*0.9#zeros(numreservoirs); 
+     	   reservoir[:evaporation] = 0.05*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
      	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
-	   end
+	end
     end
     reservoir
 end

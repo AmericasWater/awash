@@ -41,6 +41,7 @@ waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 groundwater[:withdrawal] = allocation[:watergw];
 reservoir[:inflowsgauges] = waternetwork[:inflows];
+reservoir[:outflowsgauges] = waternetwork[:outflows];
 
 market[:produced] = agriculture[:production];
 market[:regionimports] = transportation[:regionimports];

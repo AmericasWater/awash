@@ -91,8 +91,8 @@ function initagriculture(m::Model)
     deficit_coeff = zeros(numcounties, numcrops)
     for cc in 1:numcrops
         # Load degree day data
-        gdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-gdd.csv"))
-        kdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-kdd.csv"))
+        gdds = readtable(joinpath(datapath("agriculture/edds/$(crops[cc])-gdd.csv")))
+        kdds = readtable(joinpath(datapath("agriculture/edds/$(crops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
@@ -140,8 +140,8 @@ function initagriculture(m::Model)
     agriculture[:precipitation] = rollingsum
 
     # Load in planted area by water management
-    rainfeds = readtable(joinpath(todata, "agriculture/rainfedareas.csv"))
-    irrigateds = readtable(joinpath(todata, "agriculture/irrigatedareas.csv"))
+    rainfeds = readtable(joinpath(datapath("agriculture/rainfedareas.csv")))
+    irrigateds = readtable(joinpath(datapath("agriculture/irrigatedareas.csv")))
     for cc in 2:ncol(rainfeds)
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.

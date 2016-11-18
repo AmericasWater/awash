@@ -3,7 +3,7 @@ Return the full path to a standard data file.
 """
 function datapath(filename)
     if startswith(filename, "agriculture")
-        joinpath(dirname(@__FILE__), "../../data/$netset/$filename")
+        joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
     else
         joinpath(dirname(@__FILE__), "../../data/$filename")
     end

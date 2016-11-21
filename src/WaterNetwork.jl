@@ -61,7 +61,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
             gaugeid = draws[pp, :gaugeid]
             vertex = get(wateridverts, gaugeid, nothing)
             if vertex == nothing
-                println("Missing $gaugeid")
+#                println("Missing $gaugeid")
             else
                 gg = vertex_index(vertex)
                 A[gg, pp] = -1.
@@ -71,7 +71,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         # Propogate in downstream order
         for hh in 1:numgauges
             gg = vertex_index(downstreamorder[hh])
-            println(gg)
+ #           println(gg)
             gauge = downstreamorder[hh].label
             for upstream in out_neighbors(wateridverts[gauge], waternet)
                 index = vertex_index(upstream, waternet)
@@ -108,7 +108,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
     # Propogate in downstream order
     for hh in 1:numgauges
         gg = vertex_index(downstreamorder[hh])
-        println(gg)
+#        println(gg)
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             b[gg, :] += b[vertex_index(upstream, waternet), :]

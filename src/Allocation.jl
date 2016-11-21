@@ -95,7 +95,7 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
@@ -195,7 +195,7 @@ function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, de
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
 		elseif optimtype == true

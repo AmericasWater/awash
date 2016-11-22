@@ -3,8 +3,7 @@
 filterstate: "08"
 
 # Current options: usa (full-country), dummy (5-counties)
-netset: usa
-
+dataset: counties
 # First and last month of the simulation
 startmonth: 1/2010
 endmonth: 12/2010

@@ -2,7 +2,12 @@
 Return the full path to a standard data file.
 """
 function datapath(filename)
-    joinpath(dirname(@__FILE__), "../../data/$filename")
+    dataset = get(config, "dataset", "counties")
+    if startswith(filename, "agriculture")
+        joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
+    else
+        joinpath(dirname(@__FILE__), "../../data/$filename")
+    end
 end
 
 """
@@ -10,9 +15,9 @@ Return the normal data suffix
 """
 function getsuffix()
     suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
-    if config["netset"] == "dummy"
+    if config["dataset"] == "dummy"
         suffix = "-dummy";
-    elseif config["netset"] == "three"
+    elseif config["dataset"] == "three"
         suffix = "-three";
     end
 

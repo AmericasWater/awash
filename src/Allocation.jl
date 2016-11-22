@@ -105,7 +105,7 @@ function initallocation(m::Model)
     #was 0.2*0.1 or 0.001 
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
@@ -175,6 +175,7 @@ function grad_allocation_cost_withdrawals(m::Model)
     end
 
     roomintersect(m, :Allocation, :cost, :withdrawals, generate)
+
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
@@ -217,7 +218,7 @@ function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, de
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
 		elseif optimtype == true

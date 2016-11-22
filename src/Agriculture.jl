@@ -1,3 +1,4 @@
+
 using DataFrames
 using Mimi
 
@@ -110,8 +111,8 @@ function initagriculture(m::Model)
     rainfedareascst=zeros(numcounties,numcrops)
     for cc in 1:numcrops
         # Load degree day data
-        gdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-gdd.csv"))
-        kdds = readtable(joinpath(todata, "agriculture/edds/$(crops[cc])-kdd.csv"))
+        gdds =  readtable(datapath("agriculture/edds/$(crops[cc])-gdd.csv"))
+        kdds = readtable(datapath("agriculture/edds/$(crops[cc])-kdd.csv"))
 
         for rr in 1:numcounties
             fips = parse(Int64, mastercounties[rr, :fips])
@@ -438,4 +439,5 @@ function constraintoffset_agriculture_totalrainfed(m::Model)
     recorded=repeat(convert(Vector, recorded[:, :x1]) *0.404686, outer=[1, numsteps])
     hallsingle(m, :Agriculture, :totalrainfed, (rr, tt) -> recorded[rr,tt])
     end
+
 

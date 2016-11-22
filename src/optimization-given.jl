@@ -2,7 +2,7 @@ using Mimi
 using OptiMimi
 
 include("world.jl")
-if config["netset"] == "three"
+if config["dataset"] == "three"
     include("weather-three.jl")
 else
     include("weather.jl")
@@ -109,7 +109,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # `waterreturn` is by region, and is then distributed into canals as `returns`
     # `returns` must be less than `waterreturn`, so that additional water doesn't appear in streams
     setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
         setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
         setconstraintoffset!(house,-hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +

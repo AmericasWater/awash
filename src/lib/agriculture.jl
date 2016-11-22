@@ -93,17 +93,17 @@ if isfile(joinpath(todata, "cache/agmodels.jld"))
 else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = readtable(joinpath(todata, "agriculture/nationals.csv"))
+    nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
     for crop in crops
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        if isfile(joinpath(todata, "agriculture/bayesian/$crop.csv"))
-            counties = readtable(joinpath(todata, "agriculture/bayesian/$crop.csv"))
+        if isfile(joinpath(datapath("agriculture/bayesian/$crop.csv")))
+            counties = readtable(joinpath(datapath("agriculture/bayesian/$crop.csv")))
             combiner = fallbackpool
         else
-            counties = readtable(joinpath(todata, "agriculture/unpooled-$crop.csv"))
+            counties = readtable(joinpath(datapath("agriculture/unpooled-$crop.csv")))
             combiner = gaussianpool
         end
 

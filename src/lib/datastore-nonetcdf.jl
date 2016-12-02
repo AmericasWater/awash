@@ -5,7 +5,7 @@ Download all the datasets that we will need
 """
 function predownload()
     for name in keys(ncdatasets)
-        filepath = datapath("cache/" * ncdatasets[name]["filename"] * ".csv")
+        filepath = cachepath(ncdatasets[name]["filename"] * ".csv")
 
         if !isfile(filepath)
             println("Downloading $name...")
@@ -25,7 +25,7 @@ end
 Get an array from a CSV file, downloading as needed
 """
 function dncload(name::AbstractString, variable::AbstractString, dims::Vector{ASCIIString})
-    filepath = datapath("cache/" * ncdatasets[name]["filename"] * ".csv")
+    filepath = cachepath(ncdatasets[name]["filename"] * ".csv")
 
     if !isfile(filepath)
         println("Downloading $name...")

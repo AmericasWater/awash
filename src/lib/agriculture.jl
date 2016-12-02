@@ -69,10 +69,10 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
     end
 end
 
-if isfile(joinpath(todata, "cache/agmodels.jld"))
+if isfile(cachepath("agmodels.jld"))
     println("Loading from saved region network...")
 
-    agmodels = deserialize(open(joinpath(todata, "cache/agmodels.jld"), "r"));
+    agmodels = deserialize(open(cachepath("agmodels.jld"), "r"));
 else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
@@ -102,5 +102,5 @@ else
         end
     end
 
-    serialize(open(joinpath(todata, "cache/agmodels.jld"), "w"), agmodels)
+    serialize(open(cachepath("agmodels.jld"), "w"), agmodels)
 end

@@ -14,7 +14,8 @@ end
 Return the full path to a cache data file.
 """
 function cachepath(filename)
-    datapath("cache/$dataset/$filename")
+    dataset = get(config, "dataset", "counties")
+    joinpath(dirname(@__FILE__), "../../data/cache/$dataset/$filename")
 end
 
 """

@@ -44,5 +44,4 @@ function translatechunk(subdf)
     subresult
 end
 
-
 chunkyconverttable("county-pops.csv", config, translatechunk)

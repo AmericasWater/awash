@@ -35,9 +35,9 @@ else
 
     # Load the network of counties
     if config["dataset"] == "counties"
-    counties = readtable(joinpath(todata, "county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
-    counties = readtable(joinpath(todata, "county-info$suffix.csv"), eltypes=[UTF8String,     UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64,       Float64, Float64])
+        counties = readtable(datapath("county-info$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end
     edges = Dict{UTF8String, Vector{UTF8String}}()
 

@@ -24,6 +24,12 @@ todata = "../../.."
 """
 Convert a table by passing each super-region's values for each column to `translate`
 
+Arguments:
+    - filename: table to convert (not including dataset directory)
+    - config: configuration dictionary (see below)
+    - translate; translation function
+    - eltypes: optional array of types for each column
+
 Configuration parameters (all symbols of the `config` dictionary):
 - `source`: dataset of source files (e.g., counties)
 - `target`: dataset of target files (e.g., states)
@@ -31,14 +37,19 @@ Configuration parameters (all symbols of the `config` dictionary):
 - `forcematching`: should the number of rows match the master file?  true/false
 - `mastersourceid`: The source ID column in the master file
 """
-function converttable(filename, config, translate)
+function converttable(filename, config, translate; eltypes=nothing)
     println("Reading data...")
 
     masterregions = readtable(joinpath(todata, config[:masterfile]),
                               eltypes=[UTF8String, UTF8String, UTF8String])
 
     # Check that we have all regions
-    df = readtable(joinpath(todata, "data", config[:source], filename))
+    if eltypes != nothing
+        df = readtable(joinpath(todata, "data", config[:source], filename), eltypes=eltypes)
+    else
+        df = readtable(joinpath(todata, "data", config[:source], filename))
+    end
+
     if nrow(df) != nrow(masterregions)
         if config[:forcematching]
             error("Rows don't match: $(nrow(df)) <> $(nrow(masterregions))")

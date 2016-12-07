@@ -23,7 +23,7 @@ if isfile(cachepath("waternet$suffix.jld"))
     draws = deserialize(open(cachepath("waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
-    if config["dataset"] == "counties"
+    if get(config, "dataset", "counties") == "counties"
         waternetdata = load(datapath("waternet.RData"));
         drawsdata = load(datapath("countydraws.RData"));
     elseif config["dataset"] == "three"

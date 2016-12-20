@@ -35,10 +35,7 @@ function initindustrialdemand(m::Model)
     industrialdemand = addcomponent(m, IndustrialDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    if get(config, "filterstate", nothing) != nothing
-        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
-    end
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
     industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
     industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
     industrialdemand

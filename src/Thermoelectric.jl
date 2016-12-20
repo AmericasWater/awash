@@ -34,10 +34,7 @@ Add a Thermoelectric component to the model.
 function initthermoelectric(m::Model)
     thermoelectric = addcomponent(m, Thermoelectric)
 
-    recorded = readtable(datapath("extraction/USGS-2010.csv"))
-    if get(config, "filterstate", nothing) != nothing
-        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
-    end
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
     thermoelectric[:demand] = repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
 
     thermoelectric

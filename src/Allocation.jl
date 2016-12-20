@@ -97,14 +97,10 @@ function initallocation(m::Model)
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
     else
-        recorded = readtable(datapath("extraction/USGS-2010.csv"))
-        if get(config, "filterstate", nothing) != nothing
-            recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
-        end
+        recorded = getfilteredtable("extraction/USGS-2010.csv")
 
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
@@ -216,10 +212,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-          recorded = readtable(datapath("extraction/USGS-2010.csv"))
-          if get(config, "filterstate", nothing) != nothing
-		  recorded = recorded[find(floor(recorded[:FIPS]./1e3) .== parse(Int64, config["filterstate"])), :]
-          end
+          recorded = getfilteredtable("extraction/USGS-2010.csv")
 		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
 		if optimtype == false
 			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12

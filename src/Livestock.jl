@@ -33,10 +33,7 @@ Add a Livestock component to the model.
 function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
-    recorded = readtable(datapath("extraction/USGS-2010.csv"));
-    if get(config, "filterstate", nothing) != nothing
-        recorded = recorded[find(floor(recorded[:FIPS]/1e3) .== parse(Int64,config["filterstate"])),:]
-    end
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
     livestock[:demand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
 
     livestock

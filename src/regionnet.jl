@@ -34,7 +34,7 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    if config["netset"] == "usa"
+    if config["dataset"] == "counties"
     counties = readtable(joinpath(todata, "county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
     counties = readtable(joinpath(todata, "county-info$suffix.csv"), eltypes=[UTF8String,     UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64,       Float64, Float64])

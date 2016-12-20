@@ -161,7 +161,7 @@ function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, de
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
 		elseif optimtype == true

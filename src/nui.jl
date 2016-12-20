@@ -51,6 +51,7 @@ include("lib/readconfig.jl")
 include("lib/graphing.jl")
 
 # Download any files we will need
+config = emptyconfig()
 predownload()
 
 model = nothing # The master model object for functions below

@@ -2,7 +2,12 @@
 Return the full path to a standard data file.
 """
 function datapath(filename)
-    joinpath(dirname(@__FILE__), "../../data/$filename")
+    dataset = get(config, "dataset", "counties")
+    if startswith(filename, "agriculture")
+        joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
+    else
+        joinpath(dirname(@__FILE__), "../../data/$filename")
+    end
 end
 
 """
@@ -10,9 +15,9 @@ Return the normal data suffix
 """
 function getsuffix()
     suffix = (get(config, "filterstate", nothing) != nothing ? "-$(config["filterstate"])" : "")
-    if config["netset"] == "dummy"
+    if config["dataset"] == "dummy"
         suffix = "-dummy";
-    elseif config["netset"] == "three"
+    elseif config["dataset"] == "three"
         suffix = "-three";
     end
 
@@ -58,8 +63,8 @@ end
 Dataset descriptions used by ncload.
 Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
 """
-ncdatasets = Dict{ASCIIString, Dict{ASCIIString, Any}}("weather" => Dict{ASCIIString, Any}("filename" => "VIC_WB", "ncurl" => "https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=0", "csvcoldim" => "county", "nccrc32" => 0x468f7994, "csvcrc" => 0xcefed8fe),
-                                                               "runoff" => Dict{ASCIIString, Any}("filename" => "contributing_runoff_by_gage", "ncurl" => "https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=0", "csvcoldim" => "gage", "nccrc32" => 0x78f4dc8d, "csvcrc32" => 0x78f4dc8d))
+ncdatasets = Dict{ASCIIString, Dict{ASCIIString, Any}}("weather" => Dict{ASCIIString, Any}("filename" => "VIC_WB", "ncurl" => "https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=1", "csvurl" => "https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=1", "csvcoldim" => "county", "nccrc32" => 0x468f7994, "csvcrc" => 0xcefed8fe),
+                                                               "runoff" => Dict{ASCIIString, Any}("filename" => "contributing_runoff_by_gage", "ncurl" => "https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=1", "csvurl" => "https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=1", "csvcoldim" => "gage", "nccrc32" => 0x78f4dc8d, "csvcrc32" => 0x78f4dc8d))
 # CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
 # Currently CRCs are ignored
 

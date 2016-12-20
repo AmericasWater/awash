@@ -3,7 +3,7 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-if config["netset"] == "three"
+if config["dataset"] == "three"
 	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
 else
 	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
@@ -20,14 +20,14 @@ include("waternet.jl")
 
 crops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
 
-if config["netset"] == "dummy"
+if config["dataset"] == "dummy"
     numcounties = 5
 else
     numcounties = nrow(mastercounties)
 end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
-if config["netset"] == "three"
+if config["dataset"] == "three"
     numsteps = 3
 else
     numsteps = round(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
@@ -40,7 +40,7 @@ numcrops = length(crops)
 numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
-if config["netset"] == "three"
+if config["dataset"] == "three"
     numaquifers = 3;
 else
     numaquifers = numcounties;
@@ -49,7 +49,7 @@ end
 function newmodel()
     m = Model()
 
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
         setindex(m, :time, collect(1:3))
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))

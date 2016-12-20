@@ -6,7 +6,6 @@ if !isdefined(:config)
 end
 
 include("optimization-given.jl")
-
 house = optimization_given(false)
 
 serialize(open("../data/fullhouse$suffix.jld", "w"), house)
@@ -17,17 +16,10 @@ solver = GurobiSolver()
 
 @time sol = houseoptimize(house, solver)
 
-# If model is infeasible, figure out what's causing that
-#topbot = findinfeasiblepair(house, solver)
-#sol = linprog(-house.f, house.A[1:topbot[1],:], '<', house.b[1:topbot[1]], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[1:topbot[1]-1,:], '<', house.b[1:topbot[1]-1], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[topbot[2]:end,:], '<', house.b[topbot[2]:end], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[topbot[2]+1:end,:], '<', house.b[topbot[2]+1:end], house.lowers, house.uppers, solver)
-
 summarizeparameters(house, sol.sol)
 
 # Look at the constraints: only possible for small models
-#constraining(house, sol.sol)
+#constdf = constraining(house, sol.sol)
 
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)

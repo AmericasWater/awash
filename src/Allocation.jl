@@ -93,8 +93,8 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    if config["netset"] == "three"
-        allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+    if config["dataset"] == "three"
+	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
@@ -169,9 +169,6 @@ function grad_allocation_cost_withdrawals(m::Model)
     roomintersect(m, :Allocation, :cost, :withdrawals, generate)
 end
 
-
-
-
 function grad_allocation_balance_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
@@ -202,8 +199,16 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
+function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        constraintoffset_allocation_recordedbalance(m, includegw)
+    else
+        hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
+    end
+end
+
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
 		elseif optimtype == true

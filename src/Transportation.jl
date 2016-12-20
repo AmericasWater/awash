@@ -137,7 +137,9 @@ function grad_transportation_regionexports_imported(m::Model)
             # Sum over the edges that have this as an out-edge
             sources = get(sourceiis, ii, Int64[])
             for source in sources
-                A[source, edge1] = 1
+                if source > 0
+                    A[source, edge1] = 1
+                end
                 edge1 += 1 # length(sources) == numneighbors
             end
         end

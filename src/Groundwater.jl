@@ -44,13 +44,13 @@ function run_timestep(c::Aquifer, tt::Int)
   if tt==1
 	  v.piezohead[:,tt] = p.piezohead0;
   else
-	  v.piezohead[:,tt] = v.piezohead[:,tt-1]; 
+	  v.piezohead[:,tt] = v.piezohead[:,tt-1];
   end
-  
+
   v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
   ## repeat simulation timestep time
   for mm in 1:config["timestep"]
-  
+
   	# computation of lateral flows:
   	lflows=zeros(d.aquifers[end],1)
   	for aa in 1:d.aquifers[end]
@@ -67,7 +67,7 @@ function run_timestep(c::Aquifer, tt::Int)
   # piezometric head initialisation and simulation (piezohead is actually a drawdown)
 	for aa in d.aquifers
 		v.piezohead[aa,tt] = v.piezohead[aa,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,tt]/config["timestep"] - p.withdrawal[aa,tt]/config["timestep"] + lflows[aa])
-	end  
+	end
   end
 end
 
@@ -88,7 +88,7 @@ Add an Aquifer component to the model.
 function initaquifer(m::Model)
   aquifer = addcomponent(m, Aquifer)
 
-  if config["netset"] == "three"
+  if config["dataset"] == "three"
   	aquifer[:depthaquif] = [-100.; -90.; -95.];
 	aquifer[:storagecoef] = [5e-4; 5e-4; 5e-4];
  	aquifer[:piezohead0] = [-55.; -45.; -53.];

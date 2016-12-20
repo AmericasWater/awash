@@ -12,7 +12,7 @@ Consider following the extended [tutorial 1](Tutorial%201%20-%20Running%20the%20
 
 3. In a terminal, navigate to where you want to put the water model, and type:
 
-   `git clone https://github.com/AmericasWater/operational-problem.git`
+   `git clone https://github.com/AmericasWater/awash.git`
 
 4. Open julia from the `src` directory (I do this in the terminal) and type,
 

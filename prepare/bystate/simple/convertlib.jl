@@ -101,7 +101,7 @@ function orderedconverttable(filename, config, translate)
                               eltypes=[UTF8String, UTF8String, UTF8String])
 
     # Check that we have all regions
-    df = readtable(joinpath(todata, "data", config[:source], filename))
+    df = readtable(joinpath(todata, "data", config[:source], filename), header=get(config, :header, true))
     if nrow(df) != nrow(sourceregions)
         error("Rows don't match: $(nrow(df)) <> $(nrow(sourceregions))")
     end
@@ -127,7 +127,7 @@ function orderedconverttable(filename, config, translate)
         result[name] = columns[name]
     end
 
-    writetable(joinpath(todata, "data", config[:target], filename), result)
+    writetable(joinpath(todata, "data", config[:target], filename), result, header=get(config, :header, true))
 end
 
 """

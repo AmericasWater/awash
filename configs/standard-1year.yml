@@ -21,7 +21,7 @@ watercost-treatment: true
 
 
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
-rescap: "full"
+rescap: "zero"
 
 # Urban demand: 
 urbandemand-path: demand/urbandemand_May11.csv

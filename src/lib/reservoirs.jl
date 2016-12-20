@@ -11,14 +11,14 @@ Rows may be excluded, to represent that a given reservoir should be modeled as a
 stream at the specified timestep (in months).
 """
 function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
-    if in("netset", keys(config))
-        netset = config["netset"]
+    if in("dataset", keys(config))
+        dataset = config["dataset"]
     else
-        warn("Config does not contain netset; assuming USA.")
-        netset = "usa"
+        warn("Config does not contain dataset; assuming `counties`.")
+        dataset = "counties"
     end
 
-    if netset == "three"
+    if dataset == "three"
         DataFrame(collection="three", colid=2)
     else
         reservoirs = readtable(datapath("reservoirs/allreservoirs.csv"))

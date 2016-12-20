@@ -43,13 +43,12 @@ function run_timestep(c::Aquifer, tt::Int)
   if tt==1
 	  v.piezohead[:,tt] = p.piezohead0;
   else
-	  v.piezohead[:,tt] = v.piezohead[:,tt-1]; 
+	  v.piezohead[:,tt] = v.piezohead[:,tt-1];
   end
-  
+
   v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
   ## repeat simulation timestep time
   for mm in 1:config["timestep"]
-        # computation of lateral flows:
   	lflows=zeros(d.aquifers[end],1)
   	for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
@@ -65,7 +64,7 @@ function run_timestep(c::Aquifer, tt::Int)
   # piezometric head initialisation and simulation
 	for aa in d.aquifers
 		v.piezohead[aa,tt] = v.piezohead[aa,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,tt]/config["timestep"] - p.withdrawal[aa,tt]/config["timestep"] + lflows[aa])
-	end  
+	end
   end
 end
 

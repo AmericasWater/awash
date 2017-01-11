@@ -4,7 +4,7 @@
 using Mimi
 using Distributions
 
-if config["dataset"] == "usa"
+if config["dataset"] == "counties"
 	reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 end
 
@@ -86,11 +86,11 @@ function makeconstraintresmax(rr, tt)
 end
 
 function initreservoir(m::Model, name=nothing)
-    if name == nothing
+#    if name == nothing
         reservoir = addcomponent(m, Reservoir)
-    else
-        reservoir = addcomponent(m, Reservoir, name)
-    end
+ #   else
+  #      reservoir = addcomponent(m, Reservoir, name)
+   # end
 
     reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
 

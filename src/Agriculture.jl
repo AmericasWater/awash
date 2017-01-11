@@ -3,6 +3,11 @@ using Mimi
 
 include("lib/agriculture.jl")
 
+using DataFrames
+using Mimi
+
+include("lib/agriculture.jl")
+
 @defcomp Agriculture begin
     regions = Index()
     crops = Index()

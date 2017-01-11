@@ -4,31 +4,15 @@ include("ReturnFlows.jl");
 include("Market.jl");
 include("Transportation.jl");
 include("WaterNetwork.jl");
+include("Groundwater.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
-include("Groundwater.jl");
-include("IndustrialDemand.jl");
-include("UrbanDemand.jl");
-include("Thermoelectric.jl")
-include("Livestock.jl")
-include("PopulationDemand.jl")
-
-## Check if the optimize-surface script has been called
-storedresult = cached_fallback("extraction/captures", () -> false)
-if storedresult == false
-    warn("Missing saved allocation files.  Please run optimize-surface.jl")
-elseif size(storedresult)[1] != numreservoirs || size(storedresult)[2] != numsteps
-    warn("Cache file does not match current configuration.  Please remove.")
-end
-
-println("Creating model...")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
-waternetwork = initwaternetwork(model); # dep. ReturnFlows
 groundwater = initaquifer(model); # Allocation or optimization-only
 reservoir = initreservoir(model); # Allocation or optimization-only
-waternetwork = initwaternetwork(model); # dep. ReturnFlows and WaterNetwork
+waternetwork = initwaternetwork(model); # dep. ReturnFlows
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 

@@ -4,7 +4,7 @@
 using Mimi
 using Distributions
 
-if config["netset"] == "usa"
+if config["dataset"] == "usa"
 	reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 end
 

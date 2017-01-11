@@ -3,7 +3,7 @@
 filterstate: null
 
 # Current options: usa (full-country), dummy (5-counties)
-netset: usa
+dataset: usa
 
 # First and last month of the simulation
 startmonth: 10/2009

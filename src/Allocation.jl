@@ -88,7 +88,7 @@ function initallocation(m::Model)
     allocation = addcomponent(m, Allocation);
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
     	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);

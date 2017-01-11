@@ -4,7 +4,9 @@
 using Mimi
 using Distributions
 
-reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
+if config["netset"] == "usa"
+	reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
+end
 
 @defcomp Reservoir begin
     reservoirs = Index()
@@ -92,7 +94,6 @@ function initreservoir(m::Model, name=nothing)
 
     reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
 
-
     if config["netset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
         reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
@@ -104,15 +105,13 @@ function initreservoir(m::Model, name=nothing)
      	   reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
      	   reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
      	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
         else
 	   rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
      	   rcmax = rcmax*1233.48
      	   reservoir[:storagecapacitymax] = rcmax;
 	   reservoir[:storagecapacitymin] = zeros(numreservoirs);
-	   reservoir[:storage0] = rcmax*0.9#zeros(numreservoirs); 
+	   reservoir[:storage0] = rcmax*0.#zeros(numreservoirs); 
      	   reservoir[:evaporation] = 0.05*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
 	end
     end
     reservoir
@@ -125,8 +124,8 @@ function grad_reservoir_outflows_captures(m::Model)
         # Propogate in downstream order
         for hh in 1:numgauges
             gg = vertex_index(downstreamorder[hh])
-            gauge = downstreamorder[hh].label
-            for upstream in out_neighbors(wateridverts[gauge], waternet)
+	    gauge = downstreamorder[hh].label
+	    for upstream in out_neighbors(wateridverts[gauge], waternet)
                 index = vertex_index(upstream, waternet)
                 println(index)
                 if isreservoir[index] > 0
@@ -141,7 +140,7 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> (1-m.parameters[:evaporation].values[prr])^(vtt-ptt) * ((vrr == prr) && (vtt >= ptt)))
+	roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> (1-m.parameters[:evaporation].values[prr])^(config["timestep"]*(vtt-ptt)) * ((vrr == prr) && (vtt >= ptt)))
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
@@ -155,7 +154,7 @@ function constraintoffset_reservoir_storagecapacitymax(m::Model)
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, tt) = (1-m.parameters[:evaporation].values[rr])^(tt-1) * m.parameters[:storage0].values[rr]
+	gen(rr, tt) = (1-m.parameters[:evaporation].values[rr])^(tt*config["timestep"]) * m.parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 

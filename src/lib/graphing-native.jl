@@ -5,11 +5,11 @@ df must have columns fips and the value column.
 """
 function usmap(df, centered=false)
     # The start of such an implementation; note: fails on James's machine
-    shp = open("../data/mapping/US_county_2000-simple.shp") do fd
+    shp = open(datapath("mapping/US_county_2000-simple.shp")) do fd
         read(fd, Shapefile.Handle)
     end
 
-    attrs = readtable("../data/mapping/US_county_2000-simple.csv")
+    attrs = readtable(datapath("mapping/US_county_2000-simple.csv"))
     attrs[:fips] = attrs[:STATE] * 100 + attrs[:COUNTY] / 10
     attrs[:fips][isna(attrs[:fips])] = 0
 

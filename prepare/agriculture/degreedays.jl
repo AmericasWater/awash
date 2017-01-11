@@ -17,7 +17,7 @@ for crop in keys(eddlimits)
 
     kddarray = zeros(1+nrow(mastercounties), length(masteryears)) * NA
     kddarray[1, :] = masteryears
-    
+
     for year in masteryears
         eddfilename = "/home/jrising/Dropbox/Agriculture Weather/edds/$crop-$year.csv"
         if !isfile(eddfilename)
@@ -32,7 +32,7 @@ for crop in keys(eddlimits)
         temps[:fullfips] = map(fips -> isna(fips) ? "" : (fips > 10000 ? "$fips" : "0$fips"), temps[:fips])
         gdd0col = symbol("above$(eddlimits[crop][1])")
         kdd0col = symbol("above$(eddlimits[crop][2])")
-        
+
         for rr in 1:nrow(mastercounties)
             ii = findfirst(mastercounties[rr, :fips] .== temps[:fullfips])
             if ii > 0
@@ -42,7 +42,7 @@ for crop in keys(eddlimits)
         end
     end
 
-    writecsv("../../data/agriculture/edds/$crop-gdd.csv", gddarray)
-    writecsv("../../data/agriculture/edds/$crop-kdd.csv", kddarray)
+    writecsv("../../data/counties/agriculture/edds/$crop-gdd.csv", gddarray)
+    writecsv("../../data/counties/agriculture/edds/$crop-kdd.csv", kddarray)
 end
 

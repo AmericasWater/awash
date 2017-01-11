@@ -95,7 +95,7 @@ function initallocation(m::Model)
     allocation[:costfromsupersource] = 100000.0;
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
@@ -152,7 +152,8 @@ end
 
 ## Optional cost for drawing down a river (environmental change)
 function grad_allocation_cost_withdrawals(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :withdrawals, (cc, tt) -> .01)
+    # This is really affecting total cost-per-canal, not "withdrawals_copy", but need a similar variable dimension
+    roomdiagonal(m, :Allocation, :copy_withdrawals, :withdrawals, (cc, tt) -> .01)
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
@@ -194,7 +195,7 @@ function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, de
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
-    if config["netset"] == "three"
+    if config["dataset"] == "three"
 		if optimtype == false
 			gen(rr, tt) = 1. * (rr > 1)
 		elseif optimtype == true

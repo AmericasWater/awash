@@ -94,20 +94,26 @@ Configuration parameters (all symbols of the `config` dictionary):
 """
 function orderedconverttable(filename, config, translate)
     println("Reading data...")
+    df = readtable(joinpath(todata, "data", config[:source], filename), header=get(config, :header, true))
 
+    result = orderedconvertdf(df, config, translate)
+
+    # Prepare the destination
+    mkpath(joinpath(todata, "data", config[:target], dirname(filename)))
+
+    writetable(joinpath(todata, "data", config[:target], filename), result, header=get(config, :header, true))
+end
+
+function orderedconvertdf(df, config, translate)
     sourceregions = readtable(joinpath(todata, config[:mastersourcefile]),
                               eltypes=[UTF8String, UTF8String, UTF8String])
     targetregions = readtable(joinpath(todata, config[:mastertargetfile]),
                               eltypes=[UTF8String, UTF8String, UTF8String])
 
     # Check that we have all regions
-    df = readtable(joinpath(todata, "data", config[:source], filename), header=get(config, :header, true))
     if nrow(df) != nrow(sourceregions)
         error("Rows don't match: $(nrow(df)) <> $(nrow(sourceregions))")
     end
-
-    # Prepare the destination
-    mkpath(joinpath(todata, "data", config[:target], dirname(filename)))
 
     # Construct the result, one region at a time
     columns = Dict{Symbol, Any}()
@@ -127,7 +133,7 @@ function orderedconverttable(filename, config, translate)
         result[name] = columns[name]
     end
 
-    writetable(joinpath(todata, "data", config[:target], filename), result, header=get(config, :header, true))
+    result
 end
 
 """
@@ -183,4 +189,57 @@ function chunkyconverttable(filename, config, translatechunk)
     end
 
     writetable(joinpath(todata, "data", config[:target], filename), result)
+end
+
+"""
+Configuration parameters (all symbols of the `config` dictionary):
+- `source`: dataset of source files (e.g., counties)
+- `target`: dataset of target files (e.g., states)
+- `mastersourcefile`: master file with all source regions
+- `mastertargetfile`: master file with all target regions
+- `mastersourceid`: column in source master file with target region ids
+- `mastertargetid`: column in target master file with target region ids
+- `separator`: character separating columns
+"""
+function chunkyorderedconverttable(filename, config, translatechunk)
+    println("Reading data...")
+    df = readtable(joinpath(todata, "data", config[:source], filename), header=get(config, :header, true), separator=get(config, :separator, '\t'))
+
+    result = chunkyorderedconvertdf(df, config, translatechunk)
+    result = convert(DataFrame, convert(Array{Float64, 2}, result))
+
+    # Prepare the destination
+    mkpath(joinpath(todata, "data", config[:target], dirname(filename)))
+
+    writetable(joinpath(todata, "data", config[:target], filename), result, header=get(config, :header, true), separator=get(config, :separator, '\t'))
+end
+
+function chunkyorderedconvertdf(df, config, translatechunk)
+    sourceregions = readtable(joinpath(todata, config[:mastersourcefile]),
+                              eltypes=[UTF8String, UTF8String, UTF8String])
+    targetregions = readtable(joinpath(todata, config[:mastertargetfile]),
+                              eltypes=[UTF8String, UTF8String, UTF8String])
+
+    # Check that we have all regions
+    if nrow(df) != nrow(sourceregions)
+        error("Rows don't match: $(nrow(df)) <> $(nrow(sourceregions))")
+    end
+
+    # Construct the result, one region at a time
+    result = nothing
+    for region in targetregions[config[:mastertargetid]]
+        println("  $region")
+        # Collect all the regions
+        subdf = df[sourceregions[config[:mastersourceid]] .== region, :]
+
+        subresult = translatechunk(region, subdf)
+
+        if result == nothing
+            result = transpose(subresult)
+        else
+            result = vcat(result, transpose(subresult))
+        end
+    end
+
+    convert(DataFrame, result)
 end

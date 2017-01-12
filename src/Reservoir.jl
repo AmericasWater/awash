@@ -114,6 +114,10 @@ function initreservoir(m::Model, name=nothing)
      	   reservoir[:evaporation] = 0.05*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
 	end
     end
+
+    reservoir[:outflowsgauges] = zeros(m.indices_counts[:gauges],m.indices_counts[:time]);
+    reservoir[:inflowsgauges] = zeros(m.indices_counts[:gauges],m.indices_counts[:time]);
+    
     reservoir
 end
 

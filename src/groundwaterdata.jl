@@ -9,7 +9,7 @@ if isfile(datapath("cache/gwmodel/dfgw$suffix.csv"))
     aquiferconnexion = convert(Array, readtable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv")));
 
 else
-    if config["netset"] == "usa"
+    if config["dataset"] == "counties"
         dfgw = readtable(datapath("gwmodel/dfgw.csv"));
         lateralconductivity = deserialize(open(datapath("gwmodel/lateralconductivity.jld"), "r"));
         aquiferconnexion = deserialize(open(datapath("gwmodel/aquiferconnexion.jld"), "r"));
@@ -30,7 +30,7 @@ else
             writetable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
 
         end
-    elseif config["netset"] == "three"
+    elseif config["dataset"] == "three"
         d = [-100.; -90.; -95.];
         s = [5e-4; 5e-4; 5e-4];
         p0 = [-55.; -45.; -53.];

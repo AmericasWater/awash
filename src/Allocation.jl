@@ -169,12 +169,12 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-        	recorded = readtable(datapath("extraction/USGS-2010.csv"))
+          recorded = getfilteredtable("extraction/USGS-2010.csv")
 		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
 		if optimtype == false
 			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
 		elseif optimtype == true
-        		gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
 		end
 		hallsingle(m, :Allocation, :balance, gen)
     end

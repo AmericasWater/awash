@@ -7,25 +7,22 @@ using RData
 
 
 # energy cost to lift 1000m3 by 1m
-energycostperlift = 0.5 # in $/1000m3 /m of lift | value from CALVIN
-
+energycostperlift = 0.05 # in $/1000m3 /m of lift | value from CALVIN
+mingwextcost = 0. #we assume that the cost of extraction is at least mingwextcost
 
 
 ### EXTRACTION COST
 # sw: compute relative elevation if source downhill, 0 otherwise
 # if missing information, default value is specified by naelev
 if config["watercost-extraction"]
-if isfile(datapath("cache/canalextractioncost$suffix.jld"))
-    println("Loading extraction cost from saved data...")
-    canalextractioncost = deserialize(open(datapath("cache/canalextractioncost$suffix.jld"), "r"));
-    aquiferextractioncost = deserialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "r"));
-else
-
-	naelev = 5.
+    if isfile(datapath("cache/canalextractioncost$suffix.jld"))
+        println("Loading extraction cost from saved data...")
+	canalextractioncost = deserialize(open(datapath("cache/canalextractioncost$suffix.jld"), "r"));
+	aquiferextractioncost = deserialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "r"));
+    else
 	canalextractioncost = zeros(numcanals)
 	for ii in 1:numcanals
 		gauge_id = draws[ii,:gaugeid][(search(draws[ii,:gaugeid],".")[1]+1):end]
-	
 		indx = find(waternetdata["stations"][:colid] .== gauge_id)
 		if length(indx) == 0
 			canalextractioncost[ii] = naelev
@@ -46,8 +43,8 @@ else
 			end
 		end
 	end
-
-# gw: extraction cost prop to drawdown to watertable
+	
+	# gw: extraction cost prop to drawdown to watertable
 	aquiferextractioncost = zeros(numcounties)
         drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"))
 	fipsaquifer = readdlm(datapath("gwmodel/v_FIPS.txt"))
@@ -55,7 +52,7 @@ else
                  county_id = parse(Float64, mastercounties[:fips][ii])
 		 aquiferextractioncost[ii] = drawdowndeepaquifer[find(fipsaquifer .== county_id)][1]
 	end
-	aquiferextractioncost[find(aquiferextractioncost .<naelev)] = naelev
+	aquiferextractioncost[find(aquiferextractioncost .<mingwextcost)] = mingwextcost
 
 # compute costs
 	canalextractioncost *= energycostperlift
@@ -64,11 +61,12 @@ else
 # save
 	serialize(open(datapath("cache/canalextractioncost$suffix.jld"), "w"), canalextractioncost)
 	serialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "w"), aquiferextractioncost)
+    end
 
-end
-else
-	canalextractioncost = ones(numcanals)
-	aquiferextractioncost = 100*ones(numaquifers)
+    else
+	    ## if watercost-extraction == false in configuration file, we assume a higher cost to extract GW than SW
+	    canalextractioncost = ones(numcanals)
+	    aquiferextractioncost = 100*ones(numaquifers)
 end
 
 ### TREATMENT COST

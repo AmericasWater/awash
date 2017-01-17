@@ -15,13 +15,13 @@ startweather: 612
 # Months per time step
 timestep: 6
 
-# Cost configuration
-watercost-extraction: true
-watercost-treatment: true
+# Cost configuration: if false, cost is 0.
+watercost-extraction: false #distinction between sw and gw (gw = 100, sw = 1)
+watercost-treatment: false
 
 
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
-rescap: "zero"
+rescap: "full"
 
 # Urban demand:
 urbandemand-path: demand/urbandemand_May11.csv

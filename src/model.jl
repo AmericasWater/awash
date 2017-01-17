@@ -11,8 +11,8 @@ include("Reservoir.jl");
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
-reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
+reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 

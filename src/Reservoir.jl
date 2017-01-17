@@ -40,7 +40,9 @@ function run_timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
-   
+
+    v.inflows[:,tt] = zeros(numreservoirs); 
+    v.outflows[:,tt] = zeros(numreservoirs); 
     rr = 1
     for gg in 1:numgauges
        index = vertex_index(downstreamorder[gg])

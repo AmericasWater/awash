@@ -25,6 +25,17 @@ function getsuffix()
 end
 
 """
+Retrieve only the part of a file within filterstate, if one is set.
+"""
+function getfilteredtable(filepath, fipscol=:FIPS)
+    recorded = readtable(datapath(filepath))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+    end
+    recorded
+end
+
+"""
 Either get data from a cached source, or produce it by a fallback generation
 Does not save fallback generation: for saving, use cache_store
 """

@@ -22,7 +22,7 @@ precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month
 # Load data from the water budget
 
 # Reorder stations to gauge order
-waternetdata = load(datapath("waternet.RData"));
+waternetdata = load(datapath("waternet/waternet.RData"));
 waternetwork = waternetdata["network"]
 waternetwork[:gaugeid] = map(ii -> "$(waternetwork[ii, :collection]).$(waternetwork[ii, :colid])", 1:size(waternetwork)[1])
 gaugeindices = map(ii -> findfirst(waternetwork[:gaugeid], gaugeorder[ii]), 1:length(gaugeorder))

@@ -9,6 +9,8 @@ config[:mastersourceid] = :state
 config[:mastertargetid] = :state
 config[:header] = false
 
+orderedconverttable("cost/drawdown0.txt", config, (column, values) -> mean(dropna(values)))
+
 orderedconverttable("gwmodel/aquifer_depth.txt", config, (column, values) -> mean(dropna(values)))
 orderedconverttable("gwmodel/vector_storativity.txt", config, (column, values) -> mean(dropna(values)))
 orderedconverttable("gwmodel/county_area.txt", config, (column, values) -> sum(dropna(values)))

@@ -1,7 +1,7 @@
 using DataArrays
 using NetCDF
 
-function netcdf2csv(ncpath::AbstractString, csvpath::AbstractString, coldimname::AbstractString, skipdimnames::Vector{ASCIIString}=[])
+function netcdf2csv(ncpath::AbstractString, csvpath::AbstractString, coldimname::AbstractString, skipdimnames::Vector{ASCIIString}=ASCIIString[])
     println("Understanding dimensions...")
 
     nc4 = ncinfo(ncpath)
@@ -69,5 +69,5 @@ function netcdf2csv(ncpath::AbstractString, csvpath::AbstractString, coldimname:
     writecsv(csvpath, [rownames result])
 end
 
-#netcdf2csv("../../data/VIC_WB.nc", "../../data/VIC_WB.csv", "county")
-netcdf2csv("../../data/cache/contributing_runoff_by_gage.nc", "../../data/contributing_runoff_by_gage.csv", "gage", ["nchar"])
+netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.csv", "county")
+#netcdf2csv("../../data/cache/contributing_runoff_by_gage.nc", "../../data/contributing_runoff_by_gage.csv", "gage", ["nchar"])

@@ -22,8 +22,6 @@ empty_regnetwork() = SimpleRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEd
 
 using DataFrames
 
-todata = relpath(joinpath(dirname(@__FILE__), "../data"))
-
 if isfile(cachepath("regionsources$suffix.jld"))
     println("Loading from saved region network...")
 

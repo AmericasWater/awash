@@ -3,7 +3,7 @@ Return the full path to a standard data file.
 """
 function datapath(filename)
     dataset = get(config, "dataset", "counties")
-    if startswith(filename, "agriculture") || startswith(filename, "aquaculture") || startswith(filename, "county-") || startswith(filename, "demand") || startswith(filename, "reservoirs") || startswith(filename, "gwmodel")
+    if !startswith(filename, "global") && !startswith(filename, "mapping")
         joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
     else
         joinpath(dirname(@__FILE__), "../../data/$filename")

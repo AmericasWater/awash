@@ -1,0 +1,2 @@
+consumption.csv: Consumptive use, from
+http://pubs.usgs.gov/circ/1998/1200/report.pdf, figure 7

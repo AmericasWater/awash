@@ -24,14 +24,14 @@ if isfile(cachepath("waternet$suffix.jld"))
 else
     # Load the network of counties
     if get(config, "dataset", "counties") == "counties"
-        waternetdata = load(datapath("waternet.RData"));
-        drawsdata = load(datapath("countydraws.RData"));
+        waternetdata = load(datapath("waternet/waternet.RData"));
+        drawsdata = load(datapath("waternet/countydraws.RData"));
     elseif config["dataset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     else
-        waternetdata = load(datapath("dummynet.RData"));
-        drawsdata = load(datapath("dummydraws.RData"));
+        waternetdata = load(datapath("waternet/dummynet.RData"));
+        drawsdata = load(datapath("waternet/dummydraws.RData"));
     end
 
     netdata = waternetdata["network"];

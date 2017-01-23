@@ -11,6 +11,8 @@ config[:mastersourceid] = :fips
 config[:mastertargetid] = :state
 config[:forcematching] = false
 
+masterstates = readtable("../../../data/global/states.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+
 function translate(column, values)
     if in(column, [:FIPS, :County, :ST])
         nothing
@@ -22,7 +24,12 @@ function translate(column, values)
             end
         end
 
-        join(unique(neighborstates))
+        statecodes = []
+        for statefips in unique(neighborstates)
+            push!(statecodes, masterstates[masterstates[:fips] .== statefips, :state][1])
+        end
+
+        join(statecodes)
     elseif in(column, [:UrbanPop_2010, :RuralPop_2010, :TotalArea_sqmi, :LandArea_sqmi, :WaterArea_sqmi])
         sum(dropna(values))
     else # MedianHouseholdInc-2008-12,Elevation-ft

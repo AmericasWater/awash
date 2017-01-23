@@ -95,7 +95,7 @@ function initagriculture(m::Model)
         kdds = readtable(joinpath(datapath("agriculture/edds/$(crops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
-            fips = parse(Int64, mastercounties[rr, :fips])
+            fips = parse(Int64, masterregions[rr, :fips])
             if fips in keys(agmodels[crops[cc]])
                 thismodel = agmodels[crops[cc]][fips]
                 for tt in 1:numsteps

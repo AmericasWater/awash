@@ -12,12 +12,12 @@ counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8Strin
 counties[:FIPS] = map(fips -> length(fips) == 4 ? "0$fips" : fips, counties[:FIPS])
 
 counties[isna(counties[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
-countyareas = reorderfips(counties[:, :TotalArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
+countyareas = reorderfips(counties[:, :TotalArea_sqmi] * 258.999, counties[:FIPS], masterregions[:fips]) # Ha
 counties[isna(counties[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
-countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], mastercounties[:fips]) # Ha
+countylandareas = reorderfips(counties[:, :LandArea_sqmi] * 258.999, counties[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather
-precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month"])), fips, mastercounties[:fips]); # mm / timestep
+precip = reorderfips(sum2timestep(dncload("weather", "precip", ["county", "month"])), fips, masterregions[:fips]); # mm / timestep
 
 # Load data from the water budget
 

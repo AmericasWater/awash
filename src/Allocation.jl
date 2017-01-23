@@ -64,7 +64,7 @@ function run_timestep(c::Allocation, tt::Int)
     v.swreturn[:, tt] = zeros(numcounties)
     for pp in 1:nrow(draws)
         fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
-        rr = findfirst(mastercounties[:fips] .== fips)
+        rr = findfirst(masterregions[:fips] .== fips)
         if rr > 0
             v.swsupply[rr, tt] += p.withdrawals[pp, tt]
             v.swreturn[rr, tt] += p.returns[pp, tt]
@@ -161,7 +161,7 @@ function grad_allocation_balance_withdrawals(m::Model)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(masterregions[:fips] .== fips)
             if rr > 0
                 A[rr, pp] = 1.
             end
@@ -176,7 +176,7 @@ function grad_allocation_returnbalance_returns(m::Model)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(masterregions[:fips] .== fips)
             if rr > 0
                 A[rr, pp] = 1.
             end

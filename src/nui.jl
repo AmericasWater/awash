@@ -138,7 +138,7 @@ function mapdata(component, variable, subset=nothing)
         error("This does not appear to be a county result.")
     end
 
-    df = DataFrame(fips=collect(mastercounties[:fips]), value=data)
+    df = DataFrame(fips=collect(masterregions[:fips]), value=data)
     usmap(df)
 end
 

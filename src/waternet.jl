@@ -21,6 +21,13 @@ if isfile(cachepath("waternet$suffix.jld"))
     wateridverts = deserialize(open(cachepath("wateridverts$suffix.jld"), "r"));
     # DataFrame with information about canals, including fips and gaugeid
     draws = deserialize(open(cachepath("waterdraws$suffix.jld"), "r"));
+elseif isfile(datapath("waternet/waternet$suffix.jld"))
+    # The Graph object
+    waternet = deserialize(open(datapath("waternet/waternet$suffix.jld"), "r"));
+    # Dictionary from gaugeid to vertex
+    wateridverts = deserialize(open(datapath("waternet/wateridverts$suffix.jld"), "r"));
+    # DataFrame with information about canals, including fips and gaugeid
+    draws = deserialize(open(datapath("waternet/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
     if get(config, "dataset", "counties") == "counties"

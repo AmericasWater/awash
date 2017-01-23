@@ -26,7 +26,7 @@ if isfile(cachepath("regionsources$suffix.jld"))
     println("Loading from saved region network...")
 
     regionnet = deserialize(open(cachepath("regionnet$suffix.jld"), "r")); # The network
-    regverts = deserialize(open(cachepath("regionvertices$suffix.jld"), "r")); # Mapping from FIPS to vertex
+    regverts = deserialize(open(cachepath("regionvertices$suffix.jld"), "r")); # Mapping from indexcol to vertex
     sourceiis = deserialize(open(cachepath("regionsources$suffix.jld"), "r")); # Neighbor indexes from region index
 else
     println("Trying to create a new region network...")
@@ -42,19 +42,16 @@ else
     for row in 1:size(counties, 1)
         neighboring = counties[row, :Neighboring]
         if !isna(neighboring)
-            chunks = UTF8String[neighboring[start:start+4] for start in 1:5:length(neighboring)]
-            fips = counties[row, :FIPS]
-            if length(fips) == 4
-                fips = "0" * fips
-            end
+            chunks = UTF8String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
+            index = regionindex(counties, row)
 
-            # Only include if part of filter
+            # Only include if part of filter; only designed for counties dataset
             if get(config, "filterstate", nothing) != nothing
-                if fips[1:2] == get(config, "filterstate", nothing)
-                    edges[fips] = filter(ff -> ff[1:2] == get(config, "filterstate", nothing), chunks)
+                if index[1:2] == get(config, "filterstate", nothing)
+                    edges[index] = filter(ff -> ff[1:2] == get(config, "filterstate", nothing), chunks)
                 end
             else
-                edges[fips] = chunks
+                edges[index] = chunks
             end
         end
     end
@@ -66,14 +63,14 @@ else
     sourceiis = Dict{Int64, Vector{Int64}}()
     regionnet = empty_regnetwork()
 
-    for fips in keys(edges)
-        regverts[fips] = ExVertex(length(regionnames)+1, fips)
-        push!(regionnames, fips)
-        add_vertex!(regionnet, regverts[fips])
+    for index in keys(edges)
+        regverts[index] = ExVertex(length(regionnames)+1, index)
+        push!(regionnames, index)
+        add_vertex!(regionnet, regverts[index])
     end
 
-    for fips in keys(edges)
-        neighbors = edges[fips]
+    for index in keys(edges)
+        neighbors = edges[index]
         for neighbor in neighbors
             if !(neighbor in regionnames)
                 # Retroactive add
@@ -81,9 +78,9 @@ else
                 push!(regionnames, neighbor)
                 add_vertex!(regionnet, regverts[neighbor])
             end
-            add_edge!(regionnet, regverts[fips], regverts[neighbor])
+            add_edge!(regionnet, regverts[index], regverts[neighbor])
         end
-        sourceiis[indexin([fips], mastercounties[:fips])[1]] = indexin(neighbors, mastercounties[:fips])
+        sourceiis[indexin([index], regionindex(masterregions, :))[1]] = indexin(neighbors, regionindex(masterregions, :))
     end
 
     serialize(open(cachepath("regionnet$suffix.jld"), "w"), regionnet)

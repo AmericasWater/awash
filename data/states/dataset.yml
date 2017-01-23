@@ -1,0 +1,30 @@
+# Index column for files
+indexcols:
+ - ST
+ - state
+
+# Index length, in characters, for neighboring lists
+indexlen: 2
+
+# Padding character to use if len(index) < indexlen; null for no padding
+indexpad: null
+
+# Master region file, under data/
+masterregions: global/states.csv
+
+# External, large-file dataset
+ncdatasets:
+  weather:
+    filename: VIC_WB
+    ncurl: TODO
+    csvurl: TODO
+    csvcoldim: county
+    nccrc32: 0xf1f63c62
+    csvcrc: 0x491d1d8b
+  runoff:
+    filename: contributing_runoff_by_gage
+    ncurl: TODO
+    csvurl: TODO
+    csvcoldim: gage
+    nccrc32: 0x793555c6
+    csvcrc: 0x20a291e6

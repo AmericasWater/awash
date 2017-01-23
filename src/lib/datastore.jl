@@ -68,11 +68,43 @@ function cached_store(filename, object, usehash=true)
 end
 
 """
+Get the region index for one or more rows
+"""
+function regionindex(tbl, rows)
+    # Allow any of the column names
+    indexes = nothing
+    for indexcol in config["indexcols"]
+        if indexcol in names(tbl)
+            indexes = tbl[rows, indexcol]
+            break
+        end
+    end
+
+    if indexes == nothing
+        throw(DomainError("Could not find any index column in table."))
+    end
+
+    if typeof(indexes) <: DataVector{Int64}
+        return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: DataVector{UTF8String}
+        return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: Int64
+        return lpad("$indexes", config["indexlen"], config["indexpad"])
+    end
+    if typeof(indexes) <: UTF8String
+        return lpad(indexes, config["indexlen"], config["indexpad"])
+    end
+
+    throw(DomainError("Unknown index column type $(typeof(indexes))"))
+end
+
+"""
 Dataset descriptions used by ncload.
 Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
 """
-ncdatasets = Dict{ASCIIString, Dict{ASCIIString, Any}}("weather" => Dict{ASCIIString, Any}("filename" => "VIC_WB", "ncurl" => "https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=0", "csvcoldim" => "county", "nccrc32" => 0x468f7994, "csvcrc" => 0xcefed8fe),
-                                                               "runoff" => Dict{ASCIIString, Any}("filename" => "contributing_runoff_by_gage", "ncurl" => "https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=0", "csvcoldim" => "gage", "nccrc32" => 0x78f4dc8d, "csvcrc32" => 0x78f4dc8d))
+ncdatasets = config["ncdatasets"]
 # CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
 # Currently CRCs are ignored
 

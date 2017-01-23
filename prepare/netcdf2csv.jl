@@ -69,5 +69,7 @@ function netcdf2csv(ncpath::AbstractString, csvpath::AbstractString, coldimname:
     writecsv(csvpath, [rownames result])
 end
 
-netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.csv", "county")
+#netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.csv", "county")
 #netcdf2csv("../../data/cache/contributing_runoff_by_gage.nc", "../../data/contributing_runoff_by_gage.csv", "gage", ["nchar"])
+#netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB-states.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB-states.csv", "state")
+netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.csv", "gage")

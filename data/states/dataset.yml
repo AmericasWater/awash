@@ -16,15 +16,15 @@ masterregions: global/states.csv
 ncdatasets:
   weather:
     filename: VIC_WB
-    ncurl: TODO
-    csvurl: TODO
+    ncurl: https://www.dropbox.com/s/9hdkitqqt9csvgd/VIC_WB-states.nc?dl=1
+    csvurl: https://www.dropbox.com/s/tvkveqzhxtduy6n/VIC_WB-states.csv?dl=1
     csvcoldim: county
     nccrc32: 0xf1f63c62
     csvcrc: 0x491d1d8b
   runoff:
     filename: contributing_runoff_by_gage
-    ncurl: TODO
-    csvurl: TODO
+    ncurl: https://www.dropbox.com/s/qkevnkm8e18u878/contributing_runoff_by_gage-states.nc?dl=1
+    csvurl: https://www.dropbox.com/s/79g6apnqqf26kph/contributing_runoff_by_gage-states.csv?dl=1
     csvcoldim: gage
     nccrc32: 0x793555c6
     csvcrc: 0x20a291e6

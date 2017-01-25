@@ -100,14 +100,6 @@ function regionindex(tbl, rows)
     throw(DomainError("Unknown index column type $(typeof(indexes))"))
 end
 
-"""
-Dataset descriptions used by ncload.
-Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
-"""
-ncdatasets = config["ncdatasets"]
-# CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
-# Currently CRCs are ignored
-
 if Pkg.installed("NetCDF") != nothing
     include("datastore-netcdf.jl")
 else

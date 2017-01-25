@@ -12,7 +12,10 @@ indexpad: null
 # Master region file, under data/
 masterregions: global/states.csv
 
-# External, large-file dataset
+# External, large-file dataset used by ncload
+# Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
+# CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
+# Currently CRCs are ignored
 ncdatasets:
   weather:
     filename: VIC_WB

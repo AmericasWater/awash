@@ -50,16 +50,17 @@ include("lib/datastore.jl")
 include("lib/readconfig.jl")
 include("lib/graphing.jl")
 
-# Download any files we will need
 config = emptyconfig()
-predownload()
-
 model = nothing # The master model object for functions below
 
 function prepsimulate(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
     include("../src/model.jl")
 end
 
@@ -67,6 +68,10 @@ function prepoptimizesurface(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
     include("optimization-given.jl")
     house = optimization_given(false)
     model = house
@@ -76,6 +81,10 @@ function prepoptimize(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
     include("optimization.jl")
     model = house
 end

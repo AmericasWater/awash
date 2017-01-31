@@ -1,8 +1,6 @@
 state,fips,name
-AK,"02",Alaska
 AL,"01",Alabama
 AR,"05",Arkansas
-AS,"60",American Samoa
 AZ,"04",Arizona
 CA,"06",California
 CO,"08",Colorado
@@ -11,8 +9,6 @@ DC,"11",District of Columbia
 DE,"10",Delaware
 FL,"12",Florida
 GA,"13",Georgia
-GU,"66",Guam
-HI,"15",Hawaii
 IA,"19",Iowa
 ID,"16",Idaho
 IL,"17",Illinois
@@ -41,7 +37,6 @@ OH,"39",Ohio
 OK,"40",Oklahoma
 OR,"41",Oregon
 PA,"42",Pennsylvania
-PR,"72",Puerto Rico
 RI,"44",Rhode Island
 SC,"45",South Carolina
 SD,"46",South Dakota
@@ -49,7 +44,6 @@ TN,"47",Tennessee
 TX,"48",Texas
 UT,"49",Utah
 VA,"51",Virginia
-VI,"78",Virgin Islands
 VT,"50",Vermont
 WA,"53",Washington
 WI,"55",Wisconsin

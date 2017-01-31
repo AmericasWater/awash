@@ -123,9 +123,7 @@ function orderedconvertdf(df, config, translate)
         # Collect all the regions
         subdf = df[sourceregions[config[:mastersourceid]] .== region, :]
 
-        if nrow(subdf) > 0
-            translateregion(subdf, columns, todrop, translate)
-        end
+        translateregion(subdf, columns, todrop, translate)
     end
 
     result = DataFrame()

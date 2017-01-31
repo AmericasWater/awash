@@ -75,7 +75,7 @@ if isfile(cachepath("agmodels.jld"))
     agmodels = deserialize(open(cachepath("agmodels.jld"), "r"));
 else
     # Prepare all the agricultural models
-    agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
+    agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
     for crop in crops
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
@@ -90,15 +90,15 @@ else
             combiner = gaussianpool
         end
 
-        for fips in unique(counties[:fips])
-            county = StatisticalAgricultureModel(counties, :fips, fips)
+        for regionid in unique(regionindex(counties, :))
+            county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
 
             # Construct a pooled or fallback combination
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
             kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
             wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
             agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
-            agmodels[crop][fips] = agmodel
+            agmodels[crop][regionid] = agmodel
         end
     end
 

@@ -31,3 +31,6 @@ ncdatasets:
     csvcoldim: gage
     nccrc32: 0x78f4dc8d
     csvcrc: 0x78f4dc8d
+
+# Regional dimension in VIC_WB.nc
+ncregion: county

@@ -71,11 +71,14 @@ end
 Get the region index for one or more rows
 """
 function regionindex(tbl, rows)
+    global lastindexcol
+
     # Allow any of the column names
     indexes = nothing
     for indexcol in config["indexcols"]
         if indexcol in names(tbl)
             indexes = tbl[rows, indexcol]
+            lastindexcol = indexcol
             break
         end
     end
@@ -99,6 +102,8 @@ function regionindex(tbl, rows)
 
     throw(DomainError("Unknown index column type $(typeof(indexes))"))
 end
+
+lastindexcol = nothing
 
 if Pkg.installed("NetCDF") != nothing
     include("datastore-netcdf.jl")

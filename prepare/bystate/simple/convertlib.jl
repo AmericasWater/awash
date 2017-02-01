@@ -1,11 +1,17 @@
 using DataFrames
 
-function translateregion(subdf, columns, todrop, translate)
+function translateregion(region, subdf, columns, todrop, renames, translate)
     # Add on each column
     for name in names(subdf)
         value = translate(name, subdf[name])
         if !isna(value) && value == nothing
             push!(todrop, name)
+        elseif value == :targetid
+            if !in(name, keys(columns))
+                columns[name] = DataVector{Symbol}([])
+            end
+            push!(columns[name], region)
+            renames[name] = :targetid
         else
             if !in(name, keys(columns))
                 if isna(value)
@@ -64,6 +70,7 @@ function converttable(filename, config, translate; eltypes=nothing)
     # Construct the result, one region at a time
     columns = Dict{Symbol, Any}()
     todrop = Set{Symbol}()
+    renames = Dict{Symbol, Symbol}()
     for region in unique(masterregions[config[:mastertargetid]])
         println("  $region")
         # Collect all the regions
@@ -71,13 +78,22 @@ function converttable(filename, config, translate; eltypes=nothing)
         subregions = map(id -> parse(Int64, id), subregions)
         subdf = df[convert(Vector{Bool}, map(subreg -> in(subreg, subregions), df[config[:sourceid]])), :]
 
-        translateregion(subdf, columns, todrop, translate)
+        translateregion(region, subdf, columns, todrop, renames, translate)
     end
 
     result = DataFrame()
     result[config[:targetid]] = unique(masterregions[config[:mastertargetid]])
     for name in filter(name -> !in(name, todrop), names(df))
-        result[name] = columns[name]
+        if name in keys(renames)
+            toname = renames[name]
+            if toname == :targetid
+                toname = config[:mastertargetid]
+            end
+        else
+            toname = name
+        end
+
+        result[toname] = columns[name]
     end
 
     writetable(joinpath(todata, "data", config[:target], filename), result)
@@ -118,17 +134,27 @@ function orderedconvertdf(df, config, translate)
     # Construct the result, one region at a time
     columns = Dict{Symbol, Any}()
     todrop = Set{Symbol}()
+    renames = Dict{Symbol, Symbol}()
     for region in targetregions[config[:mastertargetid]]
         println("  $region")
         # Collect all the regions
         subdf = df[sourceregions[config[:mastersourceid]] .== region, :]
 
-        translateregion(subdf, columns, todrop, translate)
+        translateregion(region, subdf, columns, todrop, renames, translate)
     end
 
     result = DataFrame()
     for name in filter(name -> !in(name, todrop), names(df))
-        result[name] = columns[name]
+        if name in keys(renames)
+            toname = renames[name]
+            if toname == :targetid
+                toname = config[:mastertargetid]
+            end
+        else
+            toname = name
+        end
+
+        result[toname] = columns[name]
     end
 
     result

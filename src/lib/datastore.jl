@@ -84,7 +84,7 @@ function regionindex(tbl, rows)
     end
 
     if indexes == nothing
-        throw(DomainError("Could not find any index column in table."))
+        error("Could not find any index column in table.")
     end
 
     if typeof(indexes) <: DataVector{Int64}

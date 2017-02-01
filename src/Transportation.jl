@@ -65,7 +65,7 @@ function run_timestep(c::Transportation, tt::Int)
         edge1 = 1
         for ii in d.regions
             # Get the number of edges this county imports from
-            numneighbors = out_degree(regverts[masterregions[ii, :fips]], regionnet)
+            numneighbors = out_degree(regverts[regionindex(masterregions, ii)], regionnet)
 
             # Sum over all *out-edges* to get import
             v.regionimports[ii, cc, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, tt])

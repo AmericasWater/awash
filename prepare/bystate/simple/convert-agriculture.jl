@@ -78,7 +78,7 @@ end
 
 function translate(column, values)
     if column == :FIPS
-        nothing
+        :targetid
     else
         sum(dropna(values))
     end

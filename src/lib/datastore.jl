@@ -93,14 +93,14 @@ function regionindex(tbl, rows)
     if typeof(indexes) <: DataVector{UTF8String}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: Int64
+    if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
     end
     if typeof(indexes) <: UTF8String
         return lpad(indexes, config["indexlen"], config["indexpad"])
     end
 
-    throw(DomainError("Unknown index column type $(typeof(indexes))"))
+    error("Unknown index column type $(typeof(indexes))")
 end
 
 lastindexcol = nothing

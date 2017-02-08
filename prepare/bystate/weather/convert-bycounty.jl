@@ -25,4 +25,4 @@ ncwrite(collect(1:num), "../../../data/cache/states/VIC_WB.nc", "state")
 nccreate("../../../data/cache/states/VIC_WB.nc", "month", "month", 735)
 ncwrite(collect(1:735), "../../../data/cache/states/VIC_WB.nc", "month")
 
-cp("../../../data/cache/states/VIC_WB.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB-states.nc")
+cp("../../../data/cache/states/VIC_WB.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB-states.nc", remove_destination=true)

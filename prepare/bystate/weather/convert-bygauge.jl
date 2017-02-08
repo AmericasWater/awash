@@ -77,6 +77,8 @@ for ii in 1:length(newlabels)
     newtotalflow[ii, :] = sum(totalflow[indices, :], 1)
 end
 
+rm("../../../data/cache/states/contributing_runoff_by_gage.nc")
+
 nccreate("../../../data/cache/states/contributing_runoff_by_gage.nc", "contributing_area", "gage", num)
 ncwrite(newcontributing_area, "../../../data/cache/states/contributing_runoff_by_gage.nc", "contributing_area")
 
@@ -101,4 +103,4 @@ ncwrite(collect(1:num), "../../../data/cache/states/contributing_runoff_by_gage.
 nccreate("../../../data/cache/states/contributing_runoff_by_gage.nc", "month", "month", 735)
 ncwrite(collect(1:735), "../../../data/cache/states/contributing_runoff_by_gage.nc", "month")
 
-cp("../../../data/cache/states/contributing_runoff_by_gage.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc")
+cp("../../../data/cache/states/contributing_runoff_by_gage.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc", remove_destination=true)

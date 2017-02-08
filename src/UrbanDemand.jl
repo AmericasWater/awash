@@ -24,7 +24,7 @@ function run_timestep(c::UrbanDemand, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt];
+        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt]; # XXX: Where is commercial
     end
 end
 

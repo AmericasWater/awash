@@ -70,7 +70,7 @@ end
 """
 Get the region index for one or more rows
 """
-function regionindex(tbl, rows)
+function regionindex(tbl, rows; tostr=true)
     global lastindexcol
 
     # Allow any of the column names
@@ -87,6 +87,14 @@ function regionindex(tbl, rows)
         error("Could not find any index column in table.")
     end
 
+    if !tostr
+        return indexes
+    end
+
+    return canonicalindex(indexes)
+end
+
+function canonicalindex(indexes)
     if typeof(indexes) <: DataVector{Int64}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end

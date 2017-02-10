@@ -90,7 +90,7 @@ else
             combiner = gaussianpool
         end
 
-        for regionid in unique(regionindex(counties, :))
+        for regionid in unique(regionindex(counties, :, tostr=false))
             county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
 
             # Construct a pooled or fallback combination
@@ -98,7 +98,7 @@ else
             kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
             wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
             agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
-            agmodels[crop][regionid] = agmodel
+            agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
 

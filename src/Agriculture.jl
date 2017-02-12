@@ -95,9 +95,13 @@ function initagriculture(m::Model)
         kdds = readtable(joinpath(datapath("agriculture/edds/$(crops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
-            fips = parse(Int64, mastercounties[rr, :fips])
-            if fips in keys(agmodels[crops[cc]])
-                thismodel = agmodels[crops[cc]][fips]
+            if config["dataset"] == "counties"
+                regionid = parse(Int64, masterregions[rr, :fips])
+            else
+                regionid = masterregions[rr, :state]
+            end
+            if regionid in keys(agmodels[crops[cc]])
+                thismodel = agmodels[crops[cc]][regionid]
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009

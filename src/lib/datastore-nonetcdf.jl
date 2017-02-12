@@ -15,9 +15,7 @@ function predownload()
 end
 
 if !isdefined(:currentCSVFiles)
-    """
-    Store previously opened CSVs
-    """
+    # Store previously opened CSVs
     const currentCSVFiles = Dict{ASCIIString, DataFrame}()
 end
 

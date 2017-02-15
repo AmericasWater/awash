@@ -5,7 +5,19 @@ function readconfig(ymlpath)
         ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
     end
 
-    YAML.load(open(ymlpath))
+    config = YAML.load(open(ymlpath))
+
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
+
+    for key in keys(dataset)
+        if !in(key, keys(config))
+            config[key] = dataset[key]
+        end
+    end
+
+    config["indexcols"] = map(symbol, config["indexcols"])
+
+    config
 end
 
 function emptyconfig()
@@ -42,7 +54,7 @@ TODO: This should look at config to see what these mean in context
 """
 function getindices(name::Symbol, as::Type=Any)
     if name == :regions
-        values = mastercounties[:fips]
+        values = masterregions[:fips]
     else
         error("We have not defined index $name yet.")
     end

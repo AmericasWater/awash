@@ -17,7 +17,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     # Irrigation water (1000 m^3)
     totalirrigation = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
-    domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
+    domesticuse = Parameter(index=[regions, time], unit="1000 m^3") # XXX: What's the difference between this and urban?
     # Industrial and mining demand, self supplied
     industrialuse = Parameter(index=[regions,time],unit="1000 m^3")
     urbanuse = Parameter(index=[regions,time], unit="1000 m^3")
@@ -25,6 +25,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     thermoelectricuse = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
     livestockuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # XXX: Where is commercial use?
 
     # Internal
     # Total water demand (1000 m^3)

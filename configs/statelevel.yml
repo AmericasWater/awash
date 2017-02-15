@@ -1,0 +1,21 @@
+# Current options: counties (full-country), dummy (5-counties), states
+dataset: states
+
+# First and last month of the simulation
+startmonth: 10/2000
+endmonth: 9/2010
+
+# First entry in VIC_WB to include
+startweather: 612
+
+# Months per time step
+timestep: 6
+
+# Reservoir: set to "zero" to set all reservoir storage capacities to 0
+rescap: "full"
+
+# Urban demand:
+urbandemand-path: demand/urbandemand_May11.csv
+urbandemand-column: per_capita
+urbandemand-transform: repcap
+urbandemand-index: FIPS_county

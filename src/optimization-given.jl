@@ -8,7 +8,7 @@ else
     include("weather.jl")
 end
 
-redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
+redogwwo = !isfile(datapath("partialhouse2$suffix.jld"))
 
 include("WaterDemand.jl")
 include("WaterNetwork.jl")
@@ -70,15 +70,15 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # That is, outflows + runoff > 0, or -outflows < runoff
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
-        serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
+        serialize(open(datapath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
-        serialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "w"), cwro);
+        serialize(open(datapath("partialhouse2$suffix.jld"), "w"), cwro);
         gror = grad_reservoir_outflows_captures(m);
-        serialize(open(joinpath(todata, "partialhouse-gror$suffix.jld"), "w"), gror);
+        serialize(open(datapath("partialhouse-gror$suffix.jld"), "w"), gror);
     else
-        gwwo = deserialize(open(joinpath(todata, "partialhouse$suffix.jld"), "r"));
-        cwro = deserialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "r"));
-        gror = deserialize(open(joinpath(todata, "partialhouse-gror$suffix.jld"), "r"));
+        gwwo = deserialize(open(datapath("partialhouse$suffix.jld"), "r"));
+        cwro = deserialize(open(datapath("partialhouse2$suffix.jld"), "r"));
+        gror = deserialize(open(datapath("partialhouse-gror$suffix.jld"), "r"));
     end
 
     # Specify the components affecting outflow: withdrawals, returns, captures

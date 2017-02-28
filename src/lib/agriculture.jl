@@ -31,6 +31,9 @@ type StatisticalAgricultureModel
     kddsse::Float64
     wreq::Float64
     wreqse::Float64
+
+    gddoffset::Float64
+    kddoffset::Float64
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
@@ -38,6 +41,8 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
     gddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gdds"))
     kddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kdds"))
     wreqrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kddoffset"))
 
     if interceptrow > 0
         intercept = df[interceptrow, :mean]
@@ -47,18 +52,26 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
         interceptse = 0
     end
 
-    gdds = df[gddsrow, :mean]
-    gddsse = df[gddsrow, :serr]
-    kdds = df[kddsrow, :mean]
-    kddsse = df[kddsrow, :serr]
-    wreq = df[wreqrow, :mean]
-    wreqse = df[wreqrow, :serr]
+    gdds = gddsrow != 0 ? df[gddsrow, :mean] : 0
+    gddsse = gddsrow != 0 ? df[gddsrow, :serr] : Inf
+    kdds = kddsrow != 0 ? df[kddsrow, :mean] : 0
+    kddsse = kddsrow != 0 ? df[kddsrow, :serr] : Inf
+    wreq = wreqrow != 0 ? df[wreqrow, :mean] : 0
+    wreqse = wreqrow != 0 ? df[wreqrow, :serr] : Inf
+    gddoffset = gddoffsetrow != 0 ? df[gddoffsetrow, :mean] : 0
+    kddoffset = kddoffsetrow != 0 ? df[kddoffsetrow, :mean] : 0
 
-    StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
+    StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse, gddoffset, kddoffset)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
+    if isna(sdev1) || isnan(sdev1)
+        mean2, sdev2
+    elseif isna(sdev2) || isnan(sdev2)
+        mean1, sdev1
+    else
+        (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
+    end
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
@@ -97,7 +110,7 @@ else
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
             kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
             wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
-            agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
+            agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse, county.gddoffset, county.kddoffset)
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end

@@ -18,3 +18,12 @@ dfbyww <- read.csv("irrigation.csv")
 
 ggplot(dfbyww, aes(x=obsirrigation, y=estirrigation)) + stat_smooth(method=lm, formula=y ~ 0 + x) +
     geom_point(alpha=.1) + theme_bw() + xlab("Observed Irrigation") + ylab("Estimated Irrigation")
+
+
+## Look at differences by fips for hay
+bycy <- data.frame(fips=c(), obs=c(), est=c())
+for (ff in unique(dfbycy$fips[dfbycy$crop == "hay"])) {
+    print(ff)
+    subdf <- subset(dfbycy, fips == ff & crop == "hay")
+    bycy <- rbind(bycy, data.frame(fips=ff, obs=mean(subdf$obsrainfedyield), est=mean(subdf$estrainfedyield)))
+}

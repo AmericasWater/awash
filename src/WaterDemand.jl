@@ -17,7 +17,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     # Irrigation water (1000 m^3)
     totalirrigation = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
-    domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
+    domesticuse = Parameter(index=[regions, time], unit="1000 m^3") # XXX: What's the difference between this and urban?
     # Industrial and mining demand, self supplied
     industrialuse = Parameter(index=[regions,time],unit="1000 m^3")
     urbanuse = Parameter(index=[regions,time], unit="1000 m^3")
@@ -25,6 +25,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     thermoelectricuse = Parameter(index=[regions, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
     livestockuse = Parameter(index=[regions, time], unit="1000 m^3")
+    # XXX: Where is commercial use?
 
     # Internal
     # Total water demand (1000 m^3)
@@ -60,7 +61,8 @@ function initwaterdemand(m::Model)
     waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:domesticuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
     waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
@@ -188,88 +190,82 @@ function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandm
 end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
-    recorded=readtable(datapath("Colorado/domestic_SW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 #industrial=mining
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
-    recorded = readtable(datapath("Colorado/mining_SW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
-    shaftsingle(m, :WaterDemand, :industrialuse, gen)
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
+   shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
-    recorded=readtable(datapath("Colorado/irrigation_SW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt]
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
-    recorded = readtable(datapath("Colorado/livestock_SW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
+
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
-    recorded = readtable(datapath("Colorado/thermo_SW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt]
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
-    recorded = readtable(datapath("Colorado/domestic_GW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 #industrial=Mining 
 function values_waterdemand_recordedgroundindustrial(m::Model)
-   recorded = readtable(datapath("Colorado/mining_GW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
-    recorded = readtable(datapath("Colorado/irrigation_GW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
 
-    recorded = readtable(datapath("Colorado/livestock_GW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
-
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
-    recorded = readtable(datapath("Colorado/thermo_GW.csv"));
-    recorded=repeat(sum(convert(Matrix,recorded),2)/1000.,outer=[1,numsteps])
-    gen(rr,tt)=recorded[rr, tt] 
-
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
 

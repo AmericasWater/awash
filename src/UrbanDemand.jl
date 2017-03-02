@@ -26,7 +26,7 @@ function run_timestep(c::UrbanDemand, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt];
+        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt]; # XXX: Where is commercial
     end
 end
 
@@ -37,9 +37,10 @@ function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    recorded = readtable(datapath("Colorado/domestic.csv"))
-    urbandemand[:domesticdemand] = repeat(sum(convert(Matrix, recorded),2)/1000.,outer=[1, numsteps])
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+
     urbandemand
 end
 

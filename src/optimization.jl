@@ -1,5 +1,5 @@
-redohouse = true #!isfile(datapath("cache/fullhouse$suffix.jld"))
-redogwwo = true #!isfile(datapath("cache/partialhouse2$suffix.jld"))
+redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
+redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -59,12 +59,12 @@ if redohouse
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
-        serialize(open(joinpath(todata, "cache/partialhouse$suffix.jld"), "w"), gwwo);
+        serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
-        serialize(open(joinpath(todata, "cache/partialhouse2$suffix.jld"), "w"), cwro);
+        serialize(open(cachepath("partialhouse2$suffix.jld"), "w"), cwro);
     else
-        gwwo = deserialize(open(joinpath(todata, "cache/partialhouse$suffix.jld"), "r"));
-        cwro = deserialize(open(joinpath(todata, "cache/partialhouse2$suffix.jld"), "r"));
+        gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
+        cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
     end
 
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
@@ -107,7 +107,7 @@ if redohouse
         house.A[ri[ii], ci[ii]] = 1e9
     end
 
-    serialize(open(joinpath(todata, "cache/fullhouse$suffix.jld"), "w"), house)
+    serialize(open(cachepath("fullhouse$suffix.jld"), "w"), house)
 else
-    house = deserialize(open(joinpath(todata, "cache/fullhouse$suffix.jld"), "r"));
+    house = deserialize(open(cachepath("fullhouse$suffix.jld"), "r"));
 end

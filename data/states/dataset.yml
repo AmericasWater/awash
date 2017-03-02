@@ -1,0 +1,36 @@
+# Index column for files
+indexcols:
+ - ST
+ - state
+
+# Index length, in characters, for neighboring lists
+indexlen: 2
+
+# Padding character to use if len(index) < indexlen; null for no padding
+indexpad: null
+
+# Master region file, under data/
+masterregions: global/states.csv
+
+# External, large-file dataset used by ncload
+# Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
+# CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
+# Currently CRCs are ignored
+ncdatasets:
+  weather:
+    filename: VIC_WB
+    ncurl: https://www.dropbox.com/s/9hdkitqqt9csvgd/VIC_WB-states.nc?dl=1
+    csvurl: https://www.dropbox.com/s/tvkveqzhxtduy6n/VIC_WB-states.csv?dl=1
+    csvcoldim: county
+    nccrc32: 0xf1f63c62
+    csvcrc: 0x491d1d8b
+  runoff:
+    filename: contributing_runoff_by_gage
+    ncurl: https://www.dropbox.com/s/qkevnkm8e18u878/contributing_runoff_by_gage-states.nc?dl=1
+    csvurl: https://www.dropbox.com/s/79g6apnqqf26kph/contributing_runoff_by_gage-states.csv?dl=1
+    csvcoldim: gage
+    nccrc32: 0x793555c6
+    csvcrc: 0x20a291e6
+
+# Regional dimension in VIC_WB.nc
+ncregion: state

@@ -3,11 +3,19 @@ Return the full path to a standard data file.
 """
 function datapath(filename)
     dataset = get(config, "dataset", "counties")
-    if startswith(filename, "agriculture")
+    if !startswith(filename, "global") && !startswith(filename, "mapping")
         joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
     else
         joinpath(dirname(@__FILE__), "../../data/$filename")
     end
+end
+
+"""
+Return the full path to a cache data file.
+"""
+function cachepath(filename)
+    dataset = get(config, "dataset", "counties")
+    joinpath(dirname(@__FILE__), "../../data/cache/$dataset/$filename")
 end
 
 """
@@ -22,6 +30,17 @@ function getsuffix()
     end
 
     suffix
+end
+
+"""
+Retrieve only the part of a file within filterstate, if one is set.
+"""
+function getfilteredtable(filepath, fipscol=:FIPS)
+    recorded = readtable(datapath(filepath))
+    if get(config, "filterstate", nothing) != nothing
+        recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+    end
+    recorded
 end
 
 """
@@ -60,13 +79,50 @@ function cached_store(filename, object, usehash=true)
 end
 
 """
-Dataset descriptions used by ncload.
-Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
+Get the region index for one or more rows
 """
-ncdatasets = Dict{ASCIIString, Dict{ASCIIString, Any}}("weather" => Dict{ASCIIString, Any}("filename" => "VIC_WB", "ncurl" => "https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=0", "csvcoldim" => "county", "nccrc32" => 0x468f7994, "csvcrc" => 0xcefed8fe),
-                                                               "runoff" => Dict{ASCIIString, Any}("filename" => "contributing_runoff_by_gage", "ncurl" => "https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=0", "csvurl" => "https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=0", "csvcoldim" => "gage", "nccrc32" => 0x78f4dc8d, "csvcrc32" => 0x78f4dc8d))
-# CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
-# Currently CRCs are ignored
+function regionindex(tbl, rows; tostr=true)
+    global lastindexcol
+
+    # Allow any of the column names
+    indexes = nothing
+    for indexcol in config["indexcols"]
+        if indexcol in names(tbl)
+            indexes = tbl[rows, indexcol]
+            lastindexcol = indexcol
+            break
+        end
+    end
+
+    if indexes == nothing
+        error("Could not find any index column in table.")
+    end
+
+    if !tostr
+        return indexes
+    end
+
+    return canonicalindex(indexes)
+end
+
+function canonicalindex(indexes)
+    if typeof(indexes) <: DataVector{Int64}
+        return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: DataVector{UTF8String}
+        return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: Integer
+        return lpad("$indexes", config["indexlen"], config["indexpad"])
+    end
+    if typeof(indexes) <: UTF8String
+        return lpad(indexes, config["indexlen"], config["indexpad"])
+    end
+
+    error("Unknown index column type $(typeof(indexes))")
+end
+
+lastindexcol = nothing
 
 if Pkg.installed("NetCDF") != nothing
     include("datastore-netcdf.jl")

@@ -3,14 +3,10 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-if config["dataset"] == "three"
-	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
-else
-	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
-end
+masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String])
 
 if get(config, "filterstate", nothing) != nothing
-    mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
+    masterregions = masterregions[map(fips -> fips[1:2], masterregions[:fips]) .== config["filterstate"], :]
 end
 
 include("regionnet.jl")
@@ -23,7 +19,7 @@ crops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "
 if config["dataset"] == "dummy"
     numcounties = 5
 else
-    numcounties = nrow(mastercounties)
+    numcounties = nrow(masterregions)
 end
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
@@ -54,7 +50,7 @@ function newmodel()
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
-    setindex(m, :regions, collect(mastercounties[:fips]))
+    setindex(m, :regions, collect(masterregions[:fips]))
     setindex(m, :crops, crops)
     setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
     setindex(m, :edges, collect(1:num_edges(regionnet)))

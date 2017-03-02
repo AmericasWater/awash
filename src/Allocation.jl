@@ -27,9 +27,9 @@ include("watercostdata.jl")
     waterfromgw = Parameter(index=[regions, time], unit="1000 m^3")
     waterfromsw = Parameter(index=[regions, time], unit="1000 m^3")
     waterfromreservoir = Parameter(index=[regions,time], unit="1000 m^3")
+
     waterfromsupersource = Parameter(index=[regions,time], unit="1000 m^3")
     watergw = Variable(index=[regions, time], unit="1000 m^3")
-    waterreservoir = Variable(index=[regions,time], unit="1000 m^3")
 
     # The cost in USD / 1000 m^3 of extraction 
     unitgwextractioncost = Parameter(index=[aquifers, time], unit="\$/1000 m^3")
@@ -67,8 +67,8 @@ function run_timestep(c::Allocation, tt::Int)
     v.swreturn[:, tt] = zeros(numcounties)
     v.swcost[:,tt] = zeros(numcounties)
     for pp in 1:nrow(draws)
-        fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
-        rr = findfirst(mastercounties[:fips] .== fips)
+        regionids = regionindex(draws, pp)
+        rr = findfirst(regionindex(masterregions, :) .== regionids)
         if rr > 0
             v.swsupply[rr, tt] += p.withdrawals[pp, tt]
             v.swcost[rr, tt] += p.withdrawals[pp, tt] * p.unitswextractioncost[pp,tt]
@@ -109,15 +109,17 @@ function initallocation(m::Model)
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    	allocation[:waterfromreservoir] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
     else
-        allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-        
-        allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-        allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> gwtotal);
-        allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+
+        recorded = getfilteredtable("extraction/USGS-2010.csv")
+
+	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+    	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+
     end
 
     allocation
@@ -154,7 +156,9 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
+
     roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> m.parameters[:unitgwextractioncost].values[rr,tt])
+
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -170,6 +174,7 @@ function grad_allocation_cost_withdrawals(m::Model)
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
                 A[rr, pp] = m.parameters[:unitswextractioncost].values[rr,pp]
+
             end
         end
     end
@@ -182,8 +187,7 @@ function grad_allocation_balance_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 1.
             end
@@ -197,8 +201,7 @@ function grad_allocation_returnbalance_returns(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 1.
             end
@@ -226,26 +229,15 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 		end
 	        hallsingle(m, :Allocation, :balance, gen)
     else
-		if optimtype
-            
-            recorded = sum(convert(Matrix,readtable(datapath("Colorado/Total.csv"))),2)
-            gen(rr, tt) = recorded[rr, tt] / 1000.
-            println("using CO_Total") 
-            
-            
-            #use when using results from optimization
-            #recorded1=readtable(datapath("../results/Colorado/totalirrigation1.csv"));
-            #recorded2=convert(Matrix,readtable(datapath("Colorado/domestic.csv")))/1000;
-            #recorded3=convert(Matrix,readtable(datapath("Colorado/livestock.csv")))/1000;
-            #recorded4=convert(Matrix,readtable(datapath("Colorado/mining.csv")))/1000;
-            #recorded5=convert(Matrix,readtable(datapath("Colorado/thermo.csv")))/1000;
-            gen(rr,tt)=recorded1[rr,tt]+recorded2[rr,tt]+recorded3[rr,tt]+recorded4[rr,tt]+recorded5[rr,tt]
-            
-		else optimtype
-            recorded = repeat(sum(convert(Matrix,readtable(datapath("Colorado/SW_Total.csv"))),2),outer=[1,numsteps])
-        	gen(rr, tt) = recorded[rr, tt] / 1000.
-            println("using SW_Total")
-        end 
+
+          recorded = getfilteredtable("extraction/USGS-2010.csv")
+		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
+		if optimtype == false
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
+		elseif optimtype == true
+			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
+		end
+
 		hallsingle(m, :Allocation, :balance, gen)
     end
 end

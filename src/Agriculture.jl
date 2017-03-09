@@ -96,7 +96,7 @@ function initagriculture(m::Model)
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
-                regionid = parse(Int64, masterregions[rr, :fips])
+                regionid = masterregions[rr, :fips]
             else
                 regionid = masterregions[rr, :state]
             end
@@ -118,7 +118,7 @@ function initagriculture(m::Model)
                         numgdds = numkdds = 0
                     end
 
-                    logmodelyield = thismodel.intercept + thismodel.gdds * numgdds + thismodel.kdds * numkdds
+                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset)
                     logirrigatedyield[rr, cc, tt] = min(logmodelyield, log(maximum_yields[crops[cc]]))
                 end
 

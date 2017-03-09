@@ -20,7 +20,7 @@ function translate(column, values)
         if typeof(values[1]) <: AbstractString
             values = map(x -> ismatch(r"^[-+]?[0-9]*\.?[0-9]+$", x) ? parse(Float64, x) : 0, values)
         end
-        sum(values)
+        sum(map(x -> isnan(x) ? 0 : x, dropna(values)))
     end
 end
 
@@ -40,14 +40,26 @@ function translatechunk(subdf)
     subresult = DataFrame(coef=UTF8String[], mean=Float64[], serr=Float64[])
 
     for coef in unique(subdf[:coef])
-        means = subdf[subdf[:coef] .== coef, :mean]
-        serrs = subdf[subdf[:coef] .== coef, :serr]
-        invvars = 1 ./ (serrs.^2)
+        if coef in ["gddoffset", "kddoffset"]
+            push!(subresult, [coef, mean(subdf[subdf[:coef] .== coef, :mean]), 0.0])
+        else
+            means = subdf[subdf[:coef] .== coef, :mean]
+            serrs = subdf[subdf[:coef] .== coef, :serr]
 
-        poolmean = sum(means .* invvars) / sum(invvars)
-        poolserr = 1 ./ sum(invvars)
+            # Drop NAs and NaN
+            invalid = isna(means) | isnan(means) | isnan(serrs)
+            if sum(invalid) > 0
+                means[invalid] = 0
+                serrs[invalid] = Inf
+            end
 
-        push!(subresult, [coef, poolmean, poolserr])
+            invvars = 1 ./ (serrs.^2)
+
+            poolmean = sum(means .* invvars) / sum(invvars)
+            poolserr = 1 ./ sum(invvars)
+
+            push!(subresult, [coef, poolmean, poolserr])
+        end
     end
 
     subresult

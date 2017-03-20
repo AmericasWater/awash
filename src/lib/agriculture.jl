@@ -1,5 +1,14 @@
 using DataFrames
 
+## Univariate crop parametrs
+unicrop_irrigationrate = Dict("Barley" => 7.578945e-06, "Maize" => 6.945846e-07,
+                              "Sorghum" => 0., "Soybeans" => 2.323859e-06,
+                              "Wheat" => 5.100454e-07, "Hay" => 0.)
+unicrop_irrigationstress = Dict("Barley" => 0., "Maize" => 0.,
+                                "Sorghum" => 0., "Soybeans" => 0.,
+                                "Wheat" => 0., "Hay" => 0.)
+
+# Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
                           "Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
                           "Maize" => 1.47596435526564,
@@ -8,14 +17,14 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
 
 # Per year costs
-cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
+cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Barley" => 442., "Barley.Winter" => 442.,
                          "Maize" => 554.,
                          "Sorghum" => 314.,
                          "Soybeans" => 221.,
                          "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
 
-maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
                       "Maize" => 250.,
                       "Sorghum" => 150.,
@@ -90,7 +99,7 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    for crop in crops
+    for crop in irrcrops
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model

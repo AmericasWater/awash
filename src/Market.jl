@@ -7,7 +7,8 @@ using Mimi
 
 @defcomp Market begin
     regions = Index()
-    crops = Index()
+    unicrops = Index()
+    irrcrops = Index()
 
     # Configuration
     # Selling prices

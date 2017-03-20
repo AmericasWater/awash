@@ -7,6 +7,8 @@ include("weather.jl")
 include("Thermoelectric.jl")
 include("Livestock.jl")
 include("Agriculture.jl");
+include("IrrigationAgriculture.jl");
+include("UnivariateAgriculture.jl");
 include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
 include("WaterDemand.jl");

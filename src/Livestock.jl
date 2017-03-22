@@ -5,7 +5,6 @@ using DataFrames
 
 @defcomp Livestock begin
     regions = Index()
-    crops = Index()
 
     # Exogenous demands
     demand = Parameter(index=[regions, time], unit="1000 m^3")

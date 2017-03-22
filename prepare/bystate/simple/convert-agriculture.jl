@@ -99,5 +99,6 @@ end
 orderedconverttable("agriculture/irrigatedareas.csv", config, translate)
 orderedconverttable("agriculture/rainfedareas.csv", config, translate)
 orderedconverttable("agriculture/knownareas.csv", config, translate)
+orderedconverttable("agriculture/totalareas.csv", config, translate)
 
 mirrorfile("agriculture/nationals.csv", config)

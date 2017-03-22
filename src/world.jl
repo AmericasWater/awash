@@ -37,7 +37,8 @@ else
 end
 
 numunicrops = length(unicrops)
-numirrcrosp = length(irrcrops)
+numirrcrops = length(irrcrops)
+numallcrops = length(allcrops)
 numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
@@ -56,12 +57,9 @@ function newmodel()
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
     setindex(m, :regions, collect(masterregions[:fips]))
-    if unicrops > 0
-        setindex(m, :unicrops, unicrops)
-    end
-    if irrcrops > 0
-        setindex(m, :irrcrops, irrcrops)
-    end
+    setindex(m, :unicrops, unicrops)
+    setindex(m, :irrcrops, irrcrops)
+    setindex(m, :allcrops, allcrops)
     setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))

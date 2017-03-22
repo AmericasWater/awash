@@ -1,12 +1,12 @@
 using DataFrames
 
 ## Univariate crop parametrs
-unicrop_irrigationrate = Dict("Barley" => 7.578945e-06, "Maize" => 6.945846e-07,
-                              "Sorghum" => 0., "Soybeans" => 2.323859e-06,
-                              "Wheat" => 5.100454e-07, "Hay" => 0.)
-unicrop_irrigationstress = Dict("Barley" => 0., "Maize" => 0.,
-                                "Sorghum" => 0., "Soybeans" => 0.,
-                                "Wheat" => 0., "Hay" => 0.)
+unicrop_irrigationrate = Dict("barley" => 7.578945e-06, "corn" => 6.945846e-07,
+                              "sorghum" => 0., "soybeans" => 2.323859e-06,
+                              "wheat" => 5.100454e-07, "hay" => 0.)
+unicrop_irrigationstress = Dict("barley" => 0., "corn" => 0.,
+                                "sorghum" => 0., "soybeans" => 0.,
+                                "wheat" => 0., "hay" => 0.)
 
 # Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
@@ -14,7 +14,10 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Maize" => 1.47596435526564,
                           "Sorghum" => 1.1364914374721,
                           "Soybeans" => 1.37599595071683,
-                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
+                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068,
+"barley" => 1.18060761343329, "corn" => 1.47596435526564,
+"sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
+"wheat" => 0.684836198198068, "hay" => 1.63961100235402) # in m
 
 # Per year costs
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
@@ -22,14 +25,20 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Maize" => 554.,
                          "Sorghum" => 314.,
                          "Soybeans" => 221.,
-                         "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
+                         "Wheat" => 263., "Wheat.Winter" => 263.,
+                         "barley" => 442., "corn" => 554.,
+                         "sorghum" => 314., "soybeans" => 221.,
+"wheat" => 263., "hay" => 306.) # USD / acre
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
                       "Maize" => 250.,
                       "Sorghum" => 150.,
                       "Soybeans" => 100.,
-                      "Wheat" => 250., "Wheat.Winter" => 250.)
+                      "Wheat" => 250., "Wheat.Winter" => 250.,
+                      "barley" => 200., "corn" => 250.,
+                      "sorghum" => 150., "soybeans" => 100.,
+"wheat" => 250., "hay" => 306.)
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -91,6 +100,36 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
     end
 end
 
+function findcroppath(prefix, crop, suffix, recurse=true)
+    if isfile(datapath(prefix * crop * suffix))
+        return datapath(prefix * crop * suffix)
+    end
+
+    if isupper(crop[1]) && isfile(datapath(prefix * lowercase(crop) * suffix))
+        return datapath(prefix * lowercase(crop) * suffix)
+    end
+
+    if islower(crop[1]) && isfile(datapath(prefix * uppercase(crop) * suffix))
+        return datapath(prefix * uppercase(crop) * suffix)
+    end
+
+    if !recurse
+        return nothing
+    end
+
+    croptrans = Dict{AbstractString, Vector{AbstractString}}("corn" => ["maize"], "hay" => ["otherhay"], "maize" => ["corn"])
+    if lowercase(crop) in keys(croptrans)
+        for crop2 in croptrans[lowercase(crop)]
+            path2 = findcroppath(prefix, crop2, suffix, false)
+            if path2 != nothing
+                return path2
+            end
+        end
+    end
+
+    return nothing
+end
+
 if isfile(cachepath("agmodels.jld"))
     println("Loading from saved region network...")
 
@@ -99,16 +138,18 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    for crop in irrcrops
+    for crop in allcrops
+        println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
         national = StatisticalAgricultureModel(nationals, :crop, crop)
-        if isfile(joinpath(datapath("agriculture/bayesian/$crop.csv")))
-            counties = readtable(joinpath(datapath("agriculture/bayesian/$crop.csv")))
+        bayespath = findcroppath("agriculture/bayesian/", crop, ".csv")
+        if bayespath != nothing
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
-            counties = readtable(joinpath(datapath("agriculture/unpooled-$crop.csv")))
+            counties = readtable(findcroppath("agriculture/unpooled-", crop, ".csv"))
             combiner = gaussianpool
         end
 
@@ -124,5 +165,7 @@ else
         end
     end
 
-    serialize(open(cachepath("agmodels.jld"), "w"), agmodels)
+    fp = open(cachepath("agmodels.jld"), "w")
+    serialize(fp, agmodels)
+    close(fp)
 end

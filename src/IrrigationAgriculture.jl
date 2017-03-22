@@ -79,7 +79,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
     end
 end
 
-function initagriculture(m::Model)
+function initirrigationagriculture(m::Model)
     # precip loaded by weather.jl
 
     # Match up values by FIPS

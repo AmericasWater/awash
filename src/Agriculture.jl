@@ -14,16 +14,16 @@ include("lib/agriculture.jl")
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
-    irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="none")
+    irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
     irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
-    unicropproduction = Parameter(index=[regions, unicrops, time], unit="none")
+    unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Outputs
     allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
-    allcropproduction = Variable(index=[regions, allcrops, time], unit="none")
+    allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
     allirrigation = Variable(index=[regions, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
 end
@@ -34,20 +34,20 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        v.allirrigation = p.othercropsirrigation[rr, tt]
-        v.allagarea = p.othercropsarea[rr, tt]
+        v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt]
+        v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
         for cc in d.allcrops
-            irrcc = findfirst(allcrops[cc], irrcrops)
+            irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
                 v.allcropareas[rr, cc, tt] = p.irrcropareas[rr, irrcc, tt]
                 v.allcropproduction[rr, cc, tt] = p.irrcropproduction[rr, irrcc, tt]
             else
-                unicc = findfirst(unicrops[cc], unicrops)
-                v.allcropareas[rr, cc, tt] = p.unitcropareas[rr, irrcc, tt]
+                unicc = findfirst(unicrops, allcrops[cc])
+                v.allcropareas[rr, cc, tt] = p.unicropareas[rr, unicc, tt]
                 v.allcropproduction[rr, cc, tt] = p.unicropproduction[rr, unicc, tt]
             end
 
-            v.allagarea += v.allcropareas[rr, cc, tt]
+            v.allagarea[rr, tt] += v.allcropareas[rr, cc, tt]
         end
     end
 end

@@ -13,13 +13,14 @@ include("lib/agriculture.jl")
 
     # Internal
     # Yield per hectare
-    yield = Variable(index=[regions, unicrops, time], unit="none")
+    yield = Parameter(index=[regions, unicrops, time], unit="none")
 
     # Coefficient on the effects of water deficits
     irrigation_rate = Parameter(index=[regions, unicrops, time], unit="1/mm")
 
     # Computed
     # Total agricultural area
+    totalareas2 = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
     allagarea = Variable(index=[regions, time], unit="Ha")
 
     # Total irrigation water (1000 m^3)
@@ -31,7 +32,7 @@ include("lib/agriculture.jl")
     cultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
 end
 
-function run_timestep(s::Agriculture, tt::Int)
+function run_timestep(s::UnivariateAgriculture, tt::Int)
     v = s.Variables
     p = s.Parameters
     d = s.Dimensions
@@ -41,16 +42,17 @@ function run_timestep(s::Agriculture, tt::Int)
         allagarea = 0.
 
         for cc in d.unicrops
-            allagarea += v.totalareas[rr, cc, tt]
+            v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
+            allagarea += p.totalareas[rr, cc, tt]
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
-            totalirrigation += v.totalareas[rr, cc, tt] * p.irrigation_rate / 100
+            totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
 
             # Calculate total production
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
-            v.cultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.cultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -58,7 +60,7 @@ function run_timestep(s::Agriculture, tt::Int)
     end
 end
 
-function initagriculture(m::Model)
+function initunivariateagriculture(m::Model)
     # precip loaded by weather.jl
     # Sum precip to a yearly level
     stepsperyear = floor(Int64, 12 / config["timestep"])
@@ -69,8 +71,8 @@ function initagriculture(m::Model)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
     for cc in 1:numunicrops
         # Load degree day data
-        gdds = readtable(joinpath(datapath("agriculture/edds/$(unicrops[cc])-gdd.csv")))
-        kdds = readtable(joinpath(datapath("agriculture/edds/$(unicrops[cc])-kdd.csv")))
+        gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
+        kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
@@ -108,7 +110,7 @@ function initagriculture(m::Model)
         end
     end
 
-    agriculture = addcomponent(m, Agriculture)
+    agriculture = addcomponent(m, UnivariateAgriculture)
 
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
@@ -145,5 +147,5 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 end
 
 function grad_agriculture_cost_totalareas(m::Model)
-    roomdiagonal(m, :Agriculture, :cultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+    roomdiagonal(m, :UnivariateAgriculture, :cultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end

@@ -16,7 +16,7 @@ include("lib/agriculture.jl")
     yield = Parameter(index=[regions, unicrops, time], unit="none")
 
     # Coefficient on the effects of water deficits
-    irrigation_rate = Parameter(index=[regions, unicrops, time], unit="1/mm")
+    irrigation_rate = Parameter(index=[regions, unicrops, time], unit="mm")
 
     # Computed
     # Total agricultural area
@@ -27,6 +27,7 @@ include("lib/agriculture.jl")
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
     # Total production: lb or bu
+    yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
     # Total cultivation costs per crop
     cultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
@@ -45,10 +46,11 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
             allagarea += p.totalareas[rr, cc, tt]
 
-            # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
+            # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
             totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
 
             # Calculate total production
+            v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
@@ -104,7 +106,7 @@ function initunivariateagriculture(m::Model)
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit
                     yield[rr, cc, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]]
+                    irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
                 end
             end
         end

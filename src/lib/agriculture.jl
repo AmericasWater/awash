@@ -1,12 +1,12 @@
 using DataFrames
 
 ## Univariate crop parametrs
-unicrop_irrigationrate = Dict("barley" => 7.578945e-06, "corn" => 6.945846e-07,
-                              "sorghum" => 0., "soybeans" => 2.323859e-06,
-                              "wheat" => 5.100454e-07, "hay" => 0.)
+unicrop_irrigationrate = Dict("barley" => 78.5, "corn" => 67.2,
+                              "sorghum" => 0., "soybeans" => 33.3,
+                              "wheat" => 23.3, "hay" => 1.7) # mm/year
 unicrop_irrigationstress = Dict("barley" => 0., "corn" => 0.,
-                                "sorghum" => 0., "soybeans" => 0.,
-                                "wheat" => 0., "hay" => 0.)
+                                "sorghum" => 0., "soybeans" => -22.7,
+                                "wheat" => 0., "hay" => -1.1) # (mm/year) / m-deficiency
 
 # Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
@@ -138,13 +138,16 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
+    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
+                                                "sorghum" => "Sorghum", "soybeans" => "Soybeans",
+                                                "wheat" => "Wheat", "hay" => "alfalfa")
     for crop in allcrops
         println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
-        national = StatisticalAgricultureModel(nationals, :crop, crop)
-        bayespath = findcroppath("agriculture/bayesian/", crop, ".csv")
+        national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
+        bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
         if bayespath != nothing
             counties = readtable(bayespath)
             combiner = fallbackpool

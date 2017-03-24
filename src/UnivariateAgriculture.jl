@@ -30,7 +30,7 @@ include("lib/agriculture.jl")
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
     # Total cultivation costs per crop
-    cultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
+    unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -54,7 +54,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
-            v.cultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -148,6 +148,6 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate)
 end
 
-function grad_agriculture_cost_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :cultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+function grad_univariateagriculture_cost_totalareas(m::Model)
+    roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end

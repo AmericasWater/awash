@@ -43,7 +43,7 @@ include("lib/agriculture.jl")
     # Total production: lb or bu
     production = Variable(index=[regions, irrcrops, time], unit="lborbu")
     # Total cultivation costs per crop
-    cultivationcost = Variable(index=[regions, irrcrops, time], unit="\$")
+    irrcultivationcost = Variable(index=[regions, irrcrops, time], unit="\$")
 end
 
 function run_timestep(s::IrrigationAgriculture, tt::Int)
@@ -71,7 +71,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
             v.production[rr, cc, tt] = exp(p.logirrigatedyield[rr, cc, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
-            v.cultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -208,14 +208,14 @@ function grad_agriculture_allagarea_rainfedareas(m::Model)
     roomintersect(m, :IrrigationAgriculture, :allagarea, :rainfedareas, generate)
 end
 
-function constraintoffset_agriculture_allagarea(m::Model)
+function constraintoffset_irrigationagriculture_allagarea(m::Model)
     hallsingle(m, :IrrigationAgriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
 end
 
-function grad_agriculture_cost_rainfedareas(m::Model)
-    roomdiagonal(m, :IrrigationAgriculture, :cultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+function grad_irrigationagriculture_cost_rainfedareas(m::Model)
+    roomdiagonal(m, :IrrigationAgriculture, :irrcultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
 
-function grad_agriculture_cost_irrigatedareas(m::Model)
-    roomdiagonal(m, :IrrigationAgriculture, :cultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+function grad_irrigationagriculture_cost_irrigatedareas(m::Model)
+    roomdiagonal(m, :IrrigationAgriculture, :irrcultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end

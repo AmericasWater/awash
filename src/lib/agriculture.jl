@@ -101,6 +101,7 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
 end
 
 function findcroppath(prefix, crop, suffix, recurse=true)
+    println(prefix * crop * suffix)
     if isfile(datapath(prefix * crop * suffix))
         return datapath(prefix * crop * suffix)
     end

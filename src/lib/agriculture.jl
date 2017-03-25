@@ -107,11 +107,11 @@ function findcroppath(prefix, crop, suffix, recurse=true)
     end
 
     if isupper(crop[1]) && isfile(datapath(prefix * lcfirst(crop) * suffix))
-        return datapath(prefix * lowercase(crop) * suffix)
+        return datapath(prefix * lcfirst(crop) * suffix)
     end
 
     if islower(crop[1]) && isfile(datapath(prefix * ucfirst(crop) * suffix))
-        return datapath(prefix * uppercase(crop) * suffix)
+        return datapath(prefix * ucfirst(crop) * suffix)
     end
 
     if !recurse

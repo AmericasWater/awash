@@ -143,7 +143,8 @@ function initirrigationagriculture(m::Model)
     rainfeds = getfilteredtable("agriculture/rainfedareas.csv")
     irrigateds = getfilteredtable("agriculture/irrigatedareas.csv")
 
-    for cc in 2:ncol(rainfeds)
+    columns = map(crop -> findfirst(symbol(crop), names(rainfeds)), allcrops)
+    for cc in columns
         # Replace NAs with 0, and convert to float. TODO: improve this
         rainfeds[isna(rainfeds[cc]), cc] = 0.
         irrigateds[isna(irrigateds[cc]), cc] = 0.
@@ -151,8 +152,8 @@ function initirrigationagriculture(m::Model)
         rainfeds[cc] = rainfeds[cc] * 0.404686
         irrigateds[cc] = irrigateds[cc] * 0.404686
     end
-    agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, 2:end]), outer=[1, 1, numsteps])
-    agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, 2:end]), outer=[1, 1, numsteps])
+    agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, columns]), outer=[1, 1, numsteps])
+    agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, columns]), outer=[1, 1, numsteps])
 
     agriculture
 end

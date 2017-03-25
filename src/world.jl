@@ -25,6 +25,7 @@ if config["dataset"] == "dummy"
 else
     numcounties = nrow(masterregions)
 end
+numregions = numcounties # Going to deprecate `numcounties`
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["dataset"] == "three"

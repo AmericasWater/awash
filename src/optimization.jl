@@ -47,15 +47,22 @@ if redohouse
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints);
 
     # Optimize revenue_domestic + revenue_international - pumping_cost - transit_cost
+    println("Objectives...")
     setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     setobjective!(house, -varsum(grad_transportation_cost_imported(m)))
     setobjective!(house, -varsum(grad_univariateagriculture_cost_totalareas(m)))
     setobjective!(house, -varsum(grad_irrigationagriculture_cost_rainfedareas(m)))
     setobjective!(house, -varsum(grad_irrigationagriculture_cost_irrigatedareas(m)))
     setobjective!(house, deriv_market_totalrevenue_internationalsales(m))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Market, :produced))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Market, :produced))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Market, :produced))
+    println("A")
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_agriculture_allcropproduction_unicropproduction(m) * grad_univariateagriculture_production_totalareas(m), :production, :Market, :produced))
+    println("A")
+    irrproduction2allproduction = grad_agriculture_allcropproduction_irrcropproduction(m)
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(irrproduction2allproduction * grad_irrigationagriculture_production_rainfedareas(m), :production, :Market, :produced))
+    println("A")
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(irrproduction2allproduction * grad_irrigationagriculture_production_irrigatedareas(m), :production, :Market, :produced))
+
+    println("Constraints...")
 
     # Constrain agriculture < county area
     setconstraint!(house, grad_univariateagriculture_allagarea_totalareas(m)) # +

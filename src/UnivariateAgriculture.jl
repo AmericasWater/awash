@@ -120,19 +120,25 @@ function initunivariateagriculture(m::Model)
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
 
-    for cc in 2:ncol(totalareas)
-        # Replace NAs with 0, and convert to float. TODO: improve this
-        totalareas[isna(totalareas[cc]), cc] = 0.
-        # Convert to Ha
-        totalareas[cc] = totalareas[cc] * 0.404686
+    if isempty(unicrops)
+        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
+    else
+        columns = map(crop -> findfirst(symbol(crop) .== names(totalareas)), unicrops)
+        columns = convert(Vector{Int64}, columns)
+        for cc in columns
+            # Replace NAs with 0, and convert to float. TODO: improve this
+            totalareas[isna(totalareas[cc]), cc] = 0.
+            # Convert to Ha
+            totalareas[cc] = totalareas[cc] * 0.404686
+        end
+        agriculture[:totalareas] = repeat(convert(Matrix, totalareas[:, columns]), outer=[1, 1, numsteps])
     end
-    agriculture[:totalareas] = repeat(convert(Matrix, totalareas[:, 2:end]), outer=[1, 1, numsteps])
 
     agriculture
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt]) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)

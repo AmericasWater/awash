@@ -63,6 +63,9 @@ function initagriculture(m::Model)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
+    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
+    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))
+
     agriculture
 end
 
@@ -106,4 +109,30 @@ end
 
 function constraintoffset_agriculture_allagarea(m::Model)
     hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
+end
+
+function grad_agriculture_allcropproduction_unicropproduction(m::Model)
+    function gen(A, tt)
+        # A: R x ALL x R x UNI
+        if !isempty(unicrops)
+            for unicc in 1:numunicrops
+                allcc = findfirst(allcrops, unicrops[unicc])
+                A[:, allcc, :, unicc] = 1
+            end
+        end
+    end
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen)
+end
+
+function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
+    function gen(A, tt)
+        # A: R x ALL x R x IRR
+        if !isempty(irrcrops)
+            for irrcc in 1:numirrcrops
+                allcc = findfirst(allcrops, irrcrops[irrcc])
+                A[:, allcc, :, irrcc] = 1
+            end
+        end
+    end
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen)
 end

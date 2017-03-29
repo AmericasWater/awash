@@ -117,7 +117,9 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
         if !isempty(unicrops)
             for unicc in 1:numunicrops
                 allcc = findfirst(allcrops, unicrops[unicc])
-                A[:, allcc, :, unicc] = 1
+                for rr in 1:numregions
+                    A[fromindex([rr, allcc], [numregions, numallcrops]), fromindex([rr, unicc], [numregions, numunicrops])] = 1
+                end
             end
         end
     end
@@ -130,7 +132,9 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
         if !isempty(irrcrops)
             for irrcc in 1:numirrcrops
                 allcc = findfirst(allcrops, irrcrops[irrcc])
-                A[:, allcc, :, irrcc] = 1
+                for rr in 1:numregions
+                    A[fromindex([rr, allcc], [numregions, numallcrops]), fromindex([rr, irrcc], [numregions, numirrcrops])] = 1
+                end
             end
         end
     end

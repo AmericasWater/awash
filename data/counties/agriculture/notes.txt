@@ -1,0 +1,2 @@
+irrigatedareas.txt and rainfedareas.txt are in acres in 2010.
+

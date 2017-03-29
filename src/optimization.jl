@@ -5,6 +5,8 @@ include("world.jl")
 include("weather.jl")
 
 include("Agriculture.jl")
+include("UnivariateAgriculture.jl")
+include("IrrigationAgriculture.jl")
 include("WaterDemand.jl")
 include("PopulationDemand.jl")
 include("Market.jl")
@@ -20,7 +22,9 @@ m = newmodel();
 
 # Add all of the components
 populationdemand = initpopulationdemand(m, m.indices_values[:time]); # exogenous
-agriculture = initagriculture(m); # optimization-only
+univariateagriculture = initunivariateagriculture(m) # optimization-only
+irrigationagriculture = initirrigationagriculture(m) # optimization-only
+agriculture = initagriculture(m); # dep. IrrigationAgriculture, UnivariateAgriculture
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
@@ -30,8 +34,8 @@ urbandemand = initurbandemand(m) # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
-parameters = [:waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture, :Transportation, :Market]
+parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 ## Constraint definitions:
@@ -43,17 +47,27 @@ if redohouse
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints);
 
     # Optimize revenue_domestic + revenue_international - pumping_cost - transit_cost
+    println("Objectives...")
     setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     setobjective!(house, -varsum(grad_transportation_cost_imported(m)))
-    setobjective!(house, -varsum(grad_agriculture_cost_rainfedareas(m)))
-    setobjective!(house, -varsum(grad_agriculture_cost_irrigatedareas(m)))
+    setobjective!(house, -varsum(grad_univariateagriculture_cost_totalareas(m)))
+    setobjective!(house, -varsum(grad_irrigationagriculture_cost_rainfedareas(m)))
+    setobjective!(house, -varsum(grad_irrigationagriculture_cost_irrigatedareas(m)))
     setobjective!(house, deriv_market_totalrevenue_internationalsales(m))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_agriculture_production_rainfedareas(m), :production, :Market, :produced))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_agriculture_production_irrigatedareas(m), :production, :Market, :produced))
+    println("A")
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_agriculture_allcropproduction_unicropproduction(m) * grad_univariateagriculture_production_totalareas(m), :production, :Market, :produced))
+    println("A")
+    irrproduction2allproduction = grad_agriculture_allcropproduction_irrcropproduction(m)
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(irrproduction2allproduction * grad_irrigationagriculture_production_rainfedareas(m), :production, :Market, :produced))
+    println("A")
+    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(irrproduction2allproduction * grad_irrigationagriculture_production_irrigatedareas(m), :production, :Market, :produced))
+
+    println("Constraints...")
 
     # Constrain agriculture < county area
-    setconstraint!(house, grad_agriculture_allagarea_irrigatedareas(m)) # +
-    setconstraint!(house, grad_agriculture_allagarea_rainfedareas(m)) # +
+    setconstraint!(house, grad_univariateagriculture_allagarea_totalareas(m)) # +
+    setconstraint!(house, grad_irrigationagriculture_allagarea_irrigatedareas(m)) # +
+    setconstraint!(house, grad_irrigationagriculture_allagarea_rainfedareas(m)) # +
     setconstraintoffset!(house, constraintoffset_agriculture_allagarea(m))
 
     # Constrain outflows + runoff > 0, or -outflows < runoff
@@ -71,22 +85,25 @@ if redohouse
     setconstraintoffset!(house, cwro) # +
 
     # Constrain available market > 0
-    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_agriculture_production_irrigatedareas(m), :production, :Market, :produced)) # -
-    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_agriculture_production_rainfedareas(m), :production, :Market, :produced)) # -
+    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Market, :produced)) # -
+    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Market, :produced)) # -
+    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Market, :produced)) # -
     setconstraint!(house, -grad_market_available_internationalsales(m)) # +
     setconstraint!(house, -(grad_market_available_regionimports(m) * grad_transportation_regionimports_imported(m) +
                    grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m))) # +-
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
-    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_agriculture_totalirrigation_irrigatedareas(m)) # +
+    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_univariateagriculture_totalirrigation_totalareas(m)) # +
+    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_irrigationagriculture_totalirrigation_irrigatedareas(m)) # +
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
     setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
 
     # Constrain domesticsales < domesticdemand
     # Reproduce 'available'
-    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_agriculture_production_irrigatedareas(m), :production, :Market, :produced), :available, :Market, :domesticbalance)) # +
-    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_agriculture_production_rainfedareas(m), :production, :Market, :produced), :available, :Market, :domesticbalance)) # +
+    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Market, :produced), :available, :Market, :domesticbalance)) # +
+    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Market, :produced), :available, :Market, :domesticbalance)) # +
+    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Market, :produced), :available, :Market, :domesticbalance)) # +
     setconstraint!(house, room_relabel(grad_market_available_internationalsales(m), :available, :Market, :domesticbalance)) # -
     setconstraint!(house, room_relabel(grad_market_available_regionimports(m) * grad_transportation_regionimports_imported(m) +
                                        grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m), :available, :Market, :domesticbalance)) # +-

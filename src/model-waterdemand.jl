@@ -7,6 +7,8 @@ include("weather.jl")
 include("Thermoelectric.jl")
 include("Livestock.jl")
 include("Agriculture.jl");
+include("IrrigationAgriculture.jl");
+include("UnivariateAgriculture.jl");
 include("IndustrialDemand.jl");
 include("UrbanDemand.jl");
 include("WaterDemand.jl");
@@ -27,13 +29,23 @@ model = newmodel();
 # Add all of the components
 thermoelectric = initthermoelectric(model); # exogenous
 livestock = initlivestock(model); # exogenous
+irrigationagriculture = initirrigationagriculture(model); # optimization-only
+univariateagriculture = initunivariateagriculture(model); # optimization-only
 agriculture = initagriculture(model); # optimization-only
 industrialdemand = initindustrialdemand(model); # exogenous
 urbandemand = initurbandemand(model); # exogenous
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 
 # Connect up the components
-waterdemand[:totalirrigation] = agriculture[:totalirrigation];
+agriculture[:irrcropareas] = irrigationagriculture[:totalareas]
+agriculture[:irrcropproduction] = irrigationagriculture[:production]
+agriculture[:irrirrigation] = irrigationagriculture[:totalirrigation]
+
+agriculture[:unicropareas] = univariateagriculture[:totalareas2]
+agriculture[:unicropproduction] = univariateagriculture[:production]
+agriculture[:uniirrigation] = univariateagriculture[:totalirrigation]
+
+waterdemand[:totalirrigation] = agriculture[:allirrigation];
 waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];

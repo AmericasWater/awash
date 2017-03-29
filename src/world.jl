@@ -14,13 +14,18 @@ include("waternet.jl")
 
 # Prepare the model
 
-crops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+allcrops = [unicrops; irrcrops]
+
+#irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
 
 if config["dataset"] == "dummy"
     numcounties = 5
 else
     numcounties = nrow(masterregions)
 end
+numregions = numcounties # Going to deprecate `numcounties`
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["dataset"] == "three"
@@ -32,7 +37,9 @@ else
     end
 end
 
-numcrops = length(crops)
+numunicrops = length(unicrops)
+numirrcrops = length(irrcrops)
+numallcrops = length(allcrops)
 numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
@@ -51,7 +58,9 @@ function newmodel()
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
     setindex(m, :regions, collect(masterregions[:fips]))
-    setindex(m, :crops, crops)
+    setindex(m, :unicrops, unicrops)
+    setindex(m, :irrcrops, irrcrops)
+    setindex(m, :allcrops, allcrops)
     setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))

@@ -32,3 +32,7 @@ function usmap(df, centered=false)
     plot(x=xxs, y=yys, group=groups, color=colors,
          Geom.polygon(preserve_order=true, fill=true))
 end
+
+function xyplot(xx, yy, xlab, ylab)
+    Gadfly.plot(x=xx, y=yy, Guide.xlabel(xlab), Guide.ylabel(ylab))
+end

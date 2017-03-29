@@ -1,11 +1,23 @@
 using DataFrames
 
+## Univariate crop parametrs
+unicrop_irrigationrate = Dict("barley" => 78.5, "corn" => 67.2,
+                              "sorghum" => 0., "soybeans" => 33.3,
+                              "wheat" => 23.3, "hay" => 1.7) # mm/year
+unicrop_irrigationstress = Dict("barley" => 0., "corn" => 0.,
+                                "sorghum" => 0., "soybeans" => -22.7,
+                                "wheat" => 0., "hay" => -1.1) # (mm/year) / m-deficiency
+
+# Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
                           "Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
                           "Maize" => 1.47596435526564,
                           "Sorghum" => 1.1364914374721,
                           "Soybeans" => 1.37599595071683,
-                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
+                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068,
+"barley" => 1.18060761343329, "corn" => 1.47596435526564,
+"sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
+"wheat" => 0.684836198198068, "hay" => 1.63961100235402) # in m
 
 
 crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4.66905e6, "Barley.Winter" => 0,"Maize" => 7.70103e7,"Sorghum" => 3.95951e6 ,"Soybeans" => 0.0,"Wheat" => 1.10917e5, "Wheat.Winter" => 5.19694e7) 
@@ -25,19 +37,32 @@ sum_areas=sum(sumareas,2)
 
 
 # Per year costs
-cultivation_costs = Dict("alfalfa" => 426.55, "otherhay" => 426.55,
-                         "Barley" => 394.71, "Barley.Winter" => 394.71,
-                         "Maize" => 511.65,
-                         "Sorghum" => 327.78,
-                         "Soybeans" => 359.06,
-                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre
+#cultivation_costs = Dict("alfalfa" => 426.55, "otherhay" => 426.55,
+#                         "Barley" => 394.71, "Barley.Winter" => 394.71,
+#                         "Maize" => 511.65,
+#                         "Sorghum" => 327.78,
+#                         "Soybeans" => 359.06,
+#                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre
 
-maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
+cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
+                         "Barley" => 442., "Barley.Winter" => 442.,
+                         "Maize" => 554.,
+                         "Sorghum" => 314.,
+                         "Soybeans" => 221.,
+                         "Wheat" => 263., "Wheat.Winter" => 263.,
+                         "barley" => 442., "corn" => 554.,
+                         "sorghum" => 314., "soybeans" => 221.,
+"wheat" => 263., "hay" => 306.) # USD / acre
+
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
                       "Maize" => 250.,
                       "Sorghum" => 150.,
                       "Soybeans" => 100.,
-                      "Wheat" => 250., "Wheat.Winter" => 250.)
+                      "Wheat" => 250., "Wheat.Winter" => 250.,
+                      "barley" => 200., "corn" => 250.,
+                      "sorghum" => 150., "soybeans" => 100.,
+"wheat" => 250., "hay" => 306.)
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -99,6 +124,37 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
     end
 end
 
+function findcroppath(prefix, crop, suffix, recurse=true)
+    println(prefix * crop * suffix)
+    if isfile(datapath(prefix * crop * suffix))
+        return datapath(prefix * crop * suffix)
+    end
+
+    if isupper(crop[1]) && isfile(datapath(prefix * lcfirst(crop) * suffix))
+        return datapath(prefix * lcfirst(crop) * suffix)
+    end
+
+    if islower(crop[1]) && isfile(datapath(prefix * ucfirst(crop) * suffix))
+        return datapath(prefix * ucfirst(crop) * suffix)
+    end
+
+    if !recurse
+        return nothing
+    end
+
+    croptrans = Dict{AbstractString, Vector{AbstractString}}("corn" => ["maize"], "hay" => ["otherhay"], "maize" => ["corn"])
+    if lowercase(crop) in keys(croptrans)
+        for crop2 in croptrans[lowercase(crop)]
+            path2 = findcroppath(prefix, crop2, suffix, false)
+            if path2 != nothing
+                return path2
+            end
+        end
+    end
+
+    return nothing
+end
+
 if isfile(cachepath("agmodels.jld"))
     println("Loading from saved region network...")
 
@@ -107,16 +163,21 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    for crop in crops
+    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
+                                                "sorghum" => "Sorghum", "soybeans" => "Soybeans",
+                                                "wheat" => "Wheat", "hay" => "alfalfa")
+    for crop in allcrops
+        println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
-        national = StatisticalAgricultureModel(nationals, :crop, crop)
-        if isfile(joinpath(datapath("agriculture/bayesian/$crop.csv")))
-            counties = readtable(joinpath(datapath("agriculture/bayesian/$crop.csv")))
+        national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
+        bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
+        if bayespath != nothing
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
-            counties = readtable(joinpath(datapath("agriculture/unpooled-$crop.csv")))
+            counties = readtable(findcroppath("agriculture/unpooled-", crop, ".csv"))
             combiner = gaussianpool
         end
 
@@ -132,5 +193,7 @@ else
         end
     end
 
-    serialize(open(cachepath("agmodels.jld"), "w"), agmodels)
+    fp = open(cachepath("agmodels.jld"), "w")
+    serialize(fp, agmodels)
+    close(fp)
 end

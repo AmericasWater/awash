@@ -1,6 +1,7 @@
 using RCall
 
 mapinited = false
+ggplotinited = false
 
 """
 df must have columns fips and the value column.
@@ -62,7 +63,6 @@ function usmap_colorado(df, centered=false)
 
         mapinited = true
     end
-
     if centered
         R"ggplot($df, aes(map_id=fips)) +
         geom_map(aes(fill=value), map=shapes) +
@@ -75,4 +75,12 @@ function usmap_colorado(df, centered=false)
         expand_limits(x=c(-1178560, -5e5), y=c(-49547, 475851)) +
         theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')"
     end
+end 
+    
+    
+function xyplot(xx, yy, title, xlab, ylab)
+    global ggplotinited
+    df = DataFrame(x=xx, y=yy)
+    R"ggplot($df, aes(x, y)) +
+geom_point() + xlab($xlab) + ylab($ylab) + ggtitle($title) + theme_bw()"
 end

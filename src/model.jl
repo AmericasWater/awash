@@ -25,6 +25,6 @@ waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 groundwater[:withdrawal] = allocation[:watergw];
 
-market[:produced] = agriculture[:production];
+market[:produced] = agriculture[:allcropproduction];
 market[:regionimports] = transportation[:regionimports];
 market[:regionexports] = transportation[:regionexports];

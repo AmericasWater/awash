@@ -157,3 +157,17 @@ end
 function grad_univariateagriculture_cost_totalareas(m::Model)
     roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
+
+function grad_univariateagriculture_allagarea_totalareas(m::Model)
+    function generate(A, tt)
+        for rr in 1:numcounties
+            for cc in 1:numunicrops
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+            end
+        end
+
+        return A
+    end
+
+    roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate)
+end

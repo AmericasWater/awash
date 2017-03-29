@@ -11,7 +11,45 @@ include("optimization-colorado.jl")
 #include("optimization-colorado-fixedarea.jl")
 
 using MathProgBase
-@time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
+using Clp
+
+solver = ClpSolver()
+@time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers, solver)
+
+### XXX
+top, bot = findinfeasiblepair(house, solver) # 1483, 48573
+
+house2 = deepcopy(house);
+
+# All individually infeasible
+#clearconstraint!(house2, :Agriculture, :allagarea)
+#clearconstraint!(house2, :WaterNetwork, :outflows)
+#clearconstraint!(house2, :Allocation, :balance)
+#clearconstraint!(house2, :Market, :available)
+#clearconstraint!(house2, :Market, :domesticbalance)
+
+# Unbounded
+# clearconstraint!(house2, :Agriculture, :allagarea)
+# clearconstraint!(house2, :WaterNetwork, :outflows)
+
+# Unbounded
+# clearconstraint!(house2, :Agriculture, :allagarea)
+# clearconstraint!(house2, :Allocation, :balance)
+
+# Unbounded
+# clearconstraint!(house2, :Agriculture, :allagarea)
+# clearconstraint!(house2, :Allocation, :balance)
+
+# Unbounded
+# clearconstraint!(house2, :Agriculture, :allagarea)
+# clearconstraint!(house2, :Market, :available)
+
+# Unbounded
+# clearconstraint!(house2, :Agriculture, :allagarea)
+# clearconstraint!(house2, :Market, :domesticbalance)
+
+@time sol = linprog(-house2.f, house2.A, '<', house2.b, house2.lowers, house2.uppers)
+
 
 coning = constraining(house, convert(Vector{Float64}, sol.sol))
 

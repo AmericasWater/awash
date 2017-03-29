@@ -215,10 +215,6 @@ function grad_irrigationagriculture_allagarea_rainfedareas(m::Model)
     roomintersect(m, :IrrigationAgriculture, :allagarea, :rainfedareas, generate)
 end
 
-function constraintoffset_irrigationagriculture_allagarea(m::Model)
-    hallsingle(m, :IrrigationAgriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
-end
-
 function grad_irrigationagriculture_cost_rainfedareas(m::Model)
     roomdiagonal(m, :IrrigationAgriculture, :irrcultivationcost, :rainfedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end

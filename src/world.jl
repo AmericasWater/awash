@@ -16,9 +16,9 @@ include("waternet.jl")
 
 unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
 irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
-allcrops = [unicrops; irrcrops]
-
 #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+
+allcrops = [unicrops; irrcrops]
 
 if config["dataset"] == "dummy"
     numcounties = 5

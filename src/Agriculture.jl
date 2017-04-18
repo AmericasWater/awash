@@ -56,7 +56,7 @@ function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
-    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
+    agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12

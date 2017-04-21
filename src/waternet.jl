@@ -76,7 +76,7 @@ else
         end
 
         # Clean out the source column, so these no longer have meaning!
-        draws[:source] = nothing
+        #draws[:source] = nothing
     else
         includeds = trues(nrow(netdata))
     end

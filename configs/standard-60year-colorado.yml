@@ -3,10 +3,10 @@
 filterstate: "08"
 
 # Current options: usa (full-country), dummy (5-counties)
-netset: usa
+dataset: counties 
 
 # First and last month of the simulation
-startmonth: 1/1951
+startmonth: 1/2010   #1/1951
 endmonth: 12/2010
 
 # First entry in VIC_WB to include
@@ -28,3 +28,9 @@ timestep: 12
 optimtype: "SWGW"
 # Reservoir capacity : set rescap to zero 
 rescap: "zero"
+
+
+urbandemand-path: demand/urbandemand_May11.csv
+urbandemand-column: per_capita
+urbandemand-transform: repcap
+urbandemand-index: FIPS_county

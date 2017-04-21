@@ -14,6 +14,7 @@ include("lib/agriculture.jl")
     rainfedareascst = Parameter(index=[regions, crops], unit="Ha")
 
     # Inputs
+    knownarea=Parameter(index=[regions, time], unit="Ha")
     othercropsarea = Parameter(index=[regions, time], unit="Ha")
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
@@ -58,9 +59,12 @@ end
 
 function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
-
+    known=readtable(joinpath(datapath("agriculture/known_colorado.csv")))
+    agriculture[:knownarea]=repeat(convert(Vector,known[:knownareas])*0.404686,outer=[1,numsteps])
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
-    agriculture[:othercropsarea] = repeat(convert(Vector, knownareas[:total] - knownareas[:known]), outer=[1, numsteps])
+    #agriculture[:knownarea]=repeat(convert(Vector,knownareas[:total]),outer=[1,numsteps])
+    agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
+
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
@@ -111,9 +115,22 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
     roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate)
 end
 
+#function constraintoffset_agriculture_allagarea(m::Model)
+#    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
+#end
+
+
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> countylandareas[rr] - m.parameters[:othercropsarea].values[rr, tt])
+    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> m.parameters[:knownarea].values[rr, tt])
 end
+
+
+#function constraintoffset_agriculture_allagarea(m::Model)
+#    knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
+#    known=repeat(convert(Vector,knownareas[:total]),outer=[1,numsteps])
+#    gen(rr, tt) = known[rr, tt] 
+#    hallsingle(m,:Agriculture, :allagarea,gen)
+#end
 
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)
     function gen(A, tt)

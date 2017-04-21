@@ -22,15 +22,15 @@ m = newmodel();
 
 # Add all of the components
 populationdemand = initpopulationdemand(m, m.indices_values[:time]); # exogenous
-univariateagriculture = initunivariateagriculture(m) # optimization-only
-irrigationagriculture = initirrigationagriculture(m) # optimization-only
+univariateagriculture = initunivariateagriculture(m); # optimization-only
+irrigationagriculture = initirrigationagriculture(m); # optimization-only
 agriculture = initagriculture(m); # dep. IrrigationAgriculture, UnivariateAgriculture
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
 transportation = inittransportation(m); # optimization-only
 market = initmarket(m); # dep. Transporation, Agriculture
-urbandemand = initurbandemand(m) # Just here for the parameters
+urbandemand = initurbandemand(m); # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
@@ -62,6 +62,7 @@ if redohouse
     println("Constraints...")
 
     # Constrain agriculture < county area
+    #Fix to total Ag area 
     setconstraint!(house, room_relabel(grad_univariateagriculture_allagarea_totalareas(m), :allagarea, :Agriculture, :allagarea)) # +
     setconstraint!(house, room_relabel(grad_irrigationagriculture_allagarea_irrigatedareas(m), :allagarea, :Agriculture, :allagarea)) # +
     setconstraint!(house, room_relabel(grad_irrigationagriculture_allagarea_rainfedareas(m), :allagarea, :Agriculture, :allagarea)) # +
@@ -83,8 +84,8 @@ if redohouse
 
     # Constrain available market > 0
     setconstraint!(house, -grad_market_available_produced(m) * room_relabel(grad_agriculture_allcropproduction_unicropproduction(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Agriculture, :unicropproduction), :allcropproduction, :Market, :produced)) # -
-    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced)) # -
-    setconstraint!(house, -grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced)) # -
+    #setconstraint!(house, -grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced)) # -
+    #setconstraint!(house, -grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced)) # -
     setconstraint!(house, -grad_market_available_internationalsales(m)) # +
     setconstraint!(house, -(grad_market_available_regionimports(m) * grad_transportation_regionimports_imported(m) +
                    grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m))) # +-
@@ -99,8 +100,8 @@ if redohouse
     # Constrain domesticsales < domesticdemand
     # Reproduce 'available'
     setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(grad_agriculture_allcropproduction_unicropproduction(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Agriculture, :unicropproduction), :allcropproduction, :Market, :produced), :available, :Market, :domesticbalance)) # +
-    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced), :available, :Market, :domesticbalance)) # +
-    setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced), :available, :Market, :domesticbalance)) # +
+    #setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_irrigatedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced), :available, :Market, :domesticbalance)) # +
+    #setconstraint!(house, room_relabel(grad_market_available_produced(m) * room_relabel(irrproduction2allproduction * room_relabel(grad_irrigationagriculture_production_rainfedareas(m), :production, :Agriculture, :irrcropproduction), :allcropproduction, :Market, :produced), :available, :Market, :domesticbalance)) # +
     setconstraint!(house, room_relabel(grad_market_available_internationalsales(m), :available, :Market, :domesticbalance)) # -
     setconstraint!(house, room_relabel(grad_market_available_regionimports(m) * grad_transportation_regionimports_imported(m) +
                                        grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m), :available, :Market, :domesticbalance)) # +-

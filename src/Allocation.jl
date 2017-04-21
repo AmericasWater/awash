@@ -50,6 +50,7 @@ include("watercostdata.jl")
 
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
+    totaluse=Variable(index=[regions,time],unit="1000m^3")
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
 end
@@ -85,6 +86,7 @@ function run_timestep(c::Allocation, tt::Int)
         v.cost[rr, tt] = p.waterfromgw[rr,tt]*p.unitgwextractioncost[rr,tt] + v.swcost[rr,tt] + p.waterfromsupersource[rr,tt]*p.unitsupersourcecost 
 
         v.balance[rr, tt] = v.waterallocated[rr, tt] - p.watertotaldemand[rr, tt]
+        #v.totaluse[rr,tt]=v.waterallocated[rr,tt]
         v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
        
     end
@@ -94,8 +96,11 @@ end
 Add a demand component to the model.
 """
 function initallocation(m::Model)
-    gwtotal = readtable(joinpath(todata, "Colorado/GW_Total.csv"));
-    gwtotal=repeat(sum(convert(Matrix, gwtotal),2)/1000.,outer=[1,numsteps])
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+      
+    #gwtotal = readtable(joinpath(datapath("agriculture/GW_Total.csv")));
+    #gwtotal=repeat(sum(convert(Matrix, gwtotal),2)/1000.,outer=[1,numsteps])
+    
     allocation = addcomponent(m, Allocation);
     allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     
@@ -113,8 +118,8 @@ function initallocation(m::Model)
 
     else
 
-        recorded = getfilteredtable("extraction/USGS-2010.csv")
-
+        
+       
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
@@ -128,6 +133,10 @@ end
 """
 The objective is to minimize water allocation costs at all time
 """
+
+
+
+
 function waterallocationobj(m::Model)
     -sum(m.components[:Allocation].Variables.cost)
 end
@@ -196,6 +205,43 @@ function grad_allocation_balance_withdrawals(m::Model)
 
     roomintersect(m, :Allocation, :balance, :withdrawals, generate)
 end
+
+
+################TOTAL USE CONSTRAINT###########################
+function grad_allocation_totaluse_waterfromgw(m::Model)
+    roomdiagonal(m,:Allocation, :totaluse, :waterfromgw, (rr, tt)-> 1.)
+end
+
+
+function grad_allocation_totaluse_waterfromsupersource(m::Model)
+    roomdiagonal(m,:Allocation, :totaluse, :waterfromsupersource, (rr, tt)-> 1.)
+end
+
+function grad_allocation_totaluse_withdrawals(m::Model)
+    function generate(A, tt)
+        # Fill in COUNTIES x CANALS matrix
+        for pp in 1:nrow(draws)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
+            if rr > 0
+                A[rr, pp] = 1.
+            end
+        end
+    end
+
+    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
+end
+
+function constraintoffset_allocation_totaluse(m::Model)
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded_TO=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])
+    gen(rr, tt) = recorded_TO[rr, tt] 
+    hallsingle(m, :Allocation, :totaluse,gen)
+end
+
+
+################TOTAL USE CONSTRAINT###########################
+
+
 
 function grad_allocation_returnbalance_returns(m::Model)
     function generate(A, tt)

@@ -1,12 +1,12 @@
 using DataFrames
 
 ## Univariate crop parametrs
-unicrop_irrigationrate = Dict("barley" => 78.5, "corn" => 67.2,
-                              "sorghum" => 0., "soybeans" => 33.3,
-                              "wheat" => 23.3, "hay" => 1.7) # mm/year
-unicrop_irrigationstress = Dict("barley" => 0., "corn" => 0.,
-                                "sorghum" => 0., "soybeans" => -22.7,
-                                "wheat" => 0., "hay" => -1.1) # (mm/year) / m-deficiency
+unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
+                              "sorghum" => 0., "soybeans" => 16.8,
+                              "wheat" => 21.4, "hay" => 0.) # mm/year
+unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
+                                "sorghum" => 0., "soybeans" => 0.,
+                                "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
 
 # Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
@@ -24,16 +24,16 @@ crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4
 
 #crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9) 
 
-areas=convert(Matrix,readtable(datapath("agarea.csv")))
+#areas=convert(Matrix,readtable(datapath("agarea.csv")))
 
 
 
-rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
-irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
-rainfeds=convert(Matrix, rainfeds)*0.404686
-irrigateds=convert(Matrix, irrigateds)*0.404686
-sumareas=rainfeds+irrigateds
-sum_areas=sum(sumareas,2)
+#rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
+#irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
+#rainfeds=convert(Matrix, rainfeds)*0.404686
+#irrigateds=convert(Matrix, irrigateds)*0.404686
+#sumareas=rainfeds+irrigateds
+#sum_areas=sum(sumareas,2)
 
 
 # Per year costs

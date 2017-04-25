@@ -51,6 +51,7 @@ include("watercostdata.jl")
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
     totaluse=Variable(index=[regions,time],unit="1000m^3")
+    recorded_GW=Parameter(index=[regions,time],unit="1000m^3")
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
 end
@@ -96,14 +97,26 @@ end
 Add a demand component to the model.
 """
 function initallocation(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    
       
     #gwtotal = readtable(joinpath(datapath("agriculture/GW_Total.csv")));
     #gwtotal=repeat(sum(convert(Matrix, gwtotal),2)/1000.,outer=[1,numsteps])
     
-    allocation = addcomponent(m, Allocation);
-    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     
+    #recorded_GW=convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"]
+       
+    
+    
+    
+    
+    allocation = addcomponent(m, Allocation)
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #allocation[:recorded_GW]=repeat(recorded_GW,outer=[1,numsteps])
+    
+    
+    #allocation[:recorded_GW]=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+
     allocation[:unitgwextractioncost] = repeat(aquiferextractioncost, outer = [1,numsteps])+0.1;
     allocation[:unitswextractioncost] = repeat(canalextractioncost, outer = [1,numsteps])+0.1;
     allocation[:unitsupersourcecost] = 1e6 
@@ -118,7 +131,7 @@ function initallocation(m::Model)
 
     else
 
-        
+    allocation[:recorded_GW]=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])    
        
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
@@ -232,10 +245,9 @@ function grad_allocation_totaluse_withdrawals(m::Model)
 end
 
 function constraintoffset_allocation_totaluse(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    recorded_TO=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])
-    gen(rr, tt) = recorded_TO[rr, tt] 
-    hallsingle(m, :Allocation, :totaluse,gen)
+    recorded_GW=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+    gen(rr, tt) = recorded_GW[rr,tt]
+    hallsingle(m, :Allocation, :totaluse, gen)
 end
 
 

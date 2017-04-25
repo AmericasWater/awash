@@ -5,7 +5,7 @@ config["timestep"] = 12
 
 include("../../src/world.jl");
 include("../../src/weather.jl");
-include("../../src/Agriculture.jl");
+include("../../src/UnivariateAgriculture.jl");
 
 ## XXX: This code duplicates some of the work in James's crops/regress.jl
 

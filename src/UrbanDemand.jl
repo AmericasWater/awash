@@ -5,7 +5,6 @@ include("lib/readconfig.jl")
 
 @defcomp UrbanDemand begin
     regions = Index()
-    crops = Index()
 
     # Urban demands - exogeneous for now
     domesticdemand = Parameter(index=[regions, time],unit="1000 m^3")

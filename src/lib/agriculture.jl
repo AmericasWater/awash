@@ -173,3 +173,45 @@ else
     serialize(fp, agmodels)
     close(fp)
 end
+
+alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"])
+
+"""
+Determine which crops are not represented
+"""
+function missingcrops()
+    for crop in alluniquecrops
+        found = false
+        if crop in allcrops
+            found = true
+        else
+            for othername in uniquemapping[crop]
+                if othername in allcrops
+                    found = true
+                    break
+                end
+            end
+        end
+
+        if !found
+            produce(crop)
+        end
+    end
+end
+
+"""
+Return the current crop area for every crop, in Ha
+"""
+function currentcroparea(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df[:, crop] * 0.404686
+end
+
+"""
+Return the current irrigation for the given crop, in mm
+"""
+function cropirrigationrates(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    getunivariateirrigationrates(crop)
+end

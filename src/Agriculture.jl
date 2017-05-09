@@ -59,13 +59,17 @@ function initagriculture(m::Model)
 
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
     agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
-    for crop in missingcrops()
-    end
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
+
+    for crop in missingcrops()
+        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
+        agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
+        agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
+    end
 
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
     agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))

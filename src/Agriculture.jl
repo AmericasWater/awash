@@ -65,7 +65,7 @@ function initagriculture(m::Model)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
-    for crop in missingcrops()
+    for crop in Task(missingcrops())
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
         agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
         agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100

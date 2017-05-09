@@ -13,10 +13,12 @@ include("lib/agriculture.jl")
     othercropsarea = Parameter(index=[regions, time], unit="Ha")
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
+    # From IrrigationAgriculture
     irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
     irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
     irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
+    # From UnivariateAgriculture
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
@@ -57,6 +59,8 @@ function initagriculture(m::Model)
 
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
     agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
+    for crop in missingcrops()
+    end
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12

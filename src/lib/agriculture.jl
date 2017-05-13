@@ -162,7 +162,11 @@ else
             counties = readtable(bayespath)
             combiner = fallbackpool
         else
-            counties = readtable(findcroppath("agriculture/unpooled-", crop, ".csv"))
+            croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
+            if croppath == nothing
+                continue
+            end
+            counties = readtable(croppath)
             combiner = gaussianpool
         end
 

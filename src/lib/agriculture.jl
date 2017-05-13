@@ -8,6 +8,11 @@ unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
                                 "sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
 
+known_irrigationrate = Dict("corn.co.rainfed" => 0,
+                            "corn.co.irrigated" => 1.6 * 304.8, # convert ft -> mm
+                            "wheat.co.rainfed" => 0,
+                            "wheat.co.irrigated" => 1.9 * 304.8) # convert ft -> mm
+
 # Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
                           "Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
@@ -22,13 +27,12 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
 # Per year costs
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Barley" => 442., "Barley.Winter" => 442.,
-                         "Maize" => 554.,
-                         "Sorghum" => 314.,
-                         "Soybeans" => 221.,
-                         "Wheat" => 263., "Wheat.Winter" => 263.,
-                         "barley" => 442., "corn" => 554.,
+                         "Maize" => 554., "Sorghum" => 314.,
+                         "Soybeans" => 221., "Wheat" => 263., "Wheat.Winter" => 263., "barley" => 442.,
+                         "corn" => 554., "corn.co.rainfed" => 554., "corn.co.irrigated" => 554.,
                          "sorghum" => 314., "soybeans" => 221.,
-"wheat" => 263., "hay" => 306.) # USD / acre
+"wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
+"hay" => 306.) # USD / acre
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
@@ -39,6 +43,11 @@ maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "barley" => 200., "corn" => 250.,
                       "sorghum" => 150., "soybeans" => 100.,
 "wheat" => 250., "hay" => 306.)
+
+quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonirrigated-planted.csv",
+                          "corn.co.irrigated" => "agriculture/allyears/maize-irrigated-planted.csv",
+                          "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
+                          "wheat.co.irrigated" => "agriculture/allyears/wheat-irrigated-planted.csv")
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -172,4 +181,96 @@ else
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
     close(fp)
+end
+
+alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"])
+
+"""
+Determine which crops are not represented
+"""
+function missingcrops()
+    for crop in alluniquecrops
+        found = false
+        if crop in allcrops
+            found = true
+        else
+            for othername in uniquemapping[crop]
+                if othername in allcrops
+                    found = true
+                    break
+                end
+            end
+        end
+
+        if !found
+            produce(crop)
+        end
+    end
+end
+
+"""
+Return the current crop area for every crop, in Ha
+"""
+function currentcroparea(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df[:, crop] * 0.404686
+end
+
+"""
+Return the current irrigation for the given crop, in mm
+"""
+function cropirrigationrates(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    getunivariateirrigationrates(crop)
+end
+
+"""
+Read Naresh's special yield file format
+"""
+function read_nareshyields(crop::AbstractString)
+    # Get the yield data
+    if crop == "corn.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+    elseif crop == "corn.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+    elseif crop == "wheat.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+    elseif crop == "wheat.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+    end
+
+    # Get the order into our fips
+    regionindices = getregionindices(fipses)
+    result = zeros(numcounties, numsteps)
+
+    for ii in 1:numsteps
+        result[regionindices, ii] = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :]))
+    end
+
+    result
+end
+
+"""
+Read USDA QuickStats data
+"""
+function read_quickstats(filepath::AbstractString)
+    df = readtable(filepath)
+    df[:fips] = [isna(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
+
+    # Reorder these values to match regions
+    indices = getregionindices(canonicalindex(convert(Vector{Int64}, df[:fips])))
+    result = zeros(nrow(masterregions))
+    result[indices[indices .> 0]] = df[:xvalue][indices .> 0]
+
+    result
 end

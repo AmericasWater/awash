@@ -1,12 +1,29 @@
 using DataFrames
 
 ## Univariate crop parametrs
-unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
-                              "sorghum" => 0., "soybeans" => 16.8,
-                              "wheat" => 21.4, "hay" => 0.) # mm/year
-unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "sorghum" => 0., "soybeans" => 0.,
-                                "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+#unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
+#                              "sorghum" => 0., "soybeans" => 16.8,
+#                              "wheat" => 21.4, "hay" => 0.) # mm/year
+#unicrop_irrigationrate = Dict("barley" => 121.8, "corn" => 187.2,
+#                              "sorghum" => 31.2, "soybeans" => 0.0,
+#                              "wheat" => 54.8, "hay" => 0.0) # mm/year
+
+#unicrop_irrigationstress = Dict("barley" => 0.0, "corn" => 0.0,
+#                                "sorghum" => 0.0, "soybeans" => 0.0,
+#                                "wheat" =>54.8, "hay" => 0.0) # (mm/year) / m-deficiency
+#unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
+#                                "sorghum" => 0., "soybeans" => 0.,
+#                                "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+
+
+unicrop_irrigationrate = Dict("barley" => 1530.148, "corn" => 0,
+                              "sorghum" => 0, "soybeans" => 0.0,
+                              "wheat" => 0, "hay" => 0.0) # mm/year
+
+unicrop_irrigationstress = Dict("barley" => 298.8803, "corn" => 1864.5602,
+                                "sorghum" => 499.6120, "soybeans" => 153.5861,
+                                "wheat" => 194.1666, "hay" => 2017.1677) # (mm/year) / m-deficiency
+
 
 # Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,

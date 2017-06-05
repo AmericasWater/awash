@@ -171,3 +171,6 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
 
     roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate)
 end
+
+
+

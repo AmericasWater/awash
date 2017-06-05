@@ -50,7 +50,8 @@ include("watercostdata.jl")
 
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
-    totaluse=Variable(index=[regions,time],unit="1000m^3")
+    totaluse=Variable(index=[time],unit="1000m^3")                      #STATE LEVEL CONSTRAINT 
+    #totaluse=Variable(index=[regions,time],unit="1000m^3")             #COUNTY LEVEL CONSTRAINT 
     recorded_GW=Parameter(index=[regions,time],unit="1000m^3")
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
@@ -221,34 +222,35 @@ end
 
 
 ################TOTAL USE CONSTRAINT###########################
-function grad_allocation_totaluse_waterfromgw(m::Model)
+function grad_allocation_totaluse_waterfromgw_(m::Model)    #COUNTY LEVEL CONSTRAINT 
     roomdiagonal(m,:Allocation, :totaluse, :waterfromgw, (rr, tt)-> 1.)
 end
 
 
-function grad_allocation_totaluse_waterfromsupersource(m::Model)
-    roomdiagonal(m,:Allocation, :totaluse, :waterfromsupersource, (rr, tt)-> 1.)
-end
 
-function grad_allocation_totaluse_withdrawals(m::Model)
-    function generate(A, tt)
-        # Fill in COUNTIES x CANALS matrix
-        for pp in 1:nrow(draws)
-            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
-            if rr > 0
-                A[rr, pp] = 1.
-            end
-        end
-    end
+function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT 
+    function generate(A,tt)
+        A[:] = 1
+    end    
+    roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
+end 
 
-    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
-end
 
-function constraintoffset_allocation_totaluse(m::Model)
+function constraintoffset_allocation_totaluse_(m::Model) #COUNTY LEVEL CONSTRAINT 
     recorded_GW=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
     gen(rr, tt) = recorded_GW[rr,tt]
     hallsingle(m, :Allocation, :totaluse, gen)
 end
+
+function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded_GW=sum(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"])
+    gen(tt) = recorded_GW[tt]
+    hallsingle(m, :Allocation, :totaluse, gen)
+end
+
+#change GW dimension for County OR State 
+
 
 
 ################TOTAL USE CONSTRAINT###########################

@@ -132,6 +132,13 @@ end
 #    hallsingle(m,:Agriculture, :allagarea,gen)
 #end
 
+
+sorghum=readtable(joinpath(datapath("agriculture/sorghum.csv")))
+sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
+
+
+
+
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)
     function gen(A, tt)
         # A: R x ALL x R x UNI

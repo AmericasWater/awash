@@ -14,11 +14,23 @@ include("waternet.jl")
 
 # Prepare the model
 
-unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
-irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
-#irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+#unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+#irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+##irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+
+if config["dataset"] == "states"
+    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+else
+    unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # "corn", "wheat" # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+end
 
 allcrops = [unicrops; irrcrops]
+
+
 
 if config["dataset"] == "dummy"
     numcounties = 5

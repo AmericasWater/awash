@@ -105,8 +105,9 @@ function regionindex(tbl, rows; tostr=true)
     return canonicalindex(indexes)
 end
 
+"""Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64}
+    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: DataVector{UTF8String}
@@ -120,6 +121,11 @@ function canonicalindex(indexes)
     end
 
     error("Unknown index column type $(typeof(indexes))")
+end
+
+"""Return the index for each region key."""
+function getregionindices(fipses)
+    map(fips -> findfirst(masterregions[:fips], fips), fipses)
 end
 
 lastindexcol = nothing

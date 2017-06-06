@@ -62,6 +62,7 @@ function initagriculture(m::Model)
     known=readtable(joinpath(datapath("agriculture/known_colorado.csv")))
     agriculture[:knownarea]=repeat(convert(Vector,known[:knownareas])*0.404686,outer=[1,numsteps])
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
+
     #agriculture[:knownarea]=repeat(convert(Vector,knownareas[:total]),outer=[1,numsteps])
     agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
 

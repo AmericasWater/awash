@@ -71,7 +71,15 @@ function initunivariateagriculture(m::Model)
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numsteps)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
+
     for cc in 1:numunicrops
+        if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
+            yield[:,cc,:] = read_nareshyields(unicrops[cc])
+            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+            continue
+        end
+
+
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
@@ -123,15 +131,17 @@ function initunivariateagriculture(m::Model)
     if isempty(unicrops)
         agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
     else
-        columns = map(crop -> findfirst(symbol(crop) .== names(totalareas)), unicrops)
-        columns = convert(Vector{Int64}, columns)
-        for cc in columns
-            # Replace NAs with 0, and convert to float. TODO: improve this
-            totalareas[isna(totalareas[cc]), cc] = 0.
-            # Convert to Ha
-            totalareas[cc] = totalareas[cc] * 0.404686
+        constantareas = zeros(numcounties, numunicrops)
+        for cc in 1:numunicrops
+            if unicrops[cc] in keys(quickstats_planted)
+                constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
+            else
+                column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
+                constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
+                constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+            end
         end
-        agriculture[:totalareas] = repeat(convert(Matrix, totalareas[:, columns]), outer=[1, 1, numsteps])
+        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
     end
 
     agriculture

@@ -31,6 +31,7 @@ include("lib/agriculture.jl")
     allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
     allirrigation = Variable(index=[regions, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
+    sorghumarea=Variable(index=[regions, time], unit="Ha")
 end
 
 function run_timestep(s::Agriculture, tt::Int)
@@ -134,8 +135,15 @@ end
 #end
 
 
-sorghum=readtable(joinpath(datapath("agriculture/sorghum.csv")))
-sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
+
+
+function constraintoffset_agriculture_sorghumarea(m::Model)
+    sorghum=readtable(joinpath(datapath("agriculture/sorghum.csv")))
+    sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
+    gen(rr,tt)=sorghum[rr,tt]
+    hallsingle(m, :Agriculture, :sorghumarea, gen)
+end
+
 
 
 

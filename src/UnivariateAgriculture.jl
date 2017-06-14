@@ -22,7 +22,7 @@ include("lib/agriculture.jl")
     # Total agricultural area
     totalareas2 = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
     allagarea = Variable(index=[regions, time], unit="Ha")
-
+    sorghumarea=Variable(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
@@ -181,6 +181,30 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
 
     roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate)
 end
+
+
+
+function grad_univariateagriculture_sorghumarea_totalareas(m::Model)
+    function generate(A, tt)
+        for rr in 1:numcounties
+            for cc in 1:numunicrops
+                if unicrops[cc]=="sorghum"
+                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+                else 
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 0.
+            end
+        end
+
+        end
+        
+        return A
+    end
+
+        roomintersect(m, :UnivariateAgriculture, :sorghumarea, :totalareas, generate)
+end
+
+
+
 
 
 

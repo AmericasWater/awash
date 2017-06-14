@@ -196,7 +196,7 @@ function grad_allocation_cost_withdrawals(m::Model)
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
-                A[rr, pp] = m.parameters[:unitswextractioncost].values[rr,pp]
+                A[rr, pp] = 0#m.parameters[:unitswextractioncost].values[rr,pp]
 
             end
         end

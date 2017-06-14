@@ -11,10 +11,10 @@ endmonth: 12/2010
 
 # First entry in VIC_WB to include
 #startweather: 292 #10th percentile 
-#startweather: 340 #median number 29 
+startweather: 340 #median number 29 
 #startweather: 424 #90th 
 #startweather: 628 #extreme drought year 2002
-startweather: 16 #Jan 1951
+#startweather: 16 #Jan 1951
 
 
 # Cost configuration

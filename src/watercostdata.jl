@@ -52,6 +52,7 @@ if config["watercost-extraction"]
 # gw: extraction cost prop to drawdown to watertable
 	aquiferextractioncost = zeros(numcounties)
     colorado_drawdown= readtable(joinpath(datapath("agriculture/drawdown.csv")))
+    #80.6 replaced with 1000000
     aquiferextractioncost=array(0.3048*colorado_drawdown[:mean])
 end 
 #end 

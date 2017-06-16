@@ -65,6 +65,7 @@ end
 
 """
 Return a matrix of MONTH x GAUGES (to match order for `sum2timestep`).
+Return as 1000 m^3
 
 # Arguments
 * `stations::DataFrame`: Contains `lat` and `lon` columns to match up
@@ -75,8 +76,9 @@ function getadded(stations::DataFrame)
     gage_latitude = dncload("runoff", "gage_latitude", ["gage"])
     gage_longitude = dncload("runoff", "gage_longitude", ["gage"])
     gage_totalflow = dncload("runoff", "totalflow", ["month", "gage"])
+    gage_area = dncload("runoff", "contributing_area", ["gage"])
 
-    added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions
+    added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
     for ii in 1:nrow(stations)
         gage = find((stations[ii, :lat] .== gage_latitude) & (stations[ii, :lon] .== gage_longitude))
@@ -84,7 +86,7 @@ function getadded(stations::DataFrame)
             continue
         end
 
-        added[:, ii] = vec(gage_totalflow[gage[1], :])
+        added[:, ii] = vec(gage_totalflow[gage[1], :]) .* vec(gage_area[gage[1], :])
     end
 
     added[isnan(added)] = 0 # if NaN, set to 0 so doesn't propagate

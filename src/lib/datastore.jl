@@ -79,6 +79,18 @@ function cached_store(filename, object, usehash=true)
 end
 
 """
+Remove all jld files for this configuration
+"""
+function cache_clear()
+    for filename in readdir(cachepath(""))
+        if contains(filename, ".jld")
+            println(filename)
+            rm(cachepath(filename))
+        end
+    end
+end
+
+"""
 Get the region index for one or more rows
 """
 function regionindex(tbl, rows; tostr=true)

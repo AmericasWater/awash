@@ -36,8 +36,8 @@ urbandemand = initurbandemand(m); # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture]
 parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture]
-constraints = [:allagarea, :outflows, :balance,:totaluse,:sorghumarea]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation]
+constraints = [:allagarea, :outflows, :balance,:totaluse]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
@@ -49,7 +49,6 @@ if redohouse
     # Optimize revenue_domestic + revenue_international - pumping_cost - transit_cost
     println("Objectives...")
     setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
-    setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     #setobjective!(house, -varsum(grad_transportation_cost_imported(m)))
     setobjective!(house, -varsum(grad_univariateagriculture_cost_totalareas(m)))
     setobjective!(house, -varsum(grad_irrigationagriculture_cost_rainfedareas(m)))
@@ -71,16 +70,6 @@ if redohouse
     setconstraint!(house, room_relabel(grad_irrigationagriculture_allagarea_rainfedareas(m), :allagarea, :Agriculture, :allagarea)) # +
     setconstraintoffset!(house, constraintoffset_agriculture_allagarea(m))
 
-    
-    # Constrain Sorghum Areas 
-    setconstraint!(house,room_relabel(grad_univariateagriculture_sorghumarea_totalareas(m),:sorghumarea,:Agriculture,:sorghumarea))
-   setconstraintoffset!(house,constraintoffset_agriculture_sorghumarea(m)) 
-    
-    
-    
-    
-    
-    
     # Constrain outflows + runoff > 0, or -outflows < runoff **SAME AS CST 
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
@@ -126,15 +115,15 @@ if redohouse
     
     
     
-    #GW CONSTRAINT AT STATE 
+    #GW CONSTRAINT AT COUNTY 
     #setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
     setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
-    setconstraintoffset!(house, constraintoffset_allocation_totaluse(m))
     #setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
     
 #setconstraint!(house,room_relabel(grad_allocation_balance_waterfromgw(m),:balance,:Allocation,:totaluse))
-    #setconstraintoffset!(house, max(constraintoffset_allocation_totaluse(m), hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :totaluse)))
+    setconstraintoffset!(house, max(constraintoffset_allocation_totaluse(m), hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :totaluse)))
     
+    #setconstraint!(house,varsum(grad_allocation_totaluse_waterfromgw(m)))
     
     # Constrain agriculture < county area
     #Fix to total Ag area 

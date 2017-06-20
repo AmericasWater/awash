@@ -193,10 +193,11 @@ function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
+            mastercounties=readtable(joinpath(datapath("global/counties.csv")));
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
             rr = findfirst(mastercounties[:fips] .== fips)
             if rr > 0
-                A[rr, pp] = 0#m.parameters[:unitswextractioncost].values[rr,pp]
+                A[rr, pp] = m.parameters[:unitswextractioncost].values[rr,pp]
 
             end
         end
@@ -244,9 +245,16 @@ end
 
 function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    recorded_GW=sum(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"])
-    gen(tt) = recorded_GW[tt]
-    hallsingle(m, :Allocation, :totaluse, gen)
+    recorded_GW=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+    recorded_GW=sum(recorded_GW,1)
+    gen(tt)=recorded_GW[tt]
+    hallsingle(m, :Allocation, :totaluse,gen)
+    
+    
+    #recorded_GW=sum(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"])
+    #recorded_GW=repeat(convert(Vector,recorded_GW),outer=[1,numsteps])
+    #gen(tt,) = recorded_GW[tt]
+    #hallsingle(m, :Allocation, :totaluse,gen)
 end
 
 #change GW dimension for County OR State 

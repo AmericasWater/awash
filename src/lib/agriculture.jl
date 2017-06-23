@@ -198,7 +198,7 @@ else
 end
 
 alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
-uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => "barley", "Barley.Winter" => "barley", "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
 
 """
 Determine which crops are not represented

@@ -12,6 +12,9 @@ include("lib/agriculture.jl")
     totalareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     totalareas_cst=Parameter(index=[regions,unicrops],unit="Ha") 
     
+    sorghumarea=Variable(index=[regions, time], unit="Ha")
+    barleyarea=Variable(index=[regions, time], unit="Ha")
+    
     # Internal
     # Yield per hectare
     yield = Parameter(index=[regions, unicrops, time], unit="none")
@@ -298,6 +301,44 @@ function grad_univariateagriculture_allagarea_totalareas_cst(m::Model)
 end
 
 
+
+
+function grad_univariateagriculture_sorghumarea_totalareas_cst(m::Model)
+    function generate(A)
+        for rr in 1:numcounties
+            for tt in 1:numsteps
+                for cc in 1:numunicrops
+                    if unicrops[cc]=="sorghum"
+                     A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+                    else 
+                       A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 0.
+                    end 
+                end
+            end
+        end
+        return A
+    end
+    roomintersect(m, :UnivariateAgriculture, :sorghumarea, :totalareas_cst, generate)
+end
+
+
+function grad_univariateagriculture_barleyarea_totalareas_cst(m::Model)
+    function generate(A)
+        for rr in 1:numcounties
+            for tt in 1:numsteps
+                for cc in 1:numunicrops
+                        if unicrops[cc]=="barley"
+                     A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+                    else 
+                       A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 0. 
+                    end 
+                end
+            end
+        end
+        return A
+    end
+            roomintersect(m, :UnivariateAgriculture, :barleyarea, :totalareas_cst, generate)
+end
 
 
 

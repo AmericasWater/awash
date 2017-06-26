@@ -23,6 +23,7 @@ include("lib/agriculture.jl")
     totalareas2 = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
     allagarea = Variable(index=[regions, time], unit="Ha")
     sorghumarea=Variable(index=[regions, time], unit="Ha")
+    barleyarea=Variable(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
@@ -148,7 +149,7 @@ function initunivariateagriculture(m::Model)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert acres to Ha
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
@@ -203,7 +204,24 @@ function grad_univariateagriculture_sorghumarea_totalareas(m::Model)
         roomintersect(m, :UnivariateAgriculture, :sorghumarea, :totalareas, generate)
 end
 
+function grad_univariateagriculture_barleyarea_totalareas(m::Model)
+    function generate(A, tt)
+        for rr in 1:numcounties
+            for cc in 1:numunicrops
+                if unicrops[cc]=="barley"
+                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+                else 
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 0.
+            end
+        end
 
+        end
+        
+        return A
+    end
+
+    roomintersect(m, :UnivariateAgriculture, :barleyarea, :totalareas, generate)
+end
 
 
 

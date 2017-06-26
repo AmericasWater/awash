@@ -32,6 +32,7 @@ include("lib/agriculture.jl")
     allirrigation = Variable(index=[regions, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
     sorghumarea=Variable(index=[regions, time], unit="Ha")
+    barleyarea=Variable(index=[regions, time], unit="Ha")
 end
 
 function run_timestep(s::Agriculture, tt::Int)
@@ -145,7 +146,12 @@ function constraintoffset_agriculture_sorghumarea(m::Model)
 end
 
 
-
+function constraintoffset_agriculture_barleyarea(m::Model)
+    barley=readtable(joinpath(datapath("agriculture/barley.csv")))
+    barley=repeat(convert(Vector,barley[:barley])*0.404686,outer=[1,numsteps])
+    gen(rr,tt)=barley[rr,tt]
+    hallsingle(m, :Agriculture, :barleyarea, gen)
+end
 
 
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)

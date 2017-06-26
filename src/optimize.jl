@@ -66,12 +66,12 @@ using MathProgBase
     end
 
     
-    varlengths(m, house.paramcomps, house.parameters)
+    varlens = varlengths(m, house.paramcomps, house.parameters)
 
 
-    serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps)) 
-    serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1])+1:sum(varlens[1:2])], numcanals, numsteps)) 
-    serialize(open("../data/extraction/totalareas$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,numallcrops, numsteps)) 
+    serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps)) ;
+    serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[(sum(varlens[1])+1):sum(varlens[1:2])], numcanals, numsteps)) ;
+    serialize(open("../data/extraction/totalareas$suffix.jld", "w"), reshape(sol.sol[(sum(varlens[1:2])+1):sum(varlens[1:3])], numcounties,numallcrops, numsteps)) ;
     
     
 

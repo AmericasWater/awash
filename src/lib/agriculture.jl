@@ -53,16 +53,15 @@ crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4
 #                         "Maize" => 511.65,
 #                         "Sorghum" => 327.78,
 #                         "Soybeans" => 359.06,
-#                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre
+#                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre barley=442
 
-cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
-                         "Barley" => 442., "Barley.Winter" => 442.,
-                         "Maize" => 554., "Sorghum" => 314.,
-                         "Soybeans" => 221., "Wheat" => 263., "Wheat.Winter" => 263., "barley" => 442.,
-                         "corn" => 554., "corn.co.rainfed" => 554., "corn.co.irrigated" => 554.,
-                         "sorghum" => 314., "soybeans" => 221.,
-"wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
-"hay" => 306.) # USD / acre
+cultivation_costs = Dict("corn" => 401., "corn.co.rainfed" =>401., "corn.co.irrigated" => 401.,
+                         "sorghum" => 250., "soybeans" => 260.,
+"wheat" => 203., "wheat.co.rainfed" => 203, "wheat.co.irrigated" =>203,
+"hay" => 545.,"barley"=>256.) # USD / acre (ALL Operating and Overhead Cost -Land - Unpaid Labor) 
+
+
+
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
@@ -70,7 +69,7 @@ maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Sorghum" => 150.,
                       "Soybeans" => 100.,
                       "Wheat" => 250., "Wheat.Winter" => 250.,
-                      "barley" => 200., "corn" => 250.,
+                      "barley" => 135., "corn" => 250.,
                       "sorghum" => 150., "soybeans" => 100.,
 "wheat" => 250., "hay" => 306.)
 

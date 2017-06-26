@@ -36,8 +36,8 @@ urbandemand = initurbandemand(m); # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst, :rainfedareas_cst, :irrigatedareas_cst]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation]
-constraints = [:allagarea, :outflows, :balance, :totaluse]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Agriculture]
+constraints = [:allagarea, :outflows, :balance, :totaluse,:sorghumarea,:barleyarea]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
@@ -119,7 +119,13 @@ if redohouse
     setconstraintoffset!(house, constraintoffset_allocation_totaluse(m))
     
     
+        # Constrain Sorghum Areas 
+    setconstraint!(house,room_relabel(grad_univariateagriculture_sorghumarea_totalareas_cst(m),:sorghumarea,:Agriculture,:sorghumarea))
+   setconstraintoffset!(house,constraintoffset_agriculture_sorghumarea(m)) 
     
+    # Constrain Barley Areas 
+    setconstraint!(house,room_relabel(grad_univariateagriculture_barleyarea_totalareas_cst(m),:barleyarea,:Agriculture,:barleyarea))
+    setconstraintoffset!(house,constraintoffset_agriculture_barleyarea(m)) 
     
     
     # Clean up

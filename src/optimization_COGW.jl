@@ -36,8 +36,8 @@ urbandemand = initurbandemand(m); # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture]
 parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture]
-constraints = [:allagarea, :outflows, :balance,:totaluse,:sorghumarea]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Agriculture,:Allocation]
+constraints = [:allagarea, :outflows, :balance,:totalGW,:sorghumarea,:barleyarea,:totalTot]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
@@ -75,6 +75,10 @@ if redohouse
     # Constrain Sorghum Areas 
     setconstraint!(house,room_relabel(grad_univariateagriculture_sorghumarea_totalareas(m),:sorghumarea,:Agriculture,:sorghumarea))
    setconstraintoffset!(house,constraintoffset_agriculture_sorghumarea(m)) 
+    
+    # Constrain Barley Areas 
+    setconstraint!(house,room_relabel(grad_univariateagriculture_barleyarea_totalareas(m),:barleyarea,:Agriculture,:barleyarea))
+    setconstraintoffset!(house,constraintoffset_agriculture_barleyarea(m)) 
     
     
     
@@ -127,13 +131,21 @@ if redohouse
     
     
     #GW CONSTRAINT AT STATE 
-    #setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
-    setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
-    setconstraintoffset!(house, constraintoffset_allocation_totaluse(m))
-    #setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
+    setconstraint!(house,grad_allocation_totalGW_waterfromgw(m))
+    setconstraintoffset!(house, constraintoffset_allocation_totalGW(m))
     
 #setconstraint!(house,room_relabel(grad_allocation_balance_waterfromgw(m),:balance,:Allocation,:totaluse))
     #setconstraintoffset!(house, max(constraintoffset_allocation_totaluse(m), hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :totaluse)))
+    
+
+    #GW+SW CONSTRAINT AT STATE 
+    setconstraint!(house,grad_allocation_totalTot_waterfromgw(m)) 
+    setconstraint!(house,grad_allocation_totalTot_withdrawals(m))
+    setconstraintoffset!(house, constraintoffset_allocation_totalTot(m))
+
+    
+    
+    
     
     
     # Constrain agriculture < county area

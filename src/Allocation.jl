@@ -50,9 +50,12 @@ include("watercostdata.jl")
 
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
-    totaluse=Variable(index=[time],unit="1000m^3")                      #STATE LEVEL CONSTRAINT 
+    totalGW=Variable(index=[time],unit="1000m^3")                      #STATE LEVEL CONSTRAINT 
+    totalTot=Variable(index=[time],unit="1000m^3") 
     #totaluse=Variable(index=[regions,time],unit="1000m^3")             #COUNTY LEVEL CONSTRAINT 
     recorded_GW=Parameter(index=[regions,time],unit="1000m^3")
+    #recorded_Total=Parameter(index=[regions,time],unit="1000m^3")
+
     # Difference between swreturn and waterreturn: should be <= 0
     returnbalance = Variable(index=[regions, time], unit="1000 m^3")
 end
@@ -99,17 +102,6 @@ Add a demand component to the model.
 """
 function initallocation(m::Model)
     
-      
-    #gwtotal = readtable(joinpath(datapath("agriculture/GW_Total.csv")));
-    #gwtotal=repeat(sum(convert(Matrix, gwtotal),2)/1000.,outer=[1,numsteps])
-    
-    
-    #recorded_GW=convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"]
-       
-    
-    
-    
-    
     allocation = addcomponent(m, Allocation)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
@@ -134,11 +126,40 @@ function initallocation(m::Model)
 
     allocation[:recorded_GW]=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])    
        
-	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+	allocation[:withdrawals] = cached_fallback("../extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+        
+        
+        
+        
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
-    	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+	#allocation[:waterfromgw] = cached_fallback("../extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps]));
+        if isfile(datapath("../extraction/waterfromgw-08.jld"))
+            waterfromgw = deserialize(open(datapath("../extraction/waterfromgw$suffix.jld"), "r"));
+            else 
+            waterfromgw =repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps]);
+        end 
+            
+        
+        allocation[:waterfromgw]=waterfromgw     
+        
+        
+        if isfile(datapath("../extraction/withdrawals-08.jld"))
+            withdrawals = deserialize(open(datapath("../extraction/withdrawals$suffix.jld"), "r"));
+            else 
+            withdrawals=repeat(convert(Vector, recorded[:, :TO_SW]) * 1383./12. *config["timestep"], outer=[1,numsteps]);
+        end 
+allocation[:withdrawals]=withdrawals 
+        
+        
+        
+        
+        
+        #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+        allocation[:waterfromsupersource] = cached_fallback("../extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
 
+       
+        
+        
     end
 
     allocation
@@ -223,18 +244,37 @@ end
 
 
 ################TOTAL USE CONSTRAINT###########################
-function grad_allocation_totaluse_waterfromgw_(m::Model)    #COUNTY LEVEL CONSTRAINT 
-    roomdiagonal(m,:Allocation, :totaluse, :waterfromgw, (rr, tt)-> 1.)
+function grad_allocation_totalGW_waterfromgw_(m::Model)    #COUNTY LEVEL CONSTRAINT 
+    roomdiagonal(m,:Allocation, :totalGW, :waterfromgw, (rr, tt)-> 1.)
 end
 
 
 
-function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT 
+function grad_allocation_totalGW_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT 
     function generate(A,tt)
         A[:] = 1
     end    
-    roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
+    roomintersect(m,:Allocation, :totalGW, :waterfromgw,generate)
 end 
+
+function grad_allocation_totalTot_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT 
+    function generate(A,tt)
+        A[:] = 1
+    end    
+    roomintersect(m,:Allocation, :totalTot, :waterfromgw,generate)
+end 
+
+
+function grad_allocation_totalTot_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT 
+    function generate(A,tt)
+        A[:] = 1
+    end    
+    roomintersect(m,:Allocation, :totalTot, :withdrawals,generate)
+end 
+
+
+
+
 
 
 function constraintoffset_allocation_totaluse_(m::Model) #COUNTY LEVEL CONSTRAINT 
@@ -243,21 +283,25 @@ function constraintoffset_allocation_totaluse_(m::Model) #COUNTY LEVEL CONSTRAIN
     hallsingle(m, :Allocation, :totaluse, gen)
 end
 
-function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT 
+function constraintoffset_allocation_totalGW(m::Model) #STATE LEVEL CONSTRAINT 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     recorded_GW=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
     recorded_GW=sum(recorded_GW,1)
     gen(tt)=recorded_GW[tt]
-    hallsingle(m, :Allocation, :totaluse,gen)
-    
-    
-    #recorded_GW=sum(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"])
-    #recorded_GW=repeat(convert(Vector,recorded_GW),outer=[1,numsteps])
-    #gen(tt,) = recorded_GW[tt]
-    #hallsingle(m, :Allocation, :totaluse,gen)
+    hallsingle(m, :Allocation, :totalGW,gen)
 end
-
 #change GW dimension for County OR State 
+
+function constraintoffset_allocation_totalTot(m::Model) #STATE LEVEL CONSTRAINT 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded_GW=repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+    recorded_SW=repeat(convert(Vector, recorded[:, :TO_SW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+    recorded_GW=sum(recorded_GW,1)
+    recorded_SW=sum(recorded_SW,1)
+    recorded_Tot=recorded_SW+recorded_GW
+    gen(tt)=recorded_Tot[tt]
+    hallsingle(m, :Allocation, :totalTot,gen)
+end
 
 
 

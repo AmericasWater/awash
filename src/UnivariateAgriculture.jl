@@ -128,23 +128,26 @@ function initunivariateagriculture(m::Model)
 
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
-
-    if isempty(unicrops)
-        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
-    else
-        constantareas = zeros(numcounties, numunicrops)
-        for cc in 1:numunicrops
-            if unicrops[cc] in keys(quickstats_planted)
-                constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
-            else
-                column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
-                constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+    if isfile(datapath("../extraction/totalareas-08.jld"))
+        agriculture[:totalareas]= deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
+        
+    else 
+        if isempty(unicrops)
+            agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
+        else
+            constantareas = zeros(numcounties, numunicrops)
+            for cc in 1:numunicrops
+                if unicrops[cc] in keys(quickstats_planted)
+                    constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
+                else
+                    column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
+                    constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
+                    constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                end
             end
-        end
-        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
+            agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
     end
-
+    end 
     agriculture
 end
 

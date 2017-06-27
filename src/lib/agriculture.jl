@@ -44,6 +44,16 @@ maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "sorghum" => 150., "soybeans" => 100.,
 "wheat" => 250., "hay" => 306.)
 
+crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
+                   "otherhay" => 102.51 / 2204.62, # otherhay
+                   "Barley" => 120.12 * .021772, # barley
+                   "Barley.Winter" => 120.12 * .021772, # barley.winter
+                   "Maize" => 160.63 * .0254, # maize
+                   "Sorghum" => 174.90 / 2204.62, # sorghum: $/MT / lb/MT
+                   "Soybeans" => 349.52 * .0272155, # soybeans
+                   "Wheat" => 5.1675, # wheat
+                   "Wheat.Winter" => 171.50 * .0272155) # wheat.winter
+
 quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonirrigated-planted.csv",
                           "corn.co.irrigated" => "agriculture/allyears/maize-irrigated-planted.csv",
                           "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
@@ -188,7 +198,7 @@ else
 end
 
 alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
-uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"])
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
 
 """
 Determine which crops are not represented
@@ -277,4 +287,32 @@ function read_quickstats(filepath::AbstractString)
     result[indices[indices .> 0]] = df[:xvalue][indices .> 0]
 
     result
+end
+
+"""
+Collect all crop info from one of the dictionaries, aware of name changes
+"""
+function crop_information(crops::Vector{Any}, dict, default; warnonmiss=false)
+    [crop_information(crop, dict, default, warnonmiss=warnonmiss) for crop in crops]
+end
+
+"""
+Collect single crop info from one of the dictionaries, aware of name changes
+"""
+function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
+    if crop in keys(dict)
+        return dict[crop]
+    else
+        for othername in uniquemapping[crop]
+            if othername in keys(dict)
+                return dict[othername]
+            end
+        end
+    end
+
+    if warnonmiss
+        warn("Could not find crop information for $crop.")
+    end
+
+    return default
 end

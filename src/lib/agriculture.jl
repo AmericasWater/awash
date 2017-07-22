@@ -316,3 +316,5 @@ function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
 
     return default
 end
+
+include("agriculture-ers.jl")

@@ -62,10 +62,13 @@ function initwaterdemand(m::Model)
     waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
     waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
+    
     waterdemand
 end
 
@@ -167,30 +170,45 @@ end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
@@ -198,30 +216,45 @@ end
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen)
 end
 
 function values_waterdemand_recordedgroundindustrial(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen)
 end
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen)
 end
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen)
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end

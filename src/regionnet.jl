@@ -34,6 +34,10 @@ else
     # Load the network of counties
     if config["dataset"] == "counties"
         counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        if config["filterstate"]=="36"
+            counties=counties[counties[:FIPS].!="36059",:]
+            counties=counties[counties[:FIPS].!="36103",:]
+        end    
     else
         counties = readtable(datapath("county-info$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end

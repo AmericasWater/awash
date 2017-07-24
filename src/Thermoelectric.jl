@@ -34,6 +34,9 @@ function initthermoelectric(m::Model)
     thermoelectric = addcomponent(m, Thermoelectric)
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+    end 
     thermoelectric[:demand] = repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
 
     thermoelectric

@@ -3,13 +3,21 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String])
+masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String]);
+
+
 
 if get(config, "filterstate", nothing) != nothing
     masterregions = masterregions[map(fips -> fips[1:2], masterregions[:fips]) .== config["filterstate"], :]
+    
+if config["filterstate"]=="36"
+    masterregions=masterregions[masterregions[:fips].!="36059",:]
+    masterregions=masterregions[masterregions[:fips].!="36103",:]
+end 
+    
 end
 
-include("regionnet.jl")
+    include("regionnet.jl")
 include("waternet.jl")
 
 # Prepare the model

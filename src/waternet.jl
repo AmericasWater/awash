@@ -45,6 +45,12 @@ else
 
     # Load the county-network connections
     draws = drawsdata["draws"];
+    if config["filterstate"]=="36"
+        draws=draws[draws[:,:fips].!=36059,:]
+        draws=draws[draws[:,:fips].!=36103,:]
+    end 
+    
+    
     draws[:source] = round(Int64, draws[:source])
     # Label all with the node name
     draws[:gaugeid] = ""
@@ -54,9 +60,9 @@ else
     end
 
     if get(config, "filterstate", nothing) != nothing
-        states = round(Int64, draws[:fips] / 1000)
         draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
-
+        states = round(Int64, draws[:fips] / 1000)
+        
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
             # Flag all upstream nodes

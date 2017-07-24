@@ -107,19 +107,23 @@ function initaquifer(m::Model)
           # This currently only works for county-level runs
           vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
 		  vstates = round(Int64, floor(vfips / 1000));
+            if config["filterstate"]=="36"
+                vstates[1845]=0
+                vstates[1823]=0
+            end
 		  subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
+            
 	  else
 		  subfips = 1:nrow(masterregions)
 	  end
-
+        elevation=convert(Array,gw["county_elevation"])
 	aquifer[:depthaquif] = gw["aquifer_depth"][subfips];
 	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips];
   	aquifer[:storagecoef] = gw["vector_storativity"][subfips];
   	aquifer[:areaaquif] = gw["county_area"][subfips]/1000;
-	aquifer[:elevation] = gw["county_elevation"][:V1][subfips];
+        aquifer[:elevation] = elevation[subfips];#zeros(numaquifers);#gw["county_elevation"][:V1][subfips];
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
-
   	aquifer[:lateralconductivity] = gw["matrix_leakage_factor"][subfips,subfips];
   	aquifer[:deltatime] = convert(Float64, config["timestep"]);
 	aquifer[:aquiferconnexion] =  gw["connectivity_matrix"][subfips,subfips];

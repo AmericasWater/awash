@@ -79,7 +79,6 @@ function initunivariateagriculture(m::Model)
             continue
         end
 
-
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))

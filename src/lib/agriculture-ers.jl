@@ -1,4 +1,47 @@
 """
+Return the 4-letter crop code used by ERS
+"""
+function ers_crop(crop::AbstractString)
+    if crop in ["corn", "Maize", "maize"]
+        return "corn"
+    end
+
+    if crop in ["soyb", "Soybeans"]
+        return "soyb"
+    end
+
+    if crop in ["whea", "Wheat", "Wheat.Winter"]
+        return "whea"
+    end
+
+    if crop in ["sorg", "Sorghum"]
+        return "sorg"
+    end
+
+    if crop in ["barl", "Barley", "Barley.Winter"]
+        return "barl"
+    end
+
+    if crop in ["cott", "cotton"]
+        return "cott"
+    end
+
+    if crop in ["rice"]
+        return "rice"
+    end
+
+    if crop in ["oats"]
+        return "oats"
+    end
+
+    if crop in ["pean", "peanuts"]
+        return "pean"
+    end
+
+    return nothing
+end
+
+"""
 Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """

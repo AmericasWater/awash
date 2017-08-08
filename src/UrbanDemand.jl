@@ -8,13 +8,9 @@ include("lib/readconfig.jl")
 
     # Urban demands - exogeneous for now
     domesticdemand = Parameter(index=[regions, time],unit="1000 m^3")
-    commercialdemand = Parameter(index=[regions, time],unit="1000 m^3")
+    #commercialdemand = Parameter(index=[regions, time],unit="1000 m^3")
     urbandemand = Variable(index=[regions, time],unit="1000 m^3")
-    dummy_month=Parameter(index=[time],unit="none")
-    dummy_year=Parameter(index=[time],unit="none")
-    dummy_newyork=Parameter(index=[time],unit="none")
-    
-    
+
     # Demanded water
     waterdemand = Variable(index=[regions, time],unit="1000 m^3")
 end
@@ -29,7 +25,7 @@ function run_timestep(c::UrbanDemand, tt::Int)
 
     for rr in d.regions
         v.waterdemand[rr, tt] = p.domesticdemand[rr, tt]; # XXX: Where is commercial
-        v.urbandemand[rr,tt]=p.coef
+        #v.urbandemand[rr,tt]=p.coef
     end
 end
 
@@ -39,18 +35,16 @@ Add an urban component to the model.
 function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
     urban=zeros(numcounties, numsteps);
-    vars=["log_avg_p","precip_tot","unemployment","log_oohh",
-        "college","avg_size","med_age", "med_built","newyork"]
-    
-    for rr in 1:numcounties 
-        for tt in 1:numsteps 
-            for vv in 1:length(vars)
-                urban[rr,tt]+=exp(coef[vars[vv]]*in_data[vars[vv]][rr,tt]+con)
-            end 
-            end
-        end 
-end
-
+#
+#    for rr in 1:numcounties 
+#        for tt in 1:numsteps 
+#            for vv in 1:length(vars)
+#                urban[rr,tt]+=exp(coef[vars[vv]]*in_data[vars[vv]][rr,tt]+con)
+#            end 
+#            end
+#        end 
+#end
+#urbandemand[:domesticdemand] =urban[:,1:numsteps]
     
     
     
@@ -60,7 +54,7 @@ end
         deleterows!(recorded,[30,52])
     end 
     urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
-    urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    #urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
 
     urbandemand
 end

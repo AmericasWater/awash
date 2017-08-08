@@ -45,8 +45,7 @@ for ii in 1:size(others)[1]
         52.53768
 end 
 demand[:calculated]=exp(demands)
-
- demand_by_FIPS=by(demand,[:FIPS,:year_cal,:month_num]) do demand 
+demand_by_FIPS=by(demand,[:FIPS,:year_cal,:month_num]) do demand 
     DataFrame(calculated=sum(demand[:calculated]))
        end
 data_demand=transpose(reshape(demand_by_FIPS[:calculated],72,60))

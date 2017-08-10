@@ -16,23 +16,27 @@ demand=demand[demand[:year_cal].>=2009,:]; #Data from 2009-2014
 demands=zeros(size(demand)[1]);
 
 
-nys=findin(demand[:FIPS],[36005, 36047, 36061, 36081, 36085])
+nyc=findin(demand[:FIPS],[36005, 36047, 36061, 36081, 36085])
 others=[1:size(demand)[1]];
-others=deleteat!(others,nys);
+others=deleteat!(others,nyc);
 
-for ii in 1:size(nys)[1]
-    demands[nys[ii]]=(-0.054349*demand[:ln_avg_p][nys[ii]])+
-        (-0.054349*parse(Float64,demand[:precip_monthly_total][nys[ii]]))+
-        (-1.358096*log(demand[:housing_density][nys[ii]]))+
-        ny_year[demand[:year_cal][nys[ii]]]+
-        ny_month[demand[:month_num][nys[ii]]]+
-        fips_coeff[demand[:FIPS][nys[ii]]]+
+for ii in 1:size(nyc)[1]
+    demands[nyc[ii]]=(-0.054349*demand[:ln_avg_p][nyc[ii]])+
+        (-0.0027154*parse(Float64,demand[:precip_monthly_avg_dailytot][nyc[ii]]))+
+        (-1.358096*log(demand[:housing_density][nyc[ii]]))+
+        ny_year[demand[:year_cal][nyc[ii]]]+
+        ny_month[demand[:month_num][nyc[ii]]]+
+        fips_coeff[demand[:FIPS][nyc[ii]]]+
         21.04626
 end 
+
+
+
+
 ##WORKING     
 for ii in 1:size(others)[1]
-    demands[others[ii]]=(21.04626*demand[:ln_avg_p][others[ii]])+
-        (-0.014255*demand[:precip_annual_avg_monthly_total][others[ii]])+
+    demands[others[ii]]=(-0.2499083*demand[:ln_avg_p][others[ii]])+
+    (-0.014255*parse(Float64,demand[:precip_monthly_avg_dailytot][others[ii]]))+
         (3.045463*demand[:unemployment][others[ii]])+
         (2.603077*demand[:owner_occupied_housing_units][others[ii]])+
         (-0.4233581*demand[:college_more][others[ii]])+
@@ -44,9 +48,12 @@ for ii in 1:size(others)[1]
         other_month[demand[:month_num][others[ii]]]+
         52.53768
 end 
-demand[:calculated]=exp(demands)
+demand[:ln_predicted_per_account]=demands
+demand[:predicted_per_account]=exp(demands)
+demand[:calculated]=demand[:predicted_per_account].*demand[:predict_accounts]
 demand_by_FIPS=by(demand,[:FIPS,:year_cal,:month_num]) do demand 
     DataFrame(calculated=sum(demand[:calculated]))
        end
 data_demand=transpose(reshape(demand_by_FIPS[:calculated],72,60))
 ####60*72 calculated ########
+

@@ -30,7 +30,7 @@ function usmap(df, centered=false)
     end
 
     plot(x=xxs, y=yys, group=groups, color=colors,
-         Geom.polygon(preserve_order=true, fill=true))
+         Geom.polygon(preserve_order=true, fill=true), Theme(line_width=0pt))
 end
 
 function xyplot(xx, yy, xlab, ylab)

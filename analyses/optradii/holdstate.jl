@@ -11,10 +11,10 @@ solver = GurobiSolver()
 @time sol_before = houseoptimize(house, solver)
 summarizeparameters(house, sol_before.sol)
 
-include("../../prepare/bystate/statelib.jl")
+include("../../prepare/bystate/waternet/statelib.jl")
 
 ## Add constraints on all cross-state flows
-outflows = readtable("../../data/extraction/outflows-bygauge.csv", header=false)
+outflows = readtable("../../data/counties/extraction/outflows-bygauge.csv", header=false)
 outflows = convert(Matrix{Float64}, outflows)
 # outflows constrained as cumulative runoff
 

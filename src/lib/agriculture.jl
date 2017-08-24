@@ -1,12 +1,17 @@
 using DataFrames
 
 ## Univariate crop parametrs
-unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
-                              "sorghum" => 0., "soybeans" => 16.8,
-                              "wheat" => 21.4, "hay" => 0.) # mm/year
+unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
+                              "sorghum" => 19.2, "soybeans" => 330.2,
+                              "wheat" => 21.4, "hay" => 386.1) # mm/year
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "sorghum" => 0., "soybeans" => 0.,
+                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+## Barley: consistent ~94% irrigated, say at 19 in. when full water stress
+## Sorghum: Variable 9 - 18% irrigated (.7 ft/acre), so say half intercept half stress
+## Soybeans: Used 13 inches (https://www.ksre.k-state.edu/irrigate/oow/p08/Schneekloth08.pdf)
+## Hay: About 80% irrigated, and Colorado average is 19 inches for irrigated
+## Corn and Wheat not used as unicrops, but using the below.
 
 known_irrigationrate = Dict("corn.co.rainfed" => 0,
                             "corn.co.irrigated" => 1.6 * 304.8, # convert ft -> mm

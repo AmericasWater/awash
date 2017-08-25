@@ -6,8 +6,9 @@ filterstate: "08"
 dataset: counties 
 
 # First and last month of the simulation
-startmonth: 1/1951    #1/2010
-endmonth: 12/1951  #12/2010
+
+startmonth: 1/1951    #1/2010   1951
+endmonth: 12/2010  #12/2010
 
 # First entry in VIC_WB to include
 #startweather: 292 #10th percentile 

@@ -131,8 +131,8 @@ end
 function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
-            values_waterdemand_recordedsurfaceirrigation(m) + values_waterdemand_recordedgroundirrigation(m)
-            #values_waterdemand_totalirrigation(m)   #This is for separate input totalirrigation
+            #values_waterdemand_recordedsurfaceirrigation(m) + values_waterdemand_recordedgroundirrigation(m)
+            values_waterdemand_totalirrigation(m)   #This is for separate input totalirrigation
         else
             values_waterdemand_recordedsurfaceirrigation(m)
         end

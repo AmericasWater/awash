@@ -7,12 +7,17 @@ using DataFrames
 
 #unicrop_irrigationstress = Dict("barley" => 298.8803, "corn" => 1864.5602,                                "sorghum" => 499.6120, "soybeans" => 153.5861,"wheat" => 194.1666, "hay" => 2017.1677) # (mm/year) / m-deficiency
 
-unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
-                              "sorghum" => 0., "soybeans" => 16.8,
-                              "wheat" => 21.4, "hay" => 0.) # mm/year
+#unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
+#                              "sorghum" => 0., "soybeans" => 16.8,
+#                              "wheat" => 21.4, "hay" => 0.) # mm/year
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "sorghum" => 0., "soybeans" => 0.,
+                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+
+unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
+                              "sorghum" => 19.2, "soybeans" => 330.2,
+                              "wheat" => 21.4, "hay" => 386.1) # mm/year
+
 
 known_irrigationrate = Dict("corn.co.rainfed" => 0,
                             "corn.co.irrigated" => 1.6 * 304.8, # convert ft -> mm
@@ -273,6 +278,7 @@ Read Naresh's special yield file format
 """
 function read_nareshyields(crop::AbstractString)
     # Get the yield data
+    coef=Dict("corn.co.rainfed"=>0.0137,"corn.co.irrigated"=>0.0137,"wheat.co.rainfed"=>0.0082,"wheat.co.irrigated"=>0.0082)
     if crop == "corn.co.rainfed"
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
@@ -296,10 +302,14 @@ function read_nareshyields(crop::AbstractString)
     result = zeros(numcounties, numsteps)
 
     for ii in 1:numsteps
-        result[regionindices, ii] = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :]))
+        result[regionindices, ii] = (vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :])))
     end
 
+    for tt in 1:numsteps 
+        result[:,tt]=result[:,tt]*exp(coef[crop]*(2010-index2year(tt)))
+    end 
     result
+    
 end
 
 """

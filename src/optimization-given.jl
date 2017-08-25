@@ -1,15 +1,12 @@
 using Mimi
 using OptiMimi
 
+
+redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
+redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
+
 include("world.jl")
-if config["dataset"] == "three"
-    include("weather-three.jl")
-else
-    include("weather.jl")
-end
-
-redogwwo = !isfile(datapath("partialhouse2$suffix.jld"))
-
+include("weather.jl")
 include("WaterDemand.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
@@ -37,10 +34,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     constcomps = [:WaterNetwork, :Allocation, :Allocation]
     constraints = [:outflows, :balance, :returnbalance]
 
-    if demandmodel==nothing 
-        println("demandmodel is nothing")
-    end 
-        
     if allowgw
         # Include groundwater
         paramcomps = [paramcomps; :Allocation]
@@ -66,7 +59,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
-        println("allow gw") 
     end
     #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
@@ -99,7 +91,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
     if allowgw
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
-        println("allow gw") 
     end
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
@@ -119,7 +110,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         :totalreturn, :Allocation, :returnbalance)) # +
     end
 
-
     if allowreservoirs
         # Reservoir constraints:
         # initial storage and evaporation have been added
@@ -129,7 +119,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         # Constrain storage > min or -storage < -min
         setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
         setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
-
 
         # Constrain storage < max
         setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +

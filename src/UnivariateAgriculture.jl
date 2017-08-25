@@ -74,12 +74,23 @@ function initunivariateagriculture(m::Model)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
 
     for cc in 1:numunicrops
-        if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
-            yield[:,cc,:] = read_nareshyields(unicrops[cc])
-            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
-            continue
-        end
 
+        if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated","wheat.co.rainfed", "wheat.co.irrigated"]
+            #for tt in 1:numsteps
+            yield[:,cc,:] = read_nareshyields(unicrops[cc])#*exp(0.0137*(2010-index2year(tt)))
+            #end 
+            #irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+        #elseif unicrops[cc] in ["wheat.co.rainfed", "wheat.co.irrigated"]
+            #for tt in 1:numsteps
+            #yield[:,cc,tt] = read_nareshyields(unicrops[cc])*exp(0.0082*(2010-index2year(tt)))
+            #end 
+            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+            continue 
+        end 
+            
+            
+        unitopcost[:,cc]=get_opcost[unicrops[cc]]
+        unittotcost[:,cc]=get_totcost[unicrops[cc]]
 
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))

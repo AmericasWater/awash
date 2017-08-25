@@ -323,13 +323,14 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
-function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
-    if demandmodel == nothing
-        println("nothing") 
-        constraintoffset_allocation_recordedbalance(m, includegw)
-    else
-        hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
-    end
+function constraintoffset_allocation_recordedtotal(m::Model)#, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    #if demandmodel == nothing
+    #    println("nothing") 
+    #    constraintoffset_allocation_recordedbalance(m, includegw)
+    #else
+    gen(rr, tt) = demandmodel[:WaterDemand, :totaldemand][rr,tt]
+    hallsingle(m, :Allocation,:balance,gen)# :balance, demandmodel[:WaterDemand, :totaldemand])
+    #end
 end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)

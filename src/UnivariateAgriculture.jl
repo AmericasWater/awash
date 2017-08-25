@@ -2,6 +2,8 @@ using DataFrames
 using Mimi
 
 include("lib/agriculture.jl")
+include("lib/agriculture-ers.jl")
+
 
 @defcomp UnivariateAgriculture begin
     regions = Index()
@@ -31,7 +33,8 @@ include("lib/agriculture.jl")
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
     # Total cultivation costs per crop
-    unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
+    opcost = Variable(index=[regions, unicrops, time], unit="\$")
+    overhead=Variable(index=[regions, unicrops, time], unit="\$")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -55,7 +58,8 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
-            v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.opcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.overhead[rr, cc, tt] = p.totalareas[rr, cc, tt] * unioverhead[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -89,9 +93,6 @@ function initunivariateagriculture(m::Model)
         end 
             
             
-        unitopcost[:,cc]=get_opcost[unicrops[cc]]
-        unittotcost[:,cc]=get_totcost[unicrops[cc]]
-
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
@@ -127,6 +128,7 @@ function initunivariateagriculture(m::Model)
                     yield[rr, cc, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
                     irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
+                    irrigation_rate[:,5,:]=330.2
                 end
             end
         end
@@ -180,7 +182,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+    roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> uniopcost[rr,cc] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
 
 function grad_univariateagriculture_allagarea_totalareas(m::Model)

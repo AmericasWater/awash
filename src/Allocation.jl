@@ -51,6 +51,7 @@ include("watercostdata.jl")
     # Difference between waterallocated and watertotaldemand
     balance = Variable(index=[regions, time], unit="1000 m^3")
     totalGW=Variable(index=[time],unit="1000m^3")                      #STATE LEVEL CONSTRAINT 
+    totalSW=Variable(index=[time],unit="1000m^3")                      #STATE LEVEL CONSTRAINT 
     totalTot=Variable(index=[time],unit="1000m^3") 
     #totaluse=Variable(index=[regions,time],unit="1000m^3")             #COUNTY LEVEL CONSTRAINT 
     recorded_GW=Parameter(index=[regions,time],unit="1000m^3")
@@ -244,7 +245,7 @@ end
 
 
 ################TOTAL USE CONSTRAINT###########################
-function grad_allocation_totalGW_waterfromgw_(m::Model)    #COUNTY LEVEL CONSTRAINT 
+function grad_allocation_totalGW_waterfromgw_(m::Model)    #COUNTY LEVEL CONSTRAINT old 
     roomdiagonal(m,:Allocation, :totalGW, :waterfromgw, (rr, tt)-> 1.)
 end
 
@@ -290,6 +291,19 @@ function constraintoffset_allocation_totalGW(m::Model) #STATE LEVEL CONSTRAINT
     gen(tt)=recorded_GW[tt]
     hallsingle(m, :Allocation, :totalGW,gen)
 end
+
+
+
+
+function constraintoffset_allocation_totalSW(m::Model) #STATE LEVEL CONSTRAINT 
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded_GW=repeat(convert(Vector, recorded[:, :TO_SW]) * 1383./12. *config["timestep"],outer=[1,numsteps])
+    recorded_SW=sum(recorded_SW,1)
+    gen(tt)=recorded_SW[tt]
+    hallsingle(m, :Allocation, :totalSW,gen)
+end
+
+
 #change GW dimension for County OR State 
 
 function constraintoffset_allocation_totalTot(m::Model) #STATE LEVEL CONSTRAINT 
@@ -323,7 +337,7 @@ function grad_allocation_returnbalance_returns(m::Model)
     roomintersect(m, :Allocation, :returnbalance, :returns, generate)
 end
 
-function constraintoffset_allocation_recordedtotal(m::Model)#, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function constraintoffset_allocation_recordedtotal_(m::Model)#, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     #if demandmodel == nothing
     #    println("nothing") 
     #    constraintoffset_allocation_recordedbalance(m, includegw)
@@ -332,6 +346,19 @@ function constraintoffset_allocation_recordedtotal(m::Model)#, includegw::Bool, 
     hallsingle(m, :Allocation,:balance,gen)# :balance, demandmodel[:WaterDemand, :totaldemand])
     #end
 end
+
+
+function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    if demandmodel == nothing
+        constraintoffset_allocation_recordedbalance(m, includegw)
+    else
+        hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
+    end
+end
+
+
+
+
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["dataset"] == "three"

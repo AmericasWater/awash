@@ -36,8 +36,8 @@ urbandemand = initurbandemand(m); # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst, :rainfedareas_cst, :irrigatedareas_cst]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Agriculture]
-constraints = [:allagarea, :outflows, :balance, :totaluse,:sorghumarea,:barleyarea]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Allocation,:Agriculture]
+constraints = [:allagarea, :outflows, :balance, :waterfromgw,:withdrawals,:sorghumarea,:barleyarea]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
@@ -111,12 +111,19 @@ if redohouse
     #setconstraintoffset!(house, -hall_relabel(constraintoffset_populationdemand_cropinterest(m), :cropinterest, :Market, :domesticbalance)) # -
 
     
+    #GW CONSTRAINT
+    setconstraint!(house,grad_allocation_totalGW_waterfromgw(m))
+    setconstraintoffset!(house,constraintoffset_allocation_totalGW(m))
+    
+    #SW CONSTRAINT
+    setconstraint!(house,grad_allocation_totalTot_withdrawals(m))
+    setconstraintoffset!(house,constraintoffset_allocation_totalSW(m))
     
     
     
     #Constrain TOTAL GW use per county as USGS 
-    setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
-    setconstraintoffset!(house, constraintoffset_allocation_totaluse(m))
+    #setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
+    #setconstraintoffset!(house, constraintoffset_allocation_totaluse(m))
     
     
         # Constrain Sorghum Areas 

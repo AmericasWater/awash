@@ -1,15 +1,7 @@
 using DataFrames
+include("agriculture-ers.jl")
 
-## Univariate crop parametrs
 
-
-#unicrop_irrigationrate = Dict("barley" => 1530.148, "corn" => 0, "sorghum" => 0, "soybeans" => 0.0, "wheat" => 0, "hay" => 0.0) # mm/year
-
-#unicrop_irrigationstress = Dict("barley" => 298.8803, "corn" => 1864.5602,                                "sorghum" => 499.6120, "soybeans" => 153.5861,"wheat" => 194.1666, "hay" => 2017.1677) # (mm/year) / m-deficiency
-
-#unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
-#                              "sorghum" => 0., "soybeans" => 16.8,
-#                              "wheat" => 21.4, "hay" => 0.) # mm/year
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
                                 "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
@@ -40,25 +32,6 @@ crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4
 
 #crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9) 
 
-#areas=convert(Matrix,readtable(datapath("agarea.csv")))
-
-
-
-#rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
-#irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
-#rainfeds=convert(Matrix, rainfeds)*0.404686
-#irrigateds=convert(Matrix, irrigateds)*0.404686
-#sumareas=rainfeds+irrigateds
-#sum_areas=sum(sumareas,2)
-
-
-# Per year costs
-#cultivation_costs = Dict("alfalfa" => 426.55, "otherhay" => 426.55,
-#                         "Barley" => 394.71, "Barley.Winter" => 394.71,
-#                         "Maize" => 511.65,
-#                         "Sorghum" => 327.78,
-#                         "Soybeans" => 359.06,
-#                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre barley=442
 
 cultivation_costs = Dict("corn" => 401., "corn.co.rainfed" =>401., "corn.co.irrigated" => 401.,
                          "sorghum" => 250., "soybeans" => 260.,
@@ -355,3 +328,4 @@ function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
 
     return default
 end
+

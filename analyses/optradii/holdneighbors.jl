@@ -1,8 +1,9 @@
 include("../../src/lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
+#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
+config = readconfig("../configs/single.yml") # Just use 1 year for optimization
 
 include("../../src/optimization-given.jl")
-house = optimization_given(true);
+house = optimization_given(true, false);
 
 using MathProgBase
 using Gurobi
@@ -21,6 +22,11 @@ function genroom(A, tt)
     for ii in 1:nrow(masterregions)
         withinstate = filter(jj -> jj != 0 && masterregions[jj, :state] == masterregions[ii, :state], sourceiis[ii])
         includedfips = regionindex(masterregions, [ii; withinstate])
+
+        if ii == 1
+            println(includedfips)
+        end
+
         includeddraw = Bool[fips in includedfips for fips in drawfips]
 
         A[ii, includeddraw] = 1
@@ -29,9 +35,14 @@ end
 
 room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom)
 setconstraint!(house, room_relabel(room, :balance, :Allocation, :neighborbalance))
+setconstraint!(house, -room_relabel_parameter(room_relabel(room, :balance, :Allocation, :neighborbalance), :withdrawals, :Allocation, :returns))
 
 function genhall(ii, tt)
     withinstate = filter(jj -> jj != 0 && masterregions[jj, :state] == masterregions[ii, :state], sourceiis[ii])
+    if ii == 1
+        println([ii; withinstate])
+    end
+
     if length(withinstate) == 0
         return recorded[ii, :TO_SW] * config["timestep"] * 1383. / 12
     else
@@ -44,6 +55,12 @@ setconstraintoffset!(house, hall_relabel(hall, :balance, :Allocation, :neighborb
 
 @time sol_neighbors = houseoptimize(house, solver)
 summarizeparameters(house, sol_neighbors.sol)
+
+df = DataFrame(variable=[repmat(["withdrawals"], length(getparametersolution(house, sol_neighbors.sol, :withdrawals)));
+                         repmat(["waterfromgw"], length(getparametersolution(house, sol_neighbors.sol, :waterfromgw)))],
+               optimized=[getparametersolution(house, sol_neighbors.sol, :withdrawals);
+                          getparametersolution(house, sol_neighbors.sol, :waterfromgw)])
+writetable("radius-neighbors.csv", df)
 
 ## Also look at total USGS withdrawals
 recorded = readtable(datapath("extraction/USGS-2010.csv"))

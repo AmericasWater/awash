@@ -1,8 +1,9 @@
 include("../../src/lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
+#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
+config = readconfig("../configs/single.yml") # Just use 1 year for optimization
 
 include("../../src/optimization-given.jl")
-house = optimization_given(true);
+house = optimization_given(true, false);
 
 using MathProgBase
 using Gurobi
@@ -61,6 +62,18 @@ setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> 
 
 @time sol_after = houseoptimize(house, solver, find(house.b .< Inf))
 summarizeparameters(house, sol_after.sol)
+
+df = DataFrame(variable=[repmat(["withdrawals"], length(getparametersolution(house, sol_before.sol, :withdrawals)));
+                         repmat(["waterfromgw"], length(getparametersolution(house, sol_before.sol, :waterfromgw)))],
+               optimized=[getparametersolution(house, sol_before.sol, :withdrawals);
+                          getparametersolution(house, sol_before.sol, :waterfromgw)])
+writetable("radius-nation.csv", df)
+
+df = DataFrame(variable=[repmat(["withdrawals"], length(getparametersolution(house, sol_after.sol, :withdrawals)));
+                         repmat(["waterfromgw"], length(getparametersolution(house, sol_after.sol, :waterfromgw)))],
+               optimized=[getparametersolution(house, sol_after.sol, :withdrawals);
+                          getparametersolution(house, sol_after.sol, :waterfromgw)])
+writetable("radius-state.csv", df)
 
 ## Also look at total USGS withdrawals
 recorded = readtable(datapath("extraction/USGS-2010.csv"))

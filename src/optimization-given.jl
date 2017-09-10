@@ -24,7 +24,9 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # Add all of the components
     waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
     allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
-    reservoir = initreservoir(m); # Allocation or optimization-only
+    if allowreservoirs
+        reservoir = initreservoir(m); # Allocation or optimization-only
+    end
     returnflows = initreturnflows(m); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
@@ -63,7 +65,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if allowgw
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     end
-    #setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
+    setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 
     # Constrain that the water in the stream is non-negative:
@@ -73,17 +75,21 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         serialize(open(datapath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
         serialize(open(datapath("partialhouse2$suffix.jld"), "w"), cwro);
-        gror = grad_reservoir_outflows_captures(m);
-        serialize(open(datapath("partialhouse-gror$suffix.jld"), "w"), gror);
+        if allowreservoirs
+            gror = grad_reservoir_outflows_captures(m);
+            serialize(open(datapath("partialhouse-gror$suffix.jld"), "w"), gror);
+        end
     else
         gwwo = deserialize(open(datapath("partialhouse$suffix.jld"), "r"));
         cwro = deserialize(open(datapath("partialhouse2$suffix.jld"), "r"));
-        gror = deserialize(open(datapath("partialhouse-gror$suffix.jld"), "r"));
+        if allowreservoirs
+            gror = deserialize(open(datapath("partialhouse-gror$suffix.jld"), "r"));
+        end
     end
 
     # Specify the components affecting outflow: withdrawals, returns, captures
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
-    setconstraint!(house, room_relabel_parameter(gwwo, :withdrawals, :Allocation, :returns)) # -
+    setconstraint!(house, room_relabel_parameter(gwwo - grad_waternetwork_immediateoutflows_withdrawals(m), :withdrawals, :Allocation, :returns)) # -
     if allowreservoirs
         setconstraint!(house, -gror) # +
     end
@@ -105,11 +111,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if config["dataset"] == "three"
         setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
-        setconstraintoffset!(house,-hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
-                                                 grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m, allowgw, demandmodel) +
-			                                     grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m, allowgw, demandmodel) +
-                                                 grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m, allowgw, demandmodel) +
-        grad_waterdemand_totalreturn_livestockuse(m) *values_waterdemand_recordedlivestock(m, allowgw, demandmodel),
+        setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
+                                                  grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m, allowgw, demandmodel) +
+			                          grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m, allowgw, demandmodel) +
+                                                  grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m, allowgw, demandmodel) +
+                                                  grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m, allowgw, demandmodel),
         :totalreturn, :Allocation, :returnbalance)) # +
     end
 

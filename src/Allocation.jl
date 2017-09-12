@@ -157,8 +157,7 @@ function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(masterregions[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 65.65
             end

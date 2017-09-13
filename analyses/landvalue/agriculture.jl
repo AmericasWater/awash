@@ -1,10 +1,16 @@
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/standard-1year.yml")
 
-include("../../src/world.jl")
+include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
-crops = ["corn", "soyb", "whea", "sorg", "barl"] #"cott", "rice", "oats", "pean"
+do_cropdrop = true
+
+if do_cropdrop
+    crops = ["corn", "soyb", "whea", "barl", "cott", "rice"]
+else
+    crops = ["corn", "soyb", "whea", "sorg", "barl", "cott", "rice", "oats", "pean"]
+end
 
 value = repmat([0.0], size(masterregions, 1))
 maxvalue = repmat(["none"], size(masterregions, 1))
@@ -31,4 +37,8 @@ masterregions[:valuesource] = maxvalue
 masterregions[:profit] = profit
 masterregions[:profitsource] = maxprofit
 
-writetable("farmvalue.csv", masterregions)
+if do_cropdrop
+    writetable("farmvalue-limited.csv", masterregions)
+else
+    writetable("farmvalue.csv", masterregions)
+end

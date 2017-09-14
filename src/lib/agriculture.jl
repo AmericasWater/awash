@@ -155,7 +155,7 @@ function findcroppath(prefix, crop, suffix, recurse=true)
     return nothing
 end
 
-if isfile(cachepath("agmodels.jld"))
+if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling between two set-ups Colorado or other. Maybe a suffix should be added?
     println("Loading from saved region network...")
 
     agmodels = deserialize(open(cachepath("agmodels.jld"), "r"));

@@ -4,7 +4,9 @@ using Mimi
 
 using Graphs
 
-RegionNetwork{R, E} = IncidenceList{R, E}
+if !isdefined(:RegionNetwork)
+    RegionNetwork{R, E} = IncidenceList{R, E}
+end
 SimpleRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 MyNumeric = Float64 #Number
 

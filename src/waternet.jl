@@ -3,7 +3,10 @@ using Graphs
 using DataFrames
 using RData
 
-# RegionNetwork{R, E} = IncidenceList{R, E} <- gives an error as already defined
+if !isdefined(:RegionNetwork)
+    RegionNetwork{R, E} = IncidenceList{R, E}
+end
+    
 OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 
 filtersincludeupstream = false # true to include all upstream nodes during a filter

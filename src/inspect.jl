@@ -53,7 +53,7 @@ for component in model.components
             else
                 # Check autocorrelation to see if identical or random
                 ac = StatsBase.autocor(vec(model.parameters[parameter].values), [1])
-                if (isnan(ac[1]))
+                if (isnan.(ac[1]))
                     initialized = "nan"
                 elseif (ac[1] == 1)
                     initialized = "constant"
@@ -67,7 +67,7 @@ for component in model.components
 
         if in(component[1], paramcomps)
             for index in find(paramcomps .== component[1])
-                if parameters[index] == symbol(parameter)
+                if parameters[index] == Symbol(parameter)
                     optimized = "yup"
                     break
                 end

@@ -11,9 +11,9 @@ function mergedown(nodes, waternet)
     outedges = Dict{ExVertex, Vector{ExVertex}}() # all destined newwaternet nodes (but some might be dropped for region)
     merging = Dict{ExVertex, ExVertex}(); # feed runoff from waternet A to newwaternet B
 
-    newwateridverts = Dict{UTF8String, ExVertex}();
+    newwateridverts = Dict{String, ExVertex}();
     newwaternet = empty_extnetwork(); # The final network (need to add nodes in initial loop)
-    result = DataFrame(node=UTF8String[], outnode=UTF8String[])
+    result = DataFrame(node=String[], outnode=String[])
 
     # Add node for each region
     index = 0
@@ -59,7 +59,7 @@ function mergedown(nodes, waternet)
 
         if length(upstreams) > 0
             # Group into sets in the same region
-            byregion = Dict{UTF8String, Vector{ExVertex}}()
+            byregion = Dict{String, Vector{ExVertex}}()
             for upstream in upstreams
                 region = getregion(upstream.label)
                 if region == "missing"
@@ -147,9 +147,9 @@ function clearunconnected(wateridverts, waternet, result)
     #println("Connects:")
     #println(connections)
 
-    newwateridverts = Dict{UTF8String, ExVertex}();
+    newwateridverts = Dict{String, ExVertex}();
     newwaternet = empty_extnetwork(); # The final network (need to add nodes in initial loop)
-    newresult = DataFrame(node=UTF8String[], outnode=UTF8String[])
+    newresult = DataFrame(node=String[], outnode=String[])
 
     index = 0
     for node in keys(connections)

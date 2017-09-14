@@ -8,7 +8,7 @@ eddlimits = Dict("alfalfa" => (0, 30), "otherhay" => (0, 30),
                  "Wheat" => (0, 26), "Wheat.Winter" => (0, 26))
 
 ## Duplicates code from regress.jl
-mastercounties = readtable("../../data/global/counties.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable("../../data/global/counties.csv", eltypes=[String, String, String])
 masteryears = 1949:2009
 
 for crop in keys(eddlimits)
@@ -29,9 +29,9 @@ for crop in keys(eddlimits)
         if nrow(temps) < 2
             continue
         end
-        temps[:fullfips] = map(fips -> isna(fips) ? "" : (fips > 10000 ? "$fips" : "0$fips"), temps[:fips])
-        gdd0col = symbol("above$(eddlimits[crop][1])")
-        kdd0col = symbol("above$(eddlimits[crop][2])")
+        temps[:fullfips] = map(fips -> isna.(fips) ? "" : (fips > 10000 ? "$fips" : "0$fips"), temps[:fips])
+        gdd0col = Symbol("above$(eddlimits[crop][1])")
+        kdd0col = Symbol("above$(eddlimits[crop][2])")
 
         for rr in 1:nrow(mastercounties)
             ii = findfirst(mastercounties[rr, :fips] .== temps[:fullfips])

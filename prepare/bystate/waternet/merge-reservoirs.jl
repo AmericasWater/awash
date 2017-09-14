@@ -35,7 +35,7 @@ function findnode(nodename)
     return findnode(foundvertex.label)
 end
 
-outlets = Dict{UTF8String, Vector{Int64}}()
+outlets = Dict{String, Vector{Int64}}()
 for ii in 1:nrow(allreservoirs)
     label = "$(allreservoirs[ii, :collection]).$(allreservoirs[ii, :colid])"
     println("$ii: $label ($(length(keys(outlets))))")
@@ -53,8 +53,8 @@ network[:label] = map(ii -> "$(network[ii, :collection]).$(network[ii, :colid])"
 
 states = readtable(datapath("global/states.csv"))
 
-result = DataFrame(collection=UTF8String[], colid=UTF8String[], area=Float64[],
-                   lat=Float64[], lon=Float64[], elev=Float64[], MAXCAP=Float64[], ST=UTF8String[])
+result = DataFrame(collection=String[], colid=String[], area=Float64[],
+                   lat=Float64[], lon=Float64[], elev=Float64[], MAXCAP=Float64[], ST=String[])
 for label in keys(outlets)
     colcolid = split(label, ".")
     networkrow = network[:label] .== label

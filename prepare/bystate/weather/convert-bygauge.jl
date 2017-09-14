@@ -63,7 +63,7 @@ for ii in 1:length(newlabels)
     indices = []
     for oldupstream in oldupstreams
         row = findfirst(waternetwork[:gaugeid] .== oldupstream)
-        index = find((gage_latitude .== waternetwork[row, :lat]) & (gage_longitude .== waternetwork[row, :lon]))
+        index = find((gage_latitude .== waternetwork[row, :lat]) .& (gage_longitude .== waternetwork[row, :lon]))
         append!(indices, index)
     end
 

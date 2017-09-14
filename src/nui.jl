@@ -2,13 +2,12 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.pin("Mimi", v"0.2.0")
 end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi")
 end
+Pkg.checkout("OptiMimi","julia5")
 
 if Pkg.installed("Graphs") == nothing
     Pkg.add("Graphs")
@@ -30,18 +29,13 @@ if Pkg.installed("RData") == nothing
     Pkg.add("RData")
 end
 
-@windows_only iswindows = true
-if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
-    Pkg.add("NetCDF")
+if is_windows()
+    if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
+        Pkg.add("NetCDF")
+    end
 end
 
 using DataFrames
-
-if !isdefined(:isna)
-    function isna(xx)
-        convert(BitArray, map(x -> isequal(NA, x), xx))
-    end
-end
 
 using OptiMimi
 using MathProgBase
@@ -152,6 +146,5 @@ function mapdata(component, variable, subset=nothing)
 end
 
 open("../docs/intro.txt") do fp
-    println(readall(fp))
+    println(readstring(fp))
 end
-

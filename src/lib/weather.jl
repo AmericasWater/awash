@@ -54,7 +54,7 @@ function sum2timestep(weather)
     for timestep in 1:numsteps
         allcounties = zeros(1, size(weather, 2))
         for month in 1:config["timestep"]
-            allcounties += weather[round(Int64, (timestep - 1) * config["timestep"] + month + config["startweather"] - 1), :]
+            allcounties += transpose(weather[round.(Int64, (timestep - 1) * config["timestep"] + month + config["startweather"] - 1), :])
         end
 
         bytimestep[timestep, :] = allcounties
@@ -81,7 +81,7 @@ function getadded(stations::DataFrame)
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
     for ii in 1:nrow(stations)
-        gage = find((stations[ii, :lat] .== gage_latitude) & (stations[ii, :lon] .== gage_longitude))
+        gage = find((stations[ii, :lat] .== gage_latitude) .& (stations[ii, :lon] .== gage_longitude))
         if length(gage) != 1
             continue
         end
@@ -89,7 +89,7 @@ function getadded(stations::DataFrame)
         added[:, ii] = vec(gage_totalflow[gage[1], :]) .* vec(gage_area[gage[1], :])
     end
 
-    added[isnan(added)] = 0 # if NaN, set to 0 so doesn't propagate
+    added[isnan.(added)] = 0 # if NaN, set to 0 so doesn't propagate
 
     added
 end

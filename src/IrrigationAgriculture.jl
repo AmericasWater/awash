@@ -101,13 +101,13 @@ function initirrigationagriculture(m::Model)
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, symbol("x$year")]
-                        if isna(numgdds)
+                        numgdds = gdds[rr, Symbol("x$year")]
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, symbol("x$year")]
-                        if isna(numkdds)
+                        numkdds = kdds[rr, Symbol("x$year")]
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -147,12 +147,12 @@ function initirrigationagriculture(m::Model)
         agriculture[:rainfedareas] = zeros(Float64, (nrow(rainfeds), 0, numsteps))
         agriculture[:irrigatedareas] = zeros(Float64, (nrow(rainfeds), 0, numsteps))
     else
-        columns = map(crop -> findfirst(symbol(crop) .== names(rainfeds)), irrcrops)
+        columns = map(crop -> findfirst(Symbol(crop) .== names(rainfeds)), irrcrops)
         columns = convert(Vector{Int64}, columns)
         for cc in columns
             # Replace NAs with 0, and convert to float. TODO: improve this
-            rainfeds[isna(rainfeds[cc]), cc] = 0.
-            irrigateds[isna(irrigateds[cc]), cc] = 0.
+            rainfeds[isna.(rainfeds[cc]), cc] = 0.
+            irrigateds[isna.(irrigateds[cc]), cc] = 0.
             # Convert to Ha
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686

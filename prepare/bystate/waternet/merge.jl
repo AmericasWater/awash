@@ -9,7 +9,7 @@ include("../../../src/waternet.jl")
 include("mergelib.jl")
 include("statelib.jl")
 
-mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[String, String, String])
 
 allregions() = unique(map(fips -> fips[1:2], mastercounties[:fips]))
 
@@ -35,7 +35,7 @@ writetable("newnetwork.csv", result)
 
 stateindexes = readtable("../../../data/global/states.csv")
 
-newdraws = DataFrame(state=UTF8String[], gaugeid=UTF8String[])
+newdraws = DataFrame(state=String[], gaugeid=String[])
 for node in values(newwateridverts)
     if getregion(node.label) == "missing"
         state = "missing"

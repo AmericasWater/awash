@@ -20,7 +20,7 @@ for crop in crops
             for col in 2:size(data, 2)
                 year = data[3, col]
                 for row in 4:size(data, 1)
-                    if !isna(data[row, 1]) && typeof(data[row, col]) == Float64
+                    if !isna.(data[row, 1]) && typeof(data[row, col]) == Float64
                         item = strip(replace(data[row, 1], r"\d+/", ""))
                         value = data[row, col]
 

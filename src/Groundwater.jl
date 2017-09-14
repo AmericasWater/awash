@@ -106,7 +106,7 @@ function initaquifer(m::Model)
   	  if get(config, "filterstate", nothing) != nothing
           # This currently only works for county-level runs
           vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
-		  vstates = round(Int64, floor(vfips / 1000));
+		  vstates = round.(Int64, floor(vfips / 1000));
 		  subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
 	  else
 		  subfips = 1:nrow(masterregions)

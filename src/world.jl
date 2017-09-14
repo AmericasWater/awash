@@ -3,7 +3,7 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String])
+masterregions = readtable(datapath(config["masterregions"]), eltypes=[String, String, String])
 
 if get(config, "filterstate", nothing) != nothing
     masterregions = masterregions[map(fips -> fips[1:2], masterregions[:fips]) .== config["filterstate"], :]
@@ -37,7 +37,7 @@ numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_ind
 if config["dataset"] == "three"
     numsteps = 3
 else
-    numsteps = round(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
+    numsteps = round.(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end

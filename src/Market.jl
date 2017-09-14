@@ -68,6 +68,7 @@ function initmarket(m::Model)
 
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
+    market[:domestic_interest] = zeros(numcounties, numallcrops, numsteps)
     market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])
     market[:internationalsales] = zeros(numcounties, numallcrops, numsteps)
     market[:regionimports] = zeros(numcounties, numallcrops, numsteps)

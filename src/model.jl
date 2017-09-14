@@ -14,7 +14,7 @@ groundwater = initaquifer(model); # Allocation or optimization-only
 reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 transportation = inittransportation(model); # optimization-only
-#market = initmarket(model); # dep. Transporation, Agriculture
+market = initmarket(model); # dep. Transportation, Agriculture
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
@@ -25,6 +25,6 @@ waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 groundwater[:withdrawal] = allocation[:watergw];
 
-#market[:produced] = agriculture[:allcropproduction];
-#market[:regionimports] = transportation[:regionimports];
-#market[:regionexports] = transportation[:regionexports];
+market[:produced] = agriculture[:allcropproduction];
+market[:regionimports] = transportation[:regionimports];
+market[:regionexports] = transportation[:regionexports];

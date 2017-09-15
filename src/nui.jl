@@ -6,8 +6,8 @@ end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
+    Pkg.checkout("OptiMimi","julia5")
 end
-Pkg.checkout("OptiMimi","julia5")
 
 if Pkg.installed("Graphs") == nothing
     Pkg.add("Graphs")
@@ -29,16 +29,15 @@ if Pkg.installed("RData") == nothing
     Pkg.add("RData")
 end
 
-if is_windows()
-    if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
-        Pkg.add("NetCDF")
-    end
+if !is_windows() && Pkg.installed("NetCDF") == nothing
+    Pkg.add("NetCDF")
 end
 
 using DataFrames
 
 using OptiMimi
 using MathProgBase
+import Mimi.getmetainfo
 
 include("lib/datastore.jl")
 include("lib/readconfig.jl")
@@ -95,14 +94,21 @@ function runmodel(solver=nothing)
     end
 end
 
+"""
+Return a table of the parameters and variables of a component, and
+their corresponding dimensions.
+
+`component` should be a symbol, like `:MyComponent`.
+"""
 function getvariables(component)
-    parameters = fieldnames(model.components[component].Parameters)
-    variables = fieldnames(model.components[component].Variables)
+    parlist = collect(keys(getmetainfo(model, :Allocation).parameters))
 
-    pardims = map(name -> string(size(model.components[component].Parameters.(name))), parameters)
-    vardims = map(name -> string(size(model.components[component].Variables.(name))), variables)
+    varlist = variables(model, component)
+    
+    pardims = map(name -> getindexlabels(model, component, name), parlist)
+    vardims = map(name -> getindexlabels(model, component, name), varlist)
 
-    DataFrame(name=[parameters; variables], dims=[pardims; vardims])
+    DataFrame(name=[parlist; varlist], dims=[pardims; vardims])
 end
 
 function getdata(component, variable)

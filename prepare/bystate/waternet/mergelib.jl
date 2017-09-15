@@ -1,8 +1,10 @@
 using Graphs
 using DataFrames
 
-typealias RegionNetwork{R, E} IncidenceList{R, E}
-typealias OverlaidRegionNetwork RegionNetwork{ExVertex, ExEdge}
+if !isdefined(:RegionNetwork)
+    const RegionNetwork{R, E} = IncidenceList{R, E}
+    const OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
+end
 
 # Water network has OUT nodes to UPSTREAM
 empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEdge}}())
@@ -137,7 +139,7 @@ function mergedown(nodes, waternet)
 end
 
 function clearunconnected(wateridverts, waternet, result)
-    connections = [node => length(out_neighbors(node, waternet)) for node = vertices(waternet)]
+    connections = Dict(node => length(out_neighbors(node, waternet)) for node = vertices(waternet))
     for node in vertices(waternet)
         for neighbor in out_neighbors(node, waternet)
             connections[neighbor] += 1

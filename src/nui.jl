@@ -101,10 +101,10 @@ their corresponding dimensions.
 `component` should be a symbol, like `:MyComponent`.
 """
 function getvariables(component)
-    parlist = collect(keys(getmetainfo(model, :Allocation).parameters))
+    parlist = collect(keys(getmetainfo(model, component).parameters))
 
     varlist = variables(model, component)
-    
+
     pardims = map(name -> getindexlabels(model, component, name), parlist)
     vardims = map(name -> getindexlabels(model, component, name), varlist)
 
@@ -112,10 +112,10 @@ function getvariables(component)
 end
 
 function getdata(component, variable)
-    if variable in fieldnames(model.components[component].Parameters)
-        model.components[component].Parameters.(variable)
-    elseif variable in fieldnames(model.components[component].Variables)
+    if variable in variables(model, component)
         model[component, variable]
+    elseif variable in collect(keys(getmetainfo(model, component).parameters))
+        error("It's a parameter but I dunno how to extract parameters' value")
     else
         error("Unknown parameter or variable")
     end

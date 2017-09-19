@@ -6,7 +6,7 @@ using RData
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end
-    
+
 OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 
 filtersincludeupstream = false # true to include all upstream nodes during a filter
@@ -143,7 +143,7 @@ include("lib/reservoirs.jl")
 reservoirs = getreservoirs(config)
 
 # Zero if not a reservoir, else its index
-isreservoir = zeros(length(wateridverts))
+isreservoir = zeros(Int64, length(wateridverts))
 
 for ii in 1:nrow(reservoirs)
     resid = "$(reservoirs[ii, :collection]).$(reservoirs[ii, :colid])"

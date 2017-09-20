@@ -115,7 +115,7 @@ function getdata(component, variable)
     if variable in variables(model, component)
         model[component, variable]
     elseif variable in collect(keys(getmetainfo(model, component).parameters))
-        error("It's a parameter but I dunno how to extract parameters' value")
+        model.external_parameters[variable]
     else
         error("Unknown parameter or variable")
     end

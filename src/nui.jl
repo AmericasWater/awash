@@ -2,11 +2,12 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
+    Pkg.checkout("Mimi", "forceconvert")
 end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi","julia5")
+    Pkg.checkout("OptiMimi", "julia5")
 end
 
 if Pkg.installed("Graphs") == nothing

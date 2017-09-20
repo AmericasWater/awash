@@ -147,14 +147,14 @@ function initunivariateagriculture(m::Model)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.external_parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.parameters[:irrigation_rate].values[rr, cc, tt] / 100
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
             end
         end
 

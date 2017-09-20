@@ -197,7 +197,7 @@ for crop in allcrops
                 if isna(rainfedyield)
                     rainfedyield = -1.
                 end
-                push!(dfbycy, @data([crop masterregions[ii, :fips] year irrigatedyield exp(model.parameters[:logirrigatedyield].values[ii, jj, year - 1949]) rainfedyield exp(model[:Agriculture, :lograinfedyield][ii, jj, year - 1949])]))
+                push!(dfbycy, @data([crop masterregions[ii, :fips] year irrigatedyield exp(model.external_parameters[:logirrigatedyield].values[ii, jj, year - 1949]) rainfedyield exp(model[:Agriculture, :lograinfedyield][ii, jj, year - 1949])]))
             end
         end
     end

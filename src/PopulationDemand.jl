@@ -99,6 +99,6 @@ function initpopulationdemand(m::Model, years)
 end
 
 function constraintoffset_populationdemand_cropinterest(m::Model)
-    gen(rr, cc, tt) = -m.parameters[:population].values[rr, tt] * m.parameters[:cropinterestperperson].values[cc]
+    gen(rr, cc, tt) = -m.external_parameters[:population].values[rr, tt] * m.external_parameters[:cropinterestperperson].values[cc]
     hallsingle(m, :PopulationDemand, :cropinterest, gen)
 end

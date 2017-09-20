@@ -142,7 +142,9 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 100./ 1000.)
+    # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
+    # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 386.85)
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -150,14 +152,14 @@ function grad_allocation_cost_waterfromsupersource(m::Model)
 end
 
 ## Optional cost for drawing down a river (environmental change)
+# Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
 function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
-                A[rr, pp] = 1./1000.
+                A[rr, pp] = 65.65
             end
         end
     end
@@ -203,21 +205,17 @@ end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["dataset"] == "three"
-		if optimtype == false
-			gen(rr, tt) = 1. * (rr > 1)
-		elseif optimtype == true
-			gen(rr, tt) = 2. * (rr > 1)
-		end
-	        hallsingle(m, :Allocation, :balance, gen)
+	if optimtype == false
+	    genuu(rr, tt) = 1. * (rr > 1)
+	else
+	    genuu(rr, tt) = 2. * (rr > 1)
+	end
+	hallsingle(m, :Allocation, :balance, genuu)
     else
-          recorded = getfilteredtable("extraction/USGS-2010.csv")
-		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-		if optimtype == false
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
-		elseif optimtype == true
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
-		end
-		hallsingle(m, :Allocation, :balance, gen)
+        recorded = getfilteredtable("extraction/USGS-2010.csv")
+	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
+	gen(rr, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 

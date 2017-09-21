@@ -16,7 +16,7 @@ end
 
 requirepackage("YAML")
 requirepackage("Mimi")
-Pkg.checkout("Mimi", true)
+Pkg.checkout("Mimi")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")

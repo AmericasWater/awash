@@ -4,7 +4,6 @@ using Mimi
 include("lib/agriculture.jl")
 include("lib/agriculture-ers.jl")
 
-
 @defcomp UnivariateAgriculture begin
     regions = Index()
     unicrops = Index()
@@ -27,7 +26,10 @@ include("lib/agriculture-ers.jl")
     sorghumarea=Variable(index=[regions, time], unit="Ha")
     barleyarea=Variable(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
+    #irrigation_ranch=Parameter(index=[regions,time],unit="1000m^3") 
+    
+    totalirrigation = Variable(index=[regions, time], unit="1000 m^3") 
+    #totalirrigation1 = Variable(index=[regions, time], unit="1000 m^3") #crop irrigation
 
     # Total production: lb or bu
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
@@ -52,7 +54,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
             totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
-
+            
             # Calculate total production
             v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
@@ -63,6 +65,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
+        #v.totalirrigation[rr,tt]=v.totalirrigation1[rr, tt]+p.irrigation_ranch[rr,tt]
         v.allagarea[rr, tt] = allagarea
     end
 end
@@ -76,7 +79,7 @@ function initunivariateagriculture(m::Model)
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numsteps)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
-
+    
     for cc in 1:numunicrops
 
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated","wheat.co.rainfed", "wheat.co.irrigated"]
@@ -138,7 +141,10 @@ function initunivariateagriculture(m::Model)
 
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
-
+    #irrigation_ranch=zeros(numcounties,numsteps)
+    #ranch=Array(readtable(datapath("extraction/irrigation_ranch.csv"))[:,:Irrigation])
+    #agriculture[:irrigation_ranch]=repeat(ranch, outer=[1, numsteps])
+    
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
     if isfile(datapath("../extraction/totalareas-08.jld"))

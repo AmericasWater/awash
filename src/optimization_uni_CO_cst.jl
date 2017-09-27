@@ -1,5 +1,5 @@
-redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
-redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
+redohouse =true#!isfile(cachepath("fullhouse$suffix.jld"))
+redogwwo =true#!isfile(cachepath("partialhouse2$suffix.jld"))
 
 include("world.jl")
 include("weather.jl")
@@ -36,8 +36,8 @@ urbandemand = initurbandemand(m); # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst, :rainfedareas_cst, :irrigatedareas_cst]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Allocation,:Agriculture]
-constraints = [:allagarea, :outflows, :balance, :waterfromgw,:withdrawals,:sorghumarea,:barleyarea]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation,:Allocation,:Agriculture,:Agriculture]
+constraints = [:allagarea, :outflows, :balance,:totaluse,:sorghumarea,:barleyarea]
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream
@@ -112,13 +112,13 @@ if redohouse
 
     
     #GW CONSTRAINT
-    setconstraint!(house,grad_allocation_totalGW_waterfromgw(m))
-    setconstraintoffset!(house,constraintoffset_allocation_totalGW(m))
+    #setconstraint!(house,grad_allocation_totalGW_waterfromgw(m))
+    #setconstraintoffset!(house,constraintoffset_allocation_totalGW(m))
     
-    #SW CONSTRAINT
-    setconstraint!(house,grad_allocation_totalTot_withdrawals(m))
-    setconstraintoffset!(house,constraintoffset_allocation_totalSW(m))
-    
+    #Tot CONSTRAINT
+    setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
+    setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
+    setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
     
     
     #Constrain TOTAL GW use per county as USGS 
@@ -128,7 +128,7 @@ if redohouse
     
         # Constrain Sorghum Areas 
     setconstraint!(house,room_relabel(grad_univariateagriculture_sorghumarea_totalareas_cst(m),:sorghumarea,:Agriculture,:sorghumarea))
-   setconstraintoffset!(house,constraintoffset_agriculture_sorghumarea(m)) 
+    setconstraintoffset!(house,constraintoffset_agriculture_sorghumarea(m)) 
     
     # Constrain Barley Areas 
     setconstraint!(house,room_relabel(grad_univariateagriculture_barleyarea_totalareas_cst(m),:barleyarea,:Agriculture,:barleyarea))

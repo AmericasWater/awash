@@ -13,9 +13,6 @@ include("lib/agriculture-ers.jl")
     totalareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     totalareas_cst=Parameter(index=[regions,unicrops],unit="Ha") 
     
-    sorghumarea=Variable(index=[regions, time], unit="Ha")
-    barleyarea=Variable(index=[regions, time], unit="Ha")
-    
     # Internal
     # Yield per hectare
     yield = Parameter(index=[regions, unicrops, time], unit="none")
@@ -26,9 +23,12 @@ include("lib/agriculture-ers.jl")
     # Computed
     # Total agricultural area
     totalareas2 = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
-    totalareas2_cst = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
+    #totalareas2_cst = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
     allagarea = Variable(index=[regions, time], unit="Ha")
-
+    sorghumarea=Parameter(index=[regions, time], unit="Ha")
+    barleyarea=Variable(index=[regions, time], unit="Ha")
+    
+    
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
@@ -38,6 +38,7 @@ include("lib/agriculture-ers.jl")
     # Total cultivation costs per crop
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
     overhead=Variable(index=[regions, unicrops, time], unit="\$")
+    unicultivationcost=Variable(index=[regions, unicrops, time], unit="\$")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -50,27 +51,24 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
         allagarea = 0.
         
         for cc in d.unicrops
-            for tt in d.time
-                v.totalareas2_cst[rr, cc,tt]=repeat(p.totalareas_cst[rr,cc],outer=[1, 1,tt])
-            end 
+          
             v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
             #allagarea += p.totalareas[rr, cc, tt]
-            allagarea += v.totalareas2_cst[rr,cc,tt]
+            allagarea += v.totalareas2[rr,cc,tt]
             
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
-            #totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
-            totalirrigation += v.totalareas2_cst[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
+            totalirrigation += v.totalareas2[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
             
             # Calculate total production
             v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
-            #v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 
-            v.production[rr, cc, tt] = p.yield[rr, cc, tt] * v.totalareas2_cst[rr, cc, tt] * 2.47105 
+            v.production[rr, cc, tt] = p.yield[rr, cc, tt] * v.totalareas2[rr, cc, tt] * 2.47105 
 
             # Calculate cultivation costs
             #v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
-            v.opcost[rr, cc, tt] = v.totalareas2_cst[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
-            v.overhead[rr, cc, tt] = v.totalareas2_cst[rr, cc, tt] * unioverhead[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.opcost[rr, cc, tt] = v.totalareas2[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.overhead[rr, cc, tt] = v.totalareas2[rr, cc, tt] * unioverhead[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
+        v.unicultivationcost[rr,cc,tt]=v.opcost[rr,cc,tt]
 
         v.totalirrigation[rr, tt] = totalirrigation
         v.allagarea[rr, tt] = allagarea
@@ -139,7 +137,12 @@ function initunivariateagriculture(m::Model)
 
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
-
+    
+    sorghum=readtable(joinpath(datapath("agriculture/sorghum.csv")))
+    sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
+    agriculture[:sorghumarea]=sorghum
+    
+    
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
     agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
@@ -326,6 +329,10 @@ end
 
 
 
+function constraintoffset_univariateagriculture_sorghumarea(m::Model)
+    gen(rr,tt)=m.parameters[:sorghumarea].values[rr,tt]
+    hallsingle(m, :UnivariateAgriculture, :sorghumarea, gen)
+end
 
 
 

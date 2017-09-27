@@ -136,9 +136,27 @@ function canonicalindex(indexes)
 end
 
 """Return the index for each region key."""
-function getregionindices(fipses)
+function _getregionindices(fipses)
     map(fips -> findfirst(masterregions[:fips], fips), fipses)
 end
+
+function getregionindices(fipses, tomaster=true)
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    else
+        masterfips = masterregions[:fips]
+    end
+
+    if tomaster
+        convert(Vector{Int64}, map(fips -> findfirst(masterfips, fips), fipses))
+    else
+        println(typeof(masterfips))
+        println(typeof(fipses))
+        convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
+    end
+end
+
+
 
 lastindexcol = nothing
 

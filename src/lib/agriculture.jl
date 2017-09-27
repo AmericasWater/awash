@@ -249,7 +249,7 @@ end
 """
 Read Naresh's special yield file format
 """
-function read_nareshyields(crop::AbstractString)
+function read__nareshyields(crop::AbstractString)
     # Get the yield data
     coef=Dict("corn.co.rainfed"=>0.0137,"corn.co.irrigated"=>0.0137,"wheat.co.rainfed"=>0.0082,"wheat.co.irrigated"=>0.0082)
     if crop == "corn.co.rainfed"
@@ -284,6 +284,61 @@ function read_nareshyields(crop::AbstractString)
     result
     
 end
+
+
+
+function read_nareshyields(crop::AbstractString, use2010yields=true)
+    # Get the yield data
+    if crop == "corn.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
+    elseif crop == "corn.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
+    elseif crop == "wheat.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+    elseif crop == "wheat.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+    end
+
+    # Get the order into our fips
+    regionindices_yield = getregionindices(fipses, false)
+
+    if use2010yields
+        # Collect coefficients to remove the trend
+        coefficients = readtable(bayespath)
+        timecoeffs = coefficients[coefficients[:coef] .== "time", :]
+
+        regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
+    end
+
+    result = zeros(numcounties, numsteps)
+
+    for ii in 1:numsteps
+        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+        if use2010yields
+            # Remove the trend from the yields
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+        end
+        result[:, ii] = exp(orderedyields) # Exponentiate because in logs
+    end
+
+    result
+end
+
+
+
+
 
 """
 Read USDA QuickStats data

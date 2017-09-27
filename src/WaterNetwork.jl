@@ -83,6 +83,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
 end
 
+
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
     function generate(A, tt)
         # Fill in CANALS x REGIONS

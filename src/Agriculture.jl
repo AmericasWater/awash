@@ -31,8 +31,8 @@ include("lib/agriculture.jl")
     allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
     allirrigation = Variable(index=[regions, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
-    sorghumarea=Variable(index=[regions, time], unit="Ha")
-    barleyarea=Variable(index=[regions, time], unit="Ha")
+    sorghumarea=Parameter(index=[regions, time], unit="Ha")
+    barleyarea=Parameter(index=[regions, time], unit="Ha")
 end
 
 function run_timestep(s::Agriculture, tt::Int)
@@ -77,6 +77,16 @@ function initagriculture(m::Model)
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
     agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))
 
+    barley=readtable(joinpath(datapath("agriculture/barley.csv")))
+    barley=repeat(convert(Vector,barley[:barley])*0.404686,outer=[1,numsteps])
+    sorghum=readtable(joinpath(datapath("agriculture/sorghum.csv")))
+    sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
+    agriculture[:barleyarea]=barley
+    agriculture[:sorghumarea]=sorghum
+    
+    
+    
+    
     agriculture
 end
 

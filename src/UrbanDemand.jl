@@ -11,7 +11,7 @@ include("lib/readconfig.jl")
     # Urban demands - exogeneous for now
     domesticdemand = Parameter(index=[regions, time],unit="1000 m^3")
     commercialdemand = Parameter(index=[regions, time],unit="1000 m^3")
-
+    urbans=Parameter(index=[regions, time],unit="1000 m^3")
     # Demanded water
     waterdemand = Variable(index=[regions, time],unit="1000 m^3")
 end
@@ -36,17 +36,25 @@ function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = getfilteredtable("extraction/USGS-2010.csv");
     urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
-    urbandemand
+DO_To
+     urbandemand[:urbans] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :LI_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :IN_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
+    
+    
+    
+    
 end
 
-function constraintoffset_urbandemand_waterdemand(m::Model)
+function constraintoffset_urbandemand_waterdemand_(m::Model)
     gen(rr, tt) = m.parameters[:commercialdemand].values[rr, tt] + m.parameters[:domesticdemand].values[rr,tt]
     hallsingle(m, :UrbanDemand, :waterdemand, gen)
 end
 
+function constraintoffset_urbandemand_waterdemand(m::Model)
+    gen(rr, tt) = m.parameters[:urbans].values[rr, tt] 
+    hallsingle(m, :UrbanDemand, :waterdemand, gen)
+end
 
 

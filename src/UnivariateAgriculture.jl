@@ -149,8 +149,11 @@ function initunivariateagriculture(m::Model)
     totalareas = getfilteredtable("agriculture/totalareas.csv")
     if isfile(datapath("../extraction/totalareas-08.jld"))
         agriculture[:totalareas]= deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
-        
+    elseif isfile(datapath("../extraction/totalareas_cst-08.jld"))
+        constantareas= deserialize(open(datapath("../extraction/totalareas_cst$suffix.jld"), "r"));
+        agriculture[:totalareas]=repeat(constantareas,outer=[1,1,numsteps])
     else 
+        
         if isempty(unicrops)
             agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
         else

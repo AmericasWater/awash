@@ -48,5 +48,5 @@ agriculture[:uniirrigation] = univariateagriculture[:totalirrigation]
 waterdemand[:totalirrigation] = univariateagriculture[:totalirrigation];
 waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
-waterdemand[:urbanuse] = urbandemand[:waterdemand];
+#waterdemand[:urbanuse] = urbandemand[:waterdemand];
 waterdemand[:industrialuse] = industrialdemand[:waterdemand];

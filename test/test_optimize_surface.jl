@@ -20,6 +20,13 @@ solver = ClpSolver()
 # Save the results, if not available
 varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
+allparams = []
+for ii in 1:length(house.parameters)
+    allparams = [allparams; repeat([house.parameters[ii]], outer=[varlens[ii]])]
+end
+alldf = DataFrame(parameter=allparams, value=sol.sol)
+writetable("../results/optimize-surface-test.csv", alldf)
+
 if !isfile(datapath("extraction/withdrawals$suffix.jld"))
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
 end

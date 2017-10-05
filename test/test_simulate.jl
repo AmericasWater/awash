@@ -24,4 +24,4 @@ df3available = vec(sum(model[:Market, :available], 2))
 df3 = DataFrame(regions=repeat(masterregions[:state], outer=[2]), time=repeat([minimum(df1[:time]), maximum(df1[:time])], inner=[nrow(masterregions)]), value=df3available, variable=:available)
 
 alldf = vcat(df1, df2, df3)
-writetable("../results/simulate-test.csv", alldf)
+writetable(joinpath(dirname(@__FILE__), "../results/simulate-test.csv"), alldf)

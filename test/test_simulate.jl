@@ -30,9 +30,9 @@ if isfile(outputpath)
     compdf = readtable(outputpath)
     @test nrow(compdf) == nrow(alldf)
     for ii in 1:nrow(alldf)
-        @test compdf[ii, :regions] == alldf[ii, :regions]
-        @test compdf[ii, :time] == alldf[ii, :time]
-        @test compdf[ii, :variable] == alldf[ii, :variable]
+        @test compdf[ii, :regions] == string(alldf[ii, :regions])
+        @test compdf[ii, :time] == string(alldf[ii, :time])
+        @test compdf[ii, :variable] == string(alldf[ii, :variable])
         @test compdf[ii, :value] == alldf[ii, :value]
     end
 else

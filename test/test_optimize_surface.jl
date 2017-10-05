@@ -25,7 +25,18 @@ for ii in 1:length(house.parameters)
     allparams = [allparams; repeat([house.parameters[ii]], outer=[varlens[ii]])]
 end
 alldf = DataFrame(parameter=allparams, value=sol.sol)
-writetable(joinpath(dirname(@__FILE__), "../results/optimize-surface-test.csv"), alldf)
+
+outputpath = joinpath(dirname(@__FILE__), "../results/optimize-surface-test.csv")
+if isfile(outputpath)
+    compdf = readtable(outputpath)
+    @test nrow(compdf) == nrow(alldf)
+    for ii in 1:nrow(alldf)
+        @test compdf[ii, :parameter] == alldf[ii, :parameter]
+        @test compdf[ii, :value] == alldf[ii, :value]
+    end
+else
+    writetable(outputpath, alldf)
+end
 
 if !isfile(datapath("extraction/withdrawals$suffix.jld"))
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))

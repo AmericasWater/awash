@@ -30,16 +30,23 @@ outputpath = joinpath(dirname(@__FILE__), "../results/optimize-surface-test.csv"
 if isfile(outputpath)
     compdf = readtable(outputpath)
     @test nrow(compdf) == nrow(alldf)
+    mismatches = []
     for ii in 1:nrow(alldf)
-        println(ii)
-        println(compdf[ii, :])
-        println(alldf[ii, :])
         @test compdf[ii, :parameter] == string(alldf[ii, :parameter])
-        @test compdf[ii, :value] == alldf[ii, :value]
+        if compdf[ii, :value] != alldf[ii, :value]
+            mismatches.append(ii)
+        end
     end
 else
     writetable(outputpath, alldf)
 end
+
+if length(mismatches) > 0
+    println(mismatches)
+    println(alldf[mismatches, :])
+    println(compdf[mismatches, :])
+end
+@test length(mismatches) == 0
 
 if !isfile(datapath("extraction/withdrawals$suffix.jld"))
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))

@@ -31,6 +31,9 @@ if isfile(outputpath)
     compdf = readtable(outputpath)
     @test nrow(compdf) == nrow(alldf)
     for ii in 1:nrow(alldf)
+        println(ii)
+        println(compdf[ii, :])
+        println(alldf[ii, :])
         @test compdf[ii, :parameter] == string(alldf[ii, :parameter])
         @test compdf[ii, :value] == alldf[ii, :value]
     end

@@ -34,7 +34,7 @@ if isfile(outputpath)
     for ii in 1:nrow(alldf)
         @test compdf[ii, :parameter] == string(alldf[ii, :parameter])
         if compdf[ii, :value] != alldf[ii, :value]
-            mismatches.append(ii)
+            push!(mismatches, ii)
         end
     end
 else

@@ -41,7 +41,7 @@ if isfile(outputpath)
     mismatches = Int64[]
     for ii in 1:nrow(alldf)
         @test compdf[ii, :parameter] == string(alldf[ii, :parameter])
-        if compdf[ii, :value] != alldf[ii, :value]
+        if abs(compdf[ii, :value] - alldf[ii, :value]) / max(compdf[ii, :value], alldf[ii, :value]) > 0.01
             push!(mismatches, ii)
         end
     end

@@ -16,12 +16,13 @@ println("Running model...")
 df1 = getdataframe(model, :Agriculture, :allirrigation)
 rename!(df1, :allirrigation, :value)
 df1[:variable] = :allirrigation
-df2 = getdataframe(model, :ReturnFlows, :returned)
-df2 = DataFrame(regions=["global"], time=[2000], value=[sum(df2[:returned])], variable=[:returned])
+# df2 = getdataframe(model, :ReturnFlows, :returned)
+# df2 = DataFrame(regions=["global"], time=[2000], value=[sum(df2[:returned])], variable=[:returned])
 df3available = vec(sum(model[:Market, :available], 2))
 df3 = DataFrame(regions=repeat(masterregions[:state], outer=[2]), time=repeat([minimum(df1[:time]), maximum(df1[:time])], inner=[nrow(masterregions)]), value=df3available, variable=:available)
 
-alldf = vcat(df1, df2, df3)
+# alldf = vcat(df1, df2, df3)
+alldf = vcat(df1, df3)
 
 outputpath = joinpath(dirname(@__FILE__), "../results/simulate-test.csv")
 if isfile(outputpath)

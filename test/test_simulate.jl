@@ -27,12 +27,22 @@ outputpath = joinpath(dirname(@__FILE__), "../results/simulate-test.csv")
 if isfile(outputpath)
     compdf = readtable(outputpath)
     @test nrow(compdf) == nrow(alldf)
+    mismatches = Int64[]
     for ii in 1:nrow(alldf)
         @test compdf[ii, :regions] == string(alldf[ii, :regions])
         @test compdf[ii, :time] == alldf[ii, :time]
         @test compdf[ii, :variable] == string(alldf[ii, :variable])
-        @test compdf[ii, :value] == alldf[ii, :value]
+        if compdf[ii, :value] != alldf[ii, :value]
+            push!(mismatches, ii)
+        end
     end
+
+    if length(mismatches) > 0
+        println(mismatches)
+        println(alldf[mismatches, :])
+        println(compdf[mismatches, :])
+    end
+    @test length(mismatches) == 0
 else
     writetable(outputpath, alldf)
 end

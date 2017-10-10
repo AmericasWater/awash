@@ -1,18 +1,15 @@
 using DataFrames
+include("agriculture-ers.jl")
 
-## Univariate crop parametrs
 
-
-#unicrop_irrigationrate = Dict("barley" => 1530.148, "corn" => 0, "sorghum" => 0, "soybeans" => 0.0, "wheat" => 0, "hay" => 0.0) # mm/year
-
-#unicrop_irrigationstress = Dict("barley" => 298.8803, "corn" => 1864.5602,                                "sorghum" => 499.6120, "soybeans" => 153.5861,"wheat" => 194.1666, "hay" => 2017.1677) # (mm/year) / m-deficiency
-
-unicrop_irrigationrate = Dict("barley" => 12.9, "corn" => 13.0,
-                              "sorghum" => 0., "soybeans" => 16.8,
-                              "wheat" => 21.4, "hay" => 0.) # mm/year
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "sorghum" => 0., "soybeans" => 0.,
+                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+
+unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
+                              "sorghum" => 19.2, "soybeans" => 330.2,
+                              "wheat" => 21.4, "hay" => 386.1) # mm/year
+
 
 known_irrigationrate = Dict("corn.co.rainfed" => 0,
                             "corn.co.irrigated" => 1.6 * 304.8, # convert ft -> mm
@@ -35,25 +32,6 @@ crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4
 
 #crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9)
 
-#areas=convert(Matrix,readtable(datapath("agarea.csv")))
-
-
-
-#rainfeds = readtable(joinpath(todata, "Colorado/rainfedareas_colorado.csv"))
-#irrigateds = readtable(joinpath(todata, "Colorado/irrigatedareas_colorado.csv"))
-#rainfeds=convert(Matrix, rainfeds)*0.404686
-#irrigateds=convert(Matrix, irrigateds)*0.404686
-#sumareas=rainfeds+irrigateds
-#sum_areas=sum(sumareas,2)
-
-
-# Per year costs
-#cultivation_costs = Dict("alfalfa" => 426.55, "otherhay" => 426.55,
-#                         "Barley" => 394.71, "Barley.Winter" => 394.71,
-#                         "Maize" => 511.65,
-#                         "Sorghum" => 327.78,
-#                         "Soybeans" => 359.06,
-#                         "Wheat" => 271.06, "Wheat.Winter" => 271.06) # USD / acre barley=442
 
 cultivation_costs = Dict("corn" => 401., "corn.co.rainfed" =>401., "corn.co.irrigated" => 401.,
                          "sorghum" => 250., "soybeans" => 260.,
@@ -271,6 +249,57 @@ end
 """
 Read Naresh's special yield file format
 """
+function read__nareshyields(crop::AbstractString)
+    # Get the yield data
+    coef=Dict("corn.co.rainfed"=>0.0137,"corn.co.irrigated"=>0.0137,"wheat.co.rainfed"=>0.0082,"wheat.co.irrigated"=>0.0082)
+    if crop == "corn.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
+    elseif crop == "corn.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
+    elseif crop == "wheat.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+    elseif crop == "wheat.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+    end
+
+    # Get the order into our fips
+    regionindices_yield = getregionindices(fipses, false)
+
+    if use2010yields
+        # Collect coefficients to remove the trend
+        coefficients = readtable(bayespath)
+        timecoeffs = coefficients[coefficients[:coef] .== "time", :]
+
+        regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
+    end
+
+    result = zeros(numcounties, numsteps)
+
+    for ii in 1:numsteps
+        result[regionindices, ii] = (vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :])))
+    end
+
+    for tt in 1:numsteps
+        result[:,tt]=result[:,tt]*exp(coef[crop]*(2010-index2year(tt)))
+    end
+    result
+
+end
+
+
+
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
@@ -320,6 +349,10 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
     result
 end
 
+
+
+
+
 """
 Read USDA QuickStats data
 """
@@ -363,3 +396,4 @@ function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
 
     return default
 end
+

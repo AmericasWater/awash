@@ -2,6 +2,7 @@ using DataFrames
 using Mimi
 
 include("lib/agriculture.jl")
+include("lib/agriculture-ers.jl")
 
 @defcomp UnivariateAgriculture begin
     regions = Index()
@@ -25,13 +26,17 @@ include("lib/agriculture.jl")
     sorghumarea=Variable(index=[regions, time], unit="Ha")
     barleyarea=Variable(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
+    #irrigation_ranch=Parameter(index=[regions,time],unit="1000m^3") 
+    
+    totalirrigation = Variable(index=[regions, time], unit="1000 m^3") 
+    #totalirrigation1 = Variable(index=[regions, time], unit="1000 m^3") #crop irrigation
 
     # Total production: lb or bu
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
     # Total cultivation costs per crop
-    unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
+    opcost = Variable(index=[regions, unicrops, time], unit="\$")
+    overhead=Variable(index=[regions, unicrops, time], unit="\$")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -49,16 +54,18 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
             totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
-
+            
             # Calculate total production
             v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
-            v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.opcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.overhead[rr, cc, tt] = p.totalareas[rr, cc, tt] * unioverhead[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
+        #v.totalirrigation[rr,tt]=v.totalirrigation1[rr, tt]+p.irrigation_ranch[rr,tt]
         v.allagarea[rr, tt] = allagarea
     end
 end
@@ -72,15 +79,23 @@ function initunivariateagriculture(m::Model)
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numsteps)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
-
+    
     for cc in 1:numunicrops
-        if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
-            yield[:,cc,:] = read_nareshyields(unicrops[cc])
+
+        if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated","wheat.co.rainfed", "wheat.co.irrigated"]
+            #for tt in 1:numsteps
+            yield[:,cc,:] = read_nareshyields(unicrops[cc])#*exp(0.0137*(2010-index2year(tt)))
+            #end 
+            #irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+        #elseif unicrops[cc] in ["wheat.co.rainfed", "wheat.co.irrigated"]
+            #for tt in 1:numsteps
+            #yield[:,cc,tt] = read_nareshyields(unicrops[cc])*exp(0.0082*(2010-index2year(tt)))
+            #end 
             irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
-            continue
-        end
-
-
+            continue 
+        end 
+            
+            
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
@@ -116,6 +131,7 @@ function initunivariateagriculture(m::Model)
                     yield[rr, cc, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
                     irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
+                    irrigation_rate[:,5,:]=330.2
                 end
             end
         end
@@ -125,13 +141,19 @@ function initunivariateagriculture(m::Model)
 
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
-
+    #irrigation_ranch=zeros(numcounties,numsteps)
+    #ranch=Array(readtable(datapath("extraction/irrigation_ranch.csv"))[:,:Irrigation])
+    #agriculture[:irrigation_ranch]=repeat(ranch, outer=[1, numsteps])
+    
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
     if isfile(datapath("../extraction/totalareas-08.jld"))
         agriculture[:totalareas]= deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
-        
+    elseif isfile(datapath("../extraction/totalareas_cst-08.jld"))
+        constantareas= deserialize(open(datapath("../extraction/totalareas_cst$suffix.jld"), "r"));
+        agriculture[:totalareas]=repeat(constantareas,outer=[1,1,numsteps])
     else 
+        
         if isempty(unicrops)
             agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
         else
@@ -169,7 +191,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+    roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> uniopcost[rr,cc] * 2.47105 * config["timestep"]/12) # convert acres to Ha
 end
 
 function grad_univariateagriculture_allagarea_totalareas(m::Model)

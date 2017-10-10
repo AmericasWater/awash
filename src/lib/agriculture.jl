@@ -251,7 +251,6 @@ Read Naresh's special yield file format
 """
 function read__nareshyields(crop::AbstractString)
     # Get the yield data
-    coef=Dict("corn.co.rainfed"=>0.0137,"corn.co.irrigated"=>0.0137,"wheat.co.rainfed"=>0.0082,"wheat.co.irrigated"=>0.0082)
     if crop == "corn.co.rainfed"
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
@@ -288,14 +287,15 @@ function read__nareshyields(crop::AbstractString)
     result = zeros(numcounties, numsteps)
 
     for ii in 1:numsteps
-        result[regionindices, ii] = (vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :])))
+        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+        if use2010yields
+            # Remove the trend from the yields
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+        end
+        result[:, ii] = exp(orderedyields) # Exponentiate because in logs
     end
 
-    for tt in 1:numsteps
-        result[:,tt]=result[:,tt]*exp(coef[crop]*(2010-index2year(tt)))
-    end
     result
-
 end
 
 

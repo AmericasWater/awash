@@ -143,7 +143,14 @@ function initallocation(m::Model)
         allocation[:totaltot]=totalTot[:,1]
         allocation[:totaluse]=totalTot[:,1]
         
-	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+
+        if isfile(datapath("../extraction/returns-08.jld"))
+            allocation[:returns] = deserialize(open(datapath("../extraction/returns$suffix.jld"), "r"));
+            else 
+            allocation[:returns]=zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+            end 
+        
+        
 	#allocation[:waterfromgw] = cached_fallback("../extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps]));
         if isfile(datapath("../extraction/waterfromgw-08.jld"))
             waterfromgw = deserialize(open(datapath("../extraction/waterfromgw$suffix.jld"), "r"));
@@ -318,7 +325,8 @@ end
 #change GW dimension for County OR State 
 
 function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT 
-    gen(tt)=6.966324175971183e6 #m.parameters[:totaltot].values[tt]
+    gen(tt)=7.273e6
+     #m.parameters[:totaltot].values[tt] 
     hallsingle(m, :Allocation, :totaluse,gen)
 end
 
@@ -354,15 +362,10 @@ end
 
 
 function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
-    #if demandmodel == nothing
-    #    constraintoffset_allocation_recordedbalance(m, includegw)
-    #else
     gen(rr,tt)=demandmodel[:WaterDemand, :totaldemand][rr,tt]
-    #demandmodel[:WaterDemand,:totalirrigation][rr,tt]+demandmodel[:UrbanDemand, :waterdemand][rr,tt]+demandmodel[:IndustrialDemand, :waterdemand][rr,tt]+demandmodel[:Thermoelectric, :demand_copy][rr,tt]+demandmodel[:Livestock, :demand_copy][rr,tt]
-    
+
     hallsingle(m,:Allocation,:balance,gen)
-    #hallvalues(m, :Allocation, :balance, demandmodel[:WaterDemand, :totaldemand])
-    #end
+    
 end
 
 

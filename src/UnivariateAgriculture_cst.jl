@@ -28,6 +28,8 @@ include("lib/agriculture-ers.jl")
     sorghumarea=Parameter(index=[regions, time], unit="Ha")
     barleyarea=Variable(index=[regions, time], unit="Ha")
     
+    hayproduction=Parameter(index=[time],unit="ton")
+    barleyproduction=Parameter(index=[time],unit="bu")
     
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
@@ -62,7 +64,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             # Calculate total production
             v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
             v.production[rr, cc, tt] = p.yield[rr, cc, tt] * v.totalareas2[rr, cc, tt] * 2.47105 
-
+            
             # Calculate cultivation costs
             #v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
             v.opcost[rr, cc, tt] = v.totalareas2[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
@@ -132,9 +134,11 @@ function initunivariateagriculture(m::Model)
             end
         end
     end
-
+    yield[:,4,:]=yield[:,4,:]/2 
+    yield[:,8,:]=yield[:,8,:]*1.5
+    
     agriculture = addcomponent(m, UnivariateAgriculture)
-
+    
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
     
@@ -142,7 +146,10 @@ function initunivariateagriculture(m::Model)
     sorghum=repeat(convert(Vector,sorghum[:sorghum])*0.404686,outer=[1,numsteps])
     agriculture[:sorghumarea]=sorghum
     
-    
+    hayproduction=ones(numsteps)
+    agriculture[:hayproduction]=3.744e6*hayproduction
+    barleyproduction=ones(numsteps)
+    agriculture[:barleyproduction]=6.7397e6*barleyproduction
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
     agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
@@ -165,9 +172,14 @@ function initunivariateagriculture(m::Model)
             else
                 column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                constantareas[isna(totalareas[column]), cc] = 0. 
             end
         end
+            constantareas[:,1]= constantareas[:,1]*2.47
+            constantareas[:,4]= constantareas[:,4]*2.47
+            constantareas[:,6]= constantareas[:,6]/2
+            constantareas[:,7]= constantareas[:,7]/2
+            constantareas[:,8]= constantareas[:,8]*1.5
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
         agriculture[:totalareas_cst] =constantareas
     end
@@ -309,35 +321,79 @@ function grad_univariateagriculture_sorghumarea_totalareas_cst(m::Model)
 end
 
 
-function grad_univariateagriculture_barleyarea_totalareas_cst(m::Model)
+
+
+
+function grad_univariateagriculture_hayproduction_totalareas_cst(m::Model)
     function generate(A)
         for rr in 1:numcounties
             for tt in 1:numsteps
                 for cc in 1:numunicrops
-                        if unicrops[cc]=="barley"
-                     A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
-                    else 
-                       A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 0. 
-                    end 
+                    if unicrops[cc]=="hay"
+                    A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12
+                    else
+                    A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =0.
+                    end  
                 end
             end
         end
         return A
     end
-            roomintersect(m, :UnivariateAgriculture, :barleyarea, :totalareas_cst, generate)
+    roomintersect(m, :UnivariateAgriculture, :hayproduction, :totalareas_cst, generate)
 end
+
+
+
+function grad_univariateagriculture_barleyproduction_totalareas_cst(m::Model)
+    function generate(A)
+        for rr in 1:numcounties
+            for tt in 1:numsteps
+                for cc in 1:numunicrops
+                    if unicrops[cc]=="barley"
+                    A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12
+                    else
+                    A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =0.
+                    end  
+                end
+            end
+        end
+        return A
+    end
+    roomintersect(m, :UnivariateAgriculture, :barleyproduction, :totalareas_cst, generate)
+end
+
+
+
+#function grad_univariateagriculture_barleyproduction_totalareas_cst(m::Model)
+#    roomintersect(m, :UnivariateAgriculture, :barleyproduction, :totalareas_cst, generate)
+#end
+
 
 
 
 function constraintoffset_univariateagriculture_sorghumarea(m::Model)
-    gen(rr,tt)=m.parameters[:sorghumarea].values[rr,tt]
-    hallsingle(m, :UnivariateAgriculture, :sorghumarea, gen)
+    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
+    gen(rr,tt)=sorghum[rr,tt]
+    hallsingle(m, :UnivariateAgriculture, :sorghumarea,gen)
 end
 
+    
 
+function constraintoffset_univariateagriculture_allagarea(m::Model)
+    allarea=readtable(datapath("../Colorado/allagarea.csv"))[:x][:,1]
+    allarea=repeat(convert(Vector,allarea),outer=[1,numsteps])
+    gen(rr,tt)=allarea[rr,tt]
+    hallsingle(m, :UnivariateAgriculture, :allagarea,gen)
+end
 
+function constraintoffset_univariateagriculture_hayproduction(m::Model)
+    gen(tt)=3.744e6
+    hallsingle(m, :UnivariateAgriculture, :hayproduction, gen)
+end
 
-
-
-
+function constraintoffset_univariateagriculture_barleyproduction(m::Model)
+    gen(tt)=6.7397e6
+    hallsingle(m, :UnivariateAgriculture, :barleyproduction, gen)
+end
 

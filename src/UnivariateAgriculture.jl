@@ -136,9 +136,10 @@ function initunivariateagriculture(m::Model)
             end
         end
     end
-
+    yield[:,4,:]=yield[:,4,:]/2 
+    yield[:,8,:]=yield[:,8,:]*1.5
     agriculture = addcomponent(m, UnivariateAgriculture)
-
+    
     agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
     #irrigation_ranch=zeros(numcounties,numsteps)
@@ -147,7 +148,7 @@ function initunivariateagriculture(m::Model)
     
     # Load in planted area
     totalareas = getfilteredtable("agriculture/totalareas.csv")
-    if isfile(datapath("../extraction/totalareas-08.jld"))
+   if isfile(datapath("../extraction/totalareas-08.jld"))
         agriculture[:totalareas]= deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
     elseif isfile(datapath("../extraction/totalareas_cst-08.jld"))
         constantareas= deserialize(open(datapath("../extraction/totalareas_cst$suffix.jld"), "r"));
@@ -167,6 +168,11 @@ function initunivariateagriculture(m::Model)
                     constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
                 end
             end
+            constantareas[:,1]= constantareas[:,1]*2.47
+            constantareas[:,4]= constantareas[:,4]*2.47
+            constantareas[:,6]= constantareas[:,6]/2
+            constantareas[:,7]= constantareas[:,7]/2
+            constantareas[:,8]= constantareas[:,8]*1.5
             agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
     end
     end 

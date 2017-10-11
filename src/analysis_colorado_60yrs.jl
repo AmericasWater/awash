@@ -24,6 +24,13 @@ df[:value]=total_revenue;
 usmap_colorado(df,true)
 
 
+netrev=total_revenue-sum(swcost,2)[:,1]-sum(gwcost,2)[:,1]-sum(opcost,2)[:,1];
+netrev=netrev-1000000;
+netrev=netrev+2000000;
+df[:value]=netrev/60
+usmap_colorado(df,true)
+
+
 
 #Map Total Water Use over 60 yrs
 sw=getdata(:Allocation,:swsupply);
@@ -42,7 +49,7 @@ usmap_colorado(df,true)
 
 
 #Map unit water cost 
-swcost=getdata(:Allocation,:swcost)
+swcost=getdata(:Allocation,:swcost);
 df[:value]=sum(swcost,2)[:,1]./sum(sw,2)[:,1]
 usmap_colorado(df,true)
 gwcost=getdata(:Allocation,:cost)-getdata(:Allocation,:swcost)
@@ -70,9 +77,13 @@ wheat=reshape(sum(getdata(:UnivariateAgriculture,:production)[:,6,:],1),60,1,1)[
     reshape(sum(getdata(:UnivariateAgriculture,:production)[:,7,:],1),60,1,1)[:,1],
 hay=reshape(sum(getdata(:UnivariateAgriculture,:production)[:,8,:],1),60,1,1)[:,1],
 precip=reshape(sum(precip,1),60,1)[:,1])
+
+
+
+
 writetable(datapath("../../sim.csv"), df3)
 
-
+writetable(datapath("../../opt_cst2.csv"), df3)
 
 
 

@@ -39,10 +39,8 @@ function initurbandemand(m::Model)
     recorded = getfilteredtable("extraction/USGS-2010.csv");
     urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-DO_To
-     urbandemand[:urbans] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :LI_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :IN_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
-    
-    
+
+     urbandemand[:urbans] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :LI_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) + repeat(convert(Vector, recorded[:, :IN_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])+repeat(convert(Vector, recorded[:, :DO_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     
     
 end

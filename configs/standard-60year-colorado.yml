@@ -27,7 +27,7 @@ timestep: 12
 # Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
 optimtype: "SWGW"
 # Reservoir capacity : set rescap to zero 
-rescap: "zero"
+rescap: "full"
 
 
 urbandemand-path: demand/urbandemand_May11.csv

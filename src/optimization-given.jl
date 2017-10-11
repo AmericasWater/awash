@@ -34,8 +34,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     paramcomps = [:Allocation, :Allocation,:Allocation, :Allocation]
     parameters = [:waterfromsupersource, :withdrawals,:waterfromgw, :returns]
 
-    constcomps = [:WaterNetwork, :Allocation]
-    constraints = [:outflows, :balance]
+    constcomps = [:WaterNetwork, :Allocation,:Allocation]
+    constraints = [:outflows, :balance,:totaluse]
 
     if allowreservoirs
         # Include reservoir logic
@@ -86,13 +86,16 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
-    if allowgw
-        setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
-    end
+    setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
 
     
+    
+    #Tot CONSTRAINT
+    #setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
+    #setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
+    #setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
     
     
     

@@ -5,6 +5,8 @@ if !isdefined(:config)
     config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 end
 
+withreservoirs = false
+
 # Run the water demand simulation to determine values
 include("model-waterdemand.jl")
 
@@ -12,7 +14,7 @@ println("Running model...")
 @time run(model)
 
 include("optimization-given.jl")
-house = optimization_given(true, true, model)
+house = optimization_given(true, withreservoirs, model)
 
 using MathProgBase
 using Gurobi
@@ -38,4 +40,8 @@ varlens = varlengths(house.model, house.paramcomps, house.parameters)
 serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
 serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
-serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
+if withreservoirs
+    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
+else
+    rm(datapath("extraction/captures$suffix.jld"))
+end

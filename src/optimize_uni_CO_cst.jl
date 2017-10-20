@@ -7,8 +7,8 @@ config = readconfig("../configs/standard-60year-colorado.yml");
 suffix = getsuffix()
 
 #include("optimization.jl")
-#include("optimization_uni_CO.jl")
-include("optimization_uni_CO_cst.jl")
+include("optimization_uni_new.jl")
+#include("optimization_uni_CO_cst.jl")
 
 
 
@@ -79,8 +79,8 @@ varlens = varlengths(m, house.paramcomps, house.parameters)
     
     serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps)) 
     serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1])+1:sum(varlens[1:2])], numcanals, numsteps)) 
-    serialize(open("../data/extraction/totalareas_cst$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,numallcrops)) 
-    
+    serialize(open("../data/extraction/totalareas_cst$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,numunicrops)) 
+    serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcanals, numsteps)) 
     
     
     

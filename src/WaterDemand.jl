@@ -59,14 +59,14 @@ function initwaterdemand(m::Model)
 
     # Set optimized parameters to 0
     waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
-    waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:, :DO_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]);
+    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:, :LI_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]);
+    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]);
+ waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:, :IN_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]);
+    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps]) 
     waterdemand
+
 end
 
 function grad_waterdemand_swdemandbalance_totalirrigation(m::Model)
@@ -140,8 +140,7 @@ function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demand
         shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:UnivariateAgriculture, :totalirrigation])
     #end
 end
-
-function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordeddomestic_(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
@@ -152,8 +151,22 @@ function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmo
         shaftvalues(m, :WaterDemand, :domesticuse, demandmodel[:UrbanDemand, :waterdemand])
     end
 end
+function values_waterdemand_recordeddomestic(m::Model)
+        values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
+end
 
-function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedindustrial(m::Model)
+        values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
+end
+function values_waterdemand_recordedthermoelectric(m::Model)
+values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
+    end
+function values_waterdemand_recordedlivestock(m::Model)
+    values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
+    end
+
+
+function values_waterdemand_recordedindustrial_(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
@@ -165,7 +178,7 @@ function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demand
     end
 end
 
-function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedthermoelectric_(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
@@ -177,7 +190,7 @@ function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, de
     end
 end
 
-function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedlivestock_(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)

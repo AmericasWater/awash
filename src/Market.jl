@@ -63,7 +63,7 @@ Add a market component to the model.
 """
 function initmarket(m::Model)
     market = addcomponent(m, Market)
-    prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124/200] #Colorado 2010 Value 0.0722
+    prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124] #Colorado 2010 Value 0.0722
 -    #barley, corn rainfed, corn irrigated, sorghum, soybeans, wheat rain, wheat irri, hay
     #prices = crop_information(allcrops, crop_prices, 0, warnonmiss=true)
 

@@ -20,7 +20,7 @@ mingwextcost = 0. #we assume that the cost of extraction is at least mingwextcos
 if config["watercost-extraction"]
     #if isfile(datapath("canalextractioncost$suffix.jld"))
     #    println("Loading extraction cost from saved data...")
-	canalextractioncost = deserialize(open(datapath("canalextractioncost$suffix.jld"), "r"));
+	canalextractioncost = deserialize(open(datapath("canalextractioncost$suffix.jld"), "r"))*energycostperlift;
 	#aquiferextractioncost = deserialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "r"));
     #end 
     #else
@@ -53,7 +53,7 @@ if config["watercost-extraction"]
 	aquiferextractioncost = zeros(numcounties)
     colorado_drawdown= readtable(joinpath(datapath("agriculture/drawdown.csv")))
     #80.6 replaced with 1000000
-    aquiferextractioncost=array(0.3048*colorado_drawdown[:mean])
+    aquiferextractioncost=array(0.3048*colorado_drawdown[:mean]*energycostperlift)
 end 
 #end 
 ### TREATMENT COST

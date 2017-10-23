@@ -16,7 +16,7 @@ end
 
 requirepackage("YAML")
 requirepackage("Mimi")
-Pkg.checkout("Mimi", "forceconvert")
+Pkg.checkout("Mimi")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")

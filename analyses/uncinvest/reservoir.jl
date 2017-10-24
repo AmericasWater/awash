@@ -32,12 +32,10 @@ for tt1 in time
         @constraint(m, ww2[tt1] <= sum(precip2[tt+1] - ww2[tt] for tt in 0:(tt1-1)) + precip2[tt1+1])
     end
 end
-    
+
 @objective(m, Min, sum(((xx1[tt] + xx2[tt])/2 + .0001kk[tt]) * exp(-.05tt) for tt in time))
 
 status = solve(m)
 println("Objective value: ", getobjectivevalue(m))
 getvalue(kk)
 getvalue(xx2)
-
-using Plots

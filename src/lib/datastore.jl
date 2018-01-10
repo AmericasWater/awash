@@ -122,7 +122,7 @@ function canonicalindex(indexes)
     if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: DataVector{String}
+    if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: Integer

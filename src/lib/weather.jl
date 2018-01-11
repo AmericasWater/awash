@@ -1,7 +1,7 @@
 include("datastore.jl")
 
 "Reorder `values`, currently ordered according to `fromfips`, to `tofips` order."
-function reorderfips(values::DataArrays.DataArray{Float64, 1}, fromfips, tofips)
+function reorderfips(values::Union{DataArrays.DataArray{Float64, 1}, Vector{Float64}}, fromfips, tofips)
     result = zeros(length(tofips))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])

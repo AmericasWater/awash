@@ -1,12 +1,22 @@
 using DataFrames
+include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
+unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
+                        "corn.co.rainfed"=>0,"corn.co.irrigated"=>73.1,
+                         "wheat.co.rainfed" => 0,"wheat.co.irrigated"=>7.4,
+                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
+                                "wheat" => 7.4, "hay" => 10.) # (mm/year) / m-deficiency
+
 unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
                               "sorghum" => 19.2, "soybeans" => 330.2,
-                              "wheat" => 21.4, "hay" => 386.1) # mm/year
-unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,
-                                "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+                              "wheat" => 21.4, "hay" => 386.1,
+                         "corn.co.rainfed" => 0,"corn.co.irrigated" => 1.6 * 304.8,
+                   "wheat.co.rainfed" => 0,"wheat.co.irrigated" => 1.9 * 304.8
+    ) # mm/year
+
+
+
 ## Barley: consistent ~94% irrigated, say at 19 in. when full water stress
 ## Sorghum: Variable 9 - 18% irrigated (.7 ft/acre), so say half intercept half stress
 ## Soybeans: Used 13 inches (https://www.ksre.k-state.edu/irrigate/oow/p08/Schneekloth08.pdf)
@@ -27,7 +37,9 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068,
 "barley" => 1.18060761343329, "corn" => 1.47596435526564,
 "sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
-"wheat" => 0.684836198198068, "hay" => 1.63961100235402) # in m
+"wheat" => 0.684836198198068, "hay" => 1.63961100235402,
+    "wheat.co.rainfed" =>  0.684836198198068,  "wheat.co.irrigated" =>  0.684836198198068,
+                      "corn.co.rainfed" => 1.47596435526564,  "corn.co.irrigated" => 1.47596435526564,) # in m
 
 # Per year costs
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
@@ -39,15 +51,12 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
 "wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
 "hay" => 306.) # USD / acre
 
-maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
-                      "Barley" => 200., "Barley.Winter" => 200.,
-                      "Maize" => 250.,
-                      "Sorghum" => 150.,
-                      "Soybeans" => 100.,
-                      "Wheat" => 250., "Wheat.Winter" => 250.,
-                      "barley" => 200., "corn" => 250.,
-                      "sorghum" => 150., "soybeans" => 100.,
-"wheat" => 250., "hay" => 306.)
+maximum_yields = Dict("barley" => 135.0, 
+                      "sorghum" => 50.,
+                      "soybeans" => 20.,
+                      "wheat.co.rainfed" => 100,  "wheat.co.irrigated" => 100,
+                      "corn.co.rainfed" => 160,  "corn.co.irrigated" => 160,
+                        "hay" =>4)
 
 crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
                    "otherhay" => 102.51 / 2204.62, # otherhay
@@ -163,7 +172,7 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
+    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize", 
                                                 "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                                 "wheat" => "Wheat", "hay" => "alfalfa")
     for crop in allcrops
@@ -196,7 +205,10 @@ else
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
-
+    if config["filterstate"]=="08"
+        agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
+        agmodels["soybeans"]=agmodel1["soybeans"]
+        end 
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
     close(fp)
@@ -247,32 +259,50 @@ end
 """
 Read Naresh's special yield file format
 """
-function read_nareshyields(crop::AbstractString)
+function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
         df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
         df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
     end
 
     # Get the order into our fips
-    regionindices = getregionindices(fipses)
+    regionindices_yield = getregionindices(fipses, false)
+
+    if use2010yields
+        # Collect coefficients to remove the trend
+        coefficients = readtable(bayespath)
+        timecoeffs = coefficients[coefficients[:coef] .== "time", :]
+
+        regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
+    end
+
     result = zeros(numcounties, numsteps)
 
     for ii in 1:numsteps
-        result[regionindices, ii] = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :]))
+        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+        if use2010yields
+            # Remove the trend from the yields
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+        end
+        result[:, ii] = exp(orderedyields) # Exponentiate because in logs
     end
 
     result

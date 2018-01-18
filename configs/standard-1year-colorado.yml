@@ -1,6 +1,6 @@
 # Only include counties within this state (give as 2 digit FIPS)
 # "10" for Delaware (3 counties), "08" for Colorado (64 counties)
-filterstate: null
+filterstate: "08"
 
 # Current options: counties (full-country), dummy (5-counties)
 dataset: counties
@@ -13,13 +13,16 @@ endmonth: 9/2010
 startweather: 612
 
 # Months per time step
-timestep: 6
+timestep: 12
 
 # Type of optimization: "SW" for only surface water, "SWGW" for the conjunctive use of both resources
 optimtype: "SWGW"
 
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"
+reshalf: "half"
+cst: "true"
+
 
 # Urban demand:
 urbandemand-path: demand/urbandemand_May11.csv
@@ -27,3 +30,6 @@ urbandemand-column: per_capita
 urbandemand-transform: repcap
 urbandemand-index: FIPS_county
 
+# Cost configuration
+watercost-extraction: true
+watercost-treatment: false

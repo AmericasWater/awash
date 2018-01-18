@@ -63,9 +63,11 @@ Add a market component to the model.
 """
 function initmarket(m::Model)
     market = addcomponent(m, Market)
-
+    if config["filterstate"]=="08"
+        prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124]
+    else
     prices = crop_information(allcrops, crop_prices, 0, warnonmiss=true)
-
+        end 
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
     market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])

@@ -116,7 +116,7 @@ function initaquifer(m::Model)
 	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips];
   	aquifer[:storagecoef] = gw["vector_storativity"][subfips];
   	aquifer[:areaaquif] = gw["county_area"][subfips]/1000;
-	aquifer[:elevation] = gw["county_elevation"][:V1][subfips];
+	aquifer[:elevation] = Array(reshape(gw["county_elevation"][:V1],3109,1))[subfips]
   	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
   	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 

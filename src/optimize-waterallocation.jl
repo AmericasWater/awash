@@ -1,9 +1,7 @@
 #### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
 
 include("lib/readconfig.jl")
-if !isdefined(:config)
-    config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-end
+config = readconfig("../configs/standard-60year-colorado.yml") # Just use 1 year for optimization
 
 withreservoirs = false
 
@@ -40,8 +38,22 @@ varlens = varlengths(house.model, house.paramcomps, house.parameters)
 serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
 serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
-if withreservoirs
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
-else
-    rm(datapath("extraction/captures$suffix.jld"))
-end
+
+
+sum(sol.sol[varlens[1]+1:sum(varlens[1:2])])+sum(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])])
+
+
+conlens = varlengths(house.model, house.constcomps, house.constraints)
+
+sum(house.b[conlens[1]+1:sum(conlens[1:2]),:])
+
+
+
+
+
+
+
+
+
+
+

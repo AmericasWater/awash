@@ -137,10 +137,10 @@ function initunivariateagriculture(m::Model)
   agriculture = addcomponent(m, UnivariateAgriculture)
     
     agriculture[:yield] = yield
-    if config["filterstate"]=="08"
-        yield[:,5,:]=yield[:,5,:]*10
-        yield[:,8,:]=min(yield[:,8,:]*1.5,maximum_yields["hay"])
-        end 
+    #if config["filterstate"]=="08"
+    #    yield[:,5,:]=yield[:,5,:]*10
+    #    yield[:,8,:]=min(yield[:,8,:]*1.5,maximum_yields["hay"])
+    #    end 
    # agriculture[:yield] = yield    
     agriculture[:irrigation_rate] = irrigation_rate
 

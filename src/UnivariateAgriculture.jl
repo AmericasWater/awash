@@ -158,7 +158,7 @@ function initunivariateagriculture(m::Model)
         if config["filterstate"]=="08"
             agriculture[:hayproduction]=3.63e6*hayproduction
             agriculture[:barleyproduction]=6.7397e6*barleyproduction
-            constantareas=convert(Array,readtable(datapath("../coloradoarea.csv")))
+            constantareas=convert(Array,readtable(datapath("../Colorado/coloradoarea.csv")))
             sorghumarea=constantareas[:,4]
             allagarea=sum(constantareas,2)
             else 
@@ -172,14 +172,14 @@ function initunivariateagriculture(m::Model)
                     
                     end 
             end
-            if isfile(datapath("extraction/totalareas_cst-08.jld"))
+            if isfile(datapath("../Colorado/totalareas_cst-08.jld"))
             constantareas=
-deserialize(open(datapath("extraction/totalareas_cst$suffix.jld"), "r"));
-            elseif isfile(datapath("extraction/totalarea1-08.csv"))
-             constantareas=convert(Array,readtable(datapath("extraction/totalarea1-08.csv")))
+deserialize(open(datapath("../Colorado/totalareas_cst-08.jld"), "r"));
+            elseif isfile(datapath("../Colorado/totalarea1-08.csv"))
+             constantareas=convert(Array,readtable(datapath("../Colorado/totalarea1-08.csv")))
             end
         end
-        constantareas=convert(Array,readtable(datapath("extraction/totalarea1-08.csv")))
+        constantareas=convert(Array,readtable(datapath("../Colorado/totalarea1-08.csv")))
         agriculture[:totalareas_cst] =constantareas
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
         agriculture[:sorghumarea] =repeat(sorghumarea, outer=[1, numsteps])

@@ -142,7 +142,7 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
 end
 
 
-function constraintoffset_agriculture_sorghumarea(m::Model)
+function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
     sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
     sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]

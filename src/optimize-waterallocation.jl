@@ -45,3 +45,15 @@ if withreservoirs
 else
     rm(datapath("extraction/captures$suffix.jld"))
 end
+
+analysis = nothing
+
+if analysis == :shadowcost
+    varlens = varlengths(m, house.constcomps, house.constraints)
+    lambdas = sol.attrs[:lambda][sum(varlens[1])+1:sum(varlens[1:2])]
+    lambdas = reshape(lambdas, (3109, 2))
+    df = convert(DataFrame, lambdas)
+    df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
+    writetable("../results/shadowprice-alloc.csv", df)
+    usmap(DataFrame(fips=df[:fips], value=df[:x1]))
+end

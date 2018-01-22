@@ -185,7 +185,12 @@ else
             combiner = gaussianpool
         end
 
-        for regionid in unique(regionindex(counties, :, tostr=false))
+        for regionid in regionindex(masterregions, :)
+            if !(regionid in regionindex(counties, :, tostr=true))
+                agmodels[crop][regionid] = national
+                continue
+            end
+
             county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
 
             # Construct a pooled or fallback combination

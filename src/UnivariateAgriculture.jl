@@ -10,7 +10,7 @@ include("lib/agriculture.jl")
     # Optimized
     # Land area appropriated to each crop
     totalareas = Parameter(index=[regions, unicrops, time], unit="Ha")
-    totalareas_cst=Parameter(index=[regions,unicrops],unit="Ha") 
+    totalareas_cst=Parameter(index=[regions,unicrops],unit="Ha") #Parameter used for single area over years
 
     # Internal
     # Yield per hectare
@@ -22,7 +22,8 @@ include("lib/agriculture.jl")
     # Computed
     # Total agricultural area
     totalareas2 = Variable(index=[regions, unicrops, time], unit="Ha") # copy of totalareas
-    allagarea = Parameter(index=[regions, time], unit="Ha")
+    allagarea = Variable(index=[regions, time], unit="Ha")
+    maxarea = Variable(index=[regions, time], unit="Ha")
     sorghumarea=Parameter(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
@@ -50,7 +51,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 
         for cc in d.unicrops
             v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
-            #allagarea += p.totalareas[rr, cc, tt]
+            v.allagarea += p.totalareas[rr, cc, tt]
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
             totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
@@ -153,6 +154,7 @@ function initunivariateagriculture(m::Model)
         constantareas = zeros(numcounties, numunicrops)
         sorghumarea=zeros(numcounties, numsteps) 
         allagarea=zeros(numcounties, numsteps) 
+        maxarea=zeros(numcounties, numsteps) 
         hayproduction=ones(numsteps)
         barleyproduction=ones(numsteps)
         if config["filterstate"]=="08"
@@ -160,7 +162,7 @@ function initunivariateagriculture(m::Model)
             agriculture[:barleyproduction]=6.7397e6*barleyproduction
             constantareas=convert(Array,readtable(datapath("../Colorado/coloradoarea.csv")))
             sorghumarea=constantareas[:,4]
-            allagarea=sum(constantareas,2)
+            maxarea=sum(constantareas,2)
             else 
             for cc in 1:numunicrops
                 if unicrops[cc] in keys(quickstats_planted)
@@ -183,7 +185,7 @@ deserialize(open(datapath("../Colorado/totalareas_cst-08.jld"), "r"));
         agriculture[:totalareas_cst] =constantareas
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
         agriculture[:sorghumarea] =repeat(sorghumarea, outer=[1, numsteps])
-        agriculture[:allagarea] =repeat(allagarea, outer=[1, numsteps])
+        agriculture[:maxarea] =repeat(maxarea, outer=[1, numsteps])
         if isfile(datapath("../extraction/totalareas$suffix.jld"))
             agriculture[:totalareas]=
 deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
@@ -273,7 +275,7 @@ end
 
 
 #########Total culti area #########
-function grad_univariateagriculture_allagarea_totalareas(m::Model)
+function grad_univariateagriculture_maxarea_totalareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
@@ -284,11 +286,11 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
         return A
     end
 
-    roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate)
+    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas, generate)
 end
 
 
-function grad_univariateagriculture_allagarea_totalareas_cst(m::Model)
+function grad_univariateagriculture_maxarea_totalareas_cst(m::Model)
     function generate(A)
         for rr in 1:numcounties
             for tt in 1:numsteps
@@ -299,7 +301,7 @@ function grad_univariateagriculture_allagarea_totalareas_cst(m::Model)
         end
         return A
     end
-    roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas_cst, generate)
+    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas_cst, generate)
 end
 
 
@@ -394,8 +396,8 @@ end
 
     
 
-function constraintoffset_univariateagriculture_allagarea(m::Model)
-    gen(rr,tt)=m.parameters[:allagarea].values[rr,tt]
+function constraintoffset_univariateagriculture_maxarea(m::Model)
+    gen(rr,tt)=m.parameters[:maxarea].values[rr,tt]
     hallsingle(m, :UnivariateAgriculture, :allagarea,gen)
 end
 

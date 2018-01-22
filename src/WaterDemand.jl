@@ -107,7 +107,7 @@ function grad_waterdemand_totalreturn_livestockuse(m::Model)
     roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, (rr, tt) -> -returnpart["irrigation/livestock"])
 end
 
-function values__waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfaceirrigation(m) + values_waterdemand_recordedgroundirrigation(m)
@@ -119,7 +119,7 @@ function values__waterdemand_recordedirrigation(m::Model, includegw::Bool, deman
     end
 end
 
-function values__waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
@@ -131,7 +131,7 @@ function values__waterdemand_recordeddomestic(m::Model, includegw::Bool, demandm
     end
 end
 
-function values__waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
@@ -143,7 +143,7 @@ function values__waterdemand_recordedindustrial(m::Model, includegw::Bool, deman
     end
 end
 
-function values__waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
@@ -155,7 +155,7 @@ function values__waterdemand_recordedthermoelectric(m::Model, includegw::Bool, d
     end
 end
 
-function values__waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)

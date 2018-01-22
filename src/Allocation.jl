@@ -32,7 +32,7 @@ include("watercostdata.jl")
     unitswcost = Parameter(index=[canals,time], unit="\$/1000 m^3")
     swcost=Variable(index=[regions,time], unit="\$")
     unitsupercost = Parameter(unit="\$/1000 m^3")
-    cost=Variable(index=[regions,time], unit="\$/1000 m^3")
+    cost=Variable(index=[regions,time], unit="\$")
     # Total cost for eachs county
    
     # Combination across all canals supplying the counties
@@ -96,7 +96,7 @@ function initallocation(m::Model)
    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1,numsteps])+0.1;
    allocation[:unitsupercost] = 1e6 
    totaluse=ones(m.indices_counts[:time])
-   allocation[:totaluse]=totaluse*7.820581169848508e6
+   allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation 
     if config["dataset"] == "three"
 	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);

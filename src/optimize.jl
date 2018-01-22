@@ -6,8 +6,15 @@ include("lib/datastore.jl")
 config = readconfig("../configs/standard-60year-colorado.yml")
 
 suffix = getsuffix()
-include("optimization_cst.jl")
-using MathProgBase
+
+if config["cst"]=="true"
+    include("optimization_cst.jl")
+else
+    include ("optimization.jl")
+end
+
+    
+    using MathProgBase
 @time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
 
 

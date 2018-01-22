@@ -27,6 +27,8 @@ optimtype: "SWGW"
 # Reservoir capacity : set rescap to zero 
 rescap: "full"
 reshalf: "half"
+cst: "true"
+
 
 
 urbandemand-path: demand/urbandemand_May11.csv

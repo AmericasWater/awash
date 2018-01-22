@@ -79,7 +79,7 @@ function initreservoir(m::Model, name=nothing)
      	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
      	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
         else
-	       rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
+            rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
      	   rcmax = rcmax*1233.48
      	   reservoir[:storagecapacitymax] = rcmax;
      	   reservoir[:storagecapacitymin] = 0*0.1*rcmax;

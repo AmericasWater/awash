@@ -3,7 +3,7 @@ using Base.Test
 include("../src/lib/datastore.jl")
 include("../src/lib/readconfig.jl")
 
-config = readconfig("../configs/standard.yml")
+config = readconfig("../configs/standard-state.yml")
 
 @test !cached_fallback("dummydata", () -> false)
 cached_store("dummydata", true)

@@ -1,0 +1,29 @@
+# Index column for files
+indexcols:
+ - FIPS
+
+# Index length, in characters, for neighboring lists
+indexlen: 5
+
+# Padding character to use if len(index) < indexlen; null for no padding
+indexpad: "0"
+
+# Master region file, under data/
+masterregions: global/counties-three.csv
+
+# External, large-file dataset
+ncdatasets:
+  weather:
+    filename: VIC_WB
+    ncurl: https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=1
+    csvurl: https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=1
+    csvcoldim: county
+    nccrc32: 0x468f7994
+    csvcrc: 0xcefed8fe
+  runoff:
+    filename: contributing_runoff_by_gage
+    ncurl: https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=1
+    csvurl: https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=1
+    csvcoldim: gage
+    nccrc32: 0x78f4dc8d
+    csvcrc: 0x78f4dc8d

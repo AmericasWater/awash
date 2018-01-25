@@ -5,7 +5,6 @@ include("lib/datastore.jl")
 
 @defcomp IndustrialDemand begin
     regions = Index()
-    crops = Index()
 
     # Industrial demand
     industrywaterdemand = Parameter(index=[regions, time],unit="1000 m^3")

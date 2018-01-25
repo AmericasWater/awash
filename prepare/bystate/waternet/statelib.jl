@@ -1,7 +1,7 @@
-waternetdata = load(datapath("waternet.RData"));
+waternetdata = load(datapath("waternet/waternet.RData"));
 netdata = waternetdata["network"];
 
-drawsdata = load(datapath("countydraws.RData"));
+drawsdata = load(datapath("waternet/countydraws.RData"));
 draws = drawsdata["draws"];
 draws[:source] = round(Int64, draws[:source]);
 

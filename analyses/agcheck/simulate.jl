@@ -5,7 +5,7 @@ config["timestep"] = 12
 
 include("../../src/world.jl");
 include("../../src/weather.jl");
-include("../../src/Agriculture.jl");
+include("../../src/UnivariateAgriculture.jl");
 
 ## XXX: This code duplicates some of the work in James's crops/regress.jl
 
@@ -38,8 +38,8 @@ for crop in keys(targetcrops)
 
     jj = find(targetcrops[crop] .== crops)[1]
 
-    for ii in 1:nrow(mastercounties)
-        fidrows = fipsmapping[:, :FIPS] .== parse(Int64, mastercounties[ii, :fips]);
+    for ii in 1:nrow(masterregions)
+        fidrows = fipsmapping[:, :FIPS] .== parse(Int64, masterregions[ii, :fips]);
         if sum(fidrows) == 1
             fid = fipsmapping[fidrows, :FID][1]
 
@@ -105,9 +105,9 @@ for crop in keys(targetcrops)
 
     jj = find(targetcrops[crop] .== crops)[1]
 
-    for ii in 1:nrow(mastercounties)
+    for ii in 1:nrow(masterregions)
         for year in 1950:2010
-            irrigatedvalue, rainfedvalue = getareas(parse(Int64, mastercounties[ii, :fips]), year)
+            irrigatedvalue, rainfedvalue = getareas(parse(Int64, masterregions[ii, :fips]), year)
             irrigatedareas[ii, jj, year - 1949] = irrigatedvalue
             rainfedareas[ii, jj, year - 1949] = rainfedvalue
         end
@@ -184,20 +184,20 @@ for crop in allcrops
 
     jj = find(allnames[crop] .== crops)[1]
 
-    for ii in 1:nrow(mastercounties)
-        fidrows = fipsmapping[:, :FIPS] .== parse(Int64, mastercounties[ii, :fips]);
+    for ii in 1:nrow(masterregions)
+        fidrows = fipsmapping[:, :FIPS] .== parse(Int64, masterregions[ii, :fips]);
         if sum(fidrows) == 1
             fid = fipsmapping[fidrows, :FID][1]
 
             for year in 1950:2010
-                irrigatedyield, rainfedyield = getyields[crop](parse(Int64, mastercounties[ii, :fips]), fid, year)
+                irrigatedyield, rainfedyield = getyields[crop](parse(Int64, masterregions[ii, :fips]), fid, year)
                 if isna(irrigatedyield)
                     irrigatedyield = -1.
                 end
                 if isna(rainfedyield)
                     rainfedyield = -1.
                 end
-                push!(dfbycy, @data([crop mastercounties[ii, :fips] year irrigatedyield exp(model.parameters[:logirrigatedyield].values[ii, jj, year - 1949]) rainfedyield exp(model[:Agriculture, :lograinfedyield][ii, jj, year - 1949])]))
+                push!(dfbycy, @data([crop masterregions[ii, :fips] year irrigatedyield exp(model.parameters[:logirrigatedyield].values[ii, jj, year - 1949]) rainfedyield exp(model[:Agriculture, :lograinfedyield][ii, jj, year - 1949])]))
             end
         end
     end
@@ -207,7 +207,7 @@ writetable("byyear.csv", dfbycy)
 
 recorded = readtable(datapath("extraction/USGS-2010.csv"))
 
-dfbyww = DataFrame(fips=mastercounties[:fips], year=2010,
+dfbyww = DataFrame(fips=masterregions[:fips], year=2010,
                    obsirrigation=recorded[:, :IR_To] * 1382592. / 1000,
                    estirrigation=model[:Agriculture, :totalirrigation][:, end])
 

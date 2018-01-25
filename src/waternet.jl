@@ -12,26 +12,33 @@ filtersincludeupstream = false # true to include all upstream nodes during a fil
 
 empty_extnetwork() = OverlaidRegionNetwork(true, ExVertex[], 0, Vector{Vector{ExEdge}}())
 
-if isfile(datapath("cache/waternet$suffix.jld"))
+if isfile(cachepath("waternet$suffix.jld"))
     println("Loading from saved water network...")
 
     # The Graph object
-    waternet = deserialize(open(datapath("cache/waternet$suffix.jld"), "r"));
+    waternet = deserialize(open(cachepath("waternet$suffix.jld"), "r"));
     # Dictionary from gaugeid to vertex
-    wateridverts = deserialize(open(datapath("cache/wateridverts$suffix.jld"), "r"));
+    wateridverts = deserialize(open(cachepath("wateridverts$suffix.jld"), "r"));
     # DataFrame with information about canals, including fips and gaugeid
-    draws = deserialize(open(datapath("cache/waterdraws$suffix.jld"), "r"));
+    draws = deserialize(open(cachepath("waterdraws$suffix.jld"), "r"));
+elseif isfile(datapath("waternet/waternet$suffix.jld"))
+    # The Graph object
+    waternet = deserialize(open(datapath("waternet/waternet$suffix.jld"), "r"));
+    # Dictionary from gaugeid to vertex
+    wateridverts = deserialize(open(datapath("waternet/wateridverts$suffix.jld"), "r"));
+    # DataFrame with information about canals, including fips and gaugeid
+    draws = deserialize(open(datapath("waternet/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
-    if config["dataset"] == "counties"
-        waternetdata = load(datapath("waternet.RData"));
-        drawsdata = load(datapath("countydraws.RData"));
+    if get(config, "dataset", "counties") == "counties"
+        waternetdata = load(datapath("waternet/waternet.RData"));
+        drawsdata = load(datapath("waternet/countydraws.RData"));
     elseif config["dataset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     else
-        waternetdata = load(datapath("dummynet.RData"));
-        drawsdata = load(datapath("dummydraws.RData"));
+        waternetdata = load(datapath("waternet/dummynet.RData"));
+        drawsdata = load(datapath("waternet/dummydraws.RData"));
     end
 
     netdata = waternetdata["network"];
@@ -67,9 +74,6 @@ else
         else
             includeds[draws[:source]] = true
         end
-
-        # Clean out the source column, so these no longer have meaning!
-        draws[:source] = nothing
     else
         includeds = trues(nrow(netdata))
     end
@@ -118,9 +122,9 @@ else
     end
 
     # Construct the network
-    serialize(open(datapath("cache/waternet$suffix.jld"), "w"), waternet)
-    serialize(open(datapath("cache/wateridverts$suffix.jld"), "w"), wateridverts)
-    serialize(open(datapath("cache/waterdraws$suffix.jld"), "w"), draws)
+    serialize(open(cachepath("waternet$suffix.jld"), "w"), waternet)
+    serialize(open(cachepath("wateridverts$suffix.jld"), "w"), wateridverts)
+    serialize(open(cachepath("waterdraws$suffix.jld"), "w"), draws)
 end
 
 # Prepare the model

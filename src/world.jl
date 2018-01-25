@@ -1,30 +1,27 @@
-using DataFrames
-include("lib/datastore.jl")
-
-suffix = getsuffix()
-
-if config["dataset"] == "three"
-	mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
-else
-	mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
-end
-
-if get(config, "filterstate", nothing) != nothing
-    mastercounties = mastercounties[map(fips -> fips[1:2], mastercounties[:fips]) .== config["filterstate"], :]
-end
-
+include("world-minimal.jl")
 include("regionnet.jl")
 include("waternet.jl")
 
 # Prepare the model
 
-crops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+if config["dataset"] == "states"
+    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+else
+    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+end
+
+allcrops = [unicrops; irrcrops]
 
 if config["dataset"] == "dummy"
     numcounties = 5
 else
-    numcounties = nrow(mastercounties)
+    numcounties = nrow(masterregions)
 end
+numregions = numcounties # Going to deprecate `numcounties`
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["dataset"] == "three"
@@ -36,7 +33,9 @@ else
     end
 end
 
-numcrops = length(crops)
+numunicrops = length(unicrops)
+numirrcrops = length(irrcrops)
+numallcrops = length(allcrops)
 numcanals = nrow(draws)
 numreservoirs = nrow(getreservoirs(config))
 
@@ -54,8 +53,10 @@ function newmodel()
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
-    setindex(m, :regions, collect(mastercounties[:fips]))
-    setindex(m, :crops, crops)
+    setindex(m, :regions, collect(masterregions[:fips]))
+    setindex(m, :unicrops, unicrops)
+    setindex(m, :irrcrops, irrcrops)
+    setindex(m, :allcrops, allcrops)
     setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
     setindex(m, :edges, collect(1:num_edges(regionnet)))
     setindex(m, :canals, collect(1:numcanals))

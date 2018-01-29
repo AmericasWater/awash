@@ -3,8 +3,6 @@ using Distributions
 
 include("lib/datastore.jl")
 
-# Duplicated from Groundwater.jl, since that is underused
-gw = load(datapath("gwmodel/contusgwmodel.RData"))
 
 @defcomp Allocation begin
     regions = Index()

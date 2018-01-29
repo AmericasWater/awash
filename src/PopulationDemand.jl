@@ -24,16 +24,16 @@ configtransforms["repcap"] = (fips, x) -> getpopulation(fips, 2010) * x
 
 @defcomp PopulationDemand begin
     regions = Index()
-    crops = Index()
+    allcrops = Index()
 
     # Internal
     # Resource demands
     population = Parameter(index=[regions, time], unit="person")
 
-    cropinterestperperson = Parameter(index=[crops], unit="lborbu/person")
+    cropinterestperperson = Parameter(index=[allcrops], unit="lborbu/person")
 
     # Amount of crops that would buy
-    cropinterest = Variable(index=[regions, crops, time], unit="lborbu")
+    cropinterest = Variable(index=[regions, allcrops, time], unit="lborbu")
 end
 
 """
@@ -45,7 +45,7 @@ function run_timestep(c::PopulationDemand, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        for cc in d.crops
+        for cc in d.allcrops
             v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
         end
     end

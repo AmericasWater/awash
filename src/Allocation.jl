@@ -3,6 +3,9 @@ using Distributions
 
 include("lib/datastore.jl")
 
+# Duplicated from Groundwater.jl, since that is underused
+gw = load(datapath("gwmodel/contusgwmodel.RData"))
+
 @defcomp Allocation begin
     regions = Index()
 
@@ -61,8 +64,8 @@ function run_timestep(c::Allocation, tt::Int)
     v.swsupply[:, tt] = zeros(numcounties)
     v.swreturn[:, tt] = zeros(numcounties)
     for pp in 1:nrow(draws)
-        fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
-        rr = findfirst(mastercounties[:fips] .== fips)
+        regionids = regionindex(draws, pp)
+        rr = findfirst(regionindex(masterregions, :) .== regionids)
         if rr > 0
             v.swsupply[rr, tt] += p.withdrawals[pp, tt]
             v.swreturn[rr, tt] += p.returns[pp, tt]
@@ -142,7 +145,10 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 100./ 1000.)
+    # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
+    # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85
+    meandepth = mean(gw["aquifer_depth"])
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 386.85 * gw["aquifer_depth"][rr] / meandepth) # Note: does not change in time
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -150,14 +156,14 @@ function grad_allocation_cost_waterfromsupersource(m::Model)
 end
 
 ## Optional cost for drawing down a river (environmental change)
+# Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
 function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
-                A[rr, pp] = 1./1000.
+                A[rr, pp] = 65.65
             end
         end
     end
@@ -169,8 +175,7 @@ function grad_allocation_balance_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 1.
             end
@@ -184,8 +189,7 @@ function grad_allocation_returnbalance_returns(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 1.
             end

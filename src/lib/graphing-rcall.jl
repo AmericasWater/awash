@@ -1,6 +1,7 @@
 using RCall
 
 mapinited = false
+ggplotinited = false
 
 """
 df must have columns fips and the value column.
@@ -44,4 +45,18 @@ function usmap(df, centered=false)
         expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
         theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')"
     end
+end
+
+function xyplot(xx, yy, title, xlab, ylab, size=1)
+    global ggplotinited
+
+    if !mapinited
+        RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
+        R"library(ggplot2)"
+    end
+
+    df = DataFrame(x=xx, y=yy, size=size)
+    R"library(ggplot2)"
+    R"ggplot($df, aes(x, y, size=size)) +
+geom_point() + xlab($xlab) + ylab($ylab) + ggtitle($title) + theme_bw()"
 end

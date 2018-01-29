@@ -5,7 +5,19 @@ function readconfig(ymlpath)
         ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
     end
 
-    YAML.load(open(ymlpath))
+    config = YAML.load(open(ymlpath))
+
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
+
+    for key in keys(dataset)
+        if !in(key, keys(config))
+            config[key] = dataset[key]
+        end
+    end
+
+    config["indexcols"] = map(symbol, config["indexcols"])
+
+    config
 end
 
 function emptyconfig()
@@ -20,13 +32,15 @@ end
 # Consider reworking this using index2yearindex and similar
 function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
-    startyear = parse(UInt16, split(config["startmonth"], '/')[2])
-    endyear = parse(UInt16, split(config["endmonth"], '/')[2])
+    startyear = parse(Int16, split(config["startmonth"], '/')[2])
+    endyear = parse(Int16, split(config["endmonth"], '/')[2])
 
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
 
-    years[div(times[tt], 12) - div(startmonth, 12) + 1]
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
+
+
 end
 
 if !isdefined(:configtransforms)
@@ -42,7 +56,7 @@ TODO: This should look at config to see what these mean in context
 """
 function getindices(name::Symbol, as::Type=Any)
     if name == :regions
-        values = mastercounties[:fips]
+        values = masterregions[:fips]
     else
         error("We have not defined index $name yet.")
     end
@@ -95,6 +109,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                         if !isna(newvalue)
                             values[ii] = newvalue
                         end
+
                     end
                 end
 

@@ -51,6 +51,28 @@ function initwaternetwork(m::Model)
 end
 
 """
+Construct a matrix that represents the *immediate* decrease in outflow caused by withdrawal
+"""
+function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
+    function generate(A, tt)
+        # Fill in GAUGES x CANALS matrix
+        # First do local withdrawal
+        for pp in 1:nrow(draws)
+            gaugeid = draws[pp, :gaugeid]
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex == nothing
+                println("Missing $gaugeid")
+            else
+                gg = vertex_index(vertex)
+                A[gg, pp] = -1.
+            end
+        end
+    end
+
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+end
+
+"""
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
@@ -88,7 +110,7 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         # Fill in CANALS x REGIONS
         # Determine how many canals are in this region
         for rr in 1:numcounties
-            fips = parse(Int64, mastercounties[rr, :fips])
+            fips = parse(Int64, masterregions[rr, :fips])
             thiscanals = find(draws[:fips] .== fips)
             for pp in 1:length(thiscanals)
                 A[thiscanals[pp], rr] = countyarea[rr] / 100.

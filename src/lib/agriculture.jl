@@ -1,26 +1,68 @@
 using DataFrames
 
+## Univariate crop parametrs
+unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
+                              "sorghum" => 19.2, "soybeans" => 330.2,
+                              "wheat" => 21.4, "hay" => 386.1) # mm/year
+unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
+                                "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,
+                                "wheat" => 7.4, "hay" => 0.) # (mm/year) / m-deficiency
+## Barley: consistent ~94% irrigated, say at 19 in. when full water stress
+## Sorghum: Variable 9 - 18% irrigated (.7 ft/acre), so say half intercept half stress
+## Soybeans: Used 13 inches (https://www.ksre.k-state.edu/irrigate/oow/p08/Schneekloth08.pdf)
+## Hay: About 80% irrigated, and Colorado average is 19 inches for irrigated
+## Corn and Wheat not used as unicrops, but using the below.
+
+known_irrigationrate = Dict("corn.co.rainfed" => 0,
+                            "corn.co.irrigated" => 1.6 * 304.8, # convert ft -> mm
+                            "wheat.co.rainfed" => 0,
+                            "wheat.co.irrigated" => 1.9 * 304.8) # convert ft -> mm
+
+# Irrigation crop parameters
 water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.63961100235402,
                           "Barley" => 1.18060761343329, "Barley.Winter" => 1.18060761343329,
                           "Maize" => 1.47596435526564,
                           "Sorghum" => 1.1364914374721,
                           "Soybeans" => 1.37599595071683,
-                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068) # in m
+                          "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068,
+"barley" => 1.18060761343329, "corn" => 1.47596435526564,
+"sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
+"wheat" => 0.684836198198068, "hay" => 1.63961100235402) # in m
 
 # Per year costs
-cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306.,
+cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Barley" => 442., "Barley.Winter" => 442.,
-                         "Maize" => 554.,
-                         "Sorghum" => 314.,
-                         "Soybeans" => 221.,
-                         "Wheat" => 263., "Wheat.Winter" => 263.) # USD / acre
+                         "Maize" => 554., "Sorghum" => 314.,
+                         "Soybeans" => 221., "Wheat" => 263., "Wheat.Winter" => 263., "barley" => 442.,
+                         "corn" => 554., "corn.co.rainfed" => 554., "corn.co.irrigated" => 554.,
+                         "sorghum" => 314., "soybeans" => 221.,
+"wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
+"hay" => 306.) # USD / acre
 
-maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25.,
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 306,
                       "Barley" => 200., "Barley.Winter" => 200.,
                       "Maize" => 250.,
                       "Sorghum" => 150.,
                       "Soybeans" => 100.,
-                      "Wheat" => 250., "Wheat.Winter" => 250.)
+                      "Wheat" => 250., "Wheat.Winter" => 250.,
+                      "barley" => 200., "corn" => 250.,
+                      "sorghum" => 150., "soybeans" => 100.,
+"wheat" => 250., "hay" => 306.)
+
+crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
+                   "otherhay" => 102.51 / 2204.62, # otherhay
+                   "Barley" => 120.12 * .021772, # barley
+                   "Barley.Winter" => 120.12 * .021772, # barley.winter
+                   "Maize" => 160.63 * .0254, # maize
+                   "Sorghum" => 174.90 / 2204.62, # sorghum: $/MT / lb/MT
+                   "Soybeans" => 349.52 * .0272155, # soybeans
+                   "Wheat" => 5.1675, # wheat
+                   "Wheat.Winter" => 171.50 * .0272155) # wheat.winter
+
+quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonirrigated-planted.csv",
+                          "corn.co.irrigated" => "agriculture/allyears/maize-irrigated-planted.csv",
+                          "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
+                          "wheat.co.irrigated" => "agriculture/allyears/wheat-irrigated-planted.csv")
 
 type StatisticalAgricultureModel
     intercept::Float64
@@ -31,6 +73,9 @@ type StatisticalAgricultureModel
     kddsse::Float64
     wreq::Float64
     wreqse::Float64
+
+    gddoffset::Float64
+    kddoffset::Float64
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
@@ -38,6 +83,8 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
     gddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gdds"))
     kddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kdds"))
     wreqrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kddoffset"))
 
     if interceptrow > 0
         intercept = df[interceptrow, :mean]
@@ -47,18 +94,26 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
         interceptse = 0
     end
 
-    gdds = df[gddsrow, :mean]
-    gddsse = df[gddsrow, :serr]
-    kdds = df[kddsrow, :mean]
-    kddsse = df[kddsrow, :serr]
-    wreq = df[wreqrow, :mean]
-    wreqse = df[wreqrow, :serr]
+    gdds = gddsrow != 0 ? df[gddsrow, :mean] : 0
+    gddsse = gddsrow != 0 ? df[gddsrow, :serr] : Inf
+    kdds = kddsrow != 0 ? df[kddsrow, :mean] : 0
+    kddsse = kddsrow != 0 ? df[kddsrow, :serr] : Inf
+    wreq = wreqrow != 0 ? df[wreqrow, :mean] : 0
+    wreqse = wreqrow != 0 ? df[wreqrow, :serr] : Inf
+    gddoffset = gddoffsetrow != 0 ? df[gddoffsetrow, :mean] : 0
+    kddoffset = kddoffsetrow != 0 ? df[kddoffsetrow, :mean] : 0
 
-    StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
+    StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse, gddoffset, kddoffset)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
+    if isna(sdev1) || isnan(sdev1)
+        mean2, sdev2
+    elseif isna(sdev2) || isnan(sdev2)
+        mean1, sdev1
+    else
+        (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
+    end
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
@@ -69,38 +124,207 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
     end
 end
 
-if isfile(joinpath(todata, "cache/agmodels.jld"))
+function findcroppath(prefix, crop, suffix, recurse=true)
+    println(prefix * crop * suffix)
+    if isfile(datapath(prefix * crop * suffix))
+        return datapath(prefix * crop * suffix)
+    end
+
+    if isupper(crop[1]) && isfile(datapath(prefix * lcfirst(crop) * suffix))
+        return datapath(prefix * lcfirst(crop) * suffix)
+    end
+
+    if islower(crop[1]) && isfile(datapath(prefix * ucfirst(crop) * suffix))
+        return datapath(prefix * ucfirst(crop) * suffix)
+    end
+
+    if !recurse
+        return nothing
+    end
+
+    croptrans = Dict{AbstractString, Vector{AbstractString}}("corn" => ["maize"], "hay" => ["otherhay"], "maize" => ["corn"])
+    if lowercase(crop) in keys(croptrans)
+        for crop2 in croptrans[lowercase(crop)]
+            path2 = findcroppath(prefix, crop2, suffix, false)
+            if path2 != nothing
+                return path2
+            end
+        end
+    end
+
+    return nothing
+end
+
+if isfile(cachepath("agmodels.jld"))
     println("Loading from saved region network...")
 
-    agmodels = deserialize(open(joinpath(todata, "cache/agmodels.jld"), "r"));
+    agmodels = deserialize(open(cachepath("agmodels.jld"), "r"));
 else
     # Prepare all the agricultural models
-    agmodels = Dict{UTF8String, Dict{Int64, StatisticalAgricultureModel}}() # {crop: {fips: model}}
+    agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    for crop in crops
+    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
+                                                "sorghum" => "Sorghum", "soybeans" => "Soybeans",
+                                                "wheat" => "Wheat", "hay" => "alfalfa")
+    for crop in allcrops
+        println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
-        national = StatisticalAgricultureModel(nationals, :crop, crop)
-        if isfile(joinpath(datapath("agriculture/bayesian/$crop.csv")))
-            counties = readtable(joinpath(datapath("agriculture/bayesian/$crop.csv")))
+        national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
+        bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
+        if bayespath != nothing
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
-            counties = readtable(joinpath(datapath("agriculture/unpooled-$crop.csv")))
+            croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
+            if croppath == nothing
+                continue
+            end
+            counties = readtable(croppath)
             combiner = gaussianpool
         end
 
-        for fips in unique(counties[:fips])
-            county = StatisticalAgricultureModel(counties, :fips, fips)
+        for regionid in regionindex(masterregions, :)
+            if !(regionid in regionindex(counties, :, tostr=true))
+                agmodels[crop][regionid] = national
+                continue
+            end
+
+            county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
 
             # Construct a pooled or fallback combination
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
             kdds, kddsse = combiner(national.kdds, national.kddsse, county.kdds, county.kddsse)
             wreq, wreqse = combiner(national.wreq, national.wreqse, county.wreq, county.wreqse)
-            agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse)
-            agmodels[crop][fips] = agmodel
+            agmodel = StatisticalAgricultureModel(county.intercept, county.interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse, county.gddoffset, county.kddoffset)
+            agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
 
-    serialize(open(joinpath(todata, "cache/agmodels.jld"), "w"), agmodels)
+    fp = open(cachepath("agmodels.jld"), "w")
+    serialize(fp, agmodels)
+    close(fp)
 end
+
+alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
+
+"""
+Determine which crops are not represented
+"""
+function missingcrops()
+    for crop in alluniquecrops
+        found = false
+        if crop in allcrops
+            found = true
+        else
+            for othername in uniquemapping[crop]
+                if othername in allcrops
+                    found = true
+                    break
+                end
+            end
+        end
+
+        if !found
+            produce(crop)
+        end
+    end
+end
+
+"""
+Return the current crop area for every crop, in Ha
+"""
+function currentcroparea(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df[:, crop] * 0.404686
+end
+
+"""
+Return the current irrigation for the given crop, in mm
+"""
+function cropirrigationrates(crop::AbstractString)
+    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    getunivariateirrigationrates(crop)
+end
+
+"""
+Read Naresh's special yield file format
+"""
+function read_nareshyields(crop::AbstractString)
+    # Get the yield data
+    if crop == "corn.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+    elseif crop == "corn.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+    elseif crop == "wheat.co.rainfed"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[1:61,:]
+    elseif crop == "wheat.co.irrigated"
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        yields = df[62:122,:]
+    end
+
+    # Get the order into our fips
+    regionindices = getregionindices(fipses)
+    result = zeros(numcounties, numsteps)
+
+    for ii in 1:numsteps
+        result[regionindices, ii] = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :]))
+    end
+
+    result
+end
+
+"""
+Read USDA QuickStats data
+"""
+function read_quickstats(filepath::AbstractString)
+    df = readtable(filepath)
+    df[:fips] = [isna(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
+
+    # Reorder these values to match regions
+    indices = getregionindices(canonicalindex(convert(Vector{Int64}, df[:fips])))
+    result = zeros(nrow(masterregions))
+    result[indices[indices .> 0]] = df[:xvalue][indices .> 0]
+
+    result
+end
+
+"""
+Collect all crop info from one of the dictionaries, aware of name changes
+"""
+function crop_information(crops::Vector{Any}, dict, default; warnonmiss=false)
+    [crop_information(crop, dict, default, warnonmiss=warnonmiss) for crop in crops]
+end
+
+"""
+Collect single crop info from one of the dictionaries, aware of name changes
+"""
+function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
+    if crop in keys(dict)
+        return dict[crop]
+    else
+        for othername in uniquemapping[crop]
+            if othername in keys(dict)
+                return dict[othername]
+            end
+        end
+    end
+
+    if warnonmiss
+        warn("Could not find crop information for $crop.")
+    end
+
+    return default
+end
+
+include("agriculture-ers.jl")

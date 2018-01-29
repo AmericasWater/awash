@@ -1,4 +1,4 @@
-setwd("~/research/water/model/awash/prepare/agriculture")
+setwd("~/research/water/awash/prepare/agriculture")
 
 all2010 = read.csv("all2010.csv")
 
@@ -33,7 +33,7 @@ for (fips in unique(all2010$fips)) {
 
         subdf <- rbind(subdf, data.frame(crop, area))
     }
-    subdf$fips <- fips
+    subdf$fips <- as.numeric(fips)
     df <- rbind(df, subdf)
 }
 
@@ -52,7 +52,7 @@ for (ii in 1:nrow(counties)) {
     byfips <- rbind(byfips, data.frame(fips, known=sum(cleandf$area[cleandf$fips == fips & cleandf$is.known]), total=sum(cleandf$area[cleandf$fips == fips])))
 }
 
-write.csv(byfips, "../../data/agriculture/knownareas.csv", row.names=F)
+write.csv(byfips, "../../data/counties/agriculture/knownareas.csv", row.names=F)
 
 library(ggplot2)
 

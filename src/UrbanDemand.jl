@@ -5,7 +5,6 @@ include("lib/readconfig.jl")
 
 @defcomp UrbanDemand begin
     regions = Index()
-    crops = Index()
 
     # Urban demands - exogeneous for now
     domesticdemand = Parameter(index=[regions, time],unit="1000 m^3")
@@ -24,7 +23,7 @@ function run_timestep(c::UrbanDemand, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt];
+        v.waterdemand[rr, tt] = p.domesticdemand[rr, tt]; # XXX: Where is commercial
     end
 end
 

@@ -1,0 +1,1 @@
+irrigatedareas.csv, rainfedareas.csv, totalareas.csv and knownareas.csv are in acres in 2010.

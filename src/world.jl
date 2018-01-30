@@ -36,11 +36,13 @@ numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["dataset"] == "three"
     numsteps = 3
-else
+elseif "endmonth" in keys(config) && "startmonth" in keys(config)
     numsteps = round.(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end
+else
+    numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
 numunicrops = length(unicrops)

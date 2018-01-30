@@ -6,18 +6,43 @@ function readconfig(ymlpath)
     end
 
     config = YAML.load(open(ymlpath))
+    dataset = readdatasetconfig(config["dataset"])
 
-    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
-
-    for key in keys(dataset)
-        if !in(key, keys(config))
-            config[key] = dataset[key]
-        end
-    end
+    config = mergeconfigs(dataset, config)
 
     config["indexcols"] = map(Symbol, config["indexcols"])
 
     config
+end
+
+"""
+Read dataset configuration
+"""
+function readdatasetconfig(dataset)
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * dataset * "/dataset.yml")))
+    if "parent-dataset" in keys(dataset)
+        parent = readdatasetconfig(dataset["parent-dataset"])
+
+        return mergeconfigs(parent, dataset)
+    else
+        return dataset
+    end
+end
+
+"""
+Universal logic for merging config files
+"""
+function mergeconfigs(parent, child)
+    for key in keys(parent)
+        if !in(key, keys(child))
+            child[key] = parent[key]
+        else
+            if isa(parent[key], Dict) && isa(child[key], Dict)
+                child[key] = mergeconfigs(parent[key], child[key])
+            end
+        end
+    end
+    return child
 end
 
 function emptyconfig()

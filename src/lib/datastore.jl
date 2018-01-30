@@ -1,8 +1,14 @@
+using Missings
+
+include("inputcache.jl")
+
 """
 Return the full path to a standard data file.
 """
-function datapath(filename)
-    dataset = get(config, "dataset", "counties")
+function datapath(filename, dataset=nothing)
+    if dataset == nothing
+        dataset = get(config, "dataset", "counties")
+    end
     if !startswith(filename, "global") && !startswith(filename, "mapping")
         joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
     else
@@ -11,11 +17,39 @@ function datapath(filename)
 end
 
 """
+Return the full path to a file for reading, using dataset logic.
+"""
+function loadpath(filename)
+    fullpath = datapath(filename)
+    if isfile(fullpath)
+        return fullpath
+    end
+
+    if filename in keys(config["extdatasets"])
+        if !isdir(dirname(fullpath))
+            mkpath(dirname(fullpath))
+        end
+        download(config["extdatasets"][filename]["url"], fullpath)
+        return fullpath
+    end
+
+    if "parent-dataset" in keys(config)
+        return datapath(filename, config["parent-dataset"]) # NOTE: This won't recurse fully yet
+    end
+
+    error("Unknown file $(filename)")
+end
+
+"""
 Return the full path to a cache data file.
 """
 function cachepath(filename)
     dataset = get(config, "dataset", "counties")
-    joinpath(dirname(@__FILE__), "../../data/cache/$dataset/$filename")
+    cachedir = joinpath(dirname(@__FILE__), "../../data/cache/$dataset")
+    if !isdir(cachedir)
+        mkdir(cachedir)
+    end
+    joinpath(cachedir, filename)
 end
 
 """
@@ -138,6 +172,41 @@ end
 """Return the index for each region key."""
 function getregionindices(fipses)
     map(fips -> findfirst(masterregions[:fips], fips), fipses)
+end
+
+"""Load a known, named input from its file."""
+function knownvariable(collection::AbstractString, name::AbstractString)
+    dataset = get(config, "dataset", "counties")
+
+    if collection == "runoff"
+        if name in ["gage_latitude", "gage_longitude", "contributing_area"]
+            if dataset == "paleo"
+                df = cachereadtable(loadpath("waternet/stations-data.txt"), separator=' ')
+                mapping = Dict("gage_latitude" => "LAT_GAGE", "gage_longitude" => "LNG_GAGE", "contributing_area" => "DRAIN_SQKM")
+                df[:, Symbol(mapping[name])]
+            else
+                dncload("runoff", name, ["gage"])
+            end
+        elseif name == "totalflow"
+            if dataset == "paleo"
+                ds = cachereadrda(loadpath("waternet/runoff.RData"))
+                convert(Matrix{Float64}, ds["DISAGG"][:, 3:end])'
+            else
+                dncload("runoff", name, ["month", "gage"])
+            end
+        elseif name == "month"
+            if dataset == "paleo"
+                ds = cachereadrda(loadpath("waternet/runoff.RData"))
+                map(x -> parse(Float64, x), ds["DISAGG"][:, 1]) + (ds["DISAGG"][:, 2] - .5) / 12
+            else
+                dncload("runoff", name, ["month"])
+            end
+        else
+            error("Unknown input $collection:$name.")
+        end
+    else
+        error("Unknown input $collection:$name.")
+    end
 end
 
 lastindexcol = nothing

@@ -47,14 +47,14 @@ Assumes that `config` is defined globally
 """
 function sum2timestep(weather)
     if config["timestep"] == 1
-        return weather[config["startweather"]:config["startweather"]+numsteps-1, :]
+        return weather[get(config, "startweather", 1):get(config, "startweather", 1)+numsteps-1, :]
     end
 
     bytimestep = zeros(numsteps, size(weather, 2))
     for timestep in 1:numsteps
         allcounties = zeros(1, size(weather, 2))
         for month in 1:config["timestep"]
-            allcounties += transpose(weather[round.(Int64, (timestep - 1) * config["timestep"] + month + config["startweather"] - 1), :])
+            allcounties += transpose(weather[round.(Int64, (timestep - 1) * config["timestep"] + month + get(config, "startweather", 1) - 1), :])
         end
 
         bytimestep[timestep, :] = allcounties
@@ -73,16 +73,16 @@ Return as 1000 m^3
 """
 function getadded(stations::DataFrame)
     # Check if the weather file needs to be downloaded
-    gage_latitude = dncload("runoff", "gage_latitude", ["gage"])
-    gage_longitude = dncload("runoff", "gage_longitude", ["gage"])
-    gage_totalflow = dncload("runoff", "totalflow", ["month", "gage"])
-    gage_area = dncload("runoff", "contributing_area", ["gage"])
+    gage_latitude = knownvariable("runoff", "gage_latitude")
+    gage_longitude = knownvariable("runoff", "gage_longitude")
+    gage_totalflow = knownvariable("runoff", "totalflow")
+    gage_area = knownvariable("runoff", "contributing_area")
 
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
     for ii in 1:nrow(stations)
-        gage = find((stations[ii, :lat] .== gage_latitude) .& (stations[ii, :lon] .== gage_longitude))
-        if length(gage) != 1
+        gage = find((abs.(stations[ii, :lat] - gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] - gage_longitude) .< 1e-6))
+        if length(gage) != 1 || gage[1] > size(gage_totalflow)[1]
             continue
         end
 
@@ -92,4 +92,11 @@ function getadded(stations::DataFrame)
     added[isnan.(added)] = 0 # if NaN, set to 0 so doesn't propagate
 
     added
+end
+
+"""
+Get the number of steps represented in a weather file.
+"""
+function getmaxsteps()
+    length(knownvariable("runoff", "month"))
 end

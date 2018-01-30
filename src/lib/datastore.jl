@@ -181,16 +181,66 @@ function knownvariable(collection::AbstractString, name::AbstractString)
     if collection == "runoff"
         if name in ["gage_latitude", "gage_longitude", "contributing_area"]
             if dataset == "paleo"
-                df = cachereadtable(loadpath("waternet/stations-data.txt"), separator=' ')
-                mapping = Dict("gage_latitude" => "LAT_GAGE", "gage_longitude" => "LNG_GAGE", "contributing_area" => "DRAIN_SQKM")
-                df[:, Symbol(mapping[name])]
+                if name == "contributing_area"
+                    df = cachereadtable(loadpath("waternet/allarea.csv"))
+                    df[:, :area]
+                else
+                    waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
+                    mapping = Dict("gage_latitude" => "lat", "gage_longitude" => "lon")
+                    waternetdata["network"][:, Symbol(mapping[name])]
+                end
             else
                 dncload("runoff", name, ["gage"])
             end
         elseif name == "totalflow"
             if dataset == "paleo"
                 ds = cachereadrda(loadpath("waternet/runoff.RData"))
-                convert(Matrix{Float64}, ds["DISAGG"][:, 3:end])'
+                addeds = convert(Matrix{Float64}, ds["DISAGG"][:, 3:end])'
+
+                ## Inpute the added water for all junctions
+                waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
+                stations = waternetdata["stations"]
+                stations[:gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
+                network = waternetdata["network"]
+                network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
+
+                contribs = cachereadtable(loadpath("waternet/contribs.csv"))
+                contribs = contribs[.!isna.(contribs[:sink]), :]
+
+                addeds = vcat(addeds, zeros(nrow(network) - nrow(stations), size(addeds)[2]))
+
+                for gageid in gaugeorder
+                    gageii = findfirst(network[:, :gageid] .== gageid)
+                    if gageii <= nrow(stations)
+                        continue # Already done
+                    end
+
+                    controws = contribs[contribs[:sink] .== gageid, :]
+
+                    sumadded = zeros(size(addeds)[2])
+                    numadded = 0
+
+                    for jj in 1:nrow(controws)
+                        if isna(controws[jj, :factor])
+                            continue
+                        end
+                        gagejj = findfirst(controws[jj, :source] .== network[:gageid])
+                        sumadded += addeds[gagejj, :] * controws[jj, :factor]
+                        numadded += 1
+                    end
+
+                    if numadded == 0
+                        continue
+                    end
+
+                    if any(isna.(sumadded))
+                        println(controws)
+                    end
+
+                    addeds[gageii, :] = sumadded' / numadded
+                end
+
+                addeds
             else
                 dncload("runoff", name, ["month", "gage"])
             end

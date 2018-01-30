@@ -1,5 +1,6 @@
 using DataFrames
 include("lib/datastore.jl")
+include("lib/weather.jl")
 
 suffix = getsuffix()
 

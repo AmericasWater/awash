@@ -4,9 +4,7 @@
 using Mimi
 using Distributions
 
-if config["dataset"] == "counties"
-	reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
-end
+reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 
 @defcomp Reservoir begin
     reservoirs = Index()

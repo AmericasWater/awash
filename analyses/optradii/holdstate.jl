@@ -20,9 +20,9 @@ outflows = convert(Matrix{Float64}, outflows)
 # outflows constrained as cumulative runoff
 
 # Specify that outflows + runoff > required, or -outflows < runoff - required
-constraintlower = getconstraintoffset(house, :WaterNetwork, :outflows, reshp=true)
+constraintlower = zeros(outflows) # Start with 0
 ## Specify that outflows + runoff < required, or outflows < required - runoff
-constraintupper = Inf * ones(constraintlower) # default upper constraint is infinity
+constraintupper = Inf * ones(outflows) # default upper constraint is infinity
 
 for hh in length(downstreamorder):-1:1
     gauge = downstreamorder[hh].label
@@ -30,23 +30,23 @@ for hh in length(downstreamorder):-1:1
     for upstream in out_neighbors(wateridverts[gauge], waternet)
         upregion = getregion(upstream.label)
         if myregion != upregion
-            # Determine the gauge number of upstream
-            gg = vertex_index(upstream)
-            # Constrain upstream's outflow to be as produced by optimize-surface
-            sumrunoffs = copy(constraintlower[gg, :])
+            # Determine the gauge number of downstream
+            gg = vertex_index(downstreamorder[hh])
+
             ## Constraint to be within 10% of current flows
-            constraintlower[gg, :] = sumrunoffs - outflows[gg, :] * .9
-            constraintupper[gg, :] = outflows[gg, :] * 1.1 - sumrunoffs
+            constraintlower[gg, :] = outflows[gg, :]
+            constraintupper[gg, :] = outflows[gg, :] * 1.1
         end
     end
 end
 
-setconstraintoffset!(house, :WaterNetwork, :outflows, vec(constraintlower))
+baselinerunoff = copy(getconstraintoffset(house, :WaterNetwork, :outflows))
+setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(constraintlower))
 
 # Add max flow constraint
-addconstraint!(house, :WaterNetwork, :maxoutflows, :outflows)
-setconstraint!(house, -room_relabel(getroom(house, :WaterNetwork, :outflows, :Allocation, :withdrawals), :outflows, :WaterNetwork, :maxoutflows))
-setconstraintoffset!(house, :WaterNetwork, :maxoutflows, vec(constraintupper))
+# addconstraint!(house, :WaterNetwork, :maxoutflows, :outflows)
+# setconstraint!(house, -room_relabel(getroom(house, :WaterNetwork, :outflows, :Allocation, :withdrawals), :outflows, :WaterNetwork, :maxoutflows))
+# setconstraintoffset!(house, :WaterNetwork, :maxoutflows, vec(constraintupper) - baselinerunoff)
 
 ## Set offset to 0 if no water connections
 for ii in 1:size(house.A)[1]
@@ -56,12 +56,14 @@ for ii in 1:size(house.A)[1]
 end
 
 ## Allow supersource feeding of gauges
-addparameter!(house, :WaterNetwork, :added) # include as supersource
+addparameter!(house, :WaterNetwork, :added) # include as supersource, but only for that link (no propagation)
 setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, (gg, tt) -> -1.))
 setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> -1000.))
 
 @time sol_after = houseoptimize(house, solver, find(house.b .< Inf))
 summarizeparameters(house, sol_after.sol)
+
+#xx = constraining(house, sol_after.sol)
 
 df = DataFrame(variable=[repmat(["withdrawals"], length(getparametersolution(house, sol_before.sol, :withdrawals)));
                          repmat(["waterfromgw"], length(getparametersolution(house, sol_before.sol, :waterfromgw)))],

@@ -41,13 +41,13 @@ function run_timestep(c::Reservoir, tt::Int)
 
     v.inflows[:,tt] = zeros(numreservoirs); 
     v.outflows[:,tt] = zeros(numreservoirs); 
-    rr = 1
+
     for gg in 1:numgauges
        index = vertex_index(downstreamorder[gg])
        if isreservoir[index] > 0
-	     v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000; 
-	     v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000; 
-	     rr += 1
+          rr = isreservoir[index]
+	  v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000.;
+	  v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000.;
        end
     end
 

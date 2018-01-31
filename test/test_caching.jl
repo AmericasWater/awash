@@ -11,4 +11,4 @@ cached_store("dummydata", true)
 
 # Clean up
 confighash = hash(config)
-rm(cachepath("dummydata-$confighash.jld"))
+rm(datapath("dummydata-$confighash.jld"))

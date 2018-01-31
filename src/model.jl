@@ -1,5 +1,13 @@
 include("model-waterdemand.jl")
 
+## Check if the optimize-surface script has produced captures data
+storedcaptures = cached_fallback("extraction/captures", () -> false)
+if storedcaptures == false
+    warn("Missing saved reservoirs file.  Please run optimize-surface.jl with allowreservoirs.")
+elseif size(storedresult)[1] != numreservoirs || size(storedresult)[2] != numsteps
+    warn("Reservoir file does not match current configuration.  Please remove.")
+end
+
 include("ReturnFlows.jl");
 include("Market.jl");
 include("Transportation.jl");

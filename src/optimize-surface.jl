@@ -6,7 +6,7 @@ if !isdefined(:config)
     config = readconfig("../configs/single.yml") # Just use 1 year for optimization
 end
 
-allowreservoirs = false # XXX
+allowreservoirs = true
 
 include("optimization-given.jl")
 house = optimization_given(false, allowreservoirs)

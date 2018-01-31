@@ -52,9 +52,9 @@ function cached_fallback(filename, generate)
     confighash = hash(config) # make specific to configs
     try
         if isfile(datapath("$filename$suffix-$confighash.jld"))
-            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+            return deserialize(open(cachepath("$filename$suffix-$confighash.jld")))
         elseif isfile(datapath("$filename$suffix.jld"))
-            return deserialize(open(datapath("$filename$suffix.jld")))
+            return deserialize(open(cachepath("$filename$suffix.jld")))
         end
     end
 
@@ -68,11 +68,11 @@ function cached_store(filename, object, usehash=true)
     suffix = getsuffix()
     if usehash
         confighash = hash(config) # make specific to configs
-        fp = open(datapath("$filename$suffix-$confighash.jld"), "w")
+        fp = open(cachepath("$filename$suffix-$confighash.jld"), "w")
         serialize(fp, object)
         close(fp)
     else
-        fp = open(datapath("$filename$suffix.jld"), "w")
+        fp = open(cachepath("$filename$suffix.jld"), "w")
         serialize(fp, object)
         close(fp)
     end

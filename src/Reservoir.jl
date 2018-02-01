@@ -43,33 +43,33 @@ function run_timestep(c::Reservoir, tt::Int)
     v.outflows[:,tt] = zeros(numreservoirs); 
 
     for gg in 1:numgauges
-       index = vertex_index(downstreamorder[gg])
-       if isreservoir[index] > 0
-          rr = isreservoir[index]
-	  v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000.;
-	  v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000.;
-       end
+        index = vertex_index(downstreamorder[gg])
+        if isreservoir[index] > 0
+            rr = isreservoir[index]
+	    v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000.;
+	    v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000.;
+        end
     end
 
     
     for rr in d.reservoirs
         if tt==1
-	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
-	else
-	    v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
-        end
+	    	v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
+		else
+	    	v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
+    	end
 	
-	if p.captures[rr,tt]<0
-	    v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
-	    if v.inflows[rr,tt]<v.outflows[rr,tt]
-                v.releases[rr,tt] = v.outflows[rr,tt] - v.inflows[rr, tt]
-	    else
-		v.releases[rr,tt] = 0
-            end
-        else
-            v.releases[rr,tt] = 0
-	    v.withdrawals[rr,tt] = 0
-        end
+		if p.captures[rr,tt]<0
+	    	v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
+	    	if v.inflows[rr,tt]<v.outflows[rr,tt]
+        		v.releases[rr,tt] = v.outflows[rr,tt] - v.inflows[rr, tt]
+	    	else
+				v.releases[rr,tt] = 0
+        	end
+		else
+			v.releases[rr,tt] = 0
+	    	v.withdrawals[rr,tt] = 0
+		end
     end
 end
 

@@ -32,7 +32,7 @@ reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 end
 
 """
-Compute the storage for the reservoirs as they change in time
+Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
 """
 function run_timestep(c::Reservoir, tt::Int)
 	v = c.Variables

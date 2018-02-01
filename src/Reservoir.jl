@@ -92,8 +92,6 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
-    reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
-
     if config["dataset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
         reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
@@ -101,22 +99,23 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
     else
 	if config["rescap"] == "zero"
-           reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+           reservoir[:storagecapacitymax] = zeros(numreservoirs);
+     	   reservoir[:storagecapacitymin] = zeros(numreservoirs);
+     	   reservoir[:storage0] = zeros(numreservoirs);
+     	   reservoir[:evaporation] = zeros(numreservoirs,numsteps);
         else
 	   rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
      	   rcmax = rcmax*1233.48
      	   reservoir[:storagecapacitymax] = rcmax;
 	   reservoir[:storagecapacitymin] = zeros(numreservoirs);
-	   reservoir[:storage0] = rcmax*0.#zeros(numreservoirs); 
-     	   reservoir[:evaporation] = 0.05*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+	   reservoir[:storage0] = rcmax*0.; 
+     	   reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
 	end
     end
 
-    reservoir[:outflowsgauges] = zeros(m.indices_counts[:gauges],m.indices_counts[:time]);
-    reservoir[:inflowsgauges] = zeros(m.indices_counts[:gauges],m.indices_counts[:time]);
+    reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(numreservoirs,numsteps));
+    reservoir[:outflowsgauges] = zeros(numgauges,numsteps);
+    reservoir[:inflowsgauges] = zeros(numgauges,numsteps);
     
     reservoir
 end

@@ -2,11 +2,11 @@ using DataFrames
 using RData
 
 
-if isfile(datapath("cache/gwmodel/dfgw$suffix.csv"))
+if isfile(datapath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = readtable(datapath("cache/gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, readtable(datapath("cache/gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, readtable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv")));
+    dfgw = readtable(datapath("gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion$suffix.csv")));
 
 else
     if config["dataset"] == "counties"
@@ -25,9 +25,9 @@ else
   	    aquiferconnexion = aquiferconnexion[subfips,subfips];
 
             # Save groundwater model
-            writetable(datapath("cache/gwmodel/dfgw$suffix.csv"), dfgw)
-            writetable(datapath("cache/gwmodel/lateralconductivity$suffix.csv"), convert(DataFrame, lateralconductivity))
-            writetable(datapath("cache/gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
+            writetable(datapath("gwmodel/dfgw$suffix.csv"), dfgw)
+            writetable(datapath("gwmodel/lateralconductivity$suffix.csv"), convert(DataFrame, lateralconductivity))
+            writetable(datapath("gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
 
         end
     elseif config["dataset"] == "three"

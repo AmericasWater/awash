@@ -2,7 +2,6 @@ using DataArrays
 using DataFrames
 using OptiMimi
 
-
 include("lib/readconfig.jl")
 if !isdefined(:config) || isempty(config)
      config = readconfig("../configs/standard-1year.yml") 

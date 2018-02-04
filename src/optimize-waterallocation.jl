@@ -42,11 +42,8 @@ serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[
 serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
 if withreservoirs
     serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
-else
-    storedcaptures = cached_fallback("extraction/captures", () -> false)
-    if storedcaptures != false
-        rm(datapath("extraction/captures$suffix.jld"))
-    end
+elseif isfile(datapath("extraction/captures$suffix.jld"))
+    rm(datapath("extraction/captures$suffix.jld"))
 end
 
 analysis = nothing

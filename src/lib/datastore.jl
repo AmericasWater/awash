@@ -51,9 +51,9 @@ function cached_fallback(filename, generate)
     suffix = getsuffix()
     confighash = hash(config) # make specific to configs
     try
-        if isfile(datapath("$filename$suffix-$confighash.jld"))
+        if isfile(cachepath("$filename$suffix-$confighash.jld"))
             return deserialize(open(cachepath("$filename$suffix-$confighash.jld")))
-        elseif isfile(datapath("$filename$suffix.jld"))
+        elseif isfile(cachepath("$filename$suffix.jld"))
             return deserialize(open(cachepath("$filename$suffix.jld")))
         end
     end

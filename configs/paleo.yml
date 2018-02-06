@@ -7,3 +7,10 @@ dataset: paleo
 
 # Months per time step
 timestep: 1
+
+# First and last month of the simulation
+startmonth: 10/1451
+endmonth: 12/2005
+
+# First entry in VIC_WB to include
+startweather: 1

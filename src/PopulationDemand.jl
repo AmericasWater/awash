@@ -5,7 +5,7 @@ using DataFrames
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
-populations = readtable(datapath("county-pops.csv"), eltypes=[Int64, String, String, Int64, Float64]);
+populations = readtable(loadpath("county-pops.csv"), eltypes=[Int64, String, String, Int64, Float64]);
 
 function getpopulation(fips, year)
     if typeof(fips) <: Int

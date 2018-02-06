@@ -70,7 +70,7 @@ end
 Retrieve only the part of a file within filterstate, if one is set.
 """
 function getfilteredtable(filepath, fipscol=:FIPS)
-    recorded = readtable(datapath(filepath))
+    recorded = readtable(loadpath(filepath))
     if get(config, "filterstate", nothing) != nothing
         recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
     end

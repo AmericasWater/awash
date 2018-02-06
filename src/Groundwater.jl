@@ -5,7 +5,7 @@
 using Mimi
 using Distributions
 
-gw = load(datapath("gwmodel/contusgwmodel.RData"))
+gw = load(loadpath("gwmodel/contusgwmodel.RData"))
 
 @defcomp Aquifer begin
   aquifers = Index()
@@ -105,7 +105,7 @@ function initaquifer(m::Model)
 
   	  if get(config, "filterstate", nothing) != nothing
           # This currently only works for county-level runs
-          vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
+          vfips = readdlm(loadpath("gwmodel/v_FIPS.txt"));
 		  vstates = round.(Int64, floor(vfips / 1000));
 		  subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
 	  else

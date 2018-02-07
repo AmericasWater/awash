@@ -72,25 +72,24 @@ function initreservoir(m::Model, name=nothing)
         reservoir[:storage0] = 1.3*ones(numreservoirs)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
     else
-	   if config["rescap"] == "zero"
-             reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
-     	   reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
+        if config["rescap"] == "zero"
+            reservoir[:storagecapacitymax] = zeros(m.indices_counts[:reservoirs]);
+       	    reservoir[:storagecapacitymin] = zeros(m.indices_counts[:reservoirs]);
+       	    reservoir[:storage0] = zeros(m.indices_counts[:reservoirs]);
+     	      reservoir[:evaporation] = zeros(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+     	      reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
         else
             rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
-     	   rcmax = rcmax*1233.48
-     	   reservoir[:storagecapacitymax] = rcmax;
-     	   reservoir[:storagecapacitymin] = 0*0.1*rcmax;
-     	   reservoir[:storage0] = 0*(rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
-     	   reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
-     	   reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
+     	      rcmax = rcmax*1233.48
+     	      reservoir[:storagecapacitymax] = rcmax;
+     	      reservoir[:storagecapacitymin] = 0*0.1*rcmax;
+            reservoir[:storage0] = 0*(rcmax-0.1*rcmax)/2; #initial storate value: (max-min)/2
+   	        reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+   	        reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(m.indices_counts[:reservoirs], m.indices_counts[:time]));
             if config["reshalf"]=="half"
                 reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
-                end 
-	   end
-
+            end 
+        end
     end
     reservoir
 end

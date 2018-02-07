@@ -13,15 +13,20 @@ else
     include ("optimization.jl")
 end
 
-    
-    using MathProgBase
+using MathProgBase
 @time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
 
+analysis = nothing
 
-
-debug = true #false true
-
-if debug
+if analysis == :shadowcost
+    varlens = varlengths(m, house.constcomps, house.constraints)
+    lambdas = sol.attrs[:lambda][sum(varlens[1:2])+1:sum(varlens[1:3])]
+    lambdas = reshape(lambdas, (3109, 2))
+    df = convert(DataFrame, lambdas)
+    df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
+    writetable("../results/shadowprice.csv", df)
+    usmap(DataFrame(fips=df[:fips], value=df[:x1]))
+elseif analysis == :debug
     coning = constraining(house, convert(Vector{Float64}, sol.sol))
 
     rdf = DataFrame(fips=masterregions[:fips]);

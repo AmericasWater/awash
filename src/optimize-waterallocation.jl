@@ -39,21 +39,20 @@ serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.
 serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
 
+if withreservoirs
+    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
+elseif isfile(datapath("extraction/captures$suffix.jld"))
+    rm(datapath("extraction/captures$suffix.jld"))
+end
 
-sum(sol.sol[varlens[1]+1:sum(varlens[1:2])])+sum(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])])
+analysis = nothing
 
-
-conlens = varlengths(house.model, house.constcomps, house.constraints)
-
-sum(house.b[conlens[1]+1:sum(conlens[1:2]),:])
-
-
-
-
-
-
-
-
-
-
-
+if analysis == :shadowcost
+    varlens = varlengths(m, house.constcomps, house.constraints)
+    lambdas = sol.attrs[:lambda][sum(varlens[1])+1:sum(varlens[1:2])]
+    lambdas = reshape(lambdas, (3109, 2))
+    df = convert(DataFrame, lambdas)
+    df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
+    writetable("../results/shadowprice-alloc.csv", df)
+    usmap(DataFrame(fips=df[:fips], value=df[:x1]))
+end

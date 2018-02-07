@@ -3,6 +3,7 @@ using Distributions
 
 include("lib/datastore.jl")
 include("watercostdata.jl")
+
 @defcomp Allocation begin
     regions = Index()
 
@@ -98,11 +99,10 @@ function initallocation(m::Model)
    totaluse=ones(m.indices_counts[:time])
    allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation 
     if config["dataset"] == "three"
-	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
     else
         recorded = getfilteredtable("extraction/USGS-2010.csv")
 

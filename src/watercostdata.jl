@@ -16,7 +16,7 @@ if isfile(datapath("canalextractioncost$suffix.jld"))
 else
     ## Optional cost for drawing down a river (environmental change)
     # Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
-    canalextractioncost = 65.65 * ones(numcounties)
+    canalextractioncost = 65.65 * ones(numregions)
 end
 
 if isfile(loadpath("drawdown.csv"))
@@ -27,7 +27,7 @@ if isfile(loadpath("drawdown.csv"))
 else
     # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
     # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85
-    aquiferextractioncost = 386.85 * ones(numcounties)
+    aquiferextractioncost = 386.85 * ones(numregions)
 end
 
 ### TREATMENT COST

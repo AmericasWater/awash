@@ -19,8 +19,8 @@ include("Reservoir.jl");
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
-reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
+reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transporation, Agriculture
 
@@ -32,6 +32,8 @@ returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 groundwater[:withdrawal] = allocation[:watergw];
+reservoir[:inflowsgauges] = waternetwork[:inflows];
+reservoir[:outflowsgauges] = waternetwork[:outflows];
 
 market[:produced] = agriculture[:allcropproduction];
 market[:regionimports] = transportation[:regionimports];

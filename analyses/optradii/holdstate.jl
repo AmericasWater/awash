@@ -63,8 +63,6 @@ setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> 
 @time sol_after = houseoptimize(house, solver, find(house.b .< Inf))
 summarizeparameters(house, sol_after.sol)
 
-#xx = constraining(house, sol_after.sol)
-
 df = DataFrame(variable=[repmat(["withdrawals"], length(getparametersolution(house, sol_before.sol, :withdrawals)));
                          repmat(["waterfromgw"], length(getparametersolution(house, sol_before.sol, :waterfromgw)))],
                optimized=[getparametersolution(house, sol_before.sol, :withdrawals);

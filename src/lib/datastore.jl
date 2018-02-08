@@ -25,12 +25,14 @@ function loadpath(filename)
         return fullpath
     end
 
-    if filename in keys(config["extdatasets"])
-        if !isdir(dirname(fullpath))
-            mkpath(dirname(fullpath))
+    if "extdatasets" in keys(config)
+        if filename in keys(config["extdatasets"])
+            if !isdir(dirname(fullpath))
+                mkpath(dirname(fullpath))
+            end
+            download(config["extdatasets"][filename]["url"], fullpath)
+            return fullpath
         end
-        download(config["extdatasets"][filename]["url"], fullpath)
-        return fullpath
     end
 
     if "parent-dataset" in keys(config)

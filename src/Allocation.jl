@@ -35,12 +35,12 @@ include("watercostdata.jl")
     unitsupercost = Parameter(unit="\$/1000 m^3")
     cost=Variable(index=[regions,time], unit="\$")
     # Total cost for eachs county
-   
+
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, time], unit="1000 m^3")
     # Combination across all canals routing return flow from the counties
     swreturn = Variable(index=[regions, time], unit="1000 m^3")
-    totaluse=Parameter(index=[time],unit="1000m^3") 
+    totaluse=Parameter(index=[time],unit="1000m^3")
     # Amount available from all sources
     waterallocated = Variable(index=[regions,time], unit="1000 m^3")
 
@@ -92,12 +92,12 @@ function initallocation(m::Model)
 
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
-    
+
    allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1,numsteps])+0.1;
    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1,numsteps])+0.1;
-   allocation[:unitsupercost] = 1e6 
+   allocation[:unitsupercost] = 1e6
    totaluse=ones(m.indices_counts[:time])
-   allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation 
+   allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
 	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
@@ -147,8 +147,6 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
-    # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85
     roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> m.parameters[:unitgwcost].values[rr,tt])
 end
 
@@ -156,16 +154,13 @@ function grad_allocation_cost_waterfromsupersource(m::Model)
     roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (rr, tt) -> 10000.)
 end
 
-## Optional cost for drawing down a river (environmental change)
-# Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
-
 function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
-            if rr > 0               
-                A[rr, pp] =m.parameters[:unitswcost].values[pp]
+            if rr > 0
+                A[rr, pp] = m.parameters[:unitswcost].values[pp]
             end
         end
     end
@@ -235,23 +230,23 @@ end
 
 
 
-function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT 
+function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
     function generate(A,tt)
         A[:] = 1
-    end    
+    end
     roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
-end 
+end
 
 
-function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT 
+function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT
     function generate(A,tt)
         A[:] = 1
-    end    
+    end
     roomintersect(m,:Allocation, :totaluse, :withdrawals,generate)
-end 
+end
 
 
-function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT 
+function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT
     gen(tt)=(7.820581169848508e6)*2
     hallsingle(m, :Allocation, :totaluse,gen)
 end

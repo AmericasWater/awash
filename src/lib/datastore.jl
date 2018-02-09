@@ -39,7 +39,7 @@ function loadpath(filename)
         return datapath(filename, config["parent-dataset"]) # NOTE: This won't recurse fully yet
     end
 
-    error("Unknown file $(filename)")
+    return fullpath # posit the filepath anyway
 end
 
 """

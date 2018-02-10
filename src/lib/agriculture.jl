@@ -28,15 +28,15 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
 "wheat" => 0.684836198198068, "hay" => 1.63961100235402) # in m
 
 
-crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4.66905e6, "Barley.Winter" => 0,"Maize" => 7.70103e7,"Sorghum" => 3.95951e6 ,"Soybeans" => 0.0,"Wheat" => 1.10917e5, "Wheat.Winter" => 5.19694e7) 
+crop_demands=Dict("alfalfa" =>  7.66038e6, "otherhay" => 3.12915e6,"Barley" => 4.66905e6, "Barley.Winter" => 0,"Maize" => 7.70103e7,"Sorghum" => 3.95951e6 ,"Soybeans" => 0.0,"Wheat" => 1.10917e5, "Wheat.Winter" => 5.19694e7)
 
-#crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9) 
+#crop_demands=Dict("alfalfa" =>  5.60928e10, "otherhay" => 5.60928e10,"Barley" => 2.80464e8, "Barley.Winter" => 2.80464e8,"Maize" => 2.80464e8, "Sorghum" => 5.60928e8 , "Soybeans" =>1.12186e9 ,"Wheat" => 2.80464e9, "Wheat.Winter" => 2.80464e9)
 
 
 cultivation_costs = Dict("corn" => 401., "corn.co.rainfed" =>401., "corn.co.irrigated" => 401.,
                          "sorghum" => 250., "soybeans" => 260.,
 "wheat" => 203., "wheat.co.rainfed" => 203, "wheat.co.irrigated" =>203,
-"hay" => 545.,"barley"=>256.) # USD / acre (ALL Operating and Overhead Cost -Land - Unpaid Labor) 
+"hay" => 545.,"barley"=>256.) # USD / acre (ALL Operating and Overhead Cost -Land - Unpaid Labor)
 
 
 
@@ -256,33 +256,46 @@ function read__nareshyields(crop::AbstractString)
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
         df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
         df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
         df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
+        bayespath = datapath("agriculture/bayesian/Wheat.csv")
     end
 
     # Get the order into our fips
-    regionindices = getregionindices(fipses)
+    regionindices_yield = getregionindices(fipses, false)
+
+    if use2010yields
+        # Collect coefficients to remove the trend
+        coefficients = readtable(bayespath)
+        timecoeffs = coefficients[coefficients[:coef] .== "time", :]
+
+        regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
+    end
+
     result = zeros(numcounties, numsteps)
 
     for ii in 1:numsteps
         result[regionindices, ii] = (vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, :])))
     end
 
-    for tt in 1:numsteps 
+    for tt in 1:numsteps
         result[:,tt]=result[:,tt]*exp(coef[crop]*(2010-index2year(tt)))
-    end 
+    end
     result
-    
+
 end
 
 

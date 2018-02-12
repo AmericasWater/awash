@@ -77,19 +77,19 @@ function initmarket(m::Model)
 end
 
 function grad_market_available_regionimports(m::Model)
-    roomdiagonal(m, :Market, :available, :regionimports, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :available, :regionimports, 1.)
 end
 
 function grad_market_available_regionexports(m::Model)
-    roomdiagonal(m, :Market, :available, :regionexports, (rr, cc, tt) -> -1.)
+    roomdiagonal(m, :Market, :available, :regionexports, -1.)
 end
 
 function grad_market_available_produced(m::Model)
-    roomdiagonal(m, :Market, :available, :produced, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :available, :produced, 1.)
 end
 
 function grad_market_available_internationalsales(m::Model)
-    roomdiagonal(m, :Market, :available, :internationalsales, (rr, cc, tt) -> -1.)
+    roomdiagonal(m, :Market, :available, :internationalsales, -1.)
 end
 
 function deriv_market_totalrevenue_produced(m::Model)
@@ -103,5 +103,5 @@ function deriv_market_totalrevenue_internationalsales(m::Model)
 end
 
 function grad_market_domesticbalance_available(m::Model)
-    roomdiagonal(m, :Market, :domesticbalance, :available, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :domesticbalance, :available, 1.)
 end

@@ -20,7 +20,7 @@ reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 	withdrawals = Variable(index=[reservoirs, time], unit="m^3")
 	# releases
 	releases = Variable(index=[reservoirs, time], unit="m^3")
-	
+
 	# Evaporation
 	evaporation = Parameter(index=[reservoirs, time], unit="m^3")
 
@@ -39,8 +39,8 @@ function run_timestep(c::Reservoir, tt::Int)
 	p = c.Parameters
 	d = c.Dimensions
 
-	v.inflows[:,tt] = zeros(numreservoirs); 
-	v.outflows[:,tt] = zeros(numreservoirs); 
+	v.inflows[:,tt] = zeros(numreservoirs);
+	v.outflows[:,tt] = zeros(numreservoirs);
 
 	for gg in 1:numgauges
 		index = vertex_index(downstreamorder[gg])
@@ -51,14 +51,14 @@ function run_timestep(c::Reservoir, tt::Int)
 		end
 	end
 
-	
+
 	for rr in d.reservoirs
 		if tt==1
 			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
 		else
 			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
 		end
-	
+
 		if p.captures[rr,tt]<0
 			v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
 			if v.inflows[rr,tt]<v.outflows[rr,tt]
@@ -107,37 +107,37 @@ function initreservoir(m::Model, name=nothing)
 		rcmax = rcmax*1233.48
 		reservoir[:storagecapacitymax] = rcmax;
 		reservoir[:storagecapacitymin] = zeros(numreservoirs);
-		reservoir[:storage0] = rcmax*0.; 
+		reservoir[:storage0] = rcmax*0.;
 		reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
 	end
-	
+
 	reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(numreservoirs,numsteps));
 	reservoir[:outflowsgauges] = zeros(numgauges,numsteps);
 	reservoir[:inflowsgauges] = zeros(numgauges,numsteps);
-	
+
 	reservoir
 end
 
 
 function grad_reservoir_outflows_captures(m::Model)
-	function generate(A, tt)
+    function generate(A)
         # Fill in GAUGES x RESERVOIRS matrix
         # Propogate in downstream order
-		for hh in 1:numgauges
-			gg = vertex_index(downstreamorder[hh])
-			gauge = downstreamorder[hh].label
-			for upstream in out_neighbors(wateridverts[gauge], waternet)
-				index = vertex_index(upstream, waternet)
-				println(index)
-				if isreservoir[index] > 0
-					A[gg, isreservoir[index]] = -1
-				else
-					A[gg, :] += A[index, :]
-				end
-			end
+	for hh in 1:numgauges
+	    gg = vertex_index(downstreamorder[hh])
+	    gauge = downstreamorder[hh].label
+	    for upstream in out_neighbors(wateridverts[gauge], waternet)
+		index = vertex_index(upstream, waternet)
+		println(index)
+		if isreservoir[index] > 0
+		    A[gg, isreservoir[index]] = -1
+		else
+		    A[gg, :] += A[index, :]
 		end
+	    end
 	end
-	roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate)
+    end
+    roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate, [:time], [:time])
 end
 
 function grad_reservoir_storage_captures(m::Model)

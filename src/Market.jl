@@ -71,6 +71,7 @@ function initmarket(m::Model)
     
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
+    market[:domestic_interest] = zeros(numcounties, numallcrops, numsteps)
     market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])
     market[:internationalsales] = zeros(numcounties, numallcrops, numsteps)
     market[:regionimports] = zeros(numcounties, numallcrops, numsteps)
@@ -96,12 +97,12 @@ function grad_market_available_internationalsales(m::Model)
 end
 
 function deriv_market_totalrevenue_produced(m::Model)
-    gen(rr, cc, tt) = m.parameters[:domestic_prices].values[rr, cc]
+    gen(rr, cc, tt) = m.external_parameters[:domestic_prices].values[rr, cc]
     hallsingle(m, :Market, :produced, gen)
 end
 
 function deriv_market_totalrevenue_internationalsales(m::Model)
-    gen(rr, cc, tt) = -m.parameters[:domestic_prices].values[rr, cc] + m.parameters[:international_prices].values[rr, cc]
+    gen(rr, cc, tt) = -m.external_parameters[:domestic_prices].values[rr, cc] + m.external_parameters[:international_prices].values[rr, cc]
     hallsingle(m, :Market, :internationalsales, gen)
 end
 

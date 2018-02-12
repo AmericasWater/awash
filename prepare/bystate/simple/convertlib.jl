@@ -4,7 +4,7 @@ function translateregion(region, subdf, columns, todrop, renames, translate)
     # Add on each column
     for name in names(subdf)
         value = translate(name, subdf[name])
-        if !isna(value) && value == nothing
+        if !isna.(value) && value == nothing
             push!(todrop, name)
         elseif value == :targetid
             if !in(name, keys(columns))
@@ -14,7 +14,7 @@ function translateregion(region, subdf, columns, todrop, renames, translate)
             renames[name] = :targetid
         else
             if !in(name, keys(columns))
-                if isna(value)
+                if isna.(value)
                     columns[name] = DataVector{Float64}([])
                 else
                     columns[name] = DataVector{typeof(value)}([])
@@ -47,7 +47,7 @@ function converttable(filename, config, translate; eltypes=nothing)
     println("Reading data...")
 
     masterregions = readtable(joinpath(todata, config[:masterfile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
 
     # Check that we have all regions
     if eltypes != nothing
@@ -122,9 +122,9 @@ end
 
 function orderedconvertdf(df, config, translate)
     sourceregions = readtable(joinpath(todata, config[:mastersourcefile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
     targetregions = readtable(joinpath(todata, config[:mastertargetfile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
 
     # Check that we have all regions
     if nrow(df) != nrow(sourceregions)
@@ -185,7 +185,7 @@ function chunkyconverttable(filename, config, translatechunk)
     println("Reading data...")
 
     masterregions = readtable(joinpath(todata, config[:masterfile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
 
     # Check that we have all regions
     df = readtable(joinpath(todata, "data", config[:source], filename))
@@ -240,9 +240,9 @@ end
 
 function chunkyorderedconvertdf(df, config, translatechunk)
     sourceregions = readtable(joinpath(todata, config[:mastersourcefile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
     targetregions = readtable(joinpath(todata, config[:mastertargetfile]),
-                              eltypes=[UTF8String, UTF8String, UTF8String])
+                              eltypes=[String, String, String])
 
     # Check that we have all regions
     if nrow(df) != nrow(sourceregions)

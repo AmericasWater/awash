@@ -13,7 +13,7 @@ run(model);
 
 fipsmapping = readtable(datapath("agriculture/allyears/Master_Spreadsheet_All.csv"));
 
-dfbycy = DataFrame(crop=UTF8String[], fips=UTF8String[], year=Int64[], obsprod=Float64[], estprod=Float64[])
+dfbycy = DataFrame(crop=String[], fips=String[], year=Int64[], obsprod=Float64[], estprod=Float64[])
 for crop in ["barley"]
     obsprods = readtable("../../data/counties/agriculture/allyears/barley_production_in_bu.csv")
     estprods = model[:UnivariateAgriculture, :production][:, 1, :]

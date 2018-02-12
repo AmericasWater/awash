@@ -3,8 +3,11 @@ using Graphs
 using DataFrames
 using RData
 
-typealias RegionNetwork{R, E} IncidenceList{R, E}
-typealias OverlaidRegionNetwork RegionNetwork{ExVertex, ExEdge}
+if !isdefined(:RegionNetwork)
+    RegionNetwork{R, E} = IncidenceList{R, E}
+end
+
+OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 
 filtersincludeupstream = false # true to include all upstream nodes during a filter
 
@@ -45,7 +48,7 @@ else
 
     # Load the county-network connections
     draws = drawsdata["draws"];
-    draws[:source] = round(Int64, draws[:source])
+    draws[:source] = round.(Int64, draws[:source])
     # Label all with the node name
     draws[:gaugeid] = ""
     for ii in 1:nrow(draws)
@@ -54,7 +57,7 @@ else
     end
 
     if get(config, "filterstate", nothing) != nothing
-        states = round(Int64, draws[:fips] / 1000)
+        states = round.(Int64, draws[:fips] / 1000)
         draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
 
         includeds = falses(nrow(netdata))
@@ -78,7 +81,7 @@ else
         includeds = trues(nrow(netdata))
     end
 
-    wateridverts = Dict{UTF8String, ExVertex}();
+    wateridverts = Dict{String, ExVertex}();
     waternet = empty_extnetwork();
     for row in 1:nrow(netdata)
         if !includeds[row]
@@ -87,7 +90,7 @@ else
 
         println(row)
         nextpt = netdata[row, :nextpt]
-        if isna(nextpt)
+        if isna.(nextpt)
             continue
         end
 
@@ -130,7 +133,7 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
-gaugeorder = Vector{UTF8String}(length(wateridverts))
+gaugeorder = Vector{String}(length(wateridverts))
 for vertex in downstreamorder
     gaugeorder[vertex_index(vertex)] = vertex.label
 end
@@ -140,7 +143,7 @@ include("lib/reservoirs.jl")
 reservoirs = getreservoirs(config)
 
 # Zero if not a reservoir, else its index
-isreservoir = zeros(length(wateridverts))
+isreservoir = zeros(Int64, length(wateridverts))
 
 for ii in 1:nrow(reservoirs)
     resid = "$(reservoirs[ii, :collection]).$(reservoirs[ii, :colid])"

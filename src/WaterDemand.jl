@@ -8,7 +8,7 @@ include("lib/datastore.jl")
 
 # Load consumptive use data
 consumption = readtable(datapath("returnflows/consumption.csv"))
-returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)]
+returnpart = Dict([consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)])
 
 @defcomp WaterDemand begin
     regions = Index()

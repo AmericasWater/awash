@@ -20,9 +20,9 @@ orderedconverttable("gwmodel/piezohead0.txt", config, (column, values) -> mean(d
 config[:separator] = ' '
 
 sourceregions = readtable(joinpath(todata, config[:mastersourcefile]),
-                          eltypes=[UTF8String, UTF8String, UTF8String])
+                          eltypes=[String, String, String])
 targetregions = readtable(joinpath(todata, config[:mastertargetfile]),
-                          eltypes=[UTF8String, UTF8String, UTF8String])
+                          eltypes=[String, String, String])
 
 function translatechunk(region, subdf)
     if nrow(subdf) == 0

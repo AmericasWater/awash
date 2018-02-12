@@ -13,10 +13,10 @@ for crop in [:barley, :corn, :sorghum, :soybeans, :wheat, :hay]
     totals = zeros(nrow(irrigateds))
     for irrcrop in mapping[crop]
         thisirrigateds = irrigateds[irrcrop]
-        thisirrigateds[isna(thisirrigateds)] = 0
+        thisirrigateds[isna.(thisirrigateds)] = 0
 
         thisrainfeds = rainfeds[irrcrop]
-        thisrainfeds[isna(thisrainfeds)] = 0
+        thisrainfeds[isna.(thisrainfeds)] = 0
 
         totals = totals + thisirrigateds + thisrainfeds
     end

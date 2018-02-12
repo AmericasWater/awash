@@ -27,14 +27,14 @@ include("lib/agriculture.jl")
     sorghumarea=Parameter(index=[regions, time], unit="Ha")
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
-    
+
     hayproduction=Parameter(index=[time],unit="ton")
     barleyproduction=Parameter(index=[time],unit="bu")
-    
+
     # Total production: lb or bu
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
-    #total Op cost 
+    #total Op cost
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
@@ -62,9 +62,9 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 
             # Calculate cultivation costs
             v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
-            # Calculate Operating cost 
-            v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12  
-            
+            # Calculate Operating cost
+            v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
+
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -86,7 +86,7 @@ function initunivariateagriculture(m::Model)
       if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
             yield[:,cc,:] = read_nareshyields(unicrops[cc])
             for rr in 1:numcounties
-                for tt in 1:numsteps 
+                for tt in 1:numsteps
                     water_demand = water_requirements[unicrops[cc]] * 1000
                     water_deficit = max(0., water_demand - rollingsum[rr, tt])
                     irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
@@ -94,8 +94,8 @@ function initunivariateagriculture(m::Model)
             end
             continue
         end
-        
-        
+
+
         # Load degree day data
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
@@ -111,13 +111,13 @@ function initunivariateagriculture(m::Model)
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, symbol("x$year")]
-                        if isna(numgdds)
+                        numgdds = gdds[rr, Symbol("x$year")]
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, symbol("x$year")]
-                        if isna(numkdds)
+                        numkdds = kdds[rr, Symbol("x$year")]
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -130,19 +130,19 @@ function initunivariateagriculture(m::Model)
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit
                     yield[rr, cc, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
                     irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
-                   
+
                 end
             end
         end
     end
   agriculture = addcomponent(m, UnivariateAgriculture)
-    
+
     agriculture[:yield] = yield
     #if config["filterstate"]=="08"
     #    yield[:,5,:]=yield[:,5,:]*10
     #    yield[:,8,:]=min(yield[:,8,:]*1.5,maximum_yields["hay"])
-    #    end 
-   # agriculture[:yield] = yield    
+    #    end
+   # agriculture[:yield] = yield
     agriculture[:irrigation_rate] = irrigation_rate
 
     # Load in planted area
@@ -152,9 +152,9 @@ function initunivariateagriculture(m::Model)
         agriculture[:totalareas_cst] = zeros(Float64, (nrow(totalareas), 0))
     else
         constantareas = zeros(numcounties, numunicrops)
-        sorghumarea=zeros(numcounties, numsteps) 
-        allagarea=zeros(numcounties, numsteps) 
-        maxarea=zeros(numcounties, numsteps) 
+        sorghumarea=zeros(numcounties, numsteps)
+        allagarea=zeros(numcounties, numsteps)
+        maxarea=zeros(numcounties, numsteps)
         hayproduction=ones(numsteps)
         barleyproduction=ones(numsteps)
         if config["filterstate"]=="08"
@@ -163,16 +163,16 @@ function initunivariateagriculture(m::Model)
             constantareas=convert(Array,readtable(datapath("../Colorado/coloradoarea.csv")))
             sorghumarea=constantareas[:,4]
             maxarea=sum(constantareas,2)
-            else 
+            else
             for cc in 1:numunicrops
                 if unicrops[cc] in keys(quickstats_planted)
                     constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
                 else
-                    column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
-                    constantareas[:, cc] = totalareas[column]*0.404686#Convert to Ha
-                    constantareas[isna(totalareas[column]), cc] = 0. 
-                    
-                    end 
+                    column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
+                    constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
+                    constantareas[isna.(totalareas[column]), cc] = 0.  # Replace NAs with 0, and convert to float.
+
+                    end
             end
             if isfile(datapath("../Colorado/totalareas_cst-08.jld"))
             constantareas=
@@ -189,7 +189,7 @@ deserialize(open(datapath("../Colorado/totalareas_cst-08.jld"), "r"));
         if isfile(datapath("../extraction/totalareas$suffix.jld"))
             agriculture[:totalareas]=
 deserialize(open(datapath("../extraction/totalareas$suffix.jld"), "r"));
-            end 
+            end
     end
 
     agriculture
@@ -198,7 +198,7 @@ end
 
 #########PRODUCTION#########
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.external_parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 function grad_univariateagriculture_production_totalareas_cst(m::Model)
     function generate(A)
@@ -222,7 +222,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.parameters[:irrigation_rate].values[rr, cc, tt] / 100
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
             end
         end
 
@@ -309,7 +309,7 @@ end
 
 
 
-#Sorghum Area constraint at county level 
+#Sorghum Area constraint at county level
 
 function grad_univariateagriculture_sorghumarea_totalareas_cst(m::Model)
     function generate(A)
@@ -318,9 +318,9 @@ function grad_univariateagriculture_sorghumarea_totalareas_cst(m::Model)
                 for cc in 1:numunicrops
                     if unicrops[cc]=="sorghum"
                      A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
-                    else 
+                    else
                        A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 0.
-                    end 
+                    end
                 end
             end
         end
@@ -334,9 +334,9 @@ function grad_univariateagriculture_sorghumarea_totalareas(m::Model)
             for cc in 1:numunicrops
                 if unicrops[cc]=="sorghum"
                     A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
-                    else 
+                    else
                     A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 0
-                    end 
+                    end
             end
         end
         return A
@@ -347,7 +347,7 @@ end
 
 
 
-#Hay Production constraint at state level 
+#Hay Production constraint at state level
 
 function grad_univariateagriculture_hayproduction_totalareas_cst(m::Model)
     function generate(A)
@@ -358,7 +358,7 @@ function grad_univariateagriculture_hayproduction_totalareas_cst(m::Model)
                     A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12
                     else
                     A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =0.
-                    end  
+                    end
                 end
             end
         end
@@ -368,7 +368,7 @@ function grad_univariateagriculture_hayproduction_totalareas_cst(m::Model)
 end
 
 
-#barley Production constraint at state level 
+#barley Production constraint at state level
 
 function grad_univariateagriculture_barleyproduction_totalareas_cst(m::Model)
     function generate(A)
@@ -379,7 +379,7 @@ function grad_univariateagriculture_barleyproduction_totalareas_cst(m::Model)
                     A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12
                     else
                     A[fromindex([tt],[numsteps]),fromindex([rr, cc],[numcounties, numunicrops])] =0.
-                    end  
+                    end
                 end
             end
         end
@@ -394,7 +394,7 @@ function constraintoffset_univariateagriculture_sorghumareas(m::Model)
     hallsingle(m, :UnivariateAgriculture, :sorghumareas,gen)
 end
 
-    
+
 
 function constraintoffset_univariateagriculture_maxarea(m::Model)
     gen(rr,tt)=m.parameters[:maxarea].values[rr,tt]

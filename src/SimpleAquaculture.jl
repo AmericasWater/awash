@@ -39,7 +39,7 @@ function initaquaculture(m::Model)
     production = readtable(datapath("aquaculture/production.csv"))
 
     aquaculture[:production_baseline] = repeat(production[production[:year] .== 2010, :production] * scaling, outer=[numsteps])
-    aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round(Int64, 1. / scaling)])
+    aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round.(Int64, 1. / scaling)])
 
     aquaculture
 end

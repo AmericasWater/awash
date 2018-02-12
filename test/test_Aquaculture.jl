@@ -14,7 +14,7 @@ numcounties = length(regions)
 
 m = Model()
 setindex(m, :time, [1]) # Single period
-setindex(m, :regions, convert(Vector{UTF8String}, regions))
+setindex(m, :regions, convert(Vector{AbstractString}, regions))
 
 # Add the component
 initaquaculture(m)

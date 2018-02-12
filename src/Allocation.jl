@@ -3,6 +3,7 @@ using Distributions
 
 include("lib/datastore.jl")
 
+
 @defcomp Allocation begin
     regions = Index()
 
@@ -94,11 +95,10 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
     if config["dataset"] == "three"
-	    allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
+	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
     else
         recorded = getfilteredtable("extraction/USGS-2010.csv")
 
@@ -144,7 +144,8 @@ end
 function grad_allocation_cost_waterfromgw(m::Model)
     # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
     # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 386.85)
+    # meandepth = mean(dfgw[:piezohead0])
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> 386.85) # dfgw[:piezohead0][rr] / meandepth) # Note: does not change in time
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)

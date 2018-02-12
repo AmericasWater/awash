@@ -2,11 +2,11 @@
 Return the 4-letter crop code used by ERS
 """
 function ers_crop(crop::AbstractString)
-    if crop in ["corn", "Maize", "maize"]
+    if crop in ["corn", "Maize", "maize", "Corn"]
         return "corn"
     end
 
-    if crop in ["soyb", "Soybeans"]
+    if crop in ["soyb", "Soybeans", "Soybean"]
         return "soyb"
     end
 
@@ -22,11 +22,11 @@ function ers_crop(crop::AbstractString)
         return "barl"
     end
 
-    if crop in ["cott", "cotton"]
+    if crop in ["cott", "cotton", "Cotton"]
         return "cott"
     end
 
-    if crop in ["rice"]
+    if crop in ["rice", "Rice"]
         return "rice"
     end
 
@@ -63,7 +63,13 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
         # Report total price, across all products, not the line below
         #ers_information_loaded(crop, "Price (dollars per bushel at harvest)", year, df, indexes, reglink[:ABBR])
         revenue = ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[:ABBR]; includeus=includeus)
-        yield = ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        if crop == "cott"
+            yield = ers_information_loaded(crop, "Cotton yield: pounds per planted acre", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        elseif crop == "rice"
+            yield = ers_information_loaded(crop, "Yield (cwt per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus) * 100 # 1 cwt = 100 lb
+        else
+            yield = ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        end
         revenue ./ yield
     elseif (item == "revenue")
         ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[:ABBR]; includeus=includeus)

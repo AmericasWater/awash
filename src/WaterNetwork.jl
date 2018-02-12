@@ -51,6 +51,28 @@ function initwaternetwork(m::Model)
 end
 
 """
+Construct a matrix that represents the *immediate* decrease in outflow caused by withdrawal
+"""
+function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
+    function generate(A, tt)
+        # Fill in GAUGES x CANALS matrix
+        # First do local withdrawal
+        for pp in 1:nrow(draws)
+            gaugeid = draws[pp, :gaugeid]
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex == nothing
+                println("Missing $gaugeid")
+            else
+                gg = vertex_index(vertex)
+                A[gg, pp] = -1.
+            end
+        end
+    end
+
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+end
+
+"""
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)

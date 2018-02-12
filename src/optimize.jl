@@ -20,7 +20,7 @@ if analysis == :shadowcost
     lambdas = reshape(lambdas, (3109, 2))
     df = convert(DataFrame, lambdas)
     df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
-    writetable("../results/shadowprice-1e6.csv", df)
+    writetable("../results/shadowprice.csv", df)
     usmap(DataFrame(fips=df[:fips], value=df[:x1]))
 elseif analysis == :debug
     coning = constraining(house, convert(Vector{Float64}, sol.sol))

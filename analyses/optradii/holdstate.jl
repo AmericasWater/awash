@@ -48,11 +48,11 @@ setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(repma
 # setconstraintoffset!(house, :WaterNetwork, :maxoutflows, vec(constraintupper) - baselinerunoff)
 
 ## Set offset to 0 if no water connections
-for ii in 1:size(house.A)[1]
-    if house.b[ii] < 0 && sum(abs(house.A[ii,:])) == 0
-        house.b[ii] = 0
-    end
-end
+# for ii in 1:size(house.A)[1]
+#     if house.b[ii] < 0 && sum(abs(house.A[ii,:])) == 0
+#         house.b[ii] = 0
+#     end
+# end
 
 ## Allow supersource feeding of gauges
 addparameter!(house, :WaterNetwork, :added) # include as supersource, but only for that link (no propagation)

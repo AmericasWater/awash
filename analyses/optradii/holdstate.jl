@@ -40,7 +40,7 @@ for hh in length(downstreamorder):-1:1
 end
 
 baselinerunoff = copy(getconstraintoffset(house, :WaterNetwork, :outflows))
-setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(constraintlower))
+setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(repmat(constraintlower, 1, numsteps)))
 
 # Add max flow constraint
 # addconstraint!(house, :WaterNetwork, :maxoutflows, :outflows)

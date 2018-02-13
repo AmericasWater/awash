@@ -1,6 +1,5 @@
 include("../../src/lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+config = readconfig("../configs/complete-yearly.yml")
 
 include("../../src/optimization-given.jl")
 house = optimization_given(true, false);
@@ -57,8 +56,8 @@ end
 
 ## Allow supersource feeding of gauges
 addparameter!(house, :WaterNetwork, :added) # include as supersource, but only for that link (no propagation)
-setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, (gg, tt) -> -1.))
-setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> -1000.))
+setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, -1.))
+setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, -1000.))
 
 @time sol_after = houseoptimize(house, solver, find(house.b .< Inf))
 summarizeparameters(house, sol_after.sol)

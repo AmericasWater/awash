@@ -1,6 +1,5 @@
 include("../../src/lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+config = readconfig("../configs/complete-yearly.yml")
 
 include("../../src/optimization-given.jl")
 house = optimization_given(true, false);
@@ -17,7 +16,7 @@ recorded = getfilteredtable("extraction/USGS-2010.csv")
 ## Add constraints that sw_i* + sum_j sw_j* < sw_i + sum_j sw_j, so long as in same state
 addconstraint!(house, :Allocation, :neighborbalance, :balance)
 
-function genroom(A, tt)
+function genroom(A)
     drawfips = regionindex(draws, :)
     for ii in 1:nrow(masterregions)
         withinstate = filter(jj -> jj != 0 && masterregions[jj, :state] == masterregions[ii, :state], sourceiis[ii])
@@ -33,11 +32,11 @@ function genroom(A, tt)
     end
 end
 
-room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom)
+room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom, [:time], [:time])
 setconstraint!(house, room_relabel(room, :balance, :Allocation, :neighborbalance))
 setconstraint!(house, -room_relabel_parameter(room_relabel(room, :balance, :Allocation, :neighborbalance), :withdrawals, :Allocation, :returns))
 
-function genhall(ii, tt)
+function genhall(ii)
     withinstate = filter(jj -> jj != 0 && masterregions[jj, :state] == masterregions[ii, :state], sourceiis[ii])
     if ii == 1
         println([ii; withinstate])
@@ -50,7 +49,7 @@ function genhall(ii, tt)
     end
 end
 
-hall = hallsingle(house.model, :Allocation, :balance, genhall)
+hall = hallsingle(house.model, :Allocation, :balance, genhall, [:time])
 setconstraintoffset!(house, hall_relabel(hall, :balance, :Allocation, :neighborbalance))
 
 @time sol_neighbors = houseoptimize(house, solver)

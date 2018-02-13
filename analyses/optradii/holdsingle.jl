@@ -9,8 +9,6 @@ using Gurobi
 solver = GurobiSolver()
 
 recorded = getfilteredtable("extraction/USGS-2010.csv")
-centroids = readtable(datapath("mapping/US_county_2000-simple-latlon-centroids.csv"))
-centroids[:fips] = round(Int64, centroids[:NHGISST] * 100 + centroids[:NHGISCTY] / 10)
 
 ## Add constraints that sw_i* < sw_i
 addconstraint!(house, :Allocation, :neighborbalance, :balance)

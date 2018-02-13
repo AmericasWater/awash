@@ -20,7 +20,7 @@ reservoirdata=readtable(datapath("reservoirs/allreservoirs.csv"))
 	withdrawals = Variable(index=[reservoirs, time], unit="m^3")
 	# releases
 	releases = Variable(index=[reservoirs, time], unit="m^3")
-	
+
 	# Evaporation
 	evaporation = Parameter(index=[reservoirs, time], unit="m^3")
 
@@ -39,8 +39,8 @@ function run_timestep(c::Reservoir, tt::Int)
 	p = c.Parameters
 	d = c.Dimensions
 
-	v.inflows[:,tt] = zeros(numreservoirs); 
-	v.outflows[:,tt] = zeros(numreservoirs); 
+	v.inflows[:,tt] = zeros(numreservoirs);
+	v.outflows[:,tt] = zeros(numreservoirs);
 
 	for gg in 1:numgauges
 		index = vertex_index(downstreamorder[gg])
@@ -51,14 +51,14 @@ function run_timestep(c::Reservoir, tt::Int)
 		end
 	end
 
-	
+
 	for rr in d.reservoirs
 		if tt==1
 			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
 		else
 			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
 		end
-	
+
 		if p.captures[rr,tt]<0
 			v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
 			if v.inflows[rr,tt]<v.outflows[rr,tt]
@@ -86,36 +86,42 @@ function makeconstraintresmax(rr, tt)
 end
 
 function initreservoir(m::Model, name=nothing)
-	if name == nothing
-		reservoir = addcomponent(m, Reservoir)
-	else
-		reservoir = addcomponent(m, Reservoir, name)
-	end
+    if name == nothing
+        reservoir = addcomponent(m, Reservoir)
+    else
+        reservoir = addcomponent(m, Reservoir, name)
+    end
 
-	if config["dataset"] == "three"
-		reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
-		reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
-		reservoir[:storage0] = 1.3*ones(numreservoirs)
-		reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
-	elseif config["rescap"] == "zero"
-		reservoir[:storagecapacitymax] = zeros(numreservoirs);
-		reservoir[:storagecapacitymin] = zeros(numreservoirs);
-		reservoir[:storage0] = zeros(numreservoirs);
-		reservoir[:evaporation] = zeros(numreservoirs,numsteps);
-	else
-		rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
-		rcmax = rcmax*1233.48
-		reservoir[:storagecapacitymax] = rcmax;
-		reservoir[:storagecapacitymin] = zeros(numreservoirs);
-		reservoir[:storage0] = rcmax*0.; 
-		reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
-	end
-	
-	reservoir[:captures] = cached_fallback("extraction/captures$suffix", () -> zeros(numreservoirs,numsteps));
-	reservoir[:outflowsgauges] = zeros(numgauges,numsteps);
-	reservoir[:inflowsgauges] = zeros(numgauges,numsteps);
-	
-	reservoir
+    reservoir[:inflows] = zeros(numreservoirs, numsteps);
+    reservoir[:captures] = zeros(numreservoirs, numsteps);
+
+    if config["dataset"] == "three"
+        reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
+        reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
+        reservoir[:storage0] = 1.3*ones(numreservoirs)
+        reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
+    elseif config["rescap"] == "zero"
+        reservoir[:storagecapacitymax] = zeros(numreservoirs);
+       	reservoir[:storagecapacitymin] = zeros(numreservoirs);
+       	reservoir[:storage0] = zeros(numreservoirs);
+     	reservoir[:evaporation] = zeros(numreservoirs, numsteps);
+    else
+        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
+     	rcmax = rcmax*1233.48
+     	reservoir[:storagecapacitymax] = rcmax;
+     	reservoir[:storagecapacitymin] = zeros(numreservoirs);
+        reservoir[:storage0] = rcmax*0.;
+   	reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
+        if config["reshalf"]=="half"
+            reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
+        end
+    end
+
+    reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numsteps));
+    reservoir[:outflowsgauges] = zeros(numgauges,numsteps);
+    reservoir[:inflowsgauges] = zeros(numgauges,numsteps);
+
+    reservoir
 end
 
 

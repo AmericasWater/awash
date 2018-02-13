@@ -30,6 +30,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     # Internal
     # Total water demand (1000 m^3)
     totaldemand = Variable(index=[regions, time], unit="1000 m^3")
+    otherdemand = Variable(index=[regions, time], unit="1000 m^3")
 
     # How much is returned by region
     totalreturn = Variable(index=[regions, time], unit="1000 m^3")
@@ -46,6 +47,7 @@ function run_timestep(c::WaterDemand, tt::Int)
     for rr in d.regions
         # Sum all demands
         v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt] + p.industrialuse[rr, tt] + p.urbanuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
+        v.otherdemand[rr, tt] = p.domesticuse[rr, tt] + p.industrialuse[rr, tt] + p.urbanuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
 
         v.totalreturn[rr, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, tt]
     end
@@ -225,3 +227,20 @@ function values_waterdemand_recordedgroundthermoelectric(m::Model)
     gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
+
+function values_waterdemand_recordeddomestic(m::Model)
+    values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
+end
+
+function values_waterdemand_recordedindustrial(m::Model)
+    values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
+end
+
+function values_waterdemand_recordedthermoelectric(m::Model)
+    values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
+end
+
+function values_waterdemand_recordedlivestock(m::Model)
+    values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
+end
+

@@ -35,11 +35,11 @@ water_requirements = Dict("alfalfa" => 1.63961100235402, "otherhay" => 1.6396110
                           "Sorghum" => 1.1364914374721,
                           "Soybeans" => 1.37599595071683,
                           "Wheat" => 0.684836198198068, "Wheat.Winter" => 0.684836198198068,
-"barley" => 1.18060761343329, "corn" => 1.47596435526564,
-"sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
-"wheat" => 0.684836198198068, "hay" => 1.63961100235402,
-    "wheat.co.rainfed" =>  0.684836198198068,  "wheat.co.irrigated" =>  0.684836198198068,
-                      "corn.co.rainfed" => 1.47596435526564,  "corn.co.irrigated" => 1.47596435526564,) # in m
+                          "barley" => 1.18060761343329, "corn" => 1.47596435526564,
+                          "sorghum" => 1.1364914374721, "soybeans" => 1.37599595071683,
+                          "wheat" => 0.684836198198068, "hay" => 1.63961100235402,
+                          "wheat.co.rainfed" =>  0.684836198198068,  "wheat.co.irrigated" =>  0.684836198198068,
+                          "corn.co.rainfed" => 1.47596435526564,  "corn.co.irrigated" => 1.47596435526564) # in m
 
 # Per year costs
 cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
@@ -51,12 +51,14 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
 "wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
 "hay" => 306.) # USD / acre
 
-maximum_yields = Dict("barley" => 135.0, 
-                      "sorghum" => 50.,
-                      "soybeans" => 20.,
-                      "wheat.co.rainfed" => 100,  "wheat.co.irrigated" => 100,
+maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 4., "hay" => 4.,
+                      "Barley" => 135., "Barley.Winter" => 135., "barley" => 135.0,
+                      "Maize" => 160.,
                       "corn.co.rainfed" => 160,  "corn.co.irrigated" => 160,
-                        "hay" =>4)
+                      "Sorghum" => 50., "sorghum" => 50.,
+                      "Soybeans" => 20., "soybeans" => 20.,
+                      "Wheat" => 100., "Wheat.Winter" => 100.,
+                      "wheat.co.rainfed" => 100,  "wheat.co.irrigated" => 100)
 
 crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
                    "otherhay" => 102.51 / 2204.62, # otherhay
@@ -172,7 +174,7 @@ else
     # Prepare all the agricultural models
     agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize", 
+    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
                                                 "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                                 "wheat" => "Wheat", "hay" => "alfalfa")
     for crop in allcrops
@@ -210,10 +212,10 @@ else
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
-    if config["filterstate"]=="08"
+    if config["filterstate"] == "08"
         agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
         agmodels["soybeans"]=agmodel1["soybeans"]
-        end 
+    end
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
     close(fp)

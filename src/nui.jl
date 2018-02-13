@@ -2,12 +2,12 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.pin("Mimi", v"0.2.0")
+    Pkg.checkout("Mimi")
 end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi")
+    Pkg.checkout("OptiMimi", "julia5")
 end
 
 if Pkg.installed("Graphs") == nothing
@@ -30,21 +30,15 @@ if Pkg.installed("RData") == nothing
     Pkg.add("RData")
 end
 
-@windows_only iswindows = true
-if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
+if !is_windows() && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end
 
 using DataFrames
 
-if !isdefined(:isna)
-    function isna(xx)
-        convert(BitArray, map(x -> isequal(NA, x), xx))
-    end
-end
-
 using OptiMimi
 using MathProgBase
+import Mimi.getmetainfo
 
 include("lib/datastore.jl")
 include("lib/readconfig.jl")
@@ -101,21 +95,28 @@ function runmodel(solver=nothing)
     end
 end
 
+"""
+Return a table of the parameters and variables of a component, and
+their corresponding dimensions.
+
+`component` should be a symbol, like `:MyComponent`.
+"""
 function getvariables(component)
-    parameters = fieldnames(model.components[component].Parameters)
-    variables = fieldnames(model.components[component].Variables)
+    parlist = collect(keys(getmetainfo(model, component).parameters))
 
-    pardims = map(name -> string(size(model.components[component].Parameters.(name))), parameters)
-    vardims = map(name -> string(size(model.components[component].Variables.(name))), variables)
+    varlist = variables(model, component)
 
-    DataFrame(name=[parameters; variables], dims=[pardims; vardims])
+    pardims = map(name -> getindexlabels(model, component, name), parlist)
+    vardims = map(name -> getindexlabels(model, component, name), varlist)
+
+    DataFrame(name=[parlist; varlist], dims=[pardims; vardims])
 end
 
 function getdata(component, variable)
-    if variable in fieldnames(model.components[component].Parameters)
-        model.components[component].Parameters.(variable)
-    elseif variable in fieldnames(model.components[component].Variables)
+    if variable in variables(model, component)
         model[component, variable]
+    elseif variable in collect(keys(getmetainfo(model, component).parameters))
+        model.external_parameters[variable]
     else
         error("Unknown parameter or variable")
     end
@@ -152,6 +153,5 @@ function mapdata(component, variable, subset=nothing)
 end
 
 open("../docs/intro.txt") do fp
-    println(readall(fp))
+    println(readstring(fp))
 end
-

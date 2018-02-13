@@ -12,7 +12,7 @@ config[:forcematching] = false
 
 function translatechunk(subdf)
     if nrow(subdf) == 0
-        return DataFrame(year=Int64[], state_name=UTF8String[], PS_TOPop=Int64[], est_water_demand3=Float64[], per_capita=Float64[])
+        return DataFrame(year=Int64[], state_name=String[], PS_TOPop=Int64[], est_water_demand3=Float64[], per_capita=Float64[])
     end
     
     populations = subdf[:est_water_demand3] ./ subdf[:per_capita]

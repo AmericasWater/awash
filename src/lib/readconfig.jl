@@ -15,7 +15,7 @@ function readconfig(ymlpath)
         end
     end
 
-    config["indexcols"] = map(symbol, config["indexcols"])
+    config["indexcols"] = map(Symbol, config["indexcols"])
 
     config
 end
@@ -86,7 +86,7 @@ to the values in `defindex`, an symbol known by `getindices`.
 function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbol, defindex::Symbol)
     if haskey(config, "$name-path") || haskey(config, "$name-column")
         path = datapath(get(config, "$name-path", defpath))
-        column = symbol(get(config, "$name-column", defcol))
+        column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
         data = readtable(path)
@@ -96,7 +96,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             return [transform(indices[ii], data[ii, column]) for ii in 1:nrow(data)]
         else
             if haskey(config, "$name-index")
-                indexcol = symbol(config["$name-index"])
+                indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
                 values = readtable(datapath(defpath))[:, defcol]
@@ -106,7 +106,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !isna(newvalue)
+                        if !isna.(newvalue)
                             values[ii] = newvalue
                         end
 

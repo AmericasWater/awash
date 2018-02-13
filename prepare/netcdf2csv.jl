@@ -75,7 +75,7 @@ end
 #netcdf2csv("/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.csv", "gage")
 
 source = ARGS[1]
-target = convert(UTF8String, splitext(source)[1] * ".csv")
+target = convert(String, splitext(source)[1] * ".csv")
 coldimname = ARGS[2]
 skipdimnames = ARGS[3:end]
 

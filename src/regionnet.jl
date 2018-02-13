@@ -4,9 +4,11 @@ using Mimi
 
 using Graphs
 
-typealias RegionNetwork{R, E} IncidenceList{R, E}
-typealias SimpleRegionNetwork RegionNetwork{ExVertex, ExEdge}
-typealias MyNumeric Float64 #Number
+if !isdefined(:RegionNetwork)
+    RegionNetwork{R, E} = IncidenceList{R, E}
+end
+SimpleRegionNetwork = RegionNetwork{ExVertex, ExEdge}
+MyNumeric = Float64 #Number
 
 function asmynumeric(array, dims=1)
     if MyNumeric == Float64
@@ -33,16 +35,16 @@ else
 
     # Load the network of counties
     if config["dataset"] == "counties"
-        counties = readtable(datapath("county-info.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = readtable(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
-        counties = readtable(datapath("county-info$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = readtable(datapath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end
-    edges = Dict{UTF8String, Vector{UTF8String}}()
+    edges = Dict{String, Vector{String}}()
 
     for row in 1:size(counties, 1)
         neighboring = counties[row, :Neighboring]
-        if !isna(neighboring)
-            chunks = UTF8String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
+        if !isna.(neighboring)
+            chunks = String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
             index = regionindex(counties, row)
 
             # Only include if part of filter; only designed for counties dataset
@@ -58,7 +60,7 @@ else
 
     # Construct the network
 
-    regverts = Dict{UTF8String, ExVertex}()
+    regverts = Dict{String, ExVertex}()
     regionnames = []
     sourceiis = Dict{Int64, Vector{Int64}}()
     regionnet = empty_regnetwork()

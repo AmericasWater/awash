@@ -101,13 +101,13 @@ function initirrigationagriculture(m::Model)
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, symbol("x$year")]
-                        if isna(numgdds)
+                        numgdds = gdds[rr, Symbol("x$year")]
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, symbol("x$year")]
-                        if isna(numkdds)
+                        numkdds = kdds[rr, Symbol("x$year")]
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -147,12 +147,12 @@ function initirrigationagriculture(m::Model)
         agriculture[:rainfedareas] = zeros(Float64, (nrow(rainfeds), 0, numsteps))
         agriculture[:irrigatedareas] = zeros(Float64, (nrow(rainfeds), 0, numsteps))
     else
-        columns = map(crop -> findfirst(symbol(crop) .== names(rainfeds)), irrcrops)
+        columns = map(crop -> findfirst(Symbol(crop) .== names(rainfeds)), irrcrops)
         columns = convert(Vector{Int64}, columns)
         for cc in columns
             # Replace NAs with 0, and convert to float. TODO: improve this
-            rainfeds[isna(rainfeds[cc]), cc] = 0.
-            irrigateds[isna(irrigateds[cc]), cc] = 0.
+            rainfeds[isna.(rainfeds[cc]), cc] = 0.
+            irrigateds[isna.(irrigateds[cc]), cc] = 0.
             # Convert to Ha
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686
@@ -165,12 +165,12 @@ function initirrigationagriculture(m::Model)
 end
 
 function grad_irrigationagriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :IrrigationAgriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :IrrigationAgriculture, :production, :irrigatedareas, (rr, cc, tt) -> exp(m.external_parameters[:logirrigatedyield].values[rr, cc, tt]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_irrigationagriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.parameters[:logirrigatedyield].values[rr, cc, tt] + m.parameters[:deficit_coeff].values[rr, cc] * max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+    gen(rr, cc, tt) = exp(m.external_parameters[:logirrigatedyield].values[rr, cc, tt] + m.external_parameters[:deficit_coeff].values[rr, cc] * max(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[rr, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
     roomdiagonal(m, :IrrigationAgriculture, :production, :rainfedareas, gen)
 end
 
@@ -178,7 +178,7 @@ function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)
     function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numirrcrops
-                A[rr, fromindex([rr, cc], [numcounties, numirrcrops])] = max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt]) / 100
+                A[rr, fromindex([rr, cc], [numcounties, numirrcrops])] = max(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[rr, tt]) / 100
             end
         end
 

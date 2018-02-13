@@ -55,7 +55,7 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
         unpaid = ers_information_loaded(crop, "Opportunity cost of unpaid labor", year, df, indexes, reglink[:ABBR]; includeus=includeus)
         opportunity = ers_information_loaded(crop, "Opportunity cost of land", year, df, indexes, reglink[:ABBR]; includeus=includeus)
         allcosts - unpaid - opportunity
-        
+
    elseif(item=="opcost")
         opcost= ers_information_loaded(crop, "Total, operating costs", year, df, indexes, reglink[:ABBR]; includeus=includeus)
    elseif (item=="overhead")
@@ -76,20 +76,20 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) & (df[:item] .== item) & (df[:year] .== year), :]
+    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== year), :]
 
     result = zeros(size(masterregions, 1)) * NA
-    for (region in unique(reglink_abbr))
+    for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
             continue
         end
-        result[reglink_indexes[(reglink_abbr .== region) & (reglink_indexes .> 0)]] = value[1]
+        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] = value[1]
     end
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[isna(result)] = value[1]
+        result[isna.(result)] = value[1]
     end
 
     result
@@ -103,21 +103,19 @@ function ers_information_list(crop::AbstractString)
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 
-
 function getaverage(crop::AbstractString,item::AbstractString)
-    result=zeros(63,1)      
+    result=zeros(63,1)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
-end 
-    
-uniopcost=zeros(numcounties, numunicrops)   
+end
+
+uniopcost=zeros(numcounties, numunicrops)
 unioverhead=zeros(numcounties,numunicrops)
 
 for cc in (1:7)
     crop=ers_crop(unicrops[cc])
-    uniopcost[:,cc]=getaverage(crop,"opcost") 
-    unioverhead[:,cc]=getaverage(crop,"overhead") 
-end 
+    uniopcost[:,cc]=getaverage(crop,"opcost")
+    unioverhead[:,cc]=getaverage(crop,"overhead")
+end
 uniopcost[:,8]=290
-unioverhead[:,8]=150 
-#AVERAGE COUNTY X CROP COST 
-    
+unioverhead[:,8]=150
+#AVERAGE COUNTY X CROP COST

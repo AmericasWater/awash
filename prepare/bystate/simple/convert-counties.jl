@@ -11,7 +11,7 @@ config[:mastersourceid] = :fips
 config[:mastertargetid] = :state
 config[:forcematching] = false
 
-masterstates = readtable("../../../data/global/states.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+masterstates = readtable("../../../data/global/states.csv", eltypes=[String, String, String])
 
 function translate(column, values)
     if in(column, [:FIPS, :County, :ST])
@@ -37,7 +37,7 @@ function translate(column, values)
     end
 end
 
-converttable("county-info.csv", config, translate; eltypes=[Int64, UTF8String, UTF8String, UTF8String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+converttable("county-info.csv", config, translate; eltypes=[Int64, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 
 function translatechunk(subdf)
     subresult = DataFrame(year=Int64[], population=Int64[])

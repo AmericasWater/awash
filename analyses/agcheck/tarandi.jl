@@ -7,7 +7,7 @@ config["timestep"] = 12
 
 include("../../src/lib/weather.jl")
 
-mastercounties = readtable(datapath("global/counties.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable(datapath("global/counties.csv"), eltypes=[String, String, String])
 
 ## Load yearly precipitation
 statefips = dncload("weather", "state_fips", ["county"])

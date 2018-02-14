@@ -2,21 +2,28 @@ include("../../src/lib/readconfig.jl")
 config = readconfig("../configs/complete-yearly.yml")
 
 include("../../src/optimization-given.jl")
-house = optimization_given(true, false);
-
 using MathProgBase
 using Gurobi
 solver = GurobiSolver()
+
+house = optimization_given(false, false)
+@time sol = houseoptimize(house, solver)
+
+## Prepare constraints on all cross-state flows
+values = getconstraintsolution(house, sol, :outflows)
+cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+offset = cwro.f
+offset[isnan(offset)] = 0
+outflows = offset - values
+outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
+# outflows constrained as cumulative runoff
+
+house = optimization_given(true, false);
 
 @time sol_before = houseoptimize(house, solver)
 summarizeparameters(house, sol_before.sol)
 
 include("../../prepare/bystate/waternet/statelib.jl")
-
-## Add constraints on all cross-state flows
-outflows = readtable("../../data/counties/extraction/outflows-bygauge.csv", header=false)
-outflows = convert(Matrix{Float64}, outflows)
-# outflows constrained as cumulative runoff
 
 # Specify that outflows + runoff > required, or -outflows < runoff - required
 constraintlower = zeros(outflows) # Start with 0
@@ -40,7 +47,7 @@ for hh in length(downstreamorder):-1:1
 end
 
 baselinerunoff = copy(getconstraintoffset(house, :WaterNetwork, :outflows))
-setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(repmat(constraintlower, 1, numsteps)))
+setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(constraintlower))
 
 # Add max flow constraint
 # addconstraint!(house, :WaterNetwork, :maxoutflows, :outflows)

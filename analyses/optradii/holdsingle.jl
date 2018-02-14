@@ -8,6 +8,9 @@ using MathProgBase
 using Gurobi
 solver = GurobiSolver()
 
+@time sol_before = houseoptimize(house, solver)
+summarizeparameters(house, sol_before.sol)
+
 recorded = getfilteredtable("extraction/USGS-2010.csv")
 
 ## Add constraints that sw_i* < sw_i
@@ -25,6 +28,7 @@ end
 
 room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom, [:time], [:time])
 setconstraint!(house, room_relabel(room, :balance, :Allocation, :neighborbalance))
+setconstraint!(house, -room_relabel_parameter(room_relabel(room, :balance, :Allocation, :neighborbalance), :withdrawals, :Allocation, :returns))
 
 function genhall(ii)
     return recorded[ii, :TO_SW] * config["timestep"] * 1383. / 12

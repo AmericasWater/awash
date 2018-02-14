@@ -13,10 +13,12 @@ include("lib/agriculture.jl")
     othercropsarea = Parameter(index=[regions, time], unit="Ha")
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
+    # From IrrigationAgriculture
     irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
     irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
     irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
+    # From UnivariateAgriculture
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
@@ -62,6 +64,12 @@ function initagriculture(m::Model)
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
+
+    for crop in Task(missingcrops)
+        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
+        agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
+        agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
+    end
 
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
     agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))

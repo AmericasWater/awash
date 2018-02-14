@@ -22,7 +22,7 @@ groundwater = initaquifer(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
 transportation = inittransportation(model); # optimization-only
-market = initmarket(model); # dep. Transporation, Agriculture
+market = initmarket(model); # dep. Transportation, Agriculture
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];

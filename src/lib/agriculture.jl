@@ -90,12 +90,12 @@ type StatisticalAgricultureModel
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
-    interceptrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "intercept"))
-    gddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gdds"))
-    kddsrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kdds"))
-    wreqrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "wreq"))
-    gddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "gddoffset"))
-    kddoffsetrow = findfirst((df[filter] .== fvalue) & (df[:coef] .== "kddoffset"))
+    interceptrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "intercept"))
+    gddsrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "gdds"))
+    kddsrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "kdds"))
+    wreqrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "kddoffset"))
 
     if interceptrow > 0
         intercept = df[interceptrow, :mean]
@@ -118,9 +118,9 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    if isna(sdev1) || isnan(sdev1)
+    if isna.(sdev1) || isnan.(sdev1)
         mean2, sdev2
-    elseif isna(sdev2) || isnan(sdev2)
+    elseif isna.(sdev2) || isnan.(sdev2)
         mean1, sdev1
     else
         (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
@@ -128,7 +128,7 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
-    if isna(mean1)
+    if isna.(mean1)
         meanfallback, sdevfallback
     else
         mean1, sdev1
@@ -166,17 +166,18 @@ function findcroppath(prefix, crop, suffix, recurse=true)
     return nothing
 end
 
-if isfile(cachepath("agmodels.jld"))
+if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling between two set-ups Colorado or other. Maybe a suffix should be added?
     println("Loading from saved region network...")
 
     agmodels = deserialize(open(cachepath("agmodels.jld"), "r"));
 else
     # Prepare all the agricultural models
-    agmodels = Dict{UTF8String, Dict{UTF8String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
+    agmodels = Dict{String, Dict{String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
     nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
-    nationalcrop = Dict{UTF8String, UTF8String}("barley" => "Barley", "corn" => "Maize",
-                                                "sorghum" => "Sorghum", "soybeans" => "Soybeans",
-                                                "wheat" => "Wheat", "hay" => "alfalfa")
+    nationalcrop = Dict{String, String}("barley" => "Barley", "corn" => "Maize",
+                                        "sorghum" => "Sorghum", "soybeans" => "Soybeans",
+                                        "wheat" => "Wheat", "hay" => "alfalfa")
+
     for crop in allcrops
         println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
@@ -216,6 +217,7 @@ else
         agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
         agmodels["soybeans"]=agmodel1["soybeans"]
     end
+
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
     close(fp)
@@ -320,7 +322,7 @@ Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
     df = readtable(filepath)
-    df[:fips] = [isna(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df[:fips] = [isna.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 
     # Reorder these values to match regions

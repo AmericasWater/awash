@@ -207,21 +207,17 @@ end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["dataset"] == "three"
-		if optimtype == false
-			gen(rr, tt) = 1. * (rr > 1)
-		elseif optimtype == true
-			gen(rr, tt) = 2. * (rr > 1)
-		end
-	        hallsingle(m, :Allocation, :balance, gen)
+	if optimtype == false
+	    genuu(rr, tt) = 1. * (rr > 1)
+	else
+	    genuu(rr, tt) = 2. * (rr > 1)
+	end
+	hallsingle(m, :Allocation, :balance, genuu)
     else
-          recorded = getfilteredtable("extraction/USGS-2010.csv")
-		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-		if optimtype == false
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
-		elseif optimtype == true
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
-		end
-		hallsingle(m, :Allocation, :balance, gen)
+        recorded = getfilteredtable("extraction/USGS-2010.csv")
+	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
+	gen(rr, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 

@@ -122,13 +122,13 @@ function canonicalindex(indexes)
     if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: DataVector{UTF8String}
+    if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
     end
-    if typeof(indexes) <: UTF8String
+    if typeof(indexes) <: String
         return lpad(indexes, config["indexlen"], config["indexpad"])
     end
 

@@ -16,11 +16,12 @@ end
 
 requirepackage("YAML")
 requirepackage("Mimi")
-Pkg.pin("Mimi", v"0.2.0")
+Pkg.checkout("Mimi")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
-requirepackage("OptiMimi", true)
+requirepackage("OptiMimi")
+Pkg.checkout("OptiMimi", "julia5")
 requirepackage("RData")
 requirepackage("Clp")
 

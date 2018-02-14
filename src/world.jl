@@ -4,8 +4,8 @@ include("waternet.jl")
 
 # Prepare the model
 
-if config["dataset"] == "states"
-    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+if config["filterstate"] == "08"
+    unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # UnivariateAgriculture component crops
     irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
     #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
 elseif config["filterstate"]=="08"
@@ -31,7 +31,7 @@ numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_ind
 if config["dataset"] == "three"
     numsteps = 3
 else
-    numsteps = round(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
+    numsteps = round.(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end

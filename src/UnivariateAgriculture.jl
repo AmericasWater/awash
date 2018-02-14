@@ -29,6 +29,9 @@ include("lib/agriculture.jl")
     # Total production: lb or bu
     yield2 = Variable(index=[regions, unicrops, time], unit="none")
     production = Variable(index=[regions, unicrops, time], unit="lborbu")
+    #total Op cost
+    opcost = Variable(index=[regions, unicrops, time], unit="\$")
+
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
 end
@@ -55,6 +58,9 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 
             # Calculate cultivation costs
             v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+
+            # Calculate Operating cost
+            v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
         end
 
         v.totalirrigation[rr, tt] = totalirrigation
@@ -94,13 +100,13 @@ function initunivariateagriculture(m::Model)
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, symbol("x$year")]
-                        if isna(numgdds)
+                        numgdds = gdds[rr, Symbol("x$year")]
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, symbol("x$year")]
-                        if isna(numkdds)
+                        numkdds = kdds[rr, Symbol("x$year")]
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -118,7 +124,6 @@ function initunivariateagriculture(m::Model)
             end
         end
     end
-
     agriculture = addcomponent(m, UnivariateAgriculture)
 
     agriculture[:yield] = yield
@@ -170,7 +175,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     function generate(A)
         for rr in 1:numcounties
             for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.parameters[:irrigation_rate].values[rr, cc, tt] / 100
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
             end
         end
 
@@ -181,6 +186,25 @@ end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)
     roomdiagonal(m, :UnivariateAgriculture, :unicultivationcost, :totalareas, (rr, cc, tt) -> cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres to Ha
+end
+
+function grad_univariateagriculture_opcost_totalareas(m::Model)
+    roomdiagonal(m, :UnivariateAgriculture, :opcost, :totalareas, (rr, cc) -> uniopcost[rr,cc] * 2.47105* config["timestep"]/12, [:time]) # convert acres to Ha
+end
+
+#########Total culti area #########
+function grad_univariateagriculture_maxarea_totalareas(m::Model)
+    function generate(A)
+        for rr in 1:numcounties
+            for cc in 1:numunicrops
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+            end
+        end
+
+        return A
+    end
+
+    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas, generate, [:time], [:time])
 end
 
 function grad_univariateagriculture_allagarea_totalareas(m::Model)

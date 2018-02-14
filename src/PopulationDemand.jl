@@ -5,13 +5,13 @@ using DataFrames
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
-populations = readtable(datapath("county-pops.csv"), eltypes=[Int64, UTF8String, UTF8String, Int64, Float64]);
+populations = readtable(datapath("county-pops.csv"), eltypes=[Int64, String, String, Int64, Float64]);
 
 function getpopulation(fips, year)
     if typeof(fips) <: Int
-        pop = populations[(populations[:FIPS] .== fips) & (populations[:year] .== year), :population]
+        pop = populations[(populations[:FIPS] .== fips) .& (populations[:year] .== year), :population]
     else
-        pop = populations[(populations[:FIPS] .== parse(Int64, fips)) & (populations[:year] .== year), :population]
+        pop = populations[(populations[:FIPS] .== parse(Int64, fips)) .& (populations[:year] .== year), :population]
     end
     if length(pop) != 1
         NA
@@ -75,17 +75,17 @@ function initpopulationdemand(m::Model, years)
         for ii in 1:m.indices_counts[:regions]
             fips = m.indices_values[:regions][ii]
             pop = getpopulation(fips, year)
-            if isna(pop) && mod(year, 10) != 0
+            if isna.(pop) && mod(year, 10) != 0
                 # Estimate from decade
                 pop0 = getpopulation(fips, div(year, 10) * 10)
                 pop1 = getpopulation(fips, (div(year, 10) + 1) * 10)
-                if isna(pop1)
+                if isna.(pop1)
                     pop = pop0
                 else
                     pop = pop0 * (1 - mod(year, 10) / 10) + pop1 * mod(year, 10) / 10
                 end
             end
-            if isna(pop)
+            if isna.(pop)
                 pop = 0.
             end
             allpops[ii, tt] = pop
@@ -99,7 +99,6 @@ function initpopulationdemand(m::Model, years)
 end
 
 function constraintoffset_populationdemand_cropinterest(m::Model)
-    gen(rr, cc, tt) = -m.parameters[:population].values[rr, tt] * m.parameters[:cropinterestperperson].values[cc]
+    gen(rr, cc, tt) = -m.external_parameters[:population].values[rr, tt] * m.external_parameters[:cropinterestperperson].values[cc]
     hallsingle(m, :PopulationDemand, :cropinterest, gen)
 end
-

@@ -86,20 +86,20 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) & (df[:item] .== item) & (df[:year] .== year), :]
+    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== year), :]
 
     result = zeros(size(masterregions, 1)) * NA
-    for (region in unique(reglink_abbr))
+    for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
             continue
         end
-        result[reglink_indexes[(reglink_abbr .== region) & (reglink_indexes .> 0)]] = value[1]
+        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] = value[1]
     end
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[isna(result)] = value[1]
+        result[isna.(result)] = value[1]
     end
 
     result
@@ -112,7 +112,6 @@ function ers_information_list(crop::AbstractString)
     df = readtable(datapath("global/ers.csv"))
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
-
 
 function getaverage(crop::AbstractString,item::AbstractString)
     result=zeros(63,1)
@@ -130,4 +129,3 @@ end
 uniopcost[:,8]=290
 unioverhead[:,8]=150
 #AVERAGE COUNTY X CROP COST
-

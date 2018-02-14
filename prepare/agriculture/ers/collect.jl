@@ -31,10 +31,10 @@ for crop in crops
                     year = data[4, col]
                 end
                 for row in 4:size(data, 1)
-                    if !isna(data[row, 1]) && data[row, 1] == "Item"
+                    if !isna.(data[row, 1]) && data[row, 1] == "Item"
                         continue
                     end
-                    if !isna(data[row, 1]) && typeof(data[row, col]) == Float64
+                    if !isna.(data[row, 1]) && typeof(data[row, col]) == Float64
                         item = strip(replace(data[row, 1], r"\d+/", ""))
                         value = data[row, col]
 

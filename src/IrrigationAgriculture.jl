@@ -175,7 +175,7 @@ function grad_irrigationagriculture_production_rainfedareas(m::Model)
 end
 
 function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numirrcrops
                 A[rr, fromindex([rr, cc], [numcounties, numirrcrops])] = max(0., m.parameters[:water_demand].values[cc] - m.parameters[:precipitation].values[rr, tt]) / 100
@@ -184,11 +184,11 @@ function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)
 
         return A
     end
-    roomintersect(m, :IrrigationAgriculture, :totalirrigation, :irrigatedareas, generate)
+    roomintersect(m, :IrrigationAgriculture, :totalirrigation, :irrigatedareas, generate, [:time], [:time])
 end
 
 function grad_irrigationagriculture_allagarea_irrigatedareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numirrcrops
                 A[rr, fromindex([rr, cc], [numcounties, numirrcrops])] = 1.
@@ -198,11 +198,11 @@ function grad_irrigationagriculture_allagarea_irrigatedareas(m::Model)
         return A
     end
 
-    roomintersect(m, :IrrigationAgriculture, :allagarea, :irrigatedareas, generate)
+    roomintersect(m, :IrrigationAgriculture, :allagarea, :irrigatedareas, generate, [:time], [:time])
 end
 
 function grad_irrigationagriculture_allagarea_rainfedareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numirrcrops
                 A[rr, fromindex([rr, cc], [numcounties, numirrcrops])] = 1.
@@ -212,7 +212,7 @@ function grad_irrigationagriculture_allagarea_rainfedareas(m::Model)
         return A
     end
 
-    roomintersect(m, :IrrigationAgriculture, :allagarea, :rainfedareas, generate)
+    roomintersect(m, :IrrigationAgriculture, :allagarea, :rainfedareas, generate, [:time], [:time])
 end
 
 function grad_irrigationagriculture_cost_rainfedareas(m::Model)

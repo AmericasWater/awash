@@ -47,7 +47,7 @@ function usmap(df, centered=false)
     end
 end
 
-function xyplot(xx, yy, title, xlab, ylab)
+function xyplot(xx, yy, title, xlab, ylab, size=1)
     global ggplotinited
 
     if !mapinited
@@ -55,7 +55,9 @@ function xyplot(xx, yy, title, xlab, ylab)
         R"library(ggplot2)"
     end
 
-    df = DataFrame(x=xx, y=yy)
-    R"ggplot($df, aes(x, y)) +
+    df = DataFrame(x=xx, y=yy, size=size)
+    R"library(ggplot2)"
+    R"ggplot($df, aes(x, y, size=size)) +
 geom_point() + xlab($xlab) + ylab($ylab) + ggtitle($title) + theme_bw()"
 end
+

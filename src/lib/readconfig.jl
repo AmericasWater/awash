@@ -32,13 +32,15 @@ end
 # Consider reworking this using index2yearindex and similar
 function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
-    startyear = parse(UInt16, split(config["startmonth"], '/')[2])
-    endyear = parse(UInt16, split(config["endmonth"], '/')[2])
+    startyear = parse(Int16, split(config["startmonth"], '/')[2])
+    endyear = parse(Int16, split(config["endmonth"], '/')[2])
 
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
 
-    years[div(times[tt], 12) - div(startmonth, 12) + 1]
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
+
+
 end
 
 if !isdefined(:configtransforms)
@@ -107,6 +109,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                         if !isna(newvalue)
                             values[ii] = newvalue
                         end
+
                     end
                 end
 

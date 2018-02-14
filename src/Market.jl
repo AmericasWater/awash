@@ -63,17 +63,12 @@ Add a market component to the model.
 """
 function initmarket(m::Model)
     market = addcomponent(m, Market)
-
-    prices = [102.51 / 2204.62, # alfalfa
-              102.51 / 2204.62, # otherhay
-              120.12 * .021772, # barley
-              120.12 * .021772, # barley.winter
-              160.63 * .0254, # maize
-              174.90 / 2204.62, # sorghum: $/MT / lb/MT
-              349.52 * .0272155, # soybeans
-              5.1675, # wheat
-              171.50 * .0272155] # wheat.winter
-
+    if config["filterstate"]=="08"
+        prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124]
+    else
+        prices = crop_information(allcrops, crop_prices, 0, warnonmiss=true)
+    end 
+    
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
     market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])
@@ -85,19 +80,19 @@ function initmarket(m::Model)
 end
 
 function grad_market_available_regionimports(m::Model)
-    roomdiagonal(m, :Market, :available, :regionimports, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :available, :regionimports, 1.)
 end
 
 function grad_market_available_regionexports(m::Model)
-    roomdiagonal(m, :Market, :available, :regionexports, (rr, cc, tt) -> -1.)
+    roomdiagonal(m, :Market, :available, :regionexports, -1.)
 end
 
 function grad_market_available_produced(m::Model)
-    roomdiagonal(m, :Market, :available, :produced, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :available, :produced, 1.)
 end
 
 function grad_market_available_internationalsales(m::Model)
-    roomdiagonal(m, :Market, :available, :internationalsales, (rr, cc, tt) -> -1.)
+    roomdiagonal(m, :Market, :available, :internationalsales, -1.)
 end
 
 function deriv_market_totalrevenue_produced(m::Model)
@@ -111,5 +106,5 @@ function deriv_market_totalrevenue_internationalsales(m::Model)
 end
 
 function grad_market_domesticbalance_available(m::Model)
-    roomdiagonal(m, :Market, :domesticbalance, :available, (rr, cc, tt) -> 1.)
+    roomdiagonal(m, :Market, :domesticbalance, :available, 1.)
 end

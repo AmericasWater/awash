@@ -51,10 +51,10 @@ function cached_fallback(filename, generate)
     suffix = getsuffix()
     confighash = hash(config) # make specific to configs
     try
-        if isfile(datapath("$filename$suffix-$confighash.jld"))
-            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
-        elseif isfile(datapath("$filename$suffix.jld"))
-            return deserialize(open(datapath("$filename$suffix.jld")))
+        if isfile(cachepath("$filename$suffix-$confighash.jld"))
+            return deserialize(open(cachepath("$filename$suffix-$confighash.jld")))
+        elseif isfile(cachepath("$filename$suffix.jld"))
+            return deserialize(open(cachepath("$filename$suffix.jld")))
         end
     end
 
@@ -68,13 +68,25 @@ function cached_store(filename, object, usehash=true)
     suffix = getsuffix()
     if usehash
         confighash = hash(config) # make specific to configs
-        fp = open(datapath("$filename$suffix-$confighash.jld"), "w")
+        fp = open(cachepath("$filename$suffix-$confighash.jld"), "w")
         serialize(fp, object)
         close(fp)
     else
-        fp = open(datapath("$filename$suffix.jld"), "w")
+        fp = open(cachepath("$filename$suffix.jld"), "w")
         serialize(fp, object)
         close(fp)
+    end
+end
+
+"""
+Remove all jld files for this configuration
+"""
+function cache_clear()
+    for filename in readdir(cachepath(""))
+        if contains(filename, ".jld")
+            println(filename)
+            rm(cachepath(filename))
+        end
     end
 end
 
@@ -105,8 +117,9 @@ function regionindex(tbl, rows; tostr=true)
     return canonicalindex(indexes)
 end
 
+"""Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64}
+    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: DataVector{UTF8String}
@@ -121,6 +134,24 @@ function canonicalindex(indexes)
 
     error("Unknown index column type $(typeof(indexes))")
 end
+
+"""Return the index for each region key."""
+function getregionindices(fipses, tomaster=true)
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    else
+        masterfips = masterregions[:fips]
+    end
+
+    if tomaster
+        convert(Vector{Int64}, map(fips -> findfirst(masterfips, fips), fipses))
+    else
+        println(typeof(masterfips))
+        println(typeof(fipses))
+        convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
+    end
+end
+
 
 lastindexcol = nothing
 

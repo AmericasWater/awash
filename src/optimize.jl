@@ -7,7 +7,11 @@ config = readconfig("../configs/standard-1year.yml")
 
 suffix = getsuffix()
 
-include("optimization.jl")
+if config["cst"]=="true"
+    include("optimization_cst.jl")
+else
+    include ("optimization.jl")
+end
 
 using MathProgBase
 @time sol = linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers)
@@ -20,7 +24,7 @@ if analysis == :shadowcost
     lambdas = reshape(lambdas, (3109, 2))
     df = convert(DataFrame, lambdas)
     df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
-    writetable("../results/shadowprice-1e6.csv", df)
+    writetable("../results/shadowprice.csv", df)
     usmap(DataFrame(fips=df[:fips], value=df[:x1]))
 elseif analysis == :debug
     coning = constraining(house, convert(Vector{Float64}, sol.sol))
@@ -53,6 +57,7 @@ elseif analysis == :debug
         end
     end
 
+
     # Get constraint values
     constvalues = house.A * sol.sol
 
@@ -79,6 +84,19 @@ elseif analysis == :debug
         end
     end
 
+    varlens = varlengths(m, house.paramcomps, house.parameters)
+
+    if config["filterstate"] == "08"
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps))
+        serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
+        serialize(open(datapath("extraction/totalareas_cst$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,8))
+        serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcanals, numsteps))
+    end
+
     writetable("../results/regionout.csv", rdf)
     writetable("../results/cropsout.csv", cdf)
+    print("Total production")
+    println(round(constvalues[sum(varlens[1:(end-1)])+1:end]))
+
 end
+

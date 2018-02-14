@@ -1,22 +1,22 @@
-using DataFrames
-include("lib/datastore.jl")
-
-suffix = getsuffix()
-
-masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String])
-
-if get(config, "filterstate", nothing) != nothing
-    masterregions = masterregions[map(fips -> fips[1:2], masterregions[:fips]) .== config["filterstate"], :]
-end
-
+include("world-minimal.jl")
 include("regionnet.jl")
 include("waternet.jl")
 
 # Prepare the model
 
-unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
-irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
-#irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+if config["dataset"] == "states"
+    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+elseif config["filterstate"]=="08"
+    unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # "corn", "wheat" # UnivariateAgriculture component crops
+    irrcrops = [] 
+    
+else
+    unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
+    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
+end
 
 allcrops = [unicrops; irrcrops]
 

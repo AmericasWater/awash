@@ -189,27 +189,12 @@ function grad_univariateagriculture_cost_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_opcost_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :opcost, :totalareas, (rr, cc, tt) -> uniopcost[rr,cc] * 2.47105* config["timestep"]/12) # convert acres to Ha
+    roomdiagonal(m, :UnivariateAgriculture, :opcost, :totalareas, (rr, cc) -> uniopcost[rr,cc] * 2.47105* config["timestep"]/12, [:time]) # convert acres to Ha
 end
-
-function grad_univariateagriculture_opcost_totalareas_cst(m::Model)
-        function generate(A)
-        for rr in 1:numcounties
-            for cc in 1:numunicrops
-                for tt in 1:numsteps
-                    A[fromindex([rr,cc,tt],[numcounties,numunicrops,numsteps]), fromindex([rr,cc],[numcounties,numunicrops])] = uniopcost[rr,cc] * 2.47105* config["timestep"]/12
-                end
-            end
-        end
-        return A
-    end
-    roomintersect(m, :UnivariateAgriculture,:opcost,:totalareas_cst,generate)
-end
-
 
 #########Total culti area #########
 function grad_univariateagriculture_maxarea_totalareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
@@ -219,22 +204,7 @@ function grad_univariateagriculture_maxarea_totalareas(m::Model)
         return A
     end
 
-    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas, generate)
-end
-
-
-function grad_univariateagriculture_maxarea_totalareas_cst(m::Model)
-    function generate(A)
-        for rr in 1:numcounties
-            for tt in 1:numsteps
-                for cc in 1:numunicrops
-                    A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
-                end
-            end
-        end
-        return A
-    end
-    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas_cst, generate)
+    roomintersect(m, :UnivariateAgriculture, :maxarea, :totalareas, generate, [:time], [:time])
 end
 
 function grad_univariateagriculture_allagarea_totalareas(m::Model)

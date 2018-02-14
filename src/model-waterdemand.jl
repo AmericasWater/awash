@@ -44,7 +44,7 @@ agriculture[:unicropareas] = univariateagriculture[:totalareas2]
 agriculture[:unicropproduction] = univariateagriculture[:production]
 agriculture[:uniirrigation] = univariateagriculture[:totalirrigation]
 
-waterdemand[:totalirrigation] = univariateagriculture[:totalirrigation];
+waterdemand[:totalirrigation] = agriculture[:allirrigation];
 waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];

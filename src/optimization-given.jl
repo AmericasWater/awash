@@ -111,7 +111,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if config["dataset"] == "three"
         setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
-        setconstraintoffset!(house, -hall_relabel(                                                  grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
+        setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
+                                                  grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
 			                          grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
                                                   grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
                                                   grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m),

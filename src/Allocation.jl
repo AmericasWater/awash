@@ -135,15 +135,15 @@ function soleobjective_allocation(m::Model)
 end
 
 function grad_allocation_balance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :waterfromgw, 1.)
 end
 
 function grad_allocation_balance_waterfromsupersource(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromsupersource, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :waterfromsupersource, 1.)
 end
 
 function grad_allocation_balance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :waterfromgw, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :waterfromgw, 1.)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
@@ -151,24 +151,26 @@ function grad_allocation_cost_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, (rr, tt) -> 10000.)
+    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, 10000.)
 end
 
 function grad_allocation_cost_withdrawals(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
+            println(pp)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = m.parameters[:unitswcost].values[pp]
             end
         end
     end
-    roomintersect(m, :Allocation, :cost, :withdrawals, generate)
+
+    roomintersect(m, :Allocation, :cost, :withdrawals, generate, [:time], [:time])
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
@@ -178,11 +180,11 @@ function grad_allocation_balance_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :balance, :withdrawals, generate)
+    roomintersect(m, :Allocation, :balance, :withdrawals, generate, [:time], [:time])
 end
 
 function grad_allocation_returnbalance_returns(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
@@ -192,7 +194,7 @@ function grad_allocation_returnbalance_returns(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :returnbalance, :returns, generate)
+    roomintersect(m, :Allocation, :returnbalance, :returns, generate, [:time], [:time])
 end
 
 function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
@@ -220,7 +222,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 end
 
 function grad_allocation_returnbalance_waterreturn(m::Model)
-    roomdiagonal(m, :Allocation, :returnbalance, :waterreturn, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :returnbalance, :waterreturn, 1.)
 end
 
 

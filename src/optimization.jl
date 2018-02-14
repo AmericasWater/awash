@@ -34,13 +34,10 @@ urbandemand = initurbandemand(m) # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture,:Allocation]
-parameters = [:waterfromgw, :withdrawals, :totalareas,:returns]
-constcomps = [:UnivariateAgriculture, :WaterNetwork, :Allocation,:Allocation,:UnivariateAgriculture,
-:Allocation,:UnivariateAgriculture,:UnivariateAgriculture]
-constraints = [:allagarea, :outflows, :balance,:totaluse,:sorghumarea,
-:returnbalance,:hayproduction,:barleyproduction]
-
+paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture, :Transportation, :Market]
+parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
+constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets

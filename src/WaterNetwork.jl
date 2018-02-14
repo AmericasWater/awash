@@ -54,7 +54,7 @@ end
 Construct a matrix that represents the *immediate* decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in GAUGES x CANALS matrix
         # First do local withdrawal
         for pp in 1:nrow(draws)
@@ -69,14 +69,14 @@ function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
 end
 
 """
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in GAUGES x CANALS matrix
         # First do local withdrawal
         for pp in 1:nrow(draws)
@@ -102,11 +102,11 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in CANALS x REGIONS
         # Determine how many canals are in this region
         for rr in 1:numcounties
@@ -118,7 +118,7 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:time], [:time])
 end
 
 """

@@ -70,15 +70,15 @@ function initagriculture(m::Model)
 end
 
 function grad_agriculture_allirrigation_irrirrigation(m::Model)
-    roomintersect(m, :Agriculture, :allirrigation, :irrirrigation, (rr, tt) -> 1.)
+    roomdiagonal(m, :Agriculture, :allirrigation, :irrirrigation, 1.)
 end
 
 function grad_agriculture_allirrigation_uniirrigation(m::Model)
-    roomintersect(m, :Agriculture, :allirrigation, :uniirrigation, (rr, tt) -> 1.)
+    roomdiagonal(m, :Agriculture, :allirrigation, :uniirrigation, 1.)
 end
 
 function grad_agriculture_allagarea_irrcropareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for irrcc in 1:numirrcrops
                 cc = findfirst(irrcrops[cc], allcrops)
@@ -89,11 +89,11 @@ function grad_agriculture_allagarea_irrcropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate)
+    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate, [:time], [:time])
 end
 
 function grad_agriculture_allagarea_unicropareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for unicc in 1:numunicrops
                 cc = findfirst(unicrops[cc], allcrops)
@@ -104,7 +104,7 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate)
+    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate, [:time], [:time])
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
@@ -112,7 +112,7 @@ function constraintoffset_agriculture_allagarea(m::Model)
 end
 
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)
-    function gen(A, tt)
+    function gen(A)
         # A: R x ALL x R x UNI
         if !isempty(unicrops)
             for unicc in 1:numunicrops
@@ -123,11 +123,11 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen)
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:time], [:time])
 end
 
 function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
-    function gen(A, tt)
+    function gen(A)
         # A: R x ALL x R x IRR
         if !isempty(irrcrops)
             for irrcc in 1:numirrcrops
@@ -138,7 +138,7 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen)
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:time], [:time])
 end
 
 

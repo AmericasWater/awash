@@ -1,6 +1,5 @@
 include("../../src/lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+config = readconfig("../configs/complete-yearly.yml") # Just use 1 year for optimization
 
 include("../../src/optimization-given.jl")
 house = optimization_given(true, false);
@@ -50,7 +49,7 @@ end
 ## Add constraints that sw_i* + sum_j sw_j* < sw_i + sum_j sw_j, so long as in same state
 addconstraint!(house, :Allocation, :neighborbalance, :balance)
 
-function genroom(A, tt)
+function genroom(A)
     drawfips = regionindex(draws, :)
     for ii in 1:nrow(masterregions)
         includedfips = within_radius_fips(ii)
@@ -60,11 +59,11 @@ function genroom(A, tt)
     end
 end
 
-room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom)
+room = roomintersect(house.model, :Allocation, :balance, :withdrawals, genroom, [:time], [:time])
 setconstraint!(house, room_relabel(room, :balance, :Allocation, :neighborbalance))
 setconstraint!(house, -room_relabel_parameter(room_relabel(room, :balance, :Allocation, :neighborbalance), :withdrawals, :Allocation, :returns))
 
-function genhall(ii, tt)
+function genhall(ii)
     includedfips = within_radius_fips(ii)
     allfips = regionindex(masterregions, :)
     includedii = Int64[findfirst(allfips, fips) for fips in includedfips]
@@ -72,7 +71,7 @@ function genhall(ii, tt)
     return sum(recorded[includedii, :TO_SW]) * config["timestep"] * 1383. / 12
 end
 
-hall = hallsingle(house.model, :Allocation, :balance, genhall)
+hall = hallsingle(house.model, :Allocation, :balance, genhall, [:time])
 setconstraintoffset!(house, hall_relabel(hall, :balance, :Allocation, :neighborbalance))
 
 @time sol_distance = houseoptimize(house, solver)

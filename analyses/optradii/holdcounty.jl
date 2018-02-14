@@ -1,6 +1,5 @@
 include("../../src/lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+config = readconfig("../configs/complete-yearly.yml")
 
 include("../../src/optimization-given.jl")
 house = optimization_given(false, false)

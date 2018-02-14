@@ -72,39 +72,39 @@ function initwaterdemand(m::Model)
 end
 
 function grad_waterdemand_swdemandbalance_totalirrigation(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :totalirrigation, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :totalirrigation, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_domesticuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :domesticuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :domesticuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_thermoelectricuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :livestockuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :livestockuse, 1.)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, (rr, tt) -> -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"])
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, (rr, tt) -> -returnpart["domestic/commercial"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"])
 end
 
 function grad_waterdemand_totalreturn_industrialuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, (rr, tt) -> -returnpart["industrial/mining"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"])
 end
 
 function grad_waterdemand_totalreturn_thermoelectricuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, (rr, tt) -> -returnpart["thermoelectric"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"])
 end
 
 function grad_waterdemand_totalreturn_livestockuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, (rr, tt) -> -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"])
 end
 
 function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)

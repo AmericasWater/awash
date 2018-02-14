@@ -126,24 +126,24 @@ end
 
 
 function grad_reservoir_outflows_captures(m::Model)
-	function generate(A, tt)
+    function generate(A)
         # Fill in GAUGES x RESERVOIRS matrix
         # Propogate in downstream order
-		for hh in 1:numgauges
-			gg = vertex_index(downstreamorder[hh])
-			gauge = downstreamorder[hh].label
-			for upstream in out_neighbors(wateridverts[gauge], waternet)
-				index = vertex_index(upstream, waternet)
-				println(index)
-				if isreservoir[index] > 0
-					A[gg, isreservoir[index]] = -1
-				else
-					A[gg, :] += A[index, :]
-				end
-			end
+	for hh in 1:numgauges
+	    gg = vertex_index(downstreamorder[hh])
+	    gauge = downstreamorder[hh].label
+	    for upstream in out_neighbors(wateridverts[gauge], waternet)
+		index = vertex_index(upstream, waternet)
+		println(index)
+		if isreservoir[index] > 0
+		    A[gg, isreservoir[index]] = -1
+		else
+		    A[gg, :] += A[index, :]
 		end
+	    end
 	end
-	roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate)
+    end
+    roomintersect(m, :WaterNetwork, :outflows, :Reservoir, :captures, generate, [:time], [:time])
 end
 
 function grad_reservoir_storage_captures(m::Model)

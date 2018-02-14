@@ -151,7 +151,7 @@ function grad_univariateagriculture_production_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.parameters[:irrigation_rate].values[rr, cc, tt] / 100
@@ -160,7 +160,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 
         return A
     end
-    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate)
+    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate, [:time], [:time])
 end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)
@@ -168,7 +168,7 @@ function grad_univariateagriculture_cost_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_allagarea_totalareas(m::Model)
-    function generate(A, tt)
+    function generate(A)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
@@ -178,5 +178,5 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
         return A
     end
 
-    roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate)
+    roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate, [:time], [:time])
 end

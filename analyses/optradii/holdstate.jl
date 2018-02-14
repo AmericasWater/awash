@@ -1,23 +1,29 @@
 include("../../src/lib/readconfig.jl")
-#config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+config = readconfig("../configs/complete-yearly.yml")
 
 include("../../src/optimization-given.jl")
-house = optimization_given(true, false);
-
 using MathProgBase
 using Gurobi
 solver = GurobiSolver()
+
+house = optimization_given(false, false)
+@time sol = houseoptimize(house, solver)
+
+## Prepare constraints on all cross-state flows
+values = getconstraintsolution(house, sol, :outflows)
+cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+offset = cwro.f
+offset[isnan(offset)] = 0
+outflows = offset - values
+outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
+# outflows constrained as cumulative runoff
+
+house = optimization_given(true, false);
 
 @time sol_before = houseoptimize(house, solver)
 summarizeparameters(house, sol_before.sol)
 
 include("../../prepare/bystate/waternet/statelib.jl")
-
-## Add constraints on all cross-state flows
-outflows = readtable("../../data/counties/extraction/outflows-bygauge.csv", header=false)
-outflows = convert(Matrix{Float64}, outflows)
-# outflows constrained as cumulative runoff
 
 # Specify that outflows + runoff > required, or -outflows < runoff - required
 constraintlower = zeros(outflows) # Start with 0
@@ -49,16 +55,16 @@ setconstraintoffset!(house, :WaterNetwork, :outflows, baselinerunoff - vec(const
 # setconstraintoffset!(house, :WaterNetwork, :maxoutflows, vec(constraintupper) - baselinerunoff)
 
 ## Set offset to 0 if no water connections
-for ii in 1:size(house.A)[1]
-    if house.b[ii] < 0 && sum(abs(house.A[ii,:])) == 0
-        house.b[ii] = 0
-    end
-end
+# for ii in 1:size(house.A)[1]
+#     if house.b[ii] < 0 && sum(abs(house.A[ii,:])) == 0
+#         house.b[ii] = 0
+#     end
+# end
 
 ## Allow supersource feeding of gauges
 addparameter!(house, :WaterNetwork, :added) # include as supersource, but only for that link (no propagation)
-setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, (gg, tt) -> -1.))
-setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, (gg, tt) -> -1000.))
+setconstraint!(house, roomdiagonal(house.model, :WaterNetwork, :outflows, :added, -1.))
+setobjective!(house, hallsingle(house.model, :WaterNetwork, :added, -1000.))
 
 @time sol_after = houseoptimize(house, solver, find(house.b .< Inf))
 summarizeparameters(house, sol_after.sol)

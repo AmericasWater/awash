@@ -3,6 +3,7 @@
 using CSV, DataFrames
 using RData
 include("lib/weather.jl")
+include("lib/coding.jl")
 
 statefips = dncload("weather", "state_fips", [config["ncregion"]])
 if config["ncregion"] == "county"
@@ -12,13 +13,14 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = CSV.read(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+regions = CSV.read(loadpath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64], null="NA")
 regions[:FIPS] = regionindex(regions, :)
 
-regions[ismissing.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
-countyareas = reorderfips(regions[:, :TotalArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
-regions[ismissing.(regions[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
-countylandareas = reorderfips(regions[:, :LandArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
+
+regions[Symbol("TotalArea-sqmi")] = replacemissing(regions, Symbol("TotalArea-sqmi"), 0.)
+countyareas = reorderfips(regions[:, Symbol("TotalArea-sqmi")] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
+regions[Symbol("LandArea-sqmi")] = replacemissing(regions, Symbol("LandArea-sqmi"), 0.)
+countylandareas = reorderfips(regions[:, Symbol("LandArea-sqmi")] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather
 precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep

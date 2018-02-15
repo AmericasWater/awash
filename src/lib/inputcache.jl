@@ -1,3 +1,5 @@
+using CSV
+
 if !isdefined(:inputvalues)
     # Store previously opened CSVs
     const inputvalues = Dict{String, Any}()
@@ -17,9 +19,9 @@ end
 
 function cachereadtable(fullpath::AbstractString; separator::Char='*')
     if separator == '*'
-        getfilevalue(fullpath, "*", () -> readtable(fullpath))
+        getfilevalue(fullpath, "*", () -> CSV.read(fullpath))
     else
-        getfilevalue(fullpath, "*", () -> readtable(fullpath, separator=separator))
+        getfilevalue(fullpath, "*", () -> CSV.read(fullpath, separator=separator))
     end
 end
 

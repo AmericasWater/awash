@@ -158,8 +158,14 @@ function canonicalindex(indexes)
     if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
+    if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
+        return convert(Vector{Int64}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
+    end
     if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: NullableArrays.NullableArray{String, 1}
+        return convert(Vector{String}, map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])

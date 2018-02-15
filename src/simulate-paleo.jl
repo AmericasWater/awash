@@ -22,7 +22,7 @@ include("weather.jl")
 
 paleo = sum(addeds, 1)
 
-df2 = DataFrame(month=parsemonth("10/1450"):parsemonth("9/2005"), flows=vec(paleo))
+df2 = DataFrame(month=parsemonth("10/1451"):parsemonth("12/2005"), flows=vec(paleo))
 
 df[:dataset] = "observed"
 df2[:dataset] = "paleo"

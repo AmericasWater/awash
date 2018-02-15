@@ -1,5 +1,9 @@
 # Install any packages that need to be installed
 
+if Pkg.installed("CSV") == nothing
+    Pkg.add("CSV")
+end
+
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
     Pkg.checkout("Mimi")

@@ -14,6 +14,7 @@ function requirepackage(pkg, checkout=false)
     end
 end
 
+requirepackage("CSV")
 requirepackage("YAML")
 requirepackage("Mimi")
 Pkg.checkout("Mimi")

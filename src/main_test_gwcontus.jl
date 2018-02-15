@@ -1,5 +1,7 @@
+
 workspace()
 #cd("Dropbox/POSTDOC/AW-julia/operational-problem-main/src/")
+using CSV
 using OptiMimi
 using DataFrames
 include("Allocation.jl")
@@ -45,7 +47,7 @@ R"polydata$STATE <- as.numeric(levels(polydata$STATE))[polydata$STATE]";
 R"polydata$COUNTY <- as.numeric(levels(polydata$COUNTY))[polydata$COUNTY]";
 R"shapes$id <- polydata$STATE[shapes$PID]*100 + polydata$COUNTY[shapes$PID]/10";
 R"names(shapes) <- tolower(names(shapes))";
-recorded = readtable(datapath("extraction/USGS-2010.csv"));
+recorded = CSV.read(datapath("extraction/USGS-2010.csv"));
 
 diffdrawdown = -m.components[:Aquifer].Parameters.drawdown0+m.components[:Aquifer].Variables.drawdown;
 recorded[:diffdwn] = diffdrawdown[1:3109];

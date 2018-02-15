@@ -1,3 +1,4 @@
+using CSV
 using DataFrames
 
 """
@@ -33,7 +34,7 @@ function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractStri
     if filepath in keys(currentCSVFiles)
         df = currentCSVFiles[filepath]
     else
-        df = readtable(filepath, header=false)
+        df = CSV.read(filepath, header=false)
         currentCSVFiles[filepath] = df
     end
 

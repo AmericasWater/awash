@@ -1,3 +1,4 @@
+using CSV
 using Mimi
 using Distributions
 
@@ -109,7 +110,7 @@ function initallocation(m::Model)
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
-        #allocation[:waterfromgw] =convert(Array,readtable(datapath("extraction/gw1.csv")))
+        #allocation[:waterfromgw] =convert(Array,CSV.read(datapath("extraction/gw1.csv")))
     	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
     end
 
@@ -252,7 +253,7 @@ end
 
 
 function constraintoffset_allocation_otherdemand(m::Model)
-    other=readtable(datapath("other.csv"))
+    other=CSV.read(datapath("other.csv"))
     gen(rr,tt)=other[rr,:x1]
     hallsingle(m, :Allocation, :balance,gen)
 end

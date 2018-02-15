@@ -1,4 +1,5 @@
 using DataFrames
+using CSV
 using Mimi
 
 include("lib/agriculture.jl")
@@ -22,7 +23,7 @@ include("lib/agriculture.jl")
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
-    
+
     # Outputs
     allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
     allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
@@ -151,7 +152,7 @@ end
 
 
 function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
-    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=CSV.read(datapath("../Colorado/sorghum.csv"))[:x][:,1]
     sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]
     hallsingle(m, :Agriculture, :sorghumarea,gen)

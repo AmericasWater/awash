@@ -1,3 +1,4 @@
+using CSV
 using DataFrames
 using Mimi
 
@@ -97,8 +98,8 @@ function initunivariateagriculture(m::Model)
 
 
         # Load degree day data
-        gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
-        kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
+        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
+        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
@@ -112,12 +113,12 @@ function initunivariateagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, symbol("x$year")]
-                        if isna(numgdds)
+                        if ismissing(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, symbol("x$year")]
-                        if isna(numkdds)
+                        if ismissing(numkdds)
                             numkdds = 0
                         end
                     else
@@ -160,7 +161,7 @@ function initunivariateagriculture(m::Model)
         if config["filterstate"]=="08"
             agriculture[:hayproduction]=3.63e6*hayproduction
             agriculture[:barleyproduction]=6.7397e6*barleyproduction
-            constantareas=convert(Array,readtable(datapath("../Colorado/coloradoarea.csv")))
+            constantareas=convert(Array,CSV.read(datapath("../Colorado/coloradoarea.csv")))
             sorghumarea=constantareas[:,4]
             maxarea=sum(constantareas,2)
             else
@@ -170,7 +171,7 @@ function initunivariateagriculture(m::Model)
                 else
                     column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
                     constantareas[:, cc] = totalareas[column]*0.404686#Convert to Ha
-                    constantareas[isna(totalareas[column]), cc] = 0.
+                    constantareas[ismissing(totalareas[column]), cc] = 0.
 
                     end
             end
@@ -178,10 +179,10 @@ function initunivariateagriculture(m::Model)
             constantareas=
 deserialize(open(datapath("../Colorado/totalareas_cst-08.jld"), "r"));
             elseif isfile(datapath("../Colorado/totalarea1-08.csv"))
-             constantareas=convert(Array,readtable(datapath("../Colorado/totalarea1-08.csv")))
+             constantareas=convert(Array,CSV.read(datapath("../Colorado/totalarea1-08.csv")))
             end
         end
-        constantareas=convert(Array,readtable(datapath("../Colorado/totalarea1-08.csv")))
+        constantareas=convert(Array,CSV.read(datapath("../Colorado/totalarea1-08.csv")))
         agriculture[:totalareas_cst] =constantareas
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
         agriculture[:sorghumarea] =repeat(sorghumarea, outer=[1, numsteps])
@@ -414,7 +415,7 @@ end
 
 
 function constraintoffset_univariateagriculture_sorghumarea(m::Model)
-    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=CSV.read(datapath("../Colorado/sorghum.csv"))[:x][:,1]
     sorghum=repeat(convert(Vector,sorghum),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]
     hallsingle(m, :UnivariateAgriculture, :sorghumarea,gen)

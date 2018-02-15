@@ -1,3 +1,4 @@
+using CSV
 using DataFrames
 include("datastore.jl")
 
@@ -21,7 +22,7 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
     if dataset == "three"
         DataFrame(collection="three", colid=2)
     else
-        reservoirs = readtable(datapath("reservoirs/allreservoirs.csv"))
+        reservoirs = CSV.read(datapath("reservoirs/allreservoirs.csv"))
         if get(config, "filterstate", nothing) != nothing
             reservoirs = reservoirs[floor(reservoirs[:fips] / 1000) .== parse(Int64, config["filterstate"]), :]
         end

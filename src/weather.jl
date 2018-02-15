@@ -1,6 +1,6 @@
 # Can only be called after loading regionnet.jl
 
-using DataFrames
+using CSV, DataFrames
 using RData
 include("lib/weather.jl")
 
@@ -12,12 +12,12 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = readtable(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+regions = CSV.read(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 regions[:FIPS] = regionindex(regions, :)
 
-regions[isna.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
+regions[ismissing.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
 countyareas = reorderfips(regions[:, :TotalArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
-regions[isna.(regions[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
+regions[ismissing.(regions[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
 countylandareas = reorderfips(regions[:, :LandArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather

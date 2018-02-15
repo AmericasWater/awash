@@ -1,3 +1,4 @@
+using CSV
 using DataFrames
 using Mimi
 
@@ -87,8 +88,8 @@ function initirrigationagriculture(m::Model)
     deficit_coeff = zeros(numcounties, numirrcrops)
     for cc in 1:numirrcrops
         # Load degree day data
-        gdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
-        kdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
+        gdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
+        kdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
@@ -102,12 +103,12 @@ function initirrigationagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
-                        if isna.(numgdds)
+                        if ismissing.(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, Symbol("x$year")]
-                        if isna.(numkdds)
+                        if ismissing.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -151,8 +152,8 @@ function initirrigationagriculture(m::Model)
         columns = convert(Vector{Int64}, columns)
         for cc in columns
             # Replace NAs with 0, and convert to float. TODO: improve this
-            rainfeds[isna.(rainfeds[cc]), cc] = 0.
-            irrigateds[isna.(irrigateds[cc]), cc] = 0.
+            rainfeds[ismissing.(rainfeds[cc]), cc] = 0.
+            irrigateds[ismissing.(irrigateds[cc]), cc] = 0.
             # Convert to Ha
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686

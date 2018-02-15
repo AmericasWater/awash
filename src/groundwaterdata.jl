@@ -1,3 +1,4 @@
+using CSV
 using DataFrames
 using RData
 
@@ -9,20 +10,20 @@ if config["dataset"] == "states"
 
 elseif isfile(datapath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = readtable(datapath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion$suffix.csv")));
+    dfgw = CSV.read(datapath("gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, CSV.read(datapath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, CSV.read(datapath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif config["dataset"] == "counties"
-    dfgw = readtable(datapath("gwmodel/dfgw.csv"));
-    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity.csv")));
-    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion.csv")));
-        
+    dfgw = CSV.read(datapath("gwmodel/dfgw.csv"));
+    lateralconductivity = convert(Array, CSV.read(datapath("gwmodel/lateralconductivity.csv")));
+    aquiferconnexion = convert(Array, CSV.read(datapath("gwmodel/aquiferconnexion.csv")));
+
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
 	vstates = round(Int64, floor(dfgw[:fips] ./ 1000));
 	subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
-	
+
         dfgw = dfgw[subfips,:];
   	lateralconductivity = lateralconductivity[subfips,subfips];
   	aquiferconnexion = aquiferconnexion[subfips,subfips];
@@ -40,7 +41,7 @@ elseif config["dataset"] == "three"
     a = [8e8; 6e8; 5e8];
     el = [10; 14; 9];
     dfgw = DataFrame(Any[[1 2 3], d, p0, s, a, el], [:fips, :depthaquif, :piezohead0, :storagecoef, :areaaquif, :elevation]);
-     
+
     lateralconductivity = [  0  1e-4     0;
                           1e-4     0  1e-4;
                              0  1e-6     0];

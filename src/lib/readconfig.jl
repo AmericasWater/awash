@@ -1,4 +1,4 @@
-using YAML
+using CSV, YAML
 
 function readconfig(ymlpath)
     if ymlpath[1:11] == "../configs/"
@@ -63,7 +63,9 @@ function index2year(tt::Int64)
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
 
-    years[div(times[tt], 12) - div(startmonth, 12) + 1]
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
+
+
 end
 
 if !isdefined(:configtransforms)
@@ -112,7 +114,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
         column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
-        data = readtable(path)
+        data = CSV.read(path)
         if nrow(data) == length(getindices(defindex))
             # We can use these values directly
             indices = getindices(defindex)
@@ -122,16 +124,17 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
-                values = readtable(datapath(defpath))[:, defcol]
+                values = CSV.read(datapath(defpath))[:, defcol]
                 indices = getindices(defindex, typeof(values[1]))
                 # Fill in the new values where given
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !isna.(newvalue)
+                        if !ismissing.(newvalue)
                             values[ii] = newvalue
                         end
+
                     end
                 end
 
@@ -141,6 +144,6 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             end
         end
     else
-        readtable(datapath(defpath))[:, defcol]
+        CSV.read(datapath(defpath))[:, defcol]
     end
 end

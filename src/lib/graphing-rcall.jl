@@ -60,3 +60,4 @@ function xyplot(xx, yy, title, xlab, ylab, size=1)
     R"ggplot($df, aes(x, y, size=size)) +
 geom_point() + xlab($xlab) + ylab($ylab) + ggtitle($title) + theme_bw()"
 end
+

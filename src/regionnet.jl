@@ -1,3 +1,4 @@
+using CSV
 using Mimi
 
 # Region Network definitions
@@ -35,15 +36,15 @@ else
 
     # Load the network of counties
     if config["dataset"] == "counties"
-        counties = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = CSV.read(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
-        counties = readtable(loadpath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = CSV.read(loadpath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end
     edges = Dict{String, Vector{String}}()
 
     for row in 1:size(counties, 1)
         neighboring = counties[row, :Neighboring]
-        if !isna.(neighboring)
+        if !ismissing.(neighboring)
             chunks = String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
             index = regionindex(counties, row)
 

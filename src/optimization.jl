@@ -38,6 +38,7 @@ paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgric
 parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
+
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
 # outflows is the water in the stream

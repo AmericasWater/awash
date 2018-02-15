@@ -2,6 +2,7 @@
 #
 # It uses aquaculture production data as a baseline, with aggregate production.
 
+using CSV
 using Mimi
 using DataFrames
 include("lib/datastore.jl")
@@ -33,10 +34,10 @@ function initaquaculture(m::Model)
     scaling = config["timestep"] / 12.
 
     # Baseline from USGS
-    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, m.indices_counts[:time]])
+    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, m.indices_counts[:time]])
 
     # Production data from Fisheries of the United States
-    production = readtable(datapath("aquaculture/production.csv"))
+    production = CSV.read(datapath("aquaculture/production.csv"))
 
     aquaculture[:production_baseline] = repeat(production[production[:year] .== 2010, :production] * scaling, outer=[numsteps])
     aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round.(Int64, 1. / scaling)])

@@ -13,7 +13,7 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = CSV.read(loadpath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64], null="NA")
+regions = CSV.read(datapath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64], null="NA")
 regions[:FIPS] = regionindex(regions, :)
 
 

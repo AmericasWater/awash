@@ -125,7 +125,7 @@ function canonicalindex(indexes)
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
-        return convert(Vector{Int64}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
+        return convert(Vector{String}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
@@ -159,7 +159,6 @@ function getregionindices(fipses, tomaster=true)
         convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
     end
 end
-
 
 lastindexcol = nothing
 

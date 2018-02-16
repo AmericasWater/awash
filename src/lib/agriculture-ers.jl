@@ -48,9 +48,9 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = CSV.read(datapath("global/ers.csv"))
+    df = robustcsvread(datapath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
 
-    reglink = CSV.read(datapath("agriculture/ers/reglink.csv"))
+    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), nullable=false)
     fips = canonicalindex(reglink[:FIPS])
     indexes = getregionindices(fips)
 
@@ -88,7 +88,7 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== year), :]
+    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
     result = zeros(size(masterregions, 1)) * NA
     for region in unique(reglink_abbr)
@@ -101,7 +101,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[ismissing.(result)] = value[1]
+        result[isna.(result)] = value[1]
     end
 
     result
@@ -111,7 +111,7 @@ end
 List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
-    df = CSV.read(datapath("global/ers.csv"))
+    df = robustcsvread(datapath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 
@@ -120,14 +120,11 @@ function getaverage(crop::AbstractString,item::AbstractString)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
 end
 
-uniopcost=zeros(numcounties, numunicrops)
-unioverhead=zeros(numcounties,numunicrops)
+uniopcost = zeros(numcounties, numunicrops)
+unioverhead = zeros(numcounties, numunicrops)
 
-for cc in (1:7)
-    crop=ers_crop(unicrops[cc])
-    uniopcost[:,cc]=getaverage(crop,"opcost")
-    unioverhead[:,cc]=getaverage(crop,"overhead")
+for cc in 1:length(unicrops)
+    crop = ers_crop(unicrops[cc])
+    uniopcost[:,cc] = getaverage(crop, "opcost")
+    unioverhead[:,cc] = getaverage(crop, "overhead")
 end
-uniopcost[:,8]=290
-unioverhead[:,8]=150
-#AVERAGE COUNTY X CROP COST

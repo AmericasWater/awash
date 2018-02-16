@@ -1,4 +1,3 @@
-using CSV
 using DataFrames
 using RData
 
@@ -10,14 +9,14 @@ if config["dataset"] == "states"
 
 elseif isfile(datapath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = CSV.read(datapath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, CSV.read(datapath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, CSV.read(datapath("gwmodel/aquiferconnexion$suffix.csv")));
+    dfgw = readtable(datapath("gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif config["dataset"] == "counties"
-    dfgw = CSV.read(datapath("gwmodel/dfgw.csv"));
-    lateralconductivity = convert(Array, CSV.read(datapath("gwmodel/lateralconductivity.csv")));
-    aquiferconnexion = convert(Array, CSV.read(datapath("gwmodel/aquiferconnexion.csv")));
+    dfgw = readtable(datapath("gwmodel/dfgw.csv"));
+    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity.csv")));
+    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion.csv")));
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")

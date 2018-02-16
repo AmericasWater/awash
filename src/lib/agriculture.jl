@@ -1,4 +1,4 @@
-using CSV, DataFrames
+using DataFrames
 include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
@@ -173,7 +173,7 @@ if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling be
 else
     # Prepare all the agricultural models
     agmodels = Dict{String, Dict{String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = CSV.read(joinpath(datapath("agriculture/nationals.csv")))
+    nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
     nationalcrop = Dict{String, String}("barley" => "Barley", "corn" => "Maize",
                                         "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                         "wheat" => "Wheat", "hay" => "alfalfa")
@@ -186,14 +186,14 @@ else
         national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
         bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
         if bayespath != nothing
-            counties = CSV.read(bayespath)
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
             croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
             if croppath == nothing
                 continue
             end
-            counties = CSV.read(croppath)
+            counties = readtable(croppath)
             combiner = gaussianpool
         end
 
@@ -271,22 +271,22 @@ Read Naresh's special yield file format
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
-        df = CSV.read(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
         bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
-        df = CSV.read(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
         bayespath = datapath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
-        df = CSV.read(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
         bayespath = datapath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
-        df = CSV.read(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
         bayespath = datapath("agriculture/bayesian/Wheat.csv")
@@ -297,7 +297,7 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
 
     if use2010yields
         # Collect coefficients to remove the trend
-        coefficients = CSV.read(bayespath)
+        coefficients = readtable(bayespath)
         timecoeffs = coefficients[coefficients[:coef] .== "time", :]
 
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
@@ -321,7 +321,7 @@ end
 Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
-    df = CSV.read(filepath)
+    df = readtable(filepath)
     df[:fips] = [ismissing.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 

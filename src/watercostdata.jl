@@ -1,4 +1,4 @@
-using CSV, DataFrames
+using DataFrames
 using RData
 
 include("lib/datastore.jl")
@@ -23,7 +23,7 @@ end
 
 if isfile(datapath("drawdown.csv"))
     # gw: extraction cost prop to drawdown to watertable
-    drawdown = CSV.read(datapath("drawdown.csv"))
+    drawdown = readtable(datapath("drawdown.csv"))
     #80.6 replaced with 1000000
     aquiferextractioncost=array(0.3048*drawdown[:mean]*energycostperlift)
 else

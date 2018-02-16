@@ -1,5 +1,3 @@
-using CSV
-
 """
 Return the 4-letter crop code used by ERS
 """
@@ -48,9 +46,9 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = CSV.read(datapath("global/ers.csv"))
+    df = readtable(datapath("global/ers.csv"))
 
-    reglink = CSV.read(datapath("agriculture/ers/reglink.csv"))
+    reglink = readtable(datapath("agriculture/ers/reglink.csv"))
     fips = canonicalindex(reglink[:FIPS])
     indexes = getregionindices(fips)
 
@@ -111,7 +109,7 @@ end
 List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
-    df = CSV.read(datapath("global/ers.csv"))
+    df = readtable(datapath("global/ers.csv"))
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 

@@ -1,4 +1,3 @@
-using CSV
 using DataFrames
 using Mimi
 
@@ -88,8 +87,8 @@ function initirrigationagriculture(m::Model)
     deficit_coeff = zeros(numcounties, numirrcrops)
     for cc in 1:numirrcrops
         # Load degree day data
-        gdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
-        kdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
+        gdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
+        kdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"

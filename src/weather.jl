@@ -1,6 +1,6 @@
 # Can only be called after loading regionnet.jl
 
-using CSV, DataFrames
+using DataFrames
 using RData
 include("lib/weather.jl")
 
@@ -12,7 +12,7 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = CSV.read(datapath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+regions = readtable(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 regions[:FIPS] = regionindex(regions, :)
 
 regions[ismissing.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0

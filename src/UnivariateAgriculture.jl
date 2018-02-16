@@ -1,4 +1,3 @@
-using CSV
 using DataFrames
 using Mimi
 
@@ -87,8 +86,8 @@ function initunivariateagriculture(m::Model)
         end
 
         # Load degree day data
-        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
-        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
+        gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
+        kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"

@@ -1,11 +1,10 @@
 # The reservoir component
 #
 # Manages the storage in reservoirs over time
-using CSV
 using Mimi
 using Distributions
 
-reservoirdata = CSV.read(datapath("reservoirs/allreservoirs.csv"))
+reservoirdata = readtable(datapath("reservoirs/allreservoirs.csv"))
 
 @defcomp Reservoir begin
 	reservoirs = Index()

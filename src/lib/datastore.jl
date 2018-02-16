@@ -159,7 +159,7 @@ function canonicalindex(indexes)
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
-        return convert(Vector{Int64}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
+        return convert(Vector{String}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
@@ -203,7 +203,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
             if dataset == "paleo"
                 if name == "contributing_area"
                     df = cachereadtable(loadpath("waternet/allarea.csv"))
-                    df[:, :area]
+                    replacemissing(df, :area, 0.)
                 else
                     waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
                     mapping = Dict("gage_latitude" => "lat", "gage_longitude" => "lon")
@@ -224,8 +224,8 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                 network = waternetdata["network"]
                 network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
 
-                contribs = cachereadtable(loadpath("waternet/contribs.csv"))
-                contribs = contribs[.!isna.(contribs[:sink]), :]
+                contribs = cachereadtable(loadpath("waternet/contribs.csv"), types=[String, String, Float64], null="NA")
+                contribs = dropmissing(contribs, :sink)
 
                 addeds = vcat(addeds, zeros(nrow(network) - nrow(stations), size(addeds)[2]))
 

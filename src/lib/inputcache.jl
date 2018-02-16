@@ -17,15 +17,14 @@ function getfilevalue(fullpath::AbstractString, name::AbstractString, process::F
     inputvalues[key]
 end
 
-function cachereadtable(fullpath::AbstractString; separator::Char='*')
-    if separator == '*'
-        getfilevalue(fullpath, "*", () -> CSV.read(fullpath))
-    else
-        getfilevalue(fullpath, "*", () -> CSV.read(fullpath, separator=separator))
-    end
+function cachereadtable(fullpath::AbstractString; kwargs...)
+    getfilevalue(fullpath, "*", () -> CSV.read(fullpath; kwargs...))
 end
 
 function cachereadrda(fullpath::AbstractString)
     getfilevalue(fullpath, "*", () -> FileIO.load(fullpath))
 end
 
+function clearfilecache()
+    empty!(inputvalues)
+end

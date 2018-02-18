@@ -152,6 +152,28 @@ function getregionindices(fipses, tomaster=true)
     end
 end
 
+"""
+Reorder values to match the master region indexes.
+Value is NA if a given region isn't in fipses.
+"""
+function dataonmaster(fipses, values)
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    else
+        masterfips = masterregions[:fips]
+    end
+
+    function valueonmaster(fips)
+        index = findfirst(fipses, fips)
+        if index == 0
+            NA
+        else
+            values[index]
+        end
+    end
+
+    map(valueonmaster, masterfips)
+end
 
 lastindexcol = nothing
 

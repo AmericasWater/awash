@@ -18,7 +18,7 @@ if isfile(datapath("canalextractioncost$suffix.jld"))
 else
     ## Optional cost for drawing down a river (environmental change)
     # Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
-    canalextractioncost = 65.65 * ones(numregions)
+    canalextractioncost = 65.65 * ones(numcanals)
 end
 
 if isfile(datapath("drawdown.csv"))

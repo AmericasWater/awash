@@ -111,13 +111,13 @@ function initunivariateagriculture(m::Model)
                 for tt in 1:numsteps
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, symbol("x$year")]
-                        if ismissing(numgdds)
+                        numgdds = gdds[rr, Symbol("x$year")]
+                        if isna(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, symbol("x$year")]
-                        if ismissing(numkdds)
+                        numkdds = kdds[rr, Symbol("x$year")]
+                        if isna(numkdds)
                             numkdds = 0
                         end
                     else
@@ -168,9 +168,9 @@ function initunivariateagriculture(m::Model)
                 if unicrops[cc] in keys(quickstats_planted)
                     constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
                 else
-                    column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
+                    column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                     constantareas[:, cc] = totalareas[column]*0.404686#Convert to Ha
-                    constantareas[ismissing(totalareas[column]), cc] = 0.
+                    constantareas[isna(totalareas[column]), cc] = 0.
 
                     end
             end

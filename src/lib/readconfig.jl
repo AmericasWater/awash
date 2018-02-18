@@ -106,7 +106,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !ismissing.(newvalue)
+                        if !isna.(newvalue)
                             values[ii] = newvalue
                         end
 

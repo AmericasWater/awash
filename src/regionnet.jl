@@ -43,7 +43,7 @@ else
 
     for row in 1:size(counties, 1)
         neighboring = counties[row, :Neighboring]
-        if !ismissing.(neighboring)
+        if !isna.(neighboring)
             chunks = String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
             index = regionindex(counties, row)
 

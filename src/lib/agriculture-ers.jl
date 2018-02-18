@@ -2,7 +2,7 @@
 Return the 4-letter crop code used by ERS
 """
 function ers_crop(crop::AbstractString)
-    if crop in ["corn", "Maize", "maize", "Corn", "corn.co.rainfed" ,"corn.co.irrigated" ]
+    if crop in ["corn", "Maize", "maize", "Corn", "corn.co.rainfed", "corn.co.irrigated"]
         return "corn"
     end
 
@@ -10,15 +10,15 @@ function ers_crop(crop::AbstractString)
         return "soyb"
     end
 
-    if crop in ["whea", "Wheat", "Wheat.Winter", "wheat.co.rainfed"  , "wheat.co.irrigated"]
+    if crop in ["whea", "wheat", "Wheat", "Wheat.Winter", "wheat.co.rainfed"  , "wheat.co.irrigated"]
         return "whea"
     end
 
-    if crop in ["sorg", "Sorghum","sorghum" ]
+    if crop in ["sorg", "Sorghum", "sorghum"]
         return "sorg"
     end
 
-    if crop in ["barl", "Barley", "Barley.Winter","barley"]
+    if crop in ["barl", "Barley", "Barley.Winter", "barley"]
         return "barl"
     end
 
@@ -99,7 +99,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[ismissing.(result)] = value[1]
+        result[isna.(result)] = value[1]
     end
 
     result
@@ -121,11 +121,10 @@ end
 uniopcost=zeros(numcounties, numunicrops)
 unioverhead=zeros(numcounties,numunicrops)
 
-for cc in (1:7)
-    crop=ers_crop(unicrops[cc])
-    uniopcost[:,cc]=getaverage(crop,"opcost")
-    unioverhead[:,cc]=getaverage(crop,"overhead")
+for cc in 1:length(unicrops)
+    crop = ers_crop(unicrops[cc])
+    if crop != nothing
+        uniopcost[:, cc] = getaverage(crop, "opcost")
+        unioverhead[:, cc] = getaverage(crop, "overhead")
+    end
 end
-uniopcost[:,8]=290
-unioverhead[:,8]=150
-#AVERAGE COUNTY X CROP COST

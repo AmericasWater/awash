@@ -141,7 +141,7 @@ function initunivariateagriculture(m::Model)
             if unicrops[cc] in keys(quickstats_planted)
                 constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
             else
-                column = findfirst(symbol(unicrops[cc]) .== names(totalareas))
+                column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
                 constantareas[ismissing(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end

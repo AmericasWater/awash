@@ -8,7 +8,7 @@ using DataFrames
 include("lib/datastore.jl")
 
 # Load consumptive use data
-consumption = CSV.read(datapath("returnflows/consumption.csv"))
+consumption = CSV.read(datapath("returnflows/consumption.csv"), nullable=false)
 returnpart = Dict([consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)])
 
 @defcomp WaterDemand begin

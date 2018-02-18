@@ -1,21 +1,19 @@
-using CSV, DataFrames
+using CSV, DataFrames, Missings
 include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                        "corn.co.rainfed"=>0,"corn.co.irrigated"=>73.1,
-                         "wheat.co.rainfed" => 0,"wheat.co.irrigated"=>7.4,
+                                "corn.co.rainfed"=>0,"corn.co.irrigated"=>73.1,
+                                "wheat.co.rainfed" => 0,"wheat.co.irrigated"=>7.4,
                                 "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 10.) # (mm/year) / m-deficiency
 
 unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
                               "sorghum" => 19.2, "soybeans" => 330.2,
                               "wheat" => 21.4, "hay" => 386.1,
-                         "corn.co.rainfed" => 0,"corn.co.irrigated" => 1.6 * 304.8,
-                   "wheat.co.rainfed" => 0,"wheat.co.irrigated" => 1.9 * 304.8
-    ) # mm/year
-
-
+                              "corn.co.rainfed" => 0,"corn.co.irrigated" => 1.6 * 304.8,
+                              "wheat.co.rainfed" => 0,"wheat.co.irrigated" => 1.9 * 304.8
+                              ) # mm/year
 
 ## Barley: consistent ~94% irrigated, say at 19 in. when full water stress
 ## Sorghum: Variable 9 - 18% irrigated (.7 ft/acre), so say half intercept half stress
@@ -48,12 +46,12 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Soybeans" => 221., "Wheat" => 263., "Wheat.Winter" => 263., "barley" => 442.,
                          "corn" => 554., "corn.co.rainfed" => 554., "corn.co.irrigated" => 554.,
                          "sorghum" => 314., "soybeans" => 221.,
-"wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
-"hay" => 306.) # USD / acre
+                         "wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
+                         "hay" => 306.) # USD / acre
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 4., "hay" => 4.,
                       "Barley" => 135., "Barley.Winter" => 135., "barley" => 135.0,
-                      "Maize" => 160.,
+                      "Maize" => 160., "corn" => 160.,
                       "corn.co.rainfed" => 160,  "corn.co.irrigated" => 160,
                       "Sorghum" => 50., "sorghum" => 50.,
                       "Soybeans" => 20., "soybeans" => 20.,

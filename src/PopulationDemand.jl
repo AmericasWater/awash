@@ -76,17 +76,17 @@ function initpopulationdemand(m::Model, years)
         for ii in 1:m.indices_counts[:regions]
             fips = m.indices_values[:regions][ii]
             pop = getpopulation(fips, year)
-            if ismissing.(pop) && mod(year, 10) != 0
+            if isna.(pop) && mod(year, 10) != 0
                 # Estimate from decade
                 pop0 = getpopulation(fips, div(year, 10) * 10)
                 pop1 = getpopulation(fips, (div(year, 10) + 1) * 10)
-                if ismissing.(pop1)
+                if isna.(pop1)
                     pop = pop0
                 else
                     pop = pop0 * (1 - mod(year, 10) / 10) + pop1 * mod(year, 10) / 10
                 end
             end
-            if ismissing.(pop)
+            if isna.(pop)
                 pop = 0.
             end
             allpops[ii, tt] = pop

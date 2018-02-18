@@ -1,4 +1,4 @@
-using CSV, YAML
+using YAML
 
 function readconfig(ymlpath)
     if ymlpath[1:11] == "../configs/"
@@ -114,7 +114,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
         column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
-        data = CSV.read(path)
+        data = readtable(path)
         if nrow(data) == length(getindices(defindex))
             # We can use these values directly
             indices = getindices(defindex)
@@ -124,14 +124,14 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
-                values = CSV.read(datapath(defpath))[:, defcol]
+                values = readtable(datapath(defpath))[:, defcol]
                 indices = getindices(defindex, typeof(values[1]))
                 # Fill in the new values where given
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !ismissing.(newvalue)
+                        if !isna.(newvalue)
                             values[ii] = newvalue
                         end
 
@@ -144,6 +144,6 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             end
         end
     else
-        CSV.read(datapath(defpath))[:, defcol]
+        readtable(datapath(defpath))[:, defcol]
     end
 end

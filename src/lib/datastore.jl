@@ -1,5 +1,3 @@
-using CSV, Missings
-
 include("inputcache.jl")
 
 """
@@ -72,7 +70,7 @@ end
 Retrieve only the part of a file within filterstate, if one is set.
 """
 function getfilteredtable(filepath, fipscol=:FIPS)
-    recorded = CSV.read(loadpath(filepath))
+    recorded = readtable(loadpath(filepath))
     if get(config, "filterstate", nothing) != nothing
         recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
     end
@@ -277,6 +275,29 @@ function knownvariable(collection::AbstractString, name::AbstractString)
     else
         error("Unknown input $collection:$name.")
     end
+end
+
+"""
+Reorder values to match the master region indexes.
+Value is NA if a given region isn't in fipses.
+"""
+function dataonmaster(fipses, values)
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    else
+        masterfips = masterregions[:fips]
+    end
+
+    function valueonmaster(fips)
+        index = findfirst(fipses, fips)
+        if index == 0
+            NA
+        else
+            values[index]
+        end
+    end
+
+    map(valueonmaster, masterfips)
 end
 
 lastindexcol = nothing

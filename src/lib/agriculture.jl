@@ -1,10 +1,10 @@
-using CSV, DataFrames
+using DataFrames
 include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                        "corn.co.rainfed"=>0,"corn.co.irrigated"=>73.1,
-                         "wheat.co.rainfed" => 0,"wheat.co.irrigated"=>7.4,
+                                "corn.co.rainfed" => 0,"corn.co.irrigated"=>73.1,
+                                "wheat.co.rainfed" => 0, "wheat.co.irrigated"=>7.4,
                                 "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 10.) # (mm/year) / m-deficiency
 
@@ -48,16 +48,16 @@ cultivation_costs = Dict("alfalfa" => 306., "otherhay" => 306., "Hay" => 306,
                          "Soybeans" => 221., "Wheat" => 263., "Wheat.Winter" => 263., "barley" => 442.,
                          "corn" => 554., "corn.co.rainfed" => 554., "corn.co.irrigated" => 554.,
                          "sorghum" => 314., "soybeans" => 221.,
-"wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
-"hay" => 306.) # USD / acre
+                         "wheat" => 263., "wheat.co.rainfed" => 263., "wheat.co.irrigated" => 263,
+                         "hay" => 306.) # USD / acre
 
 maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 4., "hay" => 4.,
                       "Barley" => 135., "Barley.Winter" => 135., "barley" => 135.0,
-                      "Maize" => 160.,
+                      "Maize" => 160., "corn" => 160.,
                       "corn.co.rainfed" => 160,  "corn.co.irrigated" => 160,
                       "Sorghum" => 50., "sorghum" => 50.,
                       "Soybeans" => 20., "soybeans" => 20.,
-                      "Wheat" => 100., "Wheat.Winter" => 100.,
+                      "Wheat" => 100., "Wheat.Winter" => 100., "wheat" => 100.,
                       "wheat.co.rainfed" => 100,  "wheat.co.irrigated" => 100)
 
 crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
@@ -118,9 +118,9 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    if ismissing.(sdev1) || isnan.(sdev1)
+    if isna.(sdev1) || isnan.(sdev1)
         mean2, sdev2
-    elseif ismissing.(sdev2) || isnan.(sdev2)
+    elseif isna.(sdev2) || isnan.(sdev2)
         mean1, sdev1
     else
         (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
@@ -128,7 +128,7 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
-    if ismissing.(mean1)
+    if isna.(mean1)
         meanfallback, sdevfallback
     else
         mean1, sdev1
@@ -173,7 +173,7 @@ if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling be
 else
     # Prepare all the agricultural models
     agmodels = Dict{String, Dict{String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = CSV.read(joinpath(loadpath("agriculture/nationals.csv")))
+    nationals = readtable(joinpath(loadpath("agriculture/nationals.csv")))
     nationalcrop = Dict{String, String}("barley" => "Barley", "corn" => "Maize",
                                         "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                         "wheat" => "Wheat", "hay" => "alfalfa")
@@ -186,14 +186,14 @@ else
         national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
         bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
         if bayespath != nothing
-            counties = CSV.read(bayespath)
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
             croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
             if croppath == nothing
                 continue
             end
-            counties = CSV.read(croppath)
+            counties = readtable(croppath)
             combiner = gaussianpool
         end
 
@@ -271,22 +271,22 @@ Read Naresh's special yield file format
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
-        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
         bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
-        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
         bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
-        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
         bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
-        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
         bayespath = loadpath("agriculture/bayesian/Wheat.csv")
@@ -297,7 +297,7 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
 
     if use2010yields
         # Collect coefficients to remove the trend
-        coefficients = CSV.read(bayespath)
+        coefficients = readtable(bayespath)
         timecoeffs = coefficients[coefficients[:coef] .== "time", :]
 
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
@@ -321,8 +321,8 @@ end
 Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
-    df = CSV.read(filepath)
-    df[:fips] = [ismissing.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df = readtable(filepath)
+    df[:fips] = [isna.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 
     # Reorder these values to match regions

@@ -1,5 +1,4 @@
 using DataFrames
-using CSV
 using Mimi
 
 include("lib/agriculture.jl")
@@ -152,7 +151,7 @@ end
 
 
 function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
-    sorghum=CSV.read(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
     sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]
     hallsingle(m, :Agriculture, :sorghumarea,gen)

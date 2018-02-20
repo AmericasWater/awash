@@ -1,4 +1,4 @@
-using CSV, DataFrames
+using DataFrames
 using RData
 
 include("lib/datastore.jl")
@@ -18,12 +18,12 @@ if isfile(datapath("canalextractioncost$suffix.jld"))
 else
     ## Optional cost for drawing down a river (environmental change)
     # Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
-    canalextractioncost = 65.65 * ones(numregions)
+    canalextractioncost = 65.65 * ones(numcanals)
 end
 
 if isfile(datapath("drawdown.csv"))
     # gw: extraction cost prop to drawdown to watertable
-    drawdown = CSV.read(datapath("drawdown.csv"))
+    drawdown = readtable(datapath("drawdown.csv"))
     #80.6 replaced with 1000000
     aquiferextractioncost=array(0.3048*drawdown[:mean]*energycostperlift)
 else

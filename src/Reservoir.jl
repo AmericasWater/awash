@@ -1,11 +1,10 @@
 # The reservoir component
 #
 # Manages the storage in reservoirs over time
-using CSV
 using Mimi
 using Distributions
 
-reservoirdata = CSV.read(datapath("reservoirs/allreservoirs.csv"))
+reservoirdata = readtable(datapath("reservoirs/allreservoirs.csv"))
 
 @defcomp Reservoir begin
 	reservoirs = Index()
@@ -93,15 +92,12 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
-    reservoir[:inflows] = zeros(numreservoirs, numsteps);
-    reservoir[:captures] = zeros(numreservoirs, numsteps);
-
     if config["dataset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
         reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
         reservoir[:storage0] = 1.3*ones(numreservoirs)
         reservoir[:evaporation] = 0.01*ones(numreservoirs, numsteps)
-    elseif config["rescap"] == "zero"
+    elseif "rescap" in keys(config) && config["rescap"] == "zero"
         reservoir[:storagecapacitymax] = zeros(numreservoirs);
        	reservoir[:storagecapacitymin] = zeros(numreservoirs);
        	reservoir[:storage0] = zeros(numreservoirs);
@@ -113,7 +109,7 @@ function initreservoir(m::Model, name=nothing)
      	reservoir[:storagecapacitymin] = zeros(numreservoirs);
         reservoir[:storage0] = rcmax*0.;
    	reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
-        if config["reshalf"]=="half"
+        if "reshalf" in keys(config) && config["reshalf"]=="half"
             reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
         end
     end

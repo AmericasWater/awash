@@ -162,6 +162,5 @@ end
 function constraintoffset_reservoir_storage0(m::Model)
     gen(rr, tt) = (1-m.external_parameters[:evaporation].values[rr])^(tt*config["timestep"]) * m.parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
->>>>>>> 7a0ff55... add reservoir estimation to radii analysis
 end
 

@@ -92,6 +92,8 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
+    reservoir[:captures] = zeros(numreservoirs, numsteps);
+
     if config["dataset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
         reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)
@@ -109,7 +111,7 @@ function initreservoir(m::Model, name=nothing)
      	reservoir[:storagecapacitymin] = zeros(numreservoirs);
         reservoir[:storage0] = rcmax*0.;
    	reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
-        if "reshalf" in keys(config) && config["reshalf"]=="half"
+        if "reshalf" in keys(config) && config["reshalf"] == "half"
             reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
         end
     end
@@ -144,21 +146,22 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-	roomsingle(m, :Reservoir, :storage, :captures, (vrr, vtt, prr, ptt) -> (1-m.external_parameters[:evaporation].values[prr])^(config["timestep"]*(vtt-ptt)) * ((vrr == prr) && (vtt >= ptt)))
+    roomchunks(m, :Reservoir, :storage, :captures, (vtt, ptt) -> ifelse(vtt >= ptt, spdiagm((1-m.external_parameters[:evaporation].values[:, vtt]).^(config["timestep"]*(vtt-ptt)), 0), spzeros(numreservoirs, numreservoirs)), [:time], [:time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-	gen(rr, tt) = m.external_parameters[:storagecapacitymin].values[rr]
-	hallsingle(m, :Reservoir, :storage, gen)
+    gen(rr) = m.external_parameters[:storagecapacitymin].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen, [:time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
-	gen(rr, tt) = m.external_parameters[:storagecapacitymax].values[rr]
-	hallsingle(m, :Reservoir, :storage, gen)
+    gen(rr) = m.external_parameters[:storagecapacitymax].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen, [:time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-	gen(rr, tt) = (1-m.external_parameters[:evaporation].values[rr])^((tt - 1)*config["timestep"]) * m.external_parameters[:storage0].values[rr]
-	hallsingle(m, :Reservoir, :storage, gen)
+    gen(rr, tt) = (1-m.external_parameters[:evaporation].values[rr])^(tt*config["timestep"]) * m.parameters[:storage0].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen)
+>>>>>>> 7a0ff55... add reservoir estimation to radii analysis
 end
 

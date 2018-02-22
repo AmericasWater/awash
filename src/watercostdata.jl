@@ -12,18 +12,18 @@ energycostperlift = 0.423133696 # in $/1000m3 /m of lift | value from CALVIN was
 ### EXTRACTION COST
 # sw: compute relative elevation if source downhill, 0 otherwise
 # if missing information, default value is specified by naelev
-if isfile(loadpath("canalextractioncost$suffix.jld"))
+if isfile(datapath("canalextractioncost$suffix.jld"))
     println("Loading extraction cost from saved data...")
-    canalextractioncost = deserialize(open(loadpath("canalextractioncost$suffix.jld"), "r"))*energycostperlift;
+    canalextractioncost = deserialize(open(datapath("canalextractioncost$suffix.jld"), "r"))*energycostperlift;
 else
     ## Optional cost for drawing down a river (environmental change)
     # Marginal cost is $3178.73 / MG, but 92% not subject to treatment costs, so $248.53 / MG
     canalextractioncost = 65.65 * ones(numregions)
 end
 
-if isfile(loadpath("drawdown.csv"))
+if isfile(datapath("drawdown.csv"))
     # gw: extraction cost prop to drawdown to watertable
-    drawdown = readtable(loadpath("drawdown.csv"))
+    drawdown = readtable(datapath("drawdown.csv"))
     #80.6 replaced with 1000000
     aquiferextractioncost=array(0.3048*drawdown[:mean]*energycostperlift)
 else

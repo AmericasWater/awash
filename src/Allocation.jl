@@ -137,7 +137,7 @@ function grad_allocation_cost_waterfromsupersource(m::Model)
 end
 
 function grad_allocation_cost_withdrawals(m::Model)
-    @assert nrow(draws) == size(m.external_parameters[:unitswcost].values[pp, 1])[1]
+    @assert nrow(draws) == size(m.external_parameters[:unitswcost].values[:, 1])[1]
 
     function generate(A)
         # Fill in COUNTIES x CANALS matrix

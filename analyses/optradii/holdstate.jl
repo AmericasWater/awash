@@ -6,7 +6,9 @@ using MathProgBase
 using Gurobi
 solver = GurobiSolver()
 
-house = optimization_given(false, false)
+allowreservoirs = true
+
+house = optimization_given(false, allowreservoirs)
 @time sol = houseoptimize(house, solver)
 
 ## Prepare constraints on all cross-state flows
@@ -18,7 +20,7 @@ outflows = offset - values
 outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
 # outflows constrained as cumulative runoff
 
-house = optimization_given(true, false);
+house = optimization_given(true, allowreservoirs);
 
 @time sol_before = houseoptimize(house, solver)
 summarizeparameters(house, sol_before.sol)

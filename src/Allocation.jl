@@ -116,24 +116,6 @@ function initallocation(m::Model)
     allocation
 end
 
-"""
-The objective is to minimize water allocation costs at all time
-"""
-function waterallocationobj(m::Model)
-    -sum(m.components[:Allocation].Variables.cost)
-end
-
-function makeconstraintdemandmet(aa, tt)
-    # The constraint function
-    function constraint(model)
-       m.components[:Allocation].Parameters.watertotaldemand[aa,tt] - m.components[:Allocation].Variables.waterallocated[aa,tt]
-    end
-end
-
-function soleobjective_allocation(m::Model)
-    sum(model[:Allocation, :cost])
-end
-
 function grad_allocation_balance_waterfromgw(m::Model)
     roomdiagonal(m, :Allocation, :balance, :waterfromgw, 1.)
 end
@@ -147,7 +129,7 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> m.parameters[:unitgwcost].values[rr,tt])
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> m.external_parameters[:unitgwcost].values[rr,tt])
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -161,7 +143,7 @@ function grad_allocation_cost_withdrawals(m::Model)
             println(pp)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
-                A[rr, pp] = m.parameters[:unitswcost].values[pp]
+                A[rr, pp] = m.external_parameters[:unitswcost].values[pp]
             end
         end
     end

@@ -21,7 +21,7 @@ requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
 requirepackage("OptiMimi")
-Pkg.checkout("OptiMimi", "julia5")
+Pkg.checkout("OptiMimi", "julia6")
 requirepackage("RData")
 requirepackage("Clp")
 

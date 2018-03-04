@@ -149,7 +149,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite(vv))
+    for ii in find(!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

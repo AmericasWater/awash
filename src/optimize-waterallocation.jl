@@ -37,13 +37,13 @@ summarizeparameters(house, sol.sol)
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
-serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+serialize(open(cachepath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
+serialize(open(cachepath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+serialize(open(cachepath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
 
 if withreservoirs
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
-elseif isfile(datapath("extraction/captures$suffix.jld"))
+    serialize(open(cachepath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
+elseif isfile(cachepath("extraction/captures$suffix.jld"))
     rm(datapath("extraction/captures$suffix.jld"))
 end
 

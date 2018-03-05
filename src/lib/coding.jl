@@ -6,7 +6,7 @@ nullallow has the same number of elements as types.
   nullallow[ii] may be a value, in which case nulls are replaced with the value.
 """
 function robustcsvread(filepath::String, types::Vector{DataType}, null::String, nullallow::Vector{Any})
-    df = CSV.read(filepath, types=types, null=null)
+    df = readtable(filepath, eltypes=types, nastrings=[null])
     for ii in 1:length(types)
         try
             if nullallow[ii] == nothing
@@ -24,11 +24,11 @@ end
 
 function replacemissing{T}(df::DataFrame, column::Symbol, replace::T)
     entries = df[column]
-    entries[entries.isnull] = replace
+    entries[isna.(entries)] = replace
     convert(Vector{T}, entries)
 end
 
 function dropmissing(df::DataFrame, column::Symbol)
-    df[.!df[column].isnull,:]
+    df[.!isna.(df[column]),:]
 end
 

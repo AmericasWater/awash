@@ -1,8 +1,10 @@
 include("../../src/lib/readconfig.jl")
 config = readconfig("../configs/complete-yearly.yml")
 
+allowreservoirs = true
+
 include("../../src/optimization-given.jl")
-house = optimization_given(false, false)
+house = optimization_given(false, allowreservoirs)
 
 using MathProgBase
 using Gurobi

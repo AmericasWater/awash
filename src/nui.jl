@@ -7,7 +7,7 @@ end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi", "julia5")
+    Pkg.checkout("OptiMimi")
 end
 
 if Pkg.installed("Graphs") == nothing

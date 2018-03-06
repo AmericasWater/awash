@@ -73,18 +73,6 @@ function run_timestep(c::Reservoir, tt::Int)
 	end
 end
 
-function makeconstraintresmin(rr, tt)
-	function constraint(model)
-		-m[:Reservoir, :storage][rr, tt] + m.components[:Reservoir].Parameters.storagecapacitymin[rr]
-	end
-end
-
-function makeconstraintresmax(rr, tt)
-	function constraint(model)
-		m[:Reservoir, :storage][rr, tt] - m.components[:Reservoir].Parameters.storagecapacitymax[rr] #
-	end
-end
-
 function initreservoir(m::Model, name=nothing)
     if name == nothing
         reservoir = addcomponent(m, Reservoir)
@@ -160,7 +148,7 @@ function constraintoffset_reservoir_storagecapacitymax(m::Model)
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, tt) = (1-m.external_parameters[:evaporation].values[rr])^(tt*config["timestep"]) * m.parameters[:storage0].values[rr]
+    gen(rr, tt) = (1-m.external_parameters[:evaporation].values[rr])^(tt*config["timestep"]) * m.external_parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 

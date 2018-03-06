@@ -2,8 +2,7 @@
 
 include("lib/readconfig.jl")
 if !isdefined(:config)
-    #config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-    config = readconfig("../configs/paleo.yml")
+    config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 end
 
 withreservoirs = false

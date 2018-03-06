@@ -49,7 +49,7 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
     df = readtable(loadpath("global/ers.csv"))
 
     reglink = readtable(loadpath("agriculture/ers/reglink.csv"))
-    fips = canonicalindex(reglink[:FIPS])
+    fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
     if (item == "cost")

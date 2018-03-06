@@ -1,3 +1,5 @@
+using NullableArrays
+
 include("inputcache.jl")
 
 """

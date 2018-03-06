@@ -28,7 +28,10 @@ end
 numregions = numcounties # Going to deprecate `numcounties`
 numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
-if config["dataset"] == "three"
+
+if "scenarios" in keys(config)
+    numsteps = config["scenario-length"]
+elseif config["dataset"] == "three"
     numsteps = 3
 elseif "endmonth" in keys(config) && "startmonth" in keys(config)
     numsteps = round.(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
@@ -68,6 +71,7 @@ function newmodel()
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
     setindex(m, :aquifers, collect(1:numaquifers))
+    setindex(m, :scenarios, length(get(config, "scenarios", [1])))
 
     return m
 end

@@ -14,6 +14,7 @@ function requirepackage(pkg, checkout=false)
     end
 end
 
+requirepackage("CSV")
 requirepackage("YAML")
 requirepackage("Mimi")
 Pkg.checkout("Mimi")
@@ -24,6 +25,7 @@ requirepackage("OptiMimi")
 Pkg.checkout("OptiMimi")
 requirepackage("RData")
 requirepackage("Clp")
+requirepackage("NullableArrays")
 
 include("test_optimize_surface.jl")
 include("test_simulate.jl")

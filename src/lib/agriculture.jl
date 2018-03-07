@@ -137,16 +137,16 @@ end
 
 function findcroppath(prefix, crop, suffix, recurse=true)
     println(prefix * crop * suffix)
-    if isfile(datapath(prefix * crop * suffix))
-        return datapath(prefix * crop * suffix)
+    if isfile(loadpath(prefix * crop * suffix))
+        return loadpath(prefix * crop * suffix)
     end
 
-    if isupper(crop[1]) && isfile(datapath(prefix * lcfirst(crop) * suffix))
-        return datapath(prefix * lcfirst(crop) * suffix)
+    if isupper(crop[1]) && isfile(loadpath(prefix * lcfirst(crop) * suffix))
+        return loadpath(prefix * lcfirst(crop) * suffix)
     end
 
-    if islower(crop[1]) && isfile(datapath(prefix * ucfirst(crop) * suffix))
-        return datapath(prefix * ucfirst(crop) * suffix)
+    if islower(crop[1]) && isfile(loadpath(prefix * ucfirst(crop) * suffix))
+        return loadpath(prefix * ucfirst(crop) * suffix)
     end
 
     if !recurse
@@ -173,7 +173,7 @@ if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling be
 else
     # Prepare all the agricultural models
     agmodels = Dict{String, Dict{String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = readtable(joinpath(datapath("agriculture/nationals.csv")))
+    nationals = readtable(joinpath(loadpath("agriculture/nationals.csv")))
     nationalcrop = Dict{String, String}("barley" => "Barley", "corn" => "Maize",
                                         "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                         "wheat" => "Wheat", "hay" => "alfalfa")
@@ -253,7 +253,7 @@ end
 Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
-    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
     df[:, crop] * 0.404686
 end
 
@@ -261,7 +261,7 @@ end
 Return the current irrigation for the given crop, in mm
 """
 function cropirrigationrates(crop::AbstractString)
-    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
     getunivariateirrigationrates(crop)
 end
 
@@ -271,25 +271,25 @@ Read Naresh's special yield file format
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
-        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
-        bayespath = datapath("agriculture/bayesian/Corn.csv")
+        bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
-        df = readtable(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
-        bayespath = datapath("agriculture/bayesian/Corn.csv")
+        bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
-        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
-        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+        bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
-        df = readtable(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
-        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+        bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     end
 
     # Get the order into our fips

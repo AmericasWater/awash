@@ -7,16 +7,16 @@ if config["dataset"] == "states"
     lateralconductivity = zeros(49,49);
     aquiferconnexion = zeros(49,49);
 
-elseif isfile(datapath("gwmodel/dfgw$suffix.csv"))
+elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = readtable(datapath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion$suffix.csv")));
+    dfgw = readtable(loadpath("gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
-elseif config["dataset"] == "counties"
-    dfgw = readtable(datapath("gwmodel/dfgw.csv"));
-    lateralconductivity = convert(Array, readtable(datapath("gwmodel/lateralconductivity.csv")));
-    aquiferconnexion = convert(Array, readtable(datapath("gwmodel/aquiferconnexion.csv")));
+elseif config["dataset"] == "counties" || config["parent-dataset"] == "counties"
+    dfgw = readtable(loadpath("gwmodel/dfgw.csv"));
+    lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity.csv")));
+    aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion.csv")));
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")

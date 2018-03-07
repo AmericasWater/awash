@@ -4,7 +4,7 @@
 using Mimi
 using Distributions
 
-reservoirdata = readtable(datapath("reservoirs/allreservoirs.csv"))
+reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
 
 @defcomp Reservoir begin
 	reservoirs = Index()

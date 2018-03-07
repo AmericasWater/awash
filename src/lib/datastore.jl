@@ -55,6 +55,10 @@ function cached_fallback(filename, generate)
             return deserialize(open(cachepath("$filename$suffix-$confighash.jld")))
         elseif isfile(cachepath("$filename$suffix.jld"))
             return deserialize(open(cachepath("$filename$suffix.jld")))
+        elseif isfile(datapath("$filename$suffix-$confighash.jld"))
+            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+        elseif isfile(datapath("$filename$suffix.jld"))
+            return deserialize(open(datapath("$filename$suffix.jld")))            
         end
     end
 
@@ -119,7 +123,7 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32}
+    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}

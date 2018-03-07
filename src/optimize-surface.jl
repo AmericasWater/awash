@@ -13,8 +13,8 @@ house = optimization_given(false, allowreservoirs)
 serialize(open(datapath("fullhouse$suffix.jld"), "w"), house)
 
 using MathProgBase
-using Gurobi
-solver = GurobiSolver()
+using Clp
+solver = ClpSolver()
 
 @time sol = houseoptimize(house, solver)
 

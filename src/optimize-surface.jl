@@ -13,8 +13,8 @@ house = optimization_given(false, allowreservoirs)
 serialize(open(datapath("fullhouse$suffix.jld"), "w"), house)
 
 using MathProgBase
-using Gurobi
-solver = GurobiSolver()
+using Clp
+solver = ClpSolver()
 
 @time sol = houseoptimize(house, solver)
 
@@ -35,7 +35,7 @@ end
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)
 
-cwro = deserialize(open(datapath("partialhouse2$suffix.jld"), "r"));
+cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
 offset = cwro.f
 offset[isnan.(offset)] = 0
 outflows = offset - values

@@ -25,6 +25,7 @@ requirepackage("OptiMimi")
 Pkg.checkout("OptiMimi")
 requirepackage("RData")
 requirepackage("Clp")
+requirepackage("NullableArrays")
 
 include("test_optimize_surface.jl")
 include("test_simulate.jl")

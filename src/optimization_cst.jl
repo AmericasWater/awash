@@ -131,16 +131,16 @@ if redohouse
     
     # Clean up
 
-    house.b[isnan(house.b)] = 0
-    house.b[!isfinite(house.b)] = 0
-    house.f[isnan(house.f)] = 0
-    house.f[!isfinite(house.f)] = 0
+    house.b[isnan.(house.b)] = 0
+    house.b[!isfinite.(house.b)] = 0
+    house.f[isnan.(house.f)] = 0
+    house.f[!isfinite.(house.f)] = 0
 
     ri, ci, vv = findnz(house.A)
-    for ii in find(isnan(vv))
+    for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite(vv))
+    for ii in find(!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

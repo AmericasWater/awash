@@ -1,11 +1,15 @@
 using YAML
 
 function readconfig(ymlpath)
-    if ymlpath[1:11] == "../configs/"
+    if length(ymlpath) > 11 && ymlpath[1:11] == "../configs/"
         ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
     end
 
     config = YAML.load(open(ymlpath))
+    if "parent-config" in keys(config)
+        config = mergeconfigs(readconfig(joinpath(dirname(ymlpath), config["parent-config"] * ".yml")), config)
+    end
+    
     dataset = readdatasetconfig(config["dataset"])
 
     config = mergeconfigs(dataset, config)

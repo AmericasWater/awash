@@ -2,7 +2,7 @@ using Mimi
 using Distributions
 
 include("lib/datastore.jl")
-include("watercostdata.jl")
+include("lib/watercostdata.jl")
 
 @defcomp Allocation begin
     regions = Index()

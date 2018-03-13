@@ -5,7 +5,12 @@ if !isdefined(:config)
     config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 end
 
-withreservoirs = false
+if "rescap" in keys(config) && config["rescap"] == "zero"
+	withreservoirs = false
+else
+	withreservoirs = true
+end
+
 
 # Run the water demand simulation to determine values
 include("model-waterdemand.jl")

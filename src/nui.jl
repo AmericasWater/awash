@@ -131,8 +131,10 @@ Produce a choropleth map of an output variable from a model run.
 * `component`: a symbol for a component (e.g., :Allocation)
 * `variable`: a symbol for a variable (e.g., :waterallocated)
 """
-function mapdata(component, variable, subset=nothing)
-    if subset == nothing
+function mapdata(component, variable=nothing, subset=nothing)
+    if variable == nothing
+	data = vec(component)
+    elseif subset == nothing
         data = vec(model[component, variable])
     else
         data = vec(model[component, variable][subset...])

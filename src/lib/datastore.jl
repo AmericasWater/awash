@@ -1,8 +1,14 @@
+using NullableArrays
+
+include("inputcache.jl")
+
 """
 Return the full path to a standard data file.
 """
-function datapath(filename)
-    dataset = get(config, "dataset", "counties")
+function datapath(filename, dataset=nothing)
+    if dataset == nothing
+        dataset = get(config, "dataset", "counties")
+    end
     if !startswith(filename, "global") && !startswith(filename, "mapping")
         joinpath(dirname(@__FILE__), "../../data/$dataset/$filename")
     else
@@ -11,11 +17,41 @@ function datapath(filename)
 end
 
 """
+Return the full path to a file for reading, using dataset logic.
+"""
+function loadpath(filename)
+    fullpath = datapath(filename)
+    if isfile(fullpath)
+        return fullpath
+    end
+
+    if "extdatasets" in keys(config)
+        if filename in keys(config["extdatasets"])
+            if !isdir(dirname(fullpath))
+                mkpath(dirname(fullpath))
+            end
+            download(config["extdatasets"][filename]["url"], fullpath)
+            return fullpath
+        end
+    end
+
+    if "parent-dataset" in keys(config)
+        return datapath(filename, config["parent-dataset"]) # NOTE: This won't recurse fully yet
+    end
+
+    return fullpath # posit the filepath anyway
+end
+
+"""
 Return the full path to a cache data file.
 """
 function cachepath(filename)
     dataset = get(config, "dataset", "counties")
-    joinpath(dirname(@__FILE__), "../../data/cache/$dataset/$filename")
+    cachedir = joinpath(dirname(@__FILE__), "../../data/cache/$dataset")
+    if !isdir(cachedir)
+        mkdir(cachedir)
+    end
+    joinpath(cachedir, filename)
 end
 
 """
@@ -36,7 +72,7 @@ end
 Retrieve only the part of a file within filterstate, if one is set.
 """
 function getfilteredtable(filepath, fipscol=:FIPS)
-    recorded = readtable(datapath(filepath))
+    recorded = readtable(loadpath(filepath))
     if get(config, "filterstate", nothing) != nothing
         recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
     end
@@ -55,6 +91,10 @@ function cached_fallback(filename, generate)
             return deserialize(open(cachepath("$filename$suffix-$confighash.jld")))
         elseif isfile(cachepath("$filename$suffix.jld"))
             return deserialize(open(cachepath("$filename$suffix.jld")))
+        elseif isfile(datapath("$filename$suffix-$confighash.jld"))
+            return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
+        elseif isfile(datapath("$filename$suffix.jld"))
+            return deserialize(open(datapath("$filename$suffix.jld")))            
         end
     end
 
@@ -119,11 +159,17 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32}
+    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
+        return convert(Vector{String}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
+    end
+    if typeof(indexes) <: NullableArrays.NullableArray{String, 1}
+        return convert(Vector{String}, map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
@@ -149,6 +195,91 @@ function getregionindices(fipses, tomaster=true)
         println(typeof(masterfips))
         println(typeof(fipses))
         convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
+    end
+end
+
+"""Load a known, named input from its file."""
+function knownvariable(collection::AbstractString, name::AbstractString)
+    dataset = get(config, "dataset", "counties")
+
+    if collection == "runoff"
+        if name in ["gage_latitude", "gage_longitude", "contributing_area"]
+            if dataset == "paleo"
+                if name == "contributing_area"
+                    df = cachereadtable(loadpath("waternet/allarea.csv"))
+                    replacemissing(df, :area, 0.)
+                else
+                    waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
+                    mapping = Dict("gage_latitude" => "lat", "gage_longitude" => "lon")
+                    waternetdata["network"][:, Symbol(mapping[name])]
+                end
+            else
+                dncload("runoff", name, ["gage"])
+            end
+        elseif name == "totalflow"
+            if dataset == "paleo"
+                ds = cachereadrda(loadpath("waternet/runoff.RData"))
+                addeds = convert(Matrix{Float64}, ds["DISAGG"][:, 3:end])'
+
+                ## Inpute the added water for all junctions
+                waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
+                stations = waternetdata["stations"]
+                stations[:gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
+                network = waternetdata["network"]
+                network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
+
+                contribs = cachereadtable(loadpath("waternet/contribs.csv"), types=[String, String, Float64], null="NA")
+                contribs = dropmissing(contribs, :sink)
+
+                addeds = vcat(addeds, zeros(nrow(network) - nrow(stations), size(addeds)[2]))
+
+                for gageid in gaugeorder
+                    gageii = findfirst(network[:, :gageid] .== gageid)
+                    if gageii <= nrow(stations)
+                        continue # Already done
+                    end
+
+                    controws = contribs[contribs[:sink] .== gageid, :]
+
+                    sumadded = zeros(size(addeds)[2])
+                    numadded = 0
+
+                    for jj in 1:nrow(controws)
+                        if isna(controws[jj, :factor])
+                            continue
+                        end
+                        gagejj = findfirst(controws[jj, :source] .== network[:gageid])
+                        sumadded += addeds[gagejj, :] * controws[jj, :factor]
+                        numadded += 1
+                    end
+
+                    if numadded == 0
+                        continue
+                    end
+
+                    if any(isna.(sumadded))
+                        println(controws)
+                    end
+
+                    addeds[gageii, :] = sumadded' / numadded
+                end
+
+                addeds
+            else
+                dncload("runoff", name, ["month", "gage"])
+            end
+        elseif name == "month"
+            if dataset == "paleo"
+                ds = cachereadrda(loadpath("waternet/runoff.RData"))
+                map(x -> parse(Float64, x), ds["DISAGG"][:, 1]) + (ds["DISAGG"][:, 2] - .5) / 12
+            else
+                dncload("runoff", name, ["month"])
+            end
+        else
+            error("Unknown input $collection:$name.")
+        end
+    else
+        error("Unknown input $collection:$name.")
     end
 end
 

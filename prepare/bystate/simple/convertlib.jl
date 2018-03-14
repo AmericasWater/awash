@@ -4,7 +4,7 @@ function translateregion(region, subdf, columns, todrop, renames, translate)
     # Add on each column
     for name in names(subdf)
         value = translate(name, subdf[name])
-        if !isna.(value) && value == nothing
+        if !isna(value) && value == nothing
             push!(todrop, name)
         elseif value == :targetid
             if !in(name, keys(columns))
@@ -14,7 +14,7 @@ function translateregion(region, subdf, columns, todrop, renames, translate)
             renames[name] = :targetid
         else
             if !in(name, keys(columns))
-                if isna.(value)
+                if isna(value)
                     columns[name] = DataVector{Float64}([])
                 else
                     columns[name] = DataVector{typeof(value)}([])

@@ -7,7 +7,7 @@ end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi", "julia6")
+    Pkg.checkout("OptiMimi")
 end
 
 if Pkg.installed("Graphs") == nothing
@@ -16,6 +16,10 @@ end
 
 if Pkg.installed("MathProgBase") == nothing
     Pkg.add("MathProgBase")
+end
+
+if Pkg.installed("Missings") == nothing
+    Pkg.add("Missings")
 end
 
 if Pkg.installed("RCall") == nothing
@@ -112,21 +116,11 @@ function getvariables(component)
     DataFrame(name=[parlist; varlist], dims=[pardims; vardims])
 end
 
-function getdata(component, variable)
-    if variable in variables(model, component)
-        model[component, variable]
-    elseif variable in collect(keys(getmetainfo(model, component).parameters))
-        model.external_parameters[variable]
-    else
-        error("Unknown parameter or variable")
-    end
-end
-
 function savedata(filename, component, variable, subset=nothing)
     if subset == nothing
-        writecsv(filename, getdata(component, variable))
+        writecsv(filename, model[component, variable])
     else
-        writecsv(filename, getdata(component, variable)[subset...])
+        writecsv(filename, model[component, variable][subset...])
     end
 end
 
@@ -139,9 +133,9 @@ Produce a choropleth map of an output variable from a model run.
 """
 function mapdata(component, variable, subset=nothing)
     if subset == nothing
-        data = vec(getdata(component, variable))
+        data = vec(model[component, variable])
     else
-        data = vec(getdata(component, variable)[subset...])
+        data = vec(model[component, variable][subset...])
     end
 
     if length(data) != numcounties

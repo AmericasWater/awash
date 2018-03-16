@@ -8,6 +8,8 @@ includeus = true
 
 maxprofit = Dict{Int64, Vector{Any}}()
 
+allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
+
 # NOTE: Using otherhay edds for cotton and rice
 bayes_crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
@@ -24,11 +26,11 @@ for ii in 1:length(bayes_crops)
     bayespath = datapath("agriculture/bayesian/$(crop).csv")
     df = readtable(bayespath)
     for regionid in unique(regionindex(df, :, tostr=false))
-        intercept = df[(df[:fips] .== regionid) & (df[:coef] .== "intercept"), :mean][1]
-        gdds_coeff = df[(df[:fips] .== regionid) & (df[:coef] .== "gdds"), :mean][1]
-        kdds_coeff = df[(df[:fips] .== regionid) & (df[:coef] .== "kdds"), :mean][1]
-        time_coeff = df[(df[:fips] .== regionid) & (df[:coef] .== "time"), :mean][1]
-        wreq_coeff = df[(df[:fips] .== regionid) & (df[:coef] .== "wreq"), :mean][1]
+        intercept = df[(df[:fips] .== regionid) .& (df[:coef] .== "intercept"), :mean][1]
+        gdds_coeff = df[(df[:fips] .== regionid) .& (df[:coef] .== "gdds"), :mean][1]
+        kdds_coeff = df[(df[:fips] .== regionid) .& (df[:coef] .== "kdds"), :mean][1]
+        time_coeff = df[(df[:fips] .== regionid) .& (df[:coef] .== "time"), :mean][1]
+        wreq_coeff = df[(df[:fips] .== regionid) .& (df[:coef] .== "wreq"), :mean][1]
 
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
         try
@@ -42,6 +44,8 @@ for ii in 1:length(bayes_crops)
 
             profit = yield_irrigated * price_row - costs_row
 
+            allprofits[ii, weatherrow] = profit
+
             if profit > get(maxprofit, regionid, [-Inf])[1]
                 maxprofit[regionid] = [profit, crop, yield_irrigated, price_row, costs_row]
             # else
@@ -52,7 +56,9 @@ for ii in 1:length(bayes_crops)
     end
 end
 
-result = DataFrame(fips=Int64[], profit=Float64[], crop=UTF8String[], yield=Float64[], price=Float64[], costs=Float64[])
+writecsv("currentprofits.csv", allprofits')
+
+result = DataFrame(fips=Int64[], profit=Float64[], crop=String[], yield=Float64[], price=Float64[], costs=Float64[])
 
 for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])

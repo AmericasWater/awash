@@ -10,7 +10,7 @@ fips <- matrix(mastercounties$fips, nrow = 3109, ncol = length(time_ind0)) %>% a
 time_ind <- t(matrix(time_ind0, nrow = length(time_ind0), ncol = 3109)) %>% as.vector() %>% as.factor()
 state_ind <- matrix(mastercounties$state, nrow = 3109, ncol = max(time_ind0)) %>% as.vector()
 region_ind <- state_ind
-region_ind[which(region_ind %in% c("CO", "ME", "MA", "NH", "RI", "VT"))] <- "I"
+region_ind[which(region_ind %in% c("CT", "ME", "MA", "NH", "RI", "VT"))] <- "I"
 region_ind[which(region_ind %in% c("NJ", "NY"))] <- "II"
 region_ind[which(region_ind %in% c("DE", "DC", "MD", "PA", "VA", "WV"))] <- "III"
 region_ind[which(region_ind %in% c("AL", "FL", "GA", "KY", "MS", "NC", "SC", "TN"))] <- "IV"
@@ -18,7 +18,7 @@ region_ind[which(region_ind %in% c("IL", "IN", "MI", "MN", "OH", "WI"))] <- "V"
 region_ind[which(region_ind %in% c("AR", "LA", "NM", "OK", "TX"))] <- "VI"
 region_ind[which(region_ind %in% c("IA", "KS", "MO", "NE"))] <- "VII"
 region_ind[which(region_ind %in% c("CO", "MT", "ND", "SD", "UT", "WY"))] <- "VIII"
-region_ind[which(region_ind %in% c("AZ", "CA", "NE"))] <- "IX"
+region_ind[which(region_ind %in% c("AZ", "CA", "NV"))] <- "IX"
 region_ind[which(region_ind %in% c("ID", "OR", "WA"))] <- "X"
 
 # - failure matrix, swsupply matrix, gwsupply matrix
@@ -44,43 +44,34 @@ df <- data.frame(time_ind, fips, state_ind, region_ind, failureopt, failuresin, 
 # 1. Timeseries analyses.
 library(tidyr)
 library(ggplot2)
-dfnat <- aggregate(cbind(df$failurecon, df$failuresin), list(df$time_ind), sum)
 
-ggplot(dfnat,
-       aes(x=Group.1,
-           y=V1)) +
-  geom_line(aes(x=Group.1,
-                       y=V1))+
-              geom_line(aes(x=Group.1,
-                            y=V2))
-
-
-
-ggplot(df) + geom_line(aes(x=time_ind, y=failurecon, color="with", group=fips)) +
+ggplot(df,aes(x=time_ind, y=failurecon)) + geom_line(aes(x=time_ind, y=failurecon, color="with", group=fips)) +
+  stat_summary(fun.y=sum, geom="point", shape=5, size=1) +
+#  stat_summary(fun.y=sum, geom="line", size=1) +
   geom_line(aes(x=time_ind, y=failuresin, col="without", group = fips)) +
-  scale_color_discrete(name="Reservoirs") + labs(title="Failure", x="time", y="volume [1000m3]")
+  scale_color_discrete(name="Reservoirs") + labs(title="Failure", x="time", y="volume [1000m3]") +
+  #facet_wrap(~region_ind) +
+  theme_minimal()
 
 
+
+
+ggplot(df,aes(x=time_ind, y=failurecon)) + geom_line(aes(x=time_ind, y=failurecon, color="with", group=fips)) +
+  stat_summary(fun.y=sum, geom="point", shape=5, size=1) +
+  geom_line(aes(x=time_ind, y=failuresin, col="without", group = fips)) +
+  scale_color_discrete(name="Reservoirs") + labs(title="Failure", x="time", y="volume [1000m3]") +
+  facet_wrap(~region_ind) + theme_minimal()
+
+ggplot(df) + geom_line(aes(x=time_ind, y=failurecon-failuresin, color="with", group=fips)) +
+  scale_color_discrete(name="Reservoirs") + labs(title="Failure", x="time", y="volume [1000m3]") +
+  facet_wrap(~region_ind) + theme_minimal()
 
 ggplot(data = df,
        aes(x = time_ind,
-           y = failuresin,
-           group = state_ind,
-           colour = state_ind)) + geom_point() + theme_classic() + geom_line()
+           y = failurecon-failuresin,
+           group = fips,
+           colour = region_ind)) + geom_point() + theme_classic() + geom_line()
 
-
-
-
-ggplot(data = df,
-       aes(x = time_ind,
-           y = c(failuresin, failurecon))) + geom_point() + theme_classic() + geom_line()
-
-#py$ggplotly(kwargs = list(filename = "Your_Filename",
-#                          fileopt = "overwrite"))
-
-ggplot(data = df, aes(x = time_ind, y = failuresin-failurecon)) + geom_line() + geom_point()
-
-ggplot(data = df, aes(x = time_ind, y = failuresin-failurecon, group = fips, color = state_ind)) + geom_point() + geom_line()
 
 
 # 2. Histograms.
@@ -113,13 +104,13 @@ mapdata(rowMeans(failurecon), varname = "Failure w/")
 mapdata(rowMeans(failurecon - failuresin), varname = "Diff Failure w/ - w/o")
 
 for(f in c(failurecon, failuresin, failureopt)){
-mapdata(rowSums(f*dem_ag/dem_tot, na.rm = T), varname = "Failure Ag")
-mapdata(rowSums(f*dem_th/dem_tot, na.rm = T), varname = "Failure Thermo")
-mapdata(rowSums(f*dem_ur/dem_tot, na.rm = T), varname = "Failure Urban")
-mapdata(rowSums(f*dem_do/dem_tot, na.rm = T), varname = "Failure Dom")
-mapdata(rowSums(f*dem_li/dem_tot, na.rm = T), varname = "Failure livestock")
-mapdata(rowSums(f*dem_in/dem_tot, na.rm = T), varname = "Failure industrial")
-mapdata(rowSums(100*f/dem_tot, na.rm = T), varname = "100% of failure")
+  mapdata(rowSums(f*dem_ag/dem_tot, na.rm = T), varname = "Failure Ag")
+  mapdata(rowSums(f*dem_th/dem_tot, na.rm = T), varname = "Failure Thermo")
+  mapdata(rowSums(f*dem_ur/dem_tot, na.rm = T), varname = "Failure Urban")
+  mapdata(rowSums(f*dem_do/dem_tot, na.rm = T), varname = "Failure Dom")
+  mapdata(rowSums(f*dem_li/dem_tot, na.rm = T), varname = "Failure livestock")
+  mapdata(rowSums(f*dem_in/dem_tot, na.rm = T), varname = "Failure industrial")
+  mapdata(rowSums(100*f/dem_tot, na.rm = T), varname = "100% of failure")
 }
 
 
@@ -127,7 +118,7 @@ mapdata(rowSums(100*f/dem_tot, na.rm = T), varname = "100% of failure")
 # 4. Animations.
 
 # http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
-
+# https://plot.ly/ggplot2/animations/
 
 
 
@@ -142,8 +133,8 @@ mapdata(rowSums(100*f/dem_tot, na.rm = T), varname = "100% of failure")
 # https://www.r-bloggers.com/ggplot2-themes-examples/ to choose the theme
 # http://tutorials.iq.harvard.edu/R/Rgraphics/Rgraphics.html to reproduce economist worthy plots
 
-  # horizontal ticks
-  scale_x_datetime(breaks = date_breaks("6 months"), labels = date_format("%m/%Y")) +
+# horizontal ticks
+scale_x_datetime(breaks = date_breaks("6 months"), labels = date_format("%m/%Y")) +
   
   # main y-axis title
   ylab("") +

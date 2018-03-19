@@ -3,7 +3,7 @@ using DataFrames
 using OptiMimi
 using Gurobi
 
-filepath = "futureprofits.csv" #"currentprofits.csv"
+filepath = "currentprofits-pfixed-lybymc.csv" #"futureprofits-pfixed-notime-zeroy.csv"
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -22,31 +22,28 @@ f = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj])
 
 # Constrain total area per county to existing
 knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
+areacrops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
+knownareas[:mytotal] = 0
+for crop in areacrops
+    knownareas[:mytotal] += knownareas[crop]
+end
 
 function areagen(subA, rr)
     subA[:] = 1
 end
 AA = OptiMimi.matrixintersect([size(mat)[2]], [size(mat)[1], size(mat)[2]], [:county], [:crop, :county], areagen)
-bb = convert(Vector{Float64}, knownareas[:known] * 0.404686) # Convert to Ha
+bb = convert(Vector{Float64}, knownareas[:mytotal] * 0.404686) # Convert to Ha
 
 # Constrain total area per crop to existing
-df = getfilteredtable("agriculture/totalareas.csv")
-areacrops = [:barley, :corn, :cotton, :rice, :soybeans, :wheat]
 for cc in 1:length(areacrops)
-    if areacrops[cc] == :cotton
-        total = 77e6 * 0.404686
-    elseif areacrops[cc] == :rice
-        total = 3.1e6 * 0.404686
-    else
-        total = sum(df[:, areacrops[cc]] * 0.404686)
-    end
+    total = sum(knownareas[areacrops[cc]] * 0.404686)
     subAA = spzeros(size(mat)[1], size(mat)[2])
     subAA[cc, :] = 1
     AA = [AA; vec(subAA)']
     push!(bb, total)
 end
 
-uppers = convert(Vector{Float64}, repeat(knownareas[:known] * 0.404686, inner=6))
+uppers = convert(Vector{Float64}, repeat(knownareas[:mytotal] * 0.404686, inner=6))
 lowers = zeros(prod(size(mat)))
 
 f[f .== Inf] = maximum(f[f .!= Inf]*10+1e6)

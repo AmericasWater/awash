@@ -1,3 +1,5 @@
+using NaNMath
+
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
 
@@ -5,6 +7,9 @@ include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
+profitfix = true
+allowtime = false
+limityield = "lybymc" #"zeroy" # "ignore" "limity"
 futureyear = 2050
 
 eddmodels = ["access1-0", "bcc-csm1-1", "ccsm4", "cnrm-cm5", "gfdl-cm3", "giss-e2-r",
@@ -14,12 +19,26 @@ biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "hd", "he", "hg", "in", "ip", "mc",
              "mg", "mi", "mp", "mr" , "no"]
 
+if profitfix
+    profitfixdf = readtable("farmvalue-limited.csv")
+    profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
+    profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
+    profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
+    profitfixdf[profitfixdf[:obscrop] .== "rice", :obscrop] = "Rice"
+    profitfixdf[profitfixdf[:obscrop] .== "soyb", :obscrop] = "Soybean"
+    profitfixdf[profitfixdf[:obscrop] .== "whea", :obscrop] = "Wheat"
+end
+
+maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
+                      "Rice" => 10180, "Soybean" => 249, "Wheat" => 142.5)
+
 # Load historical bioclim data
 bios = readtable(expanduser("~/Dropbox/Agriculture Weather/us-bioclims-new.csv"))
 bios[:fips] = trunc(Int, bios[:NHGISST] * 100 + bios[:NHGISCTY] / 10)
 
 maxprofit = Dict{Int64, Vector{Any}}()
 allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
+allyields = zeros(6, nrow(masterregions))
 
 bayes_crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
@@ -103,12 +122,32 @@ for ii in 1:length(bayes_crops)
         kdds_coeff_future = kdds_coeff + sum(b2s .* differences[:, kk])
         time_coeff_future = time_coeff + sum(b3s .* differences[:, kk])
 
-        yield_irrigated = mean(exp(intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * futureyear))
+        if allowtime
+            logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * futureyear
+        else
+            logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 2010
+        end
+        if limityield == "lybymc"
+            logyield[logyield .> log(maximum_yields[crop])] = NA
+        end
+        yield_irrigated = exp(NaNMath.mean(logyield))
+        if limityield != "ignore" && yield_irrigated > maximum_yields[crop]
+            if limityield == "limity"
+                yield_irrigated = maximum_yields[crop]
+            elseif limityield == "zeroy"
+                yield_irrigated = 0
+            end
+        end
+
+        allyields[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = yield_irrigated
 
         ersrow = findfirst(masterregions[:fips] .== canonicalindex(fips))
 
         price_row = price[ersrow]
         costs_row = costs[ersrow]
+        if profitfix && profitfixdf[ersrow, :obscrop] == crop
+            costs_row -= profitfixdf[ersrow, :toadd]
+        end
 
         profit = yield_irrigated * price_row - costs_row
 
@@ -120,7 +159,23 @@ for ii in 1:length(bayes_crops)
     end
 end
 
-writecsv("futureprofits.csv", allprofits')
+suffixes = []
+if profitfix
+    push!(suffixes, "pfixed")
+end
+if !allowtime
+    push!(suffixes, "notime")
+end
+if limityield != "ignore"
+    push!(suffixes, limityield)
+end
+if length(suffixes) > 0
+    suffixes = [""; suffixes]
+end
+suffix = join(suffixes, "-")
+
+writecsv("futureprofits$suffix.csv", allprofits')
+writecsv("futureyields$suffix.csv", allyields')
 
 result = DataFrame(fips=Int64[], profit=Float64[], crop=String[], yield=Float64[], price=Float64[], costs=Float64[])
 
@@ -128,4 +183,4 @@ for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])
 end
 
-writetable("maxfuture.csv", result)
+writetable("maxfuture$suffix.csv", result)

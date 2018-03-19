@@ -3,8 +3,8 @@ setwd("~/research/water/awash/prepare/agriculture")
 fips <- read.csv("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv")
 crops <- c("Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat")
 
-in.filenames <- c("coeff_alpha", "coeff_beta1", "coeff_beta2", "coeff_beta3", "coeff_beta4")
-out.columns <- c("intercept", "time", "wreq", "gdds", "kdds")
+in.filenames <- c("coeff_alpha", "coeff_beta1", "coeff_beta2", "coeff_beta3", "coeff_beta4", "sigma_y")
+out.columns <- c("intercept", "time", "wreq", "gdds", "kdds", "error")
 
 for (crop in crops) {
     df <- data.frame(fips=c(), coef=c(), mean=c(), serr=c())

@@ -83,7 +83,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
         cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
         if allowreservoirs
-            gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+	    if isfile(cachepath("partialhouse-gror$suffix.jld"))
+		    gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+	    else
+		    gror = grad_reservoir_outflows_captures(m);
+	    end
         end
     end
 
@@ -149,7 +153,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite.(vv))
+    for ii in find(.!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

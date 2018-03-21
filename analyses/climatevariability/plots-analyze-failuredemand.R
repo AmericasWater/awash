@@ -8,7 +8,7 @@ require(tidyr)
 require(ggplot2)
 require(dplyr)
 # - failure filename
-filename <- "failurecon.csv"
+filename <- "failure.csv"
 
 # - time
 time_ind0 <- 1:12
@@ -62,7 +62,7 @@ dd <- rbind(data.frame(time_ind,fips,region_ind,fac="total", dem=dem_tot),
             data.frame(time_ind,fips,region_ind,fac="thermoelectric", dem=dem_th),
             data.frame(time_ind,fips,region_ind,fac="urban", dem=dem_ur))
 
-ddf <- rbind(data.frame(time_ind,fips,region_ind,fac="total", fdem=fdem_tot),
+ddf <- melt(data.frame(time_ind,fips,region_ind,fac="total", fdem=fdem_tot),
             data.frame(time_ind,fips,region_ind,fac="irrigation", fdem=fdem_ag),
             data.frame(time_ind,fips,region_ind,fac="thermoelectric", fdem=fdem_th),
             data.frame(time_ind,fips,region_ind,fac="urban", fdem=fdem_ur))

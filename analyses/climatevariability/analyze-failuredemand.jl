@@ -4,9 +4,9 @@ config = readconfig("../configs/standard-10year.yml");
 
 
 # Optimization without reservoirs
-#config["rescap"] = "zero";
+config["rescap"] = "zero";
 # Optimization with reservoirs at their current capacities
-config["rescap"] = "full";
+#config["rescap"] = "full";
 
 include("../../src/optimize-surface.jl");
 writecsv("../analyses/climatevariability/failure.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));

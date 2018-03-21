@@ -22,7 +22,7 @@ v_FIPS <- mastercounties$fips
 
 
 
-mapdata <- function(vartoplot,varname, transtype='identity'){
+mapdata2 <- function(vartoplot,varname, transtype='identity'){
   df <- data.frame(v_FIPS,vartoplot)
   names(df) = c("fips","value")
 
@@ -42,4 +42,23 @@ print(ggplot(df) +
         scale_fill_gradient(name=varname, trans=transtype))
 }}
 
+mapdata <- function(vartoplot,varname, transtype='identity', breaks, limits){
+  df <- data.frame(v_FIPS,vartoplot)
+  names(df) = c("fips","value")
+  
+  if(sum(df$value<0, na.rm = T)>0 & sum(df$value>0, na.rm = T)>0){
+    print(ggplot(df) +
+            geom_map(aes(fill=value, map_id=fips), map=shapes) +
+            geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='gray', fill=NA) +
+            expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
+            theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('') +
+            scale_fill_gradient2(name=varname, trans=transtype))
+  }else{
+    print(ggplot(df) +
+            geom_map(aes(fill=value, map_id=fips), map=shapes) +
+            geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
+            expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
+            theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')+
+            scale_fill_gradient(name=varname, trans=transtype, breaks=breaks, limits=limits))
+  }}
 

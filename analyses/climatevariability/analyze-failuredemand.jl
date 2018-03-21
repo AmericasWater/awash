@@ -4,9 +4,9 @@ config = readconfig("../configs/standard-10year.yml");
 
 
 # Optimization without reservoirs
-#config["rescap"] = "zero";
+config["rescap"] = "zero";
 # Optimization with reservoirs at their current capacities
-config["rescap"] = "full";
+#config["rescap"] = "full";
 
 include("../../src/optimize-surface.jl");
 writecsv("../analyses/climatevariability/failure.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));
@@ -22,6 +22,6 @@ savedata("../analyses/climatevariability/dem_th.csv", :WaterDemand, :thermoelect
 savedata("../analyses/climatevariability/dem_li.csv", :WaterDemand, :livestockuse)
 
 
-savedata("../analyses/climatevariability/allocation_wgwcsv", :Allocation, :watergw)
+savedata("../analyses/climatevariability/allocation_wgw.csv", :Allocation, :watergw)
 savedata("../analyses/climatevariability/allocation_wsw.csv", :Allocation, :swsupply)
 savedata("../analyses/climatevariability/allocation_bal.csv", :Allocation, :balance)

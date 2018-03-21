@@ -1,7 +1,7 @@
 #cd("../../src")
 include("../../src/nui.jl")
-config = readconfig("../configs/standard-50year.yml");
-
+config = readconfig("../configs/standard-1year.yml");
+config["timestep"] = 1
 
 # Optimization without reservoirs
 config["rescap"] = "zero";

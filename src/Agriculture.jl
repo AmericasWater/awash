@@ -36,7 +36,7 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt]
+	    v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
         v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])

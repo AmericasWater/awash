@@ -22,6 +22,6 @@ savedata("../analyses/climatevariability/dem_th.csv", :WaterDemand, :thermoelect
 savedata("../analyses/climatevariability/dem_li.csv", :WaterDemand, :livestockuse)
 
 
-savedata("../analyses/climatevariability/allocation_wgwcsv", :Allocation, :watergw)
+savedata("../analyses/climatevariability/allocation_wgw.csv", :Allocation, :watergw)
 savedata("../analyses/climatevariability/allocation_wsw.csv", :Allocation, :swsupply)
 savedata("../analyses/climatevariability/allocation_bal.csv", :Allocation, :balance)

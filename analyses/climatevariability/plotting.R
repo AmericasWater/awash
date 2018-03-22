@@ -36,7 +36,7 @@ print(ggplot(df) +
 }else{
 print(ggplot(df) +
         geom_map(aes(fill=value, map_id=fips), map=shapes) +
-       geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
+        geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
         expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
         theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')+
         scale_fill_gradient(name=varname, trans=transtype))

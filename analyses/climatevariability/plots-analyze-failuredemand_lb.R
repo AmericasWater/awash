@@ -11,7 +11,7 @@ require(dplyr)
 filename <- "failure.csv"
 
 # - time
-time_ind0 <- 1:11
+time_ind0 <- 1:10
 time_ind <- t(matrix(time_ind0, nrow = length(time_ind0), ncol = 3109)) %>% as.vector() %>% as.factor()
 
 # - county fips, state fips, region index
@@ -36,10 +36,10 @@ failure <- read.csv(filename, header = F) %>% fmv
 
 # - water demand
 dem_tot <- read.csv("dem_tot.csv", header = F) %>% fmv
-fdem_tot <-failure/dem_tot
-
+fdem_tot <- failure/dem_tot
+fdem_tot[which(dem_tot == 0)] <- 0
 # - for sectoral analysis: each sector demand
-dem_ag <- read.csv("dem_ag2.csv", header = F) %>% fmv
+dem_ag <- read.csv("dem_ir.csv", header = F) %>% fmv
 dem_do <- read.csv("dem_do.csv", header = F) %>% fmv
 dem_in <- read.csv("dem_in.csv", header = F) %>% fmv
 dem_ur <- read.csv("dem_ur.csv", header = F) %>% fmv
@@ -47,13 +47,18 @@ dem_li <- read.csv("dem_li.csv", header = F) %>% fmv
 dem_th <- read.csv("dem_th.csv", header = F) %>% fmv
 
 
-fdem_ag <-failure*dem_ag/dem_tot
-fdem_th <-failure*dem_th/dem_tot
-fdem_ur <-failure*dem_ur/dem_tot
-fdem_do <-failure*dem_do/dem_tot
-fdem_li <-failure*dem_li/dem_tot
-fdem_in <-failure*dem_in/dem_tot
-
+fdem_ag <- failure*dem_ag/dem_tot
+fdem_ag[which(dem_tot == 0)] <- 0
+fdem_th <- failure*dem_th/dem_tot
+fdem_th[which(dem_tot == 0)] <- 0
+fdem_ur <- failure*dem_ur/dem_tot
+fdem_ur[which(dem_tot == 0)] <- 0
+fdem_do <- failure*dem_do/dem_tot
+fdem_do[which(dem_tot == 0)] <- 0
+fdem_li <- failure*dem_li/dem_tot
+fdem_li[which(dem_tot == 0)] <- 0
+fdem_in <- failure*dem_in/dem_tot
+fdem_in[which(dem_tot == 0)] <- 0
 
 # form the dataset
 df <- data.frame(time_ind, fips, state_ind, region_ind, failure, dem_ag, dem_do, dem_in, dem_ur, dem_li, dem_th, dem_tot)
@@ -71,14 +76,10 @@ theme_set(theme_minimal())
 
 # _________________________________________________________________________________________
 # 1. Timeseries analyses.
-ggplot(df,aes(x=time_ind, y=dem_tot)) +
-  stat_summary(fun.y=sum, geom="point", shape=5, size=1, aes(color="national")) + geom_line(aes(x=time_ind, y=dem_tot, color="per county", group=fips)) + geom_line(aes(x=time_ind, y=dem_ag, color="agriculture", group=fips)) + geom_line(aes(x=time_ind, y=dem_th, color="thermoelectric", group=fips)) +
-  scale_color_discrete(name="Demand") + labs(title="Failure to meet water demand", x="time", y="volume [1000m3]")
-# @Luc: could it be possible to plot all of the sector demand at the national level? This is only dem_tot ... we don't care for the fips level demand ...
 
 cols=c("Agriculture"="darkgreen","Livestock"="orchid","Urban"="gray62","Domestic"="cyan3", "Industrial"="steelblue4",  
        "Thermal"="lightsalmon4", "Total"="black")
-p<-ggplot(data=df,aes(x=time_ind)) +
+ggplot(data=df,aes(x=time_ind)) +
   stat_summary(aes(y=dem_ag, colour="Agriculture"), fun.y=sum, geom="point", shape=5, size=1) +
   stat_summary(aes(y=dem_ag, colour="Agriculture"), fun.y=sum, geom="path",  size=1, group = 1) +
   stat_summary(aes(y=dem_li, colour="Livestock"), fun.y=sum, geom="path",  size=1, group = 1) +
@@ -91,21 +92,28 @@ p<-ggplot(data=df,aes(x=time_ind)) +
   stat_summary(aes(y=dem_in, colour="Industrial"), fun.y=sum, geom="point", shape=5, size=1) +
   stat_summary(aes(y=dem_th, colour="Thermal"), fun.y=sum, geom="path",  size=1, group = 1) +
   stat_summary(aes(y=dem_th, colour="Thermal"), fun.y=sum, geom="point", shape=5, size=1) +
-  stat_summary(aes(y=dem_tot, colour="Total"), fun.y=sum, geom="path",  size=1, group = 1) +
-  stat_summary(aes(y=dem_tot, colour="Total"), fun.y=sum, geom="point", shape=5, size=1) +
   labs(title="Water demand", x="time", y="volume [1000m3]")+
   scale_colour_manual(name="Sector", values=cols)
-p
-
-#sum(df$dem_ur[which(df$time_ind==3)])/11
 
 
-ggplot(df,aes(x=time_ind, y=dem_tot)) + geom_line(aes(x=time_ind, y=dem_tot, color="per county", group=fips)) +
-  stat_summary(fun.y=sum, geom="point", shape=5, size=1, aes(color="national")) +
-  scale_color_discrete(name="Failure") + labs(title="Failure to meet water demand", x="time", y="volume [1000m3]") +
-  facet_wrap(~region_ind)
-# @Luc: samething here, for each region, I'd like to know the demand for each sector aggregated at the region level in function of time. 
-p<-ggplot(data=df,aes(x=time_ind)) +
+ggplot(data=df,aes(x=time_ind)) +
+  stat_summary(aes(y=fdem_ag, colour="Agriculture"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_ag, colour="Agriculture"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_li, colour="Livestock"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_li, colour="Livestock"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_ur, colour="Urban"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_ur, colour="Urban"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_do, colour="Domestic"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_do, colour="Domestic"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_in, colour="Industrial"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_in, colour="Industrial"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_th, colour="Thermal"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_th, colour="Thermal"), fun.y=sum, geom="point", shape=5, size=1) +
+  labs(title="Failure per sector", x="time", y="volume [1000m3]")+
+  scale_colour_manual(name="Sector", values=cols)
+
+
+ggplot(data=df,aes(x=time_ind)) +
   stat_summary(aes(y=dem_ag, colour="Agriculture"), fun.y=sum, geom="point", shape=5, size=1) +
   stat_summary(aes(y=dem_ag, colour="Agriculture"), fun.y=sum, geom="path",  size=1, group = 1) +
   stat_summary(aes(y=dem_li, colour="Livestock"), fun.y=sum, geom="path",  size=1, group = 1) +
@@ -118,18 +126,33 @@ p<-ggplot(data=df,aes(x=time_ind)) +
   stat_summary(aes(y=dem_in, colour="Industrial"), fun.y=sum, geom="point", shape=5, size=1) +
   stat_summary(aes(y=dem_th, colour="Thermal"), fun.y=sum, geom="path",  size=1, group = 1) +
   stat_summary(aes(y=dem_th, colour="Thermal"), fun.y=sum, geom="point", shape=5, size=1) +
-  stat_summary(aes(y=dem_tot, colour="Total"), fun.y=sum, geom="path",  size=1, group = 1) +
-  stat_summary(aes(y=dem_tot, colour="Total"), fun.y=sum, geom="point", shape=5, size=1) +
   labs(title="Water demand", x="time", y="volume [1000m3]")+
   scale_colour_manual(name="Sector", values=cols)+
   facet_wrap(~region_ind)
-p
+
+
+ggplot(data=df,aes(x=time_ind)) +
+  stat_summary(aes(y=fdem_ag, colour="Agriculture"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_ag, colour="Agriculture"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_li, colour="Livestock"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_li, colour="Livestock"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_ur, colour="Urban"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_ur, colour="Urban"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_do, colour="Domestic"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_do, colour="Domestic"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_in, colour="Industrial"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_in, colour="Industrial"), fun.y=sum, geom="point", shape=5, size=1) +
+  stat_summary(aes(y=fdem_th, colour="Thermal"), fun.y=sum, geom="path",  size=1, group = 1) +
+  stat_summary(aes(y=fdem_th, colour="Thermal"), fun.y=sum, geom="point", shape=5, size=1) +
+  labs(title="Failure per sector", x="time", y="volume [1000m3]")+
+  scale_colour_manual(name="Sector", values=cols)+
+  facet_wrap(~region_ind)
 
 
 # _________________________________________________________________________________________
 # 2. Histograms.
 
-X_dem=log1p(dd$dem)
+X_dem <- log1p(dd$dem)
 
 ggplot(data = dd, aes(x = X_dem, group = fac, color = fac)) + geom_density()+
   scale_x_continuous(breaks=c(quantile(X_dem, 0.1), median(X_dem), quantile(X_dem, 0.9)), 
@@ -150,7 +173,7 @@ ggplot(data = dd, aes(x = fac, y = (dem), group = fac, color = fac)) + geom_boxp
 #ggplot(data = ddf, aes(x = log1p(fdem), group = fac, color = fac)) + geom_density()
 #ggplot(data = ddf, aes(x = log1p(fdem), group = fac, color = fac)) + geom_density() + facet_wrap(~region_ind)
 # Il faudrait que les axes soient transformes et pas les donnees par le log1p ...
-Y_fdem=log1p(ddf$fdem)
+Y_fdem <- log1p(ddf$fdem)
 ggplot(data = ddf, aes(x = fac, y = log1p(fdem), group = fac, color = fac)) + geom_boxplot() + facet_wrap(~region_ind)+
   theme(axis.text.x=element_blank())+
   scale_y_continuous(breaks=c(quantile(Y_fdem, 0.1, na.rm=T), median(Y_fdem, na.rm=T), quantile(Y_fdem, 0.99, na.rm=T)), 
@@ -161,54 +184,52 @@ ggplot(data = ddf, aes(x = fac, y = log1p(fdem), group = fac, color = fac)) + ge
 
 # _________________________________________________________________________________________
 # 3. Maps.
-failure <- read.csv(filename, header = F)
+f <- read.csv(filename, header = F)
 source("plotting.R")
 
-failure_means=rowMeans(failure)
+failure_means=rowMeans(f)
 mapdata(failure_means, varname = "Mean Failure",breaks=c(0, (max(failure_means)/2), (max(failure_means)*4/5)), 
         limits=c(0,max(failure_means)))
 
-per_cent_failure=100*failure/dem_tot
-per_cent_failure[per_cent_failure==Inf]=0
-mapdata(rowSums(per_cent_failure, na.rm = T), varname = "% of failure", transtype = 'log1p', 
+per_cent_failure <- 100*f/dem_tot
+per_cent_failure[which(dem_tot == 0)] <- 0
+
+mapdata(log1p(rowSums(per_cent_failure, na.rm = T)), varname = "100% of failure", transtype = 'log1p', 
         breaks=c(0, (max(per_cent_failure, na.rm=T)/10), (max(per_cent_failure, na.rm=T)*4/5)), 
         limits=c(0,max(per_cent_failure, na.rm=T)))
 
-
-f <- failure
-
-failure_ag=f*dem_ag/dem_tot
-failure_ag[failure_ag==Inf]=0
+failure_ag <- f*dem_ag/dem_tot
+failure_ag[which(dem_tot == 0)] <- 0
 mapdata(rowSums(f*dem_ag/dem_tot, na.rm = T), varname = "Failure Ag", transtype = 'log1p', 
         breaks=c(0, (max(f*dem_ag/dem_tot, na.rm=T)/10), (max(f*dem_ag/dem_tot, na.rm=T)*4/5)), 
         limits=c(0,max(f*dem_ag/dem_tot, na.rm=T)))
 
-failure_th=f*dem_th/dem_tot
-failure_th[failure_th==Inf]=0
+failure_th <- f*dem_th/dem_tot
+failure_th[which(dem_tot == 0)] <- 0
 mapdata(rowSums(failure_th, na.rm = T), varname = "Failure Thermo", transtype = 'log1p', 
         breaks=c(0, (max(failure_th, na.rm=T)/10), (max(failure_th, na.rm=T)*4/5)), 
         limits=c(0,max(failure_th, na.rm=T)))
 
-failure_ur=f*dem_ur/dem_tot
+failure_ur <- f*dem_ur/dem_tot
 failure_ur[failure_ur==Inf]=0
 mapdata(rowSums(failure_ur, na.rm = T), varname = "Failure Urban", transtype = 'log1p', 
         breaks=c(0, (max(failure_ur, na.rm=T)/10), (max(failure_ur, na.rm=T)*4/5)), 
         limits=c(0,max(failure_ur, na.rm=T)))
 
-failure_do=f*dem_do/dem_tot
-failure_do[failure_do==Inf]=0
+failure_do <- f*dem_do/dem_tot
+failure_do[which(dem_tot == 0)] <- 0
 mapdata(rowSums(failure_do, na.rm = T), varname = "Failure Dom", transtype = 'log1p', 
         breaks=c(0, (max(failure_do, na.rm=T)/10), (max(failure_do, na.rm=T)*4/5)), 
         limits=c(0,max(failure_do, na.rm=T)))
 
-failure_li=f*dem_li/dem_tot
-failure_li[failure_li==Inf]=0
+failure_li <- f*dem_li/dem_tot
+failure_li[which(dem_tot == 0)] <- 0
 mapdata(rowSums(failure_li, na.rm = T), varname = "Failure livestock", transtype = 'log1p', 
         breaks=c(0, (max(failure_li, na.rm=T)/10), (max(failure_li, na.rm=T)*4/5)), 
         limits=c(0,max(failure_li, na.rm=T)))
 
 failure_in=f*dem_in/dem_tot
-failure_in[failure_in==Inf]=0
+failure_in[which(dem_tot == 0)] <- 0
 mapdata(rowSums(failure_in, na.rm = T), varname = "Failure industrial", transtype = 'log1p', 
         breaks=c(0, (max(failure_in, na.rm=T)/10), (max(failure_in, na.rm=T)*4/5)), 
         limits=c(0,max(failure_in, na.rm=T)))
@@ -224,7 +245,7 @@ mapdata(log1p(rowSums(per_cent_failure, na.rm = T)), varname = "100% of failure"
 
 #png(file="example%02d.png", width=700, height=400)
 for (t in c(1:max(time_ind0))){
-  mapdata(failure[,t], varname = paste("t =",t), transtype = 'log1p',
+  mapdata(f[,t], varname = paste("t =",t), transtype = 'log1p',
           breaks=c(0, (mean(unlist(failure), na.rm=T)/10), (mean(unlist(failure))*4/5)), 
           limits=c(0,max(unlist(failure), na.rm=T)))
 }

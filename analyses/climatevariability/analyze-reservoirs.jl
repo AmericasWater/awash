@@ -1,7 +1,7 @@
 #cd("../../src")
 include("../../src/nui.jl")
-config = readconfig("../configs/standard-1year.yml");
-config["timestep"] = 1
+config = readconfig("../configs/standard-10year.yml");
+config["timestep"] = 12
 
 # Optimization without reservoirs
 config["rescap"] = "zero";
@@ -24,8 +24,3 @@ savedata("../analyses/climatevariability/storagecapmax.csv", :Reservoir, :storag
 savedata("../analyses/climatevariability/storage.csv", :Reservoir, :storage)
 
 
-# Optimization of the capacities
-
-
-
-#cd("../analyses/climatevariability")

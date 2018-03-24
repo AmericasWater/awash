@@ -42,7 +42,7 @@ print(ggplot(df) +
         scale_fill_gradient(name=varname, trans=transtype))
 }}
 
-mapdata <- function(vartoplot,varname, transtype='identity', breaks, limits){
+mapdata <- function(vartoplot,varname, transtype='identity', breaks='auto', limits=c(min(vartoplot),max(vartoplot))){
   df <- data.frame(v_FIPS,vartoplot)
   names(df) = c("fips","value")
   
@@ -54,11 +54,26 @@ mapdata <- function(vartoplot,varname, transtype='identity', breaks, limits){
             theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('') +
             scale_fill_gradient2(name=varname, trans=transtype))
   }else{
+    if(breaks == 'auto'){ if(transtype == 'identity'){
+      print(ggplot(df) +
+              geom_map(aes(fill=value, map_id=fips), map=shapes) +
+              geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
+              expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
+              theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')+
+              scale_fill_gradient(name=varname, trans=transtype, breaks=c(0, signif(max(df$value, na.rm = T)*3/10, digits = 2), signif(max(df$value, na.rm = T)*6/10, digits = 2), signif(max(df$value, na.rm = T)*9/10, digits = 2)), limits=limits))
+    }else{
+      print(ggplot(df) +
+              geom_map(aes(fill=value, map_id=fips), map=shapes) +
+              geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
+              expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
+              theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')+
+              scale_fill_gradient(name=varname, trans=transtype, breaks=c(0, signif(exp(log(max(df$value, na.rm = T))*3/10), digits = 2), signif(exp(log(max(df$value, na.rm = T))*6/10), digits = 2), signif(exp(log(max(df$value, na.rm = T))*9/10), digits = 2)), limits=limits))}   
+    }else{
     print(ggplot(df) +
             geom_map(aes(fill=value, map_id=fips), map=shapes) +
             geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +
             expand_limits(x=c(-2500000, 2500000), y=c(-1.4e6, 1.6e6)) +
             theme_bw() + theme(legend.justification=c(0,0), legend.position=c(0,0)) + xlab('') + ylab('')+
             scale_fill_gradient(name=varname, trans=transtype, breaks=breaks, limits=limits))
-  }}
+  }}}
 

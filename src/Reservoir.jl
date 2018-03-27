@@ -14,21 +14,21 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
 	outflowsgauges = Parameter(index=[gauges, time], unit="1000 m^3")
 	captures = Parameter(index=[reservoirs, time], unit="1000 m^3") # positive or negative
 	# Reservoir inflows
-	inflows = Variable(index=[reservoirs, time], unit="m^3")
-	outflows = Variable(index=[reservoirs, time], unit="m^3")
+	inflows = Variable(index=[reservoirs, time], unit="1000 m^3")
+	outflows = Variable(index=[reservoirs, time], unit="1000 m^3")
 	# withdrawals
-	withdrawals = Variable(index=[reservoirs, time], unit="m^3")
+	withdrawals = Variable(index=[reservoirs, time], unit="1000 m^3")
 	# releases
-	releases = Variable(index=[reservoirs, time], unit="m^3")
+	releases = Variable(index=[reservoirs, time], unit="1000 m^3")
 
 	# Evaporation
-	evaporation = Parameter(index=[reservoirs, time], unit="m^3")
+	evaporation = Parameter(index=[reservoirs, time], unit="")
 
 	# Storage
-	storage = Variable(index=[reservoirs, time], unit="m^3")
-	storage0 = Parameter(index=[reservoirs], unit="m^3")
-	storagecapacitymin = Parameter(index=[reservoirs], unit="m^3")
-	storagecapacitymax = Parameter(index=[reservoirs], unit="m^3")
+	storage = Variable(index=[reservoirs, time], unit="1000 m^3")
+	storage0 = Parameter(index=[reservoirs], unit="1000 m^3")
+	storagecapacitymin = Parameter(index=[reservoirs], unit="1000 m^3")
+	storagecapacitymax = Parameter(index=[reservoirs], unit="1000 m^3")
 end
 
 """
@@ -46,17 +46,17 @@ function run_timestep(c::Reservoir, tt::Int)
 		index = vertex_index(downstreamorder[gg])
 		if isreservoir[index] > 0
 			rr = isreservoir[index]
-			v.inflows[rr,tt] = p.inflowsgauges[gg, tt]*1000.;
-			v.outflows[rr,tt] = p.outflowsgauges[gg, tt]*1000.;
+			v.inflows[rr,tt] = p.inflowsgauges[gg, tt];
+			v.outflows[rr,tt] = p.outflowsgauges[gg, tt];
 		end
 	end
 
 
 	for rr in d.reservoirs
 		if tt==1
-			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
+			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt];
 		else
-			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt]
+			v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt];
 		end
 
 		if p.captures[rr,tt]<0
@@ -93,11 +93,10 @@ function initreservoir(m::Model, name=nothing)
        	reservoir[:storage0] = zeros(numreservoirs);
      	reservoir[:evaporation] = zeros(numreservoirs, numsteps);
     else
-        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])
-     	rcmax = rcmax*1233.48
+        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])./1000 #data in cubic meters, change to 1000m3
      	reservoir[:storagecapacitymax] = rcmax;
-     	reservoir[:storagecapacitymin] = zeros(numreservoirs);
-        reservoir[:storage0] = rcmax*0.;
+     	reservoir[:storagecapacitymin] = rcmax*0.0#zeros(numreservoirs);
+        reservoir[:storage0] = rcmax*0.000001;
    	reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
         if "reshalf" in keys(config) && config["reshalf"] == "half"
             reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
@@ -138,13 +137,13 @@ function grad_reservoir_storage_captures(m::Model)
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-    gen(rr) = m.external_parameters[:storagecapacitymin].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen, [:time])
+    gen(rr, tt) = m.external_parameters[:storagecapacitymin].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen)
 end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
-    gen(rr) = m.external_parameters[:storagecapacitymax].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen, [:time])
+    gen(rr, tt) = m.external_parameters[:storagecapacitymax].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen)
 end
 
 function constraintoffset_reservoir_storage0(m::Model)

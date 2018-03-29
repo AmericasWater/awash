@@ -1,13 +1,14 @@
 ### Construct a list of all of the network sources that can feed into
 ### each county
 
-include.canals <- F
+include.canals <- T
+dataset <- "counties"
 
-setwd("~/research/water/awash6/prepare/waternet")
+setwd("~/research/water/awash/prepare/waternet")
 source("add-county.R") # generates info data.frame
 source("distance.R")
 
-load("../../data/paleo/waternet/waternet.RData")
+load(file.path("../../data", dataset, "waternet/waternet.RData"))
 
 ## Put connection between counties and all nodes within them
 county.names <- map.where("county", network$lon, network$lat)
@@ -43,13 +44,8 @@ for (ii in 1:nrow(info)) {
     draws <- rbind(draws, data.frame(fips=info$fips[ii], source=county.rows, justif="contains", downhill=info$elev[ii] < network$elev[county.rows], exdist=0))
 }
 
-if (include.canals) {
-    canals <- read.csv("canalnetwork.csv")
-
-    draws <- rbind(draws, data.frame(fips=canals$fips, source=canals$netsource,
-                                     justif=paste0('canal-', canals$creation),
-                                     downhill=NA, exdist=0))
-}
+if (include.canals)
+    source("canals/add-canals.R", chdir=T)
 
 ## For all others, make a pipe
 for (ii in 1:nrow(info)) {
@@ -99,5 +95,6 @@ for (ii in 1:nrow(draws)) {
 
 dev.off()
 
-save(draws, file="../../data/paleo/waternet/countydraws.RData")
+save(draws, file=file.path("../../data", dataset, "waternet/countydraws.RData"))
+
 

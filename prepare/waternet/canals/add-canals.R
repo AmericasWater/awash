@@ -1,6 +1,12 @@
-setwd("~/Dropbox/POSTDOC/AW-julia/operational-problem-main/data/sources")
-load("countydraws.v1.RData")
-misscanals=read.table("canals.txt")
+canals <- read.csv("nhd-canals.csv")
+
+## Add the "known", NHD canals
+draws <- rbind(draws, data.frame(fips=canals$fips, source=canals$netsource,
+                                 justif=paste0('canal-', canals$creation),
+                                 downhill=NA, exdist=0))
+
+## Add the "missing" canals
+misscanals=read.table("missing-canals.txt")
 
 # copier until it's different
 version2 = draws[1,]
@@ -21,9 +27,9 @@ for(i in 2:dim(draws)[1]){
             toadd_ = draws[rowsource,]
             if("contains" %in% toadd_[,3]){
             toadd = toadd_[which(toadd_[,3]=="contains"),]
-            toadd[,3] = "missingcanal"
-            toadd[,4] = "unknown"
-            toadd[,5] = paste("fipssource",othersource)
+            toadd[,3] = "missingcanal" # Note: previously included `othersource` information
+            toadd[,4] = NA
+            toadd[,5] = 0
             toadd[,1] = ref
             version2 = rbind(version2,toadd)
     }}}}}
@@ -32,6 +38,4 @@ for(i in 2:dim(draws)[1]){
     ref = draws$fips[i]
 }}
 
-
 draws = version2
-save(draws,file="countydraws.v2.RData")

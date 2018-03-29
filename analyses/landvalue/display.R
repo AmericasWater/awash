@@ -1,10 +1,10 @@
 setwd("~/research/water/awash/analyses/landvalue")
 
-basename = "constopt-currentprofits-pfixed-lybymc"
+basename = "constopt-all2070profits-pfixed-notime-histco-lybymc" #"max2070-pfixed-notime-lybymc" #"maxbayesian-pfixed-lybymc"
 
-if (basename %in% c("constopt-futureprofits", "constopt-currentprofits", "constopt-futureprofits-pfixed", "constopt-futureprofits-pfixed-notime", "constopt-currentprofits-pfixed", "constopt-currentprofits-pfixed-lybymc")) {
+if (startsWith(basename, "constopt")) {
     column <- "topcrop"
-} else if (basename %in% c("maybayesian", "maxbayesian-pfixed", "maxfuture-pfixed", "maxfuture-pfixed-notime", "maxbayesian-pfixed-lybymc")) {
+} else if (startsWith(basename, "maybayesian") || startsWith(basename, "maxfuture")) {
     column <- "crop"
 } else {
     column = "crop" #"profitsource"
@@ -32,6 +32,10 @@ gp <- ggplot(cnty2.df1, aes(long, lat, group = group)) +
     coord_quickmap() + theme_minimal() + xlab("") + ylab("")
 if (basename %in% c("maxfuture-pfixed")) {
     gp <- gp + scale_fill_manual(breaks=c('Barley', 'Cotton', 'Rice', "Soybean"), values=c('#f8766d', '#00ba38', '#00bfc4', '#619cff'))
+} else if (basename %in% c("maxfuture-pfixed-notime-lybymc", "constopt-futureprofits-pfixed-lybymc")) {
+    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Corn', "Soybean", 'Wheat'), values=c('#f8766d', '#b79f00', '#619cff', '#f564e3'))
+} else if (basename %in% c("maxfuture-pfixed-lybymc", "maxfuture-pfixed-histco-lybymc")) {
+    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Corn', 'Cotton', "Soybean", 'Wheat'), values=c('#f8766d', '#b79f00', '#00ba38', '#619cff', '#f564e3'))
 } else if (basename %in% c("maxfuture-pfixed-notime")) {
     gp <- gp + scale_fill_manual(breaks=c('Barley', 'Rice', "Soybean"), values=c('#f8766d', '#00bfc4', '#619cff'))
 } else {

@@ -76,6 +76,9 @@ function getfilteredtable(filepath, fipscol=:FIPS)
     if get(config, "filterstate", nothing) != nothing
         recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
     end
+    if config["filterstate"]=="36"
+	    deleterows!(recorded,[30,52])
+    end
     recorded
 end
 

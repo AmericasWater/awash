@@ -1,14 +1,18 @@
 
 using Mimi
 using DataFrames
-include("lib/datastore.jl")
+include("lib/agriculture.jl")
 
 @defcomp Agriculture begin
     regions = Index()
-
-    # Exogenous demands
-    demand = Parameter(index=[regions, time], unit="1000 m^3")
-
+    irrcrops = Index()
+    unicrops = Index()
+    allcrops = Index()
+    
+    # Inputs
+    othercropsarea = Parameter(index=[regions, time], unit="Ha")
+    othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+	
     # From IrrigationAgriculture
     irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
     irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
@@ -43,12 +47,8 @@ end
 function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
+    knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    if config["filterstate"]=="36"    
-	    deleterows!(recorded,[30,52])
-
-    end 
-    agriculture[:demand] = repeat(convert(Vector, recorded[:, :IR_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     
     othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropirrigation[knownareas[:total] .== 0] = 0

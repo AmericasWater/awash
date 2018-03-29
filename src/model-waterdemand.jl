@@ -44,7 +44,7 @@ waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 #agriculture[:unicropproduction] = univariateagriculture[:production]
 #agriculture[:uniirrigation] = univariateagriculture[:totalirrigation]
 
-waterdemand[:totalirrigation] = agriculture[:demand_copy];
+waterdemand[:totalirrigation] = agriculture[:allirrigation];
 waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
 waterdemand[:livestockuse] = livestock[:demand_copy];
 waterdemand[:urbanuse] = urbandemand[:waterdemand];

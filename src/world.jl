@@ -3,7 +3,7 @@ include("lib/datastore.jl")
 
 suffix = getsuffix()
 
-masterregions = readtable(datapath(config["masterregions"]), eltypes=[UTF8String, UTF8String, UTF8String]);
+masterregions = readtable(datapath(config["masterregions"]), eltypes=[String, String, String]);
 
 
 

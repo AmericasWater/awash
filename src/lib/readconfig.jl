@@ -6,18 +6,43 @@ function readconfig(ymlpath)
     end
 
     config = YAML.load(open(ymlpath))
+    dataset = readdatasetconfig(config["dataset"])
 
-    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
+    config = mergeconfigs(dataset, config)
 
-    for key in keys(dataset)
-        if !in(key, keys(config))
-            config[key] = dataset[key]
-        end
-    end
-
-    config["indexcols"] = map(symbol, config["indexcols"])
+    config["indexcols"] = map(Symbol, config["indexcols"])
 
     config
+end
+
+"""
+Read dataset configuration
+"""
+function readdatasetconfig(dataset)
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * dataset * "/dataset.yml")))
+    if "parent-dataset" in keys(dataset)
+        parent = readdatasetconfig(dataset["parent-dataset"])
+
+        return mergeconfigs(parent, dataset)
+    else
+        return dataset
+    end
+end
+
+"""
+Universal logic for merging config files
+"""
+function mergeconfigs(parent, child)
+    for key in keys(parent)
+        if !in(key, keys(child))
+            child[key] = parent[key]
+        else
+            if isa(parent[key], Dict) && isa(child[key], Dict)
+                child[key] = mergeconfigs(parent[key], child[key])
+            end
+        end
+    end
+    return child
 end
 
 function emptyconfig()
@@ -38,7 +63,9 @@ function index2year(tt::Int64)
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
 
-    years[div(times[tt], 12) - div(startmonth, 12) + 1]
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
+
+
 end
 
 if !isdefined(:configtransforms)
@@ -84,7 +111,7 @@ to the values in `defindex`, an symbol known by `getindices`.
 function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbol, defindex::Symbol)
     if haskey(config, "$name-path") || haskey(config, "$name-column")
         path = datapath(get(config, "$name-path", defpath))
-        column = symbol(get(config, "$name-column", defcol))
+        column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
         data = readtable(path)
@@ -94,7 +121,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             return [transform(indices[ii], data[ii, column]) for ii in 1:nrow(data)]
         else
             if haskey(config, "$name-index")
-                indexcol = symbol(config["$name-index"])
+                indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
                 values = readtable(datapath(defpath))[:, defcol]
@@ -104,9 +131,10 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !isna(newvalue)
+                        if !isna.(newvalue)
                             values[ii] = newvalue
                         end
+
                     end
                 end
 

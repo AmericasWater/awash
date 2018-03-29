@@ -13,7 +13,7 @@ function usmap(df, centered=false)
     tostateshapefile = datapath("mapping/tl_2010_us_state00/tl_2010_us_state00-simple")
 
     if !mapinited
-        RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
+        #RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
         R"library(ggplot2)"
         R"library(PBSmapping)"
         R"shapes <- importShapefile($toshapefile)"
@@ -51,7 +51,7 @@ function xyplot(xx, yy, title, xlab, ylab, size=1)
     global ggplotinited
 
     if !mapinited
-        RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
+        #RCall.ijulia_setdevice(MIME("image/png"),width=8*72,height=5*72)
         R"library(ggplot2)"
     end
 
@@ -60,3 +60,4 @@ function xyplot(xx, yy, title, xlab, ylab, size=1)
     R"ggplot($df, aes(x, y, size=size)) +
 geom_point() + xlab($xlab) + ylab($ylab) + ggtitle($title) + theme_bw()"
 end
+

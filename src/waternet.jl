@@ -3,8 +3,11 @@ using Graphs
 using DataFrames
 using RData
 
-typealias RegionNetwork{R, E} IncidenceList{R, E}
-typealias OverlaidRegionNetwork RegionNetwork{ExVertex, ExEdge}
+if !isdefined(:RegionNetwork)
+    RegionNetwork{R, E} = IncidenceList{R, E}
+end
+
+OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 
 filtersincludeupstream = false # true to include all upstream nodes during a filter
 
@@ -30,18 +33,19 @@ elseif isfile(datapath("waternet/waternet$suffix.jld"))
     draws = deserialize(open(datapath("waternet/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
-    if get(config, "dataset", "counties") == "counties"
-        waternetdata = load(datapath("waternet/waternet.RData"));
-        drawsdata = load(datapath("waternet/countydraws.RData"));
-    elseif config["dataset"] == "three"
+    if config["dataset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
-    else
+    elseif config["dataset"] == "dummy"
         waternetdata = load(datapath("waternet/dummynet.RData"));
         drawsdata = load(datapath("waternet/dummydraws.RData"));
+    else
+        waternetdata = load(loadpath("waternet/waternet.RData"));
+        drawsdata = load(loadpath("waternet/countydraws.RData"));
     end
 
     netdata = waternetdata["network"];
+    netdata[:nextpt] = convert(DataVector{Int64}, netdata[:nextpt])
 
     # Load the county-network connections
     draws = drawsdata["draws"];
@@ -60,6 +64,7 @@ else
     end
 
     if get(config, "filterstate", nothing) != nothing
+        states = round.(Int64, draws[:fips] / 1000)
         draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
         states = round(Int64, draws[:fips] / 1000)
         
@@ -84,7 +89,7 @@ else
         includeds = trues(nrow(netdata))
     end
 
-    wateridverts = Dict{UTF8String, ExVertex}();
+    wateridverts = Dict{String, ExVertex}();
     waternet = empty_extnetwork();
     for row in 1:nrow(netdata)
         if !includeds[row]
@@ -93,7 +98,7 @@ else
 
         println(row)
         nextpt = netdata[row, :nextpt]
-        if isna(nextpt)
+        if isna.(nextpt)
             continue
         end
 
@@ -101,7 +106,9 @@ else
         nextid = "$(netdata[nextpt, :collection]).$(netdata[nextpt, :colid])"
 
         if thisid == nextid
-            error("Same same!")
+            #error("Same same!")
+            netdata[row, :nextpt] = NA
+            continue
         end
 
         if thisid in keys(wateridverts) && nextid in keys(wateridverts) &&
@@ -136,7 +143,7 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
-gaugeorder = Vector{UTF8String}(length(wateridverts))
+gaugeorder = Vector{String}(length(wateridverts))
 for vertex in downstreamorder
     gaugeorder[vertex_index(vertex)] = vertex.label
 end
@@ -146,7 +153,7 @@ include("lib/reservoirs.jl")
 reservoirs = getreservoirs(config)
 
 # Zero if not a reservoir, else its index
-isreservoir = zeros(length(wateridverts))
+isreservoir = zeros(Int64, length(wateridverts))
 
 for ii in 1:nrow(reservoirs)
     resid = "$(reservoirs[ii, :collection]).$(reservoirs[ii, :colid])"

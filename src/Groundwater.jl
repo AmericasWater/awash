@@ -5,7 +5,7 @@
 using Mimi
 using Distributions
 
-gw = load(datapath("gwmodel/contusgwmodel.RData"))
+include("groundwaterdata.jl")
 
 @defcomp Aquifer begin
   aquifers = Index()
@@ -49,8 +49,6 @@ function run_timestep(c::Aquifer, tt::Int)
   v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
   ## repeat simulation timestep time
   for mm in 1:config["timestep"]
-
-  	# computation of lateral flows:
   	lflows=zeros(d.aquifers[end],1)
   	for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
@@ -63,7 +61,7 @@ function run_timestep(c::Aquifer, tt::Int)
 		end
 	end
 
-  # piezometric head initialisation and simulation (piezohead is actually a drawdown)
+  # piezometric head initialisation and simulation
 	for aa in d.aquifers
 		v.piezohead[aa,tt] = v.piezohead[aa,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,tt]/config["timestep"] - p.withdrawal[aa,tt]/config["timestep"] + lflows[aa])
 	end
@@ -85,48 +83,22 @@ end
 Add an Aquifer component to the model.
 """
 function initaquifer(m::Model)
-  aquifer = addcomponent(m, Aquifer)
+    aquifer = addcomponent(m, Aquifer)
+    aquifer[:depthaquif] = dfgw[:depthaquif];
+    aquifer[:storagecoef] = dfgw[:storagecoef];
+    aquifer[:piezohead0] = dfgw[:piezohead0];
+    aquifer[:areaaquif] = dfgw[:areaaquif];
+    aquifer[:lateralconductivity] = lateralconductivity;
+    aquifer[:aquiferconnexion] = aquiferconnexion;
+    aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
+    aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
-  if config["dataset"] == "three"
-  	aquifer[:depthaquif] = [-100.; -90.; -95.];
-	aquifer[:storagecoef] = [5e-4; 5e-4; 5e-4];
- 	aquifer[:piezohead0] = [-55.; -45.; -53.];
-  	aquifer[:areaaquif] = [8e8; 6e8; 5e8];
+    aquifer[:deltatime] = convert(Float64, config["timestep"]);
 
-  	aquifer[:withdrawal] = repeat(rand(Normal(190000,3700), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
-  	aquifer[:recharge] = repeat(rand(Normal(240000,1000), m.indices_counts[:aquifers]), outer=[1, m.indices_counts[:time]]);
+    # Get elevation from county-info file
+    countyinfo = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    countyinfo[:FIPS] = regionindex(countyinfo, :)
 
-  	aquifer[:lateralconductivity] = [  0  1e-4     0;
-                                        1e-4     0  1e-4;
-                                   	   0  1e-6     0];
-
-  	aquifer[:aquiferconnexion] = [0. 1. 0.; 1. 0. 1.; 0 1. 0];
-  else
-
-  	  if get(config, "filterstate", nothing) != nothing
-          # This currently only works for county-level runs
-          vfips = readdlm(datapath("gwmodel/v_FIPS.txt"));
-		  vstates = round(Int64, floor(vfips / 1000));
-            if config["filterstate"]=="36"
-                vstates[1845]=0
-                vstates[1823]=0
-            end
-		  subfips = (vstates .== parse(Int64, get(config,"filterstate", nothing)));
-            
-	  else
-		  subfips = 1:nrow(masterregions)
-	  end
-        elevation=convert(Array,gw["county_elevation"])
-	aquifer[:depthaquif] = gw["aquifer_depth"][subfips];
-	aquifer[:piezohead0] = zeros(numaquifers);#gw["piezohead0"].data[subfips];
-  	aquifer[:storagecoef] = gw["vector_storativity"][subfips];
-  	aquifer[:areaaquif] = gw["county_area"][subfips]/1000;
-        aquifer[:elevation] = elevation[subfips];#zeros(numaquifers);#gw["county_elevation"][:V1][subfips];
-  	aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
-  	aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
-  	aquifer[:lateralconductivity] = gw["matrix_leakage_factor"][subfips,subfips];
-  	aquifer[:deltatime] = convert(Float64, config["timestep"]);
-	aquifer[:aquiferconnexion] =  gw["connectivity_matrix"][subfips,subfips];
-  end
-  aquifer
+    aquifer[:elevation] = map(x -> ifelse(isna(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))
+    aquifer
 end

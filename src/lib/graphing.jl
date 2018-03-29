@@ -1,4 +1,5 @@
 if Pkg.installed("RCall") != nothing
+    print("installed")
     include("graphing-rcall.jl")
 else
     if Pkg.installed("Shapefile") == nothing

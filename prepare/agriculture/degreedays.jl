@@ -5,10 +5,11 @@ eddlimits = Dict("alfalfa" => (0, 30), "otherhay" => (0, 30),
                  "Maize" => (8, 29),
                  "Sorghum" => (8, 29),
                  "Soybeans" => (5, 29),
-                 "Wheat" => (0, 26), "Wheat.Winter" => (0, 26))
+                 "Wheat" => (0, 26), "Wheat.Winter" => (0, 26),
+                 "Cotton" => (12, 31), "Rice" => (8, 29))
 
 ## Duplicates code from regress.jl
-mastercounties = readtable("../../data/global/counties.csv", eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable("../../data/global/counties.csv", eltypes=[String, String, String])
 masteryears = 1949:2009
 
 for crop in keys(eddlimits)
@@ -19,7 +20,7 @@ for crop in keys(eddlimits)
     kddarray[1, :] = masteryears
 
     for year in masteryears
-        eddfilename = "/home/jrising/Dropbox/Agriculture Weather/edds/$crop-$year.csv"
+        eddfilename = "/Users/jrising/Dropbox/Agriculture Weather/edds/$crop/$crop-$year.csv"
         if !isfile(eddfilename)
             continue
         end
@@ -29,9 +30,9 @@ for crop in keys(eddlimits)
         if nrow(temps) < 2
             continue
         end
-        temps[:fullfips] = map(fips -> isna(fips) ? "" : (fips > 10000 ? "$fips" : "0$fips"), temps[:fips])
-        gdd0col = symbol("above$(eddlimits[crop][1])")
-        kdd0col = symbol("above$(eddlimits[crop][2])")
+        temps[:fullfips] = map(fips -> isna.(fips) ? "" : (fips > 10000 ? "$fips" : "0$fips"), temps[:fips])
+        gdd0col = Symbol("above$(eddlimits[crop][1])")
+        kdd0col = Symbol("above$(eddlimits[crop][2])")
 
         for rr in 1:nrow(mastercounties)
             ii = findfirst(mastercounties[rr, :fips] .== temps[:fullfips])

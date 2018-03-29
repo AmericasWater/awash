@@ -20,11 +20,42 @@ function translate(column, values)
         if typeof(values[1]) <: AbstractString
             values = map(x -> ismatch(r"^[-+]?[0-9]*\.?[0-9]+$", x) ? parse(Float64, x) : 0, values)
         end
-        sum(map(x -> isnan(x) ? 0 : x, dropna(values)))
+        sum(map(x -> isnan.(x) ? 0 : x, dropna(values)))
     end
 end
 
 converttable("agriculture/allyears/Master_Spreadsheet_All.csv", config, translate)
+
+## ERS data
+config = Dict{Symbol, Any}()
+config[:source] = "counties"
+config[:sourceid] = :FIPS
+config[:target] = "states"
+config[:targetid] = :ST
+config[:masterfile] = "data/global/counties.csv"
+config[:mastersourceid] = :fips
+config[:mastertargetid] = :state
+config[:forcematching] = false
+
+function translate(column, values)
+    if column == :FIPS
+        nothing
+    else
+        maxcount = 0
+        maxvalue = "NA"
+        for value in unique(values)
+            count = sum(values .== value)
+            if count > maxcount
+                maxcount = count
+                maxvalue = value
+            end
+        end
+
+        maxvalue
+    end
+end
+
+converttable("agriculture/ers/reglink.csv", config, translate)
 
 ## Model coefficients
 config = Dict{Symbol, Any}()
@@ -37,7 +68,7 @@ config[:mastersourceid] = :fips
 config[:mastertargetid] = :state
 
 function translatechunk(subdf)
-    subresult = DataFrame(coef=UTF8String[], mean=Float64[], serr=Float64[])
+    subresult = DataFrame(coef=String[], mean=Float64[], serr=Float64[])
 
     for coef in unique(subdf[:coef])
         if coef in ["gddoffset", "kddoffset"]
@@ -47,7 +78,7 @@ function translatechunk(subdf)
             serrs = subdf[subdf[:coef] .== coef, :serr]
 
             # Drop NAs and NaN
-            invalid = isna(means) | isnan(means) | isnan(serrs)
+            invalid = isna.(means) | isnan.(means) | isnan.(serrs)
             if sum(invalid) > 0
                 means[invalid] = 0
                 serrs[invalid] = Inf

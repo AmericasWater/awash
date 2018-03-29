@@ -7,8 +7,8 @@ using DataFrames
 include("lib/datastore.jl")
 
 # Load consumptive use data
-consumption = readtable(datapath("returnflows/consumption.csv"))
-returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)]
+consumption = readtable(loadpath("returnflows/consumption.csv"))
+returnpart = Dict([consumption[ii, :sector] => 1 - consumption[ii, :consumption] for ii = 1:nrow(consumption)])
 
 @defcomp WaterDemand begin
     regions = Index()
@@ -30,6 +30,7 @@ returnpart = [consumption[ii, :sector] => 1 - consumption[ii, :consumption] for 
     # Internal
     # Total water demand (1000 m^3)
     totaldemand = Variable(index=[regions, time], unit="1000 m^3")
+    otherdemand = Variable(index=[regions, time], unit="1000 m^3")
 
     # How much is returned by region
     totalreturn = Variable(index=[regions, time], unit="1000 m^3")
@@ -46,6 +47,7 @@ function run_timestep(c::WaterDemand, tt::Int)
     for rr in d.regions
         # Sum all demands
         v.totaldemand[rr, tt] = p.totalirrigation[rr, tt] + p.domesticuse[rr, tt] + p.industrialuse[rr, tt] + p.urbanuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
+        v.otherdemand[rr, tt] = p.domesticuse[rr, tt] + p.industrialuse[rr, tt] + p.urbanuse[rr, tt] + p.thermoelectricuse[rr, tt] + p.livestockuse[rr, tt]
 
         v.totalreturn[rr, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, tt]
     end
@@ -73,39 +75,39 @@ function initwaterdemand(m::Model)
 end
 
 function grad_waterdemand_swdemandbalance_totalirrigation(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :totalirrigation, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :totalirrigation, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_domesticuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :domesticuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :domesticuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_thermoelectricuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :livestockuse, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :livestockuse, 1.)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, (rr, tt) -> -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"])
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, (rr, tt) -> -returnpart["domestic/commercial"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"])
 end
 
 function grad_waterdemand_totalreturn_industrialuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, (rr, tt) -> -returnpart["industrial/mining"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"])
 end
 
 function grad_waterdemand_totalreturn_thermoelectricuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, (rr, tt) -> -returnpart["thermoelectric"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"])
 end
 
 function grad_waterdemand_totalreturn_livestockuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, (rr, tt) -> -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"])
 end
 
 function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
@@ -116,7 +118,7 @@ function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demand
             values_waterdemand_recordedsurfaceirrigation(m)
         end
     else
-        shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:Agriculture, :totalirrigation])
+        shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:Agriculture, :allirrigation])
     end
 end
 
@@ -258,3 +260,20 @@ function values_waterdemand_recordedgroundthermoelectric(m::Model)
     gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen)
 end
+
+function values_waterdemand_recordeddomestic(m::Model)
+    values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
+end
+
+function values_waterdemand_recordedindustrial(m::Model)
+    values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
+end
+
+function values_waterdemand_recordedthermoelectric(m::Model)
+    values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
+end
+
+function values_waterdemand_recordedlivestock(m::Model)
+    values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
+end
+

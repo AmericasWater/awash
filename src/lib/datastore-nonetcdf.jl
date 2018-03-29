@@ -16,7 +16,7 @@ end
 
 if !isdefined(:currentCSVFiles)
     # Store previously opened CSVs
-    const currentCSVFiles = Dict{ASCIIString, DataFrame}()
+    const currentCSVFiles = Dict{String, DataFrame}()
 end
 
 """
@@ -37,7 +37,7 @@ function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractStri
         currentCSVFiles[filepath] = df
     end
 
-    datacols = [false; !isnan(vec(convert(DataMatrix{Float64}, df[1, 2:end])))] # assumes there's at least one coldim variable
+    datacols = [false; !isnan.(vec(convert(DataMatrix{Float64}, df[1, 2:end])))] # assumes there's at least one coldim variable
 
     if length(dims) == 1 && dims[1] == config["ncdatasets"][name]["csvcoldim"]
         return vec(convert(DataMatrix{Float64}, df[df[1] .== variable, datacols]))

@@ -64,9 +64,6 @@ function initwaterdemand(m::Model)
     waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    if config["filterstate"]=="36"    
-    deleterows!(recorded,[30,52])
-    end 
     waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
     waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);

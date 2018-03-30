@@ -14,16 +14,19 @@ elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif config["dataset"] == "counties" || config["parent-dataset"] == "counties"
-    dfgw = readtable(loadpath("gwmodel/dfgw.csv"));
+    dfgw = getfilteredtable("gwmodel/dfgw.csv", :fips);
+    dfgw_ = readtable(loadpath("gwmodel/dfgw.csv"));
     lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity.csv")));
     aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion.csv")));
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
-	vstates = round(Int64, floor(dfgw[:fips] ./ 1000));
-	subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
+	dfgw_ = readtable(loadpath("gwmodel/dfgw.csv"));
+	subfips = find(floor(dfgw_[:fips]/1e3) .== parse(Int64, config["filterstate"]))
+	if config["filterstate"]=="36"
+		subfips = [subfips[1:29]; subfips[31:51]; subfips[53:62]]
+	end
 
-        dfgw = dfgw[subfips,:];
   	lateralconductivity = lateralconductivity[subfips,subfips];
   	aquiferconnexion = aquiferconnexion[subfips,subfips];
 

@@ -24,6 +24,11 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
         reservoirs = readtable(loadpath("reservoirs/allreservoirs.csv"))
         if get(config, "filterstate", nothing) != nothing
             reservoirs = reservoirs[floor(reservoirs[:fips] / 1000) .== parse(Int64, config["filterstate"]), :]
+	    if config["filterstate"]=="36"
+		    reservoirs = reservoirs[reservoirs[:fips].!="36059",:]
+		    reservoirs = reservoirs[reservoirs[:fips].!="36103",:]
+
+	    end
         end
 
         reservoirs

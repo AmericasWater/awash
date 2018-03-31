@@ -94,13 +94,13 @@ function initreservoir(m::Model, name=nothing)
      	reservoir[:evaporation] = zeros(numreservoirs, numsteps);
     else
         rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])./1000 #data in cubic meters, change to 1000m3
-     	reservoir[:storagecapacitymax] = rcmax;
-     	reservoir[:storagecapacitymin] = rcmax*0.0#zeros(numreservoirs);
-        reservoir[:storage0] = rcmax*0.000001;
-   	reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
+        reservoir[:storagecapacitymax] = rcmax;
+        reservoir[:storagecapacitymin] = zeros(numreservoirs);
+        reservoir[:storage0] = zeros(numreservoirs);
         if "reshalf" in keys(config) && config["reshalf"] == "half"
-            reservoir[:storage0] = (rcmax-0.1*rcmax)/2; #half full
+            reservoir[:storage0] = (rcmax-reservoir[:storagecapacitymin])/2; #half full
         end
+        reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
     end
 
     reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numsteps));

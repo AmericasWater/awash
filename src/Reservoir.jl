@@ -16,10 +16,6 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     # Reservoir inflows
     inflows = Variable(index=[reservoirs, time], unit="1000 m^3")
     outflows = Variable(index=[reservoirs, time], unit="1000 m^3")
-    # withdrawals
-    withdrawals = Variable(index=[reservoirs, time], unit="1000 m^3")
-    # releases
-    releases = Variable(index=[reservoirs, time], unit="1000 m^3")
     # Evaporation
     evaporation = Parameter(index=[reservoirs, time], unit="")
     
@@ -55,18 +51,6 @@ function run_timestep(c::Reservoir, tt::Int)
             v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
         else
             v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*v.storage[rr,tt-1] + p.captures[rr, tt];
-        end
-        
-        if p.captures[rr,tt]<0
-            v.withdrawals[rr,tt] = -p.captures[rr,tt] - (v.outflows[rr,tt] - v.inflows[rr,tt])
-            if v.inflows[rr,tt]<v.outflows[rr,tt]
-                v.releases[rr,tt] = v.outflows[rr,tt] - v.inflows[rr, tt]
-            else
-                v.releases[rr,tt] = 0
-            end
-        else
-            v.releases[rr,tt] = 0
-            v.withdrawals[rr,tt] = 0
         end
     end
 end

@@ -63,6 +63,15 @@ else
     numaquifers = numcounties;
 end
 
+if config["filterstate"]=="36"    
+    industry = ["food","beverage","paper","petroleum","chem","plastic","nonmetal","metal","fabricated metal","machinery","electrical"]
+    end 
+numindustries=length(industry) 
+
+
+
+
+
 function newmodel()
     m = Model()
 

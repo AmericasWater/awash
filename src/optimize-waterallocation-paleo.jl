@@ -1,7 +1,7 @@
 #### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
 
 include("lib/readconfig.jl")
-config = readconfig("../configs/paleo-yearly.yml")
+config = readconfig("../configs/paleo-4scen.yml")
 
 withreservoirs = false
 

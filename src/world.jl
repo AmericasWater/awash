@@ -59,6 +59,8 @@ function newmodel()
 
     if config["dataset"] == "three"
         setindex(m, :time, collect(1:3))
+    elseif "scenario-length" in keys(config)
+        setindex(m, :time, collect(1:config["scenario-length"])
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end

@@ -8,14 +8,15 @@ using Mimi
 
 @defcomp WaterNetwork begin
     gauges = Index()
+    scenarios = Index()
 
     # External
-    added = Parameter(index=[gauges, time], unit="1000 m^3") # Water added at node from runoff
-    removed = Parameter(index=[gauges, time], unit="1000 m^3") # Water removed from node
-    returned = Parameter(index=[gauges, time], unit="1000 m^3") # Water returns to a node from canals
+    added = Parameter(index=[gauges, scenarios, time], unit="1000 m^3") # Water added at node from runoff
+    removed = Parameter(index=[gauges, scenarios, time], unit="1000 m^3") # Water removed from node
+    returned = Parameter(index=[gauges, scenarios, time], unit="1000 m^3") # Water returns to a node from canals
 
-    inflows = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream outflows
-    outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed + returned
+    inflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # Sum of upstream outflows
+    outflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # inflow + added - removed + returned
 end
 
 """
@@ -29,13 +30,13 @@ function run_timestep(c::WaterNetwork, tt::Int)
     for hh in d.gauges
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
-        allflow = 0.
+        allflow = zeros(numscenarios)
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            allflow += v.outflows[vertex_index(upstream, waternet), tt]
+            allflow += v.outflows[vertex_index(upstream, waternet), :, tt]
         end
 
-        v.inflows[gg, tt] = allflow
-        v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt] + p.returned[gg, tt]
+        v.inflows[gg, :, tt] = allflow
+        v.outflows[gg, :, tt] = allflow + p.added[gg, :, tt] - p.removed[gg, :, tt] + p.returned[gg, :, tt]
     end
 end
 
@@ -43,9 +44,9 @@ function initwaternetwork(m::Model)
     waternetwork = addcomponent(m, WaterNetwork)
 
     # addeds loaded by weather.jl
-    waternetwork[:added] = addeds[:, 1:numsteps]
-    waternetwork[:removed] = zeros(numgauges, numsteps)
-    waternetwork[:returned] = zeros(numgauges, numsteps)
+    waternetwork[:added] = addeds[:, :, 1:numsteps]
+    waternetwork[:removed] = zeros(numgauges, numscenarios, numsteps)
+    waternetwork[:returned] = zeros(numgauges, numscenarios, numsteps)
 
     waternetwork
 end
@@ -69,7 +70,7 @@ function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
 end
 
 """
@@ -102,7 +103,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
@@ -118,7 +119,7 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:time], [:time])
+    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
 end
 
 """
@@ -133,13 +134,13 @@ function constraintoffset_waternetwork_outflows(m::Model)
         println(gg)
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :] += b[vertex_index(upstream, waternet), :]
+            b[gg, :, :] += b[vertex_index(upstream, waternet), :, :]
         end
     end
 
-    function generate(gg, tt)
+    function generate(gg, ss, tt)
         # Determine number of gauges in county
-        b[gg, tt]
+        b[gg, ss, tt]
     end
 
     hallsingle(m, :WaterNetwork, :outflows, generate)

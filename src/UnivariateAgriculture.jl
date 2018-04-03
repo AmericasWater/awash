@@ -6,6 +6,7 @@ include("lib/agriculture.jl")
 @defcomp UnivariateAgriculture begin
     regions = Index()
     unicrops = Index()
+    scenarios = Index()
 
     # Optimized
     # Land area appropriated to each crop
@@ -13,7 +14,7 @@ include("lib/agriculture.jl")
 
     # Internal
     # Yield per hectare
-    yield = Parameter(index=[regions, unicrops, time], unit="none")
+    yield = Parameter(index=[regions, unicrops, scenarios, time], unit="none")
 
     # Coefficient on the effects of water deficits
     irrigation_rate = Parameter(index=[regions, unicrops, time], unit="mm")
@@ -27,8 +28,8 @@ include("lib/agriculture.jl")
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
     # Total production: lb or bu
-    yield2 = Variable(index=[regions, unicrops, time], unit="none")
-    production = Variable(index=[regions, unicrops, time], unit="lborbu")
+    yield2 = Variable(index=[regions, unicrops, scenarios, time], unit="none")
+    production = Variable(index=[regions, unicrops, scenarios, time], unit="lborbu")
     #total Op cost
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
 
@@ -53,8 +54,8 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
 
             # Calculate total production
-            v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
-            v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+            v.yield2[rr, cc, :, tt] = p.yield[rr, cc, :, tt]
+            v.production[rr, cc, :, tt] = p.yield[rr, cc, :, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
             v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
@@ -75,12 +76,12 @@ function initunivariateagriculture(m::Model)
     rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
 
     # Match up values by FIPS
-    yield = zeros(numcounties, numunicrops, numsteps)
+    yield = zeros(numcounties, numunicrops, numscenarios, numsteps)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
 
     for cc in 1:numunicrops
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
-            yield[:,cc,:] = read_nareshyields(unicrops[cc])
+            yield[:, cc, :, :] = read_nareshyields(unicrops[cc])
             irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
             continue
         end
@@ -117,7 +118,8 @@ function initunivariateagriculture(m::Model)
                     water_deficit = max(0., water_demand - rollingsum[rr, tt]) # mm
 
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit # wreq: delta / m
-                    yield[rr, cc, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
+                    println("LOGIC: This should be sensitive to scenario weather.")
+                    yield[rr, cc, :, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
                     irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
                 end
@@ -168,7 +170,7 @@ function getunivariateirrigationrates(crop::AbstractString)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, ss, tt) -> m.parameters[:yield].values[rr, cc, ss, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)

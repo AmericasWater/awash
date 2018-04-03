@@ -6,48 +6,48 @@ include("lib/watercostdata.jl")
 
 @defcomp Allocation begin
     regions = Index()
-    scenario = Index()
+    scenarios = Index()
 
     # Water demand aggregated accross all sectors
     watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
     # Water return flows
-    waterreturn = Parameter(index=[regions, scenario, time], unit="1000 m^3")
+    waterreturn = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Extracted water and returned water set by optimisation
     # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, scenario, time], unit="1000 m^3")
+    withdrawals = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
     # How much is returned to each withdrawal source?
-    returns = Parameter(index=[canals, scenario, time], unit="1000 m^3")
+    returns = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
 
     # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
-    copy_withdrawals = Variable(index=[canals, scenario, time], unit="1000 m^3")
+    copy_withdrawals = Variable(index=[canals, scenarios, time], unit="1000 m^3")
     # For now, exact copy of returns; later, the amount actually returned?
-    copy_returns = Variable(index=[canals, scenario, time], unit="1000 m^3")
+    copy_returns = Variable(index=[canals, scenarios, time], unit="1000 m^3")
 
     # Extracted water (1000 m3) to be set by optimisation - super source represents failure.
-    waterfromgw = Parameter(index=[regions, scenario, time], unit="1000 m^3")
-    waterfromsupersource = Parameter(index=[regions, scenario, time], unit="1000 m^3")
-    watergw = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    waterfromgw = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
+    waterfromsupersource = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
+    watergw = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
     # The cost in USD / 1000 m^3 of extraction and treatment cost
-    unitgwcost = Parameter(index=[regions, scenario, time], unit="\$/1000 m^3")
-    unitswcost = Parameter(index=[canals, scenario, time], unit="\$/1000 m^3")
+    unitgwcost = Parameter(index=[regions, scenarios, time], unit="\$/1000 m^3")
+    unitswcost = Parameter(index=[canals, scenarios, time], unit="\$/1000 m^3")
     unitsupercost = Parameter(unit="\$/1000 m^3")
     # Total cost for each county
-    swcost = Variable(index=[regions, scenario, time], unit="\$")
-    cost = Variable(index=[regions, scenario, time], unit="\$")
+    swcost = Variable(index=[regions, scenarios, time], unit="\$")
+    cost = Variable(index=[regions, scenarios, time], unit="\$")
 
     # Combination across all canals supplying the counties
-    swsupply = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    swsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Combination across all canals routing return flow from the counties
-    swreturn = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    swreturn = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Amount available from all sources
-    waterallocated = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    waterallocated = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Difference between waterallocated and watertotaldemand
-    balance = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    balance = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Difference between swreturn and waterreturn: should be <= 0
-    returnbalance = Variable(index=[regions, scenario, time], unit="1000 m^3")
+    returnbalance = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 end
 
 """
@@ -94,21 +94,21 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
 
-    allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1, m.indices_counts[:scenario], m.indices_counts[:time]])+0.1;
-    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1, m.indices_counts[:scenario], m.indices_counts[:time]])+0.1;
+    allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
+    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
     allocation[:unitsupercost] = 1e6
     if config["dataset"] == "three"
-	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenario], m.indices_counts[:time]);
-    	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:scenario], m.indices_counts[:time]);
-    	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:scenario], m.indices_counts[:time]);
-    	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:scenario], m.indices_counts[:time]);
+	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
+    	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
+    	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
+    	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
     else
         recorded = getfilteredtable("extraction/USGS-2010.csv")
 
-	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenario], m.indices_counts[:time]))
-	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenario], m.indices_counts[:time]))
-	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1, m.indices_counts[:scenario], m.indices_counts[:time]]))
-    	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:scenario], m.indices_counts[:time]));
+	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
+	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
+	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
+    	allocation[:waterfromsupersource] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]));
     end
 
     allocation

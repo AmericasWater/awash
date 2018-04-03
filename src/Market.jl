@@ -8,6 +8,7 @@ using Mimi
 @defcomp Market begin
     regions = Index()
     allcrops = Index()
+    scenarios = Index()
 
     # Configuration
     # Selling prices
@@ -15,15 +16,15 @@ using Mimi
     international_prices = Parameter(index=[regions, allcrops], unit="\$/lborbu")
 
     # Optimized
-    internationalsales = Parameter(index=[regions, allcrops, time], unit="lborbu")
+    internationalsales = Parameter(index=[regions, allcrops, scenarios, time], unit="lborbu")
 
     # External
     # Local production from Agriculture
-    produced = Parameter(index=[regions, allcrops, time], unit="lborbu")
+    produced = Parameter(index=[regions, allcrops, scenarios, time], unit="lborbu")
 
     # Imports and exports from Transportation
-    regionimports = Parameter(index=[regions, allcrops, time], unit="lborbu")
-    regionexports = Parameter(index=[regions, allcrops, time], unit="lborbu")
+    regionimports = Parameter(index=[regions, allcrops, scenarios, time], unit="lborbu")
+    regionexports = Parameter(index=[regions, allcrops, scenarios, time], unit="lborbu")
 
     # How much domestic buy if available
     domestic_interest = Parameter(index=[regions, allcrops, time], unit="lborbu")
@@ -31,14 +32,14 @@ using Mimi
     # Internal
 
     # The balance of available resource
-    available = Variable(index=[regions, allcrops, time], unit="lborbu")
+    available = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
 
     # Remaining after international are sold
-    domesticbalance = Variable(index=[regions, allcrops, time], unit="lborbu")
+    domesticbalance = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
 
     # Total revenue from selling all available
-    domesticrevenue = Variable(index=[regions, allcrops, time], unit="\$")
-    internationalrevenue = Variable(index=[regions, allcrops, time], unit="\$")
+    domesticrevenue = Variable(index=[regions, allcrops, scenarios, time], unit="\$")
+    internationalrevenue = Variable(index=[regions, allcrops, scenarios, time], unit="\$")
 end
 
 """
@@ -51,9 +52,9 @@ function run_timestep(c::Market, tt::Int)
 
     for rr in d.regions
         for cc in d.allcrops
-            v.available[rr, cc, tt] = p.produced[rr, cc, tt] + p.regionimports[rr, cc, tt] - p.regionexports[rr, cc, tt]
-            v.domesticrevenue[rr, cc, tt] = p.domestic_prices[rr, cc] * (v.available[rr, cc, tt] - p.internationalsales[rr, cc, tt])
-            v.internationalrevenue[rr, cc, tt] = p.international_prices[rr, cc] * p.internationalsales[rr, cc, tt]
+            v.available[rr, cc, :, tt] = p.produced[rr, cc, :, tt] + p.regionimports[rr, cc, :, tt] - p.regionexports[rr, cc, :, tt]
+            v.domesticrevenue[rr, cc, :, tt] = p.domestic_prices[rr, cc] * (v.available[rr, cc, :, tt] - p.internationalsales[rr, cc, :, tt])
+            v.internationalrevenue[rr, cc, :, tt] = p.international_prices[rr, cc] * p.internationalsales[rr, cc, :, tt]
         end
     end
 end
@@ -67,15 +68,15 @@ function initmarket(m::Model)
         prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124]
     else
         prices = crop_information(allcrops, crop_prices, 0, warnonmiss=true)
-    end 
-    
-    market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
+    end
+
+    market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], numscenarios, m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
     market[:domestic_interest] = zeros(numcounties, numallcrops, numsteps)
     market[:international_prices] = repeat(transpose(prices / 2), outer=[m.indices_counts[:regions], 1])
-    market[:internationalsales] = zeros(numcounties, numallcrops, numsteps)
-    market[:regionimports] = zeros(numcounties, numallcrops, numsteps)
-    market[:regionexports] = zeros(numcounties, numallcrops, numsteps)
+    market[:internationalsales] = zeros(numcounties, numallcrops, numscenarios, numsteps)
+    market[:regionimports] = zeros(numcounties, numallcrops, numscenarios, numsteps)
+    market[:regionexports] = zeros(numcounties, numallcrops, numscenarios, numsteps)
 
     market
 end
@@ -97,13 +98,13 @@ function grad_market_available_internationalsales(m::Model)
 end
 
 function deriv_market_totalrevenue_produced(m::Model)
-    gen(rr, cc, tt) = m.external_parameters[:domestic_prices].values[rr, cc]
-    hallsingle(m, :Market, :produced, gen)
+    gen(rr, cc) = m.external_parameters[:domestic_prices].values[rr, cc]
+    hallsingle(m, :Market, :produced, gen, [:scenarios, :time])
 end
 
 function deriv_market_totalrevenue_internationalsales(m::Model)
-    gen(rr, cc, tt) = -m.external_parameters[:domestic_prices].values[rr, cc] + m.external_parameters[:international_prices].values[rr, cc]
-    hallsingle(m, :Market, :internationalsales, gen)
+    gen(rr, cc) = -m.external_parameters[:domestic_prices].values[rr, cc] + m.external_parameters[:international_prices].values[rr, cc]
+    hallsingle(m, :Market, :internationalsales, gen, [:scenarios, :time])
 end
 
 function grad_market_domesticbalance_available(m::Model)

@@ -8,12 +8,12 @@ include("lib/industrial.jl")
     regions = Index()
     industry=Index() 
 
-    # Industrial demand
-    industrywaterdemand = Parameter(index=[regions, time],unit="1000 m^3")
-    
+    #Regression model ax+b=y
+    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")
+    constantvalue=Parameter(index=[regions, industry, time],unit="\$")
     
     #Optimized
-    #Water used to each industry 
+    #Water used to each industry to generate revenue
     water_used=Parameter(index=[regions, industry, time], unit="1000m^3") 
     
     #Computed
@@ -21,10 +21,13 @@ include("lib/industrial.jl")
     industry_waterdemand=Variable(index=[regions, time], unit="1000m^3") 
     
     #Revenue generated for each industry by using water 
-    industry_revenue=Variable(index=[regions,industry,time], unit="$") 
+    industry_revenue=Variable(index=[regions,industry,time], unit="\$") 
     
     # Demanded water
     waterdemand = Variable(index=[regions, time],unit="1000 m^3")
+    # Industrial demand
+    industrywaterdemand = Parameter(index=[regions, time],unit="1000 m^3")
+    
 end
 
 """
@@ -38,13 +41,11 @@ function run_timestep(c::IndustrialDemand, tt::Int)
     for rr in d.regions
         v.waterdemand[rr, tt] = p.industrywaterdemand[rr, tt]
         for ii in d.industry
+            v.industry_revenue[rr,ii,tt]=p.waterused[rr,ii,tt]*p.wateruserate[rr,ii,tt]+p.constantvalue[rr,ii,tt]
+            
             
     end
 end
-
-
-
-
 
 
 
@@ -54,15 +55,40 @@ end
 Add an industrial component to the model.
 """
 function initindustrialdemand(m::Model)
-    industrialdemand = addcomponent(m, IndustrialDemand);
+        wateruserate=zeros(numcounties,numindustries,numstep);
+        constantvalue=zeros(numcounties,numindustries,numstep);
+        
+        for rr in 1:numcounties
+            for ii in 1:numindustries 
+                for tt in 1:numstep
+                    wateruserate[rr,ii,tt]=indata[:m]
+        
+        
+        wateruserate=indata[:m]*3.785  #Convert slope from $/MG to $/1000m^3) 
+        constantvalue=indata[:b];
+        
 
     # data from USGS 2010 for the 2000 county definition
     recorded = getfilteredtable("extraction/USGS-2010.csv")
     if config["filterstate"]=="36"    
         deleterows!(recorded,[30,52])
     end 
-    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
+
+        industrialdemand = addcomponent(m, IndustrialDemand);
+        industrialdemand[:wateruserate]=wateruserate
+        industrialdemand[:constantvalue]=constantvalue 
+
+        
+        
+        industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
 #    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
+  
+        
+        
+        
+        
+        
+        
     industrialdemand
 end
 

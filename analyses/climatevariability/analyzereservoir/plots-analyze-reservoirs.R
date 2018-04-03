@@ -68,17 +68,25 @@ sum(rowMeans(propcapture)<0.01)/length(rowMeans(propcapture))*100
 mpctcap <- 100*rowMeans(propcapture)
 
 
+resdf$state=state_ind[match(resdf$fips, fips[1:3109])]
+
+resdf_NY=resdf[resdf$state=='NY',]
+
+
+
+
+
 # Reservoir maps
 map <- map_data("usa")
 
-#png(paste0('plots/reservoir_map.png'), height = 800, width = 1200)
+png(paste0('plots/reservoir_map.png'), height = 800, width = 1200)
 p <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white")+
   geom_point(data=resdf, aes(x=lon, y=lat), color='red')+
   ggtitle('CONUS reservoir map')+
   theme_bw()
 print(p)
-#dev.off()
+dev.off()
 
 resdf$capture=apply(capture, MARGIN=1, FUN = sum)
 resdf$release=apply(release, MARGIN=1, FUN = sum)
@@ -91,55 +99,55 @@ resdf$max_release=-apply(release, MARGIN=1, FUN = min)
 p <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white")
 
-#png(paste0('plots/sd_capture_map.png'), height = 800, width = 1200)
+png(paste0('plots/sd_capture_map.png'), height = 800, width = 1200)
 p1 <- p +
    geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(sd_cap)), size=1)+
    scale_colour_gradient(low='blue', high='red')+
    ggtitle('Log1p of the standard deviation of captures across years')+
    theme_bw()
 p1
-#dev.off()
+dev.off()
 
-#png(paste0('plots/max_capture_map.png'), height = 800, width = 1200)
+png(paste0('plots/max_capture_map.png'), height = 800, width = 1200)
 p1 <- p +
   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_capture)), size=1)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of the maximum capture across years')+
   theme_bw()
 p1
-#dev.off()
+dev.off()
 
-#png(paste0('plots/max_release_map.png'), height = 800, width = 1200)
+png(paste0('plots/max_release_map.png'), height = 800, width = 1200)
 p1 <- p +
   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_release)), size=1)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of the maximum release across years')+
   theme_bw()
 p1
-#dev.off()
+dev.off()
 
 which(apply(capture, MARGIN=2, FUN = sum)==max(apply(capture, MARGIN=2, FUN = sum)))
 which(apply(release, MARGIN=2, FUN = sum)==min(apply(release, MARGIN=2, FUN = sum)))
 resdf$capture2006=capture[,7]
 resdf$release2009=capture[,10]
 
-#png(paste0('plots/capture2006_map.png'), height = 800, width = 1200)
+png(paste0('plots/capture2006_map.png'), height = 800, width = 1200)
 p1 <- p +
   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(capture2006)), size=1)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of 2006 captures')+
   theme_bw()
 p1
-#dev.off()
+dev.off()
 
-#png(paste0('plots/release2009_map.png'), height = 800, width = 1200)
+png(paste0('plots/release2009_map.png'), height = 800, width = 1200)
 p1 <- p +
   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(release2009)), size=1)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of 2009 releases')+
   theme_bw()
 p1
-#dev.off()
+dev.off()
 
 
 ## Analyses of reservoirs with highest variance across years
@@ -148,6 +156,7 @@ IdX=order(resdf$sd_cap, decreasing = T)[1:nres]
 df_nres <- resdf[IdX, ]
 
 # Map
+png(paste0('plots/release2009_map.png'), height = 800, width = 1200)
 p1 <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white") + 
   geom_point(data=df_nres, aes(x=lon, y=lat, size=sd_cap), colour='red')+
@@ -155,7 +164,7 @@ p1 <- ggplot()+
   theme_bw()+
   ggtitle(paste0('Locations of ', nres, ' reservoirs with highest variance across years'))
 p1
-
+dev.off()
 # TS of captures and releases
 captures_nres <- t(captures[IdX, ])
 capture_nres <- t(capture[IdX, ])
@@ -168,6 +177,7 @@ df_nres2 <- data.frame(Year=rep(c(start_year:end_year), nres), captures=as.vecto
                        capture = as.vector(capture_nres), release=as.vector(release_nres),
                        name=rep(colnames(captures_nres), each=nyears))
 
+png(paste0('plots/captures', nres, ' reservoirs.png'), height = 800, width = 1200)
 p <- ggplot(data=df_nres2,aes(x=Year))+
   geom_line(aes(y=captures, col=name), linetype=1)+
   theme_bw()+
@@ -175,7 +185,9 @@ p <- ggplot(data=df_nres2,aes(x=Year))+
   ylab('Captures and releases [1000 m3]')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/capture', nres, ' reservoirs.png'), height = 800, width = 1200)
 p <- ggplot(data=df_nres2,aes(x=Year))+
   geom_line(aes(y=capture, col=name), linetype=1)+
   theme_bw()+
@@ -183,7 +195,9 @@ p <- ggplot(data=df_nres2,aes(x=Year))+
   ylab('Captures [1000 m3]')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/release', nres, ' reservoirs.png'), height = 800, width = 1200)
 p <- ggplot(data=df_nres2,aes(x=Year))+
   geom_line(aes(y=release, col=name), linetype=1)+
   theme_bw()+
@@ -191,10 +205,11 @@ p <- ggplot(data=df_nres2,aes(x=Year))+
   ylab('Releases [1000 m3]')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
-
+dev.off()
 ## Analysis of "inactive" dams
 
 # Maps
+png(paste0('plots/locations_max100_reservoirs.png'), height = 800, width = 1200)
 p1 <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white") + 
   geom_point(data=resdf[(apply(abs(captures), MARGIN=1, FUN = max)<1e-1),], aes(x=lon, y=lat), colour='red')+
@@ -202,7 +217,9 @@ p1 <- ggplot()+
   theme_bw()+
   ggtitle('Locations of dams whose maximum capture or release is less than 100 m3')
 p1
+dev.off()
 
+png(paste0('plots/locations_max10_reservoirs.png'), height = 800, width = 1200)
 p1 <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white") + 
   geom_point(data=resdf[(apply(abs(captures), MARGIN=1, FUN = max)<1e-2),], aes(x=lon, y=lat), colour='red')+
@@ -210,7 +227,8 @@ p1 <- ggplot()+
   theme_bw()+
   ggtitle('Locations of dams whose maximum capture or release is less than 10 m3')
 p1
-
+dev.off()
+png(paste0('plots/locations_max1_reservoirs.png'), height = 800, width = 1200)
 p1 <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white") + 
   geom_point(data=resdf[(apply(abs(captures), MARGIN=1, FUN = max)<1e-3),], aes(x=lon, y=lat), colour='red')+
@@ -218,11 +236,12 @@ p1 <- ggplot()+
   theme_bw()+
   ggtitle('Locations of dams whose maximum capture or release is less than 1 m3')
 p1
-
+dev.off()
 
 # Evolution of number of "inactive" reservoirs
 regions=region_ind[match(resdf$fips, fips[1:3109])]
 df1<-data.frame(Year=rep(c(start_year:end_year), each=nrow(resdf)), 
+                inact0=as.vector((abs(captures) < 1000)),
                 inact1=as.vector((abs(captures) < 1e-1)),
                 inact2=as.vector((abs(captures) < 1e-2)), 
                 inact3=as.vector((abs(captures) < 1e-3)), 
@@ -231,39 +250,57 @@ df1<-data.frame(Year=rep(c(start_year:end_year), each=nrow(resdf)),
 
 df1 %>% 
   group_by(Year, region) %>% 
-  summarise(inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df2
+  summarise(inact0 = sum(inact0), inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df2
 
 df1 %>% 
   group_by(Year) %>% 
-  summarise(inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df3
+  summarise(inact0 = sum(inact0), inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df3
 
-
+df2$inact0_prop=df2$inact0/as.vector(rep(table(regions), 10))
 df2$inact1_prop=df2$inact1/as.vector(rep(table(regions), 10))
 df2$inact2_prop=df2$inact2/as.vector(rep(table(regions), 10))
 df2$inact3_prop=df2$inact3/as.vector(rep(table(regions), 10))
 
+
+png(paste0('plots/ev_reservoirs_less10e6.png'), height = 800, width = 1200)
+p <- ggplot(data=df2, aes(x=Year, colour=region))+
+  geom_point(aes(y=inact1_prop))+
+  theme_bw()+
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10^6 m3')+
+  scale_x_continuous(breaks=c(start_year:end_year))
+p
+dev.off()
+
+png(paste0('plots/ev_reservoirs_less100.png'), height = 800, width = 1200)
 p <- ggplot(data=df2, aes(x=Year, colour=region))+
   geom_point(aes(y=inact1_prop))+
   theme_bw()+
   ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 100 m3')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/ev_reservoirs_less10.png'), height = 800, width = 1200)
 p <- ggplot(data=df2, aes(x=Year, colour=region))+
   geom_point(aes(y=inact2_prop))+
   theme_bw()+
   ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10 m3')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/ev_reservoirs_less1.png'), height = 800, width = 1200)
 p <- ggplot(data=df2, aes(x=Year, colour=region))+
   geom_point(aes(y=inact3_prop))+
   theme_bw()+
   ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 1 m3')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/ev_reservoirs_less.png'), height = 800, width = 1200)
 p <- ggplot(data=df3, aes(x=Year))+
+  geom_line(aes(y=inact0))+
   geom_line(aes(y=inact1), color='lightsalmon')+
   geom_line(aes(y=inact2), color='cyan3')+
   geom_line(aes(y=inact3), color='darkgreen')+
@@ -271,9 +308,15 @@ p <- ggplot(data=df3, aes(x=Year))+
   ggtitle('Evolution of the proportion of reservoirs with captures/releases inferior to given threhsolds')+
   scale_x_continuous(breaks=c(start_year:end_year))
 p
+dev.off()
 
+png(paste0('plots/abs_captures.png'), height = 800, width = 1200)
 plot(apply(abs(captures), MARGIN=2, FUN = sum))
+dev.off()
+
+png(paste0('plots/abs_captures.png'), height = 800, width = 1200)
 plot(apply(abs(captures), MARGIN=2, FUN = sd))
+dev.off()
 sum(abs(captures[,1]))
 sum(abs(captures[,10]))
 
@@ -305,7 +348,9 @@ US$FIPS <- paste0(US$STATE, US$COUNTY)
 US <- append_data(US, df_counties, key.shp = "FIPS", key.data = "FIPS")
 
 qtm(US, fill='failure_diff')
-#png(paste0('plots/failuresin_map.png'), height = 1000, width = 1200)
+dev.off()
+
+png(paste0('plots/failuresin_map.png'), height = 1000, width = 1200)
 qtm(US, fill='failuresin')
 #US_states <- unionSpatialPolygons(US, IDs=US@data$STATE)
 tm_shape(US, projection="+init=epsg:2163") +
@@ -316,9 +361,9 @@ tm_shape(US, projection="+init=epsg:2163") +
             title.position = c("center", "top"),
             title.size = 1.3,
             legend.text.size=1)
-#dev.off()
+dev.off()
 
-#png(paste0('plots/failurecon_map.png'), height = 1000, width = 1200)
+png(paste0('plots/failurecon_map.png'), height = 1000, width = 1200)
 qtm(US, fill='failurecon')
 #US_states <- unionSpatialPolygons(US, IDs=US@data$STATE)
 tm_shape(US, projection="+init=epsg:2163") +
@@ -329,8 +374,8 @@ tm_shape(US, projection="+init=epsg:2163") +
             title.position = c("center", "top"),
             title.size = 1.3,
             legend.text.size=1)
-#dev.off()
-#png(paste0('plots/sd_failuresin_map.png'), height = 1000, width = 1200)
+dev.off()
+png(paste0('plots/sd_failuresin_map.png'), height = 1000, width = 1200)
 qtm(US, fill='sd_failuresin')
 #US_states <- unionSpatialPolygons(US, IDs=US@data$STATE)
 tm_shape(US, projection="+init=epsg:2163") +
@@ -341,9 +386,9 @@ tm_shape(US, projection="+init=epsg:2163") +
             title.position = c("center", "top"),
             title.size = 1.3,
             legend.text.size=1)
-#dev.off()
+dev.off()
 
-#png(paste0('plots/sd_failurecon_map.png'), height = 1000, width = 1200)
+png(paste0('plots/sd_failurecon_map.png'), height = 1000, width = 1200)
 qtm(US, fill='sd_failurecon')
 #US_states <- unionSpatialPolygons(US, IDs=US@data$STATE)
 tm_shape(US, projection="+init=epsg:2163") +
@@ -354,7 +399,7 @@ tm_shape(US, projection="+init=epsg:2163") +
             title.position = c("center", "top"),
             title.size = 1.3,
             legend.text.size=1)
-#dev.off()
+dev.off()
 
 
 # Plot reservoir curves

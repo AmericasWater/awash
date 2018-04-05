@@ -3,7 +3,7 @@ using DataFrames
 using OptiMimi
 using Gurobi
 
-filepath = "currentprofits-pfixed-lybymc.csv" #"futureprofits-pfixed-notime-zeroy.csv"
+filepath = "all2070profits-pfixed-notime-histco-lybymc.csv" #"currentprofits-pfixed-lybymc.csv"
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")

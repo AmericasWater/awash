@@ -51,3 +51,54 @@ if (do.cropdrop) {
 } else {
     ggsave("maxcrop.png", width=10, height=5)
 }
+
+## Compare to optimal current crops
+
+optcrops <- read.csv("maxbayesian-pfixed-lybymc.csv")
+results3 <- results2 %>% left_join(optcrops)
+
+results3$crop <- as.character(results3$crop)
+results3$crop[results3$crop == "Barley"] <- "BARLEY"
+results3$crop[results3$crop == "Corn"] <- "CORN"
+results3$crop[results3$crop == "Cotton"] <- "COTTON"
+results3$crop[results3$crop == "Rice"] <- "RICE"
+results3$crop[results3$crop == "Soybean"] <- "SOYBEANS"
+results3$crop[results3$crop == "Wheat"] <- "WHEAT"
+
+sum(results3$crop == results3$maxcrop, na.rm=T) / nrow(results3)
+
+croplist <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT")
+sumdf <- data.frame(cropii=c(), cropjj=c(), portion=c())
+for (cropii in croplist) {
+    for (cropjj in croplist) {
+        portion <- sum(results3$crop == cropii & results3$maxcrop == cropjj, na.rm=T) / nrow(results3)
+        sumdf <- rbind(sumdf, data.frame(cropii, cropjj, portion))
+    }
+    portion <- sum(results3$crop == cropii & is.na(results3$maxcrop), na.rm=T) / nrow(results3)
+    sumdf <- rbind(sumdf, data.frame(cropii, cropjj="NONE", portion))
+}
+for (cropjj in croplist) {
+    portion <- sum(is.na(results3$crop) & results3$maxcrop == cropjj, na.rm=T) / nrow(results3)
+    sumdf <- rbind(sumdf, data.frame(cropii="NONE", cropjj, portion))
+}
+portion <- sum(is.na(results3$crop) & is.na(results3$maxcrop), na.rm=T) / nrow(results3)
+sumdf <- rbind(sumdf, data.frame(cropii="NONE", cropjj="NONE", portion))
+
+croplist2 <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT", "NONE")
+colors <- c('#f8766d', '#b79f00', '#00ba38', '#00bfc4', '#619cff', '#f564e3', '#808080')
+
+plot.new()
+par(mar=c(0,0,0,0)+.1)
+plot.window(xlim=c(0,1.25), ylim=c(0,105))
+xspline(c(0, 1.25, .75, 1), rep(0, 4), lwd=1, border="#000000", lend=1)
+xspline(c(0, 1.25, .75, 1), rep(100, 4), lwd=1, border="#000000", lend=1)
+text(0, 102, "Observed crop", pos=4)
+text(1, 102, "Optimal crop", pos=4)
+for (ii in rev(order(sumdf$portion))) {
+    if (sumdf$portion[ii] > .01) {
+        yii <- 100 - sum(sumdf$portion[-(ii:nrow(sumdf))]) * 100
+        yjj <- 100 - sum(sumdf$portion[sumdf$cropjj %in% croplist2[-(which(croplist2 == sumdf$cropjj[ii])[1]:7)] | (sumdf$cropjj == sumdf$cropjj[ii] & sumdf$cropii %in% croplist2[-(which(croplist2 == sumdf$cropii[ii])[1]:7)])]) * 100
+        xspline(c(0, .25, .75, 1), c(rep(yii - 50*sumdf$portion[ii], 2), rep(yjj - 50*sumdf$portion[ii], 2)), lwd=4.5 * 100 * sumdf$portion[ii], border=colors[croplist2 == sumdf$cropii[ii]], lend=1, shape=.5)
+        xspline(c(1, 1.25), c(rep(yjj - 50*sumdf$portion[ii], 2)), lwd=4.5 * 100 * sumdf$portion[ii], border=colors[croplist2 == sumdf$cropjj[ii]], lend=1)
+    }
+}

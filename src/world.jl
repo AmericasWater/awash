@@ -42,6 +42,8 @@ else
     numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
+numscenarios = length(get(config, "scenarios", [1]))
+
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)
@@ -73,7 +75,7 @@ function newmodel()
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
     setindex(m, :aquifers, collect(1:numaquifers))
-    setindex(m, :scenarios, length(get(config, "scenarios", [1])))
+    setindex(m, :scenarios, get(config, "scenarios", [1]))
 
     return m
 end

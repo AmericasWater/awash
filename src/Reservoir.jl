@@ -24,6 +24,10 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     storage0 = Parameter(index=[reservoirs], unit="1000 m^3")
     storagecapacitymin = Parameter(index=[reservoirs], unit="1000 m^3")
     storagecapacitymax = Parameter(index=[reservoirs], unit="1000 m^3")
+
+    # Cost of captures
+    unitcostcaptures= Parameter(unit="\$/1000m3")
+    cost = Variable(index=[reservoirs, time], unit="\$")
 end
 
 """
@@ -47,6 +51,7 @@ function run_timestep(c::Reservoir, tt::Int)
     end
     
     for rr in d.reservoirs
+        v.cost[rr,tt] = p.unitcostcaptures*p.captures[rr,tt]
         if tt==1
             v.storage[rr,tt] = (1-p.evaporation[rr,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, tt]
         else
@@ -89,6 +94,7 @@ function initreservoir(m::Model, name=nothing)
     reservoir[:outflowsgauges] = zeros(numgauges,numsteps);
     reservoir[:inflowsgauges] = zeros(numgauges,numsteps);
 
+    reservoir[:unitcostcaptures] = 1.;
     reservoir
 end
 
@@ -133,3 +139,6 @@ function constraintoffset_reservoir_storage0(m::Model)
     hallsingle(m, :Reservoir, :storage, gen)
 end
 
+function grad_reservoir_cost_captures(m::Model)
+    roomdiagonal(m, :Reservoir, :cost, :captures, m.external_parameters[:unitcostcaptures].value)
+end

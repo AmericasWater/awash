@@ -31,8 +31,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation, :Allocation]
-    parameters = [:waterfromsupersource, :withdrawals, :returns]
+    paramcomps = [:Allocation, :Allocation, :Allocation,:IndustrialDemand]
+    parameters = [:waterfromsupersource, :withdrawals, :returns,:waterused]
 
     constcomps = [:WaterNetwork, :Allocation, :Allocation]
     constraints = [:outflows, :balance, :returnbalance]

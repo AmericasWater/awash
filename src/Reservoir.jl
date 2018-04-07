@@ -108,7 +108,7 @@ function initreservoir(m::Model, name=nothing)
         end
     end
 
-    reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, scenarios, numsteps));
+    reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numscenarios, numsteps));
     reservoir[:outflowsgauges] = zeros(numgauges, numscenarios, numsteps);
     reservoir[:inflowsgauges] = zeros(numgauges, numscenarios, numsteps);
 

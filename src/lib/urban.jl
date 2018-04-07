@@ -17,7 +17,7 @@ demands=zeros(size(demand)[1]);
 
 
 nyc=findin(demand[:FIPS],[36005, 36047, 36061, 36081, 36085])
-others=[1:size(demand)[1]];
+others=collect(1:size(demand)[1]);
 others=deleteat!(others,nyc);
 
 for ii in 1:size(nyc)[1]
@@ -49,7 +49,7 @@ for ii in 1:size(others)[1]
         52.53768
 end 
 demand[:ln_predicted_per_account]=demands
-demand[:predicted_per_account]=exp(demands)
+demand[:predicted_per_account]=exp.(demands)
 demand[:calculated]=demand[:predicted_per_account].*demand[:predict_accounts]
 demand_by_FIPS=by(demand,[:FIPS,:year_cal,:month_num]) do demand 
     DataFrame(calculated=sum(demand[:calculated]))

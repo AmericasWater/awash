@@ -2,7 +2,7 @@
 
 include("lib/readconfig.jl")
 if !isdefined(:config)
-    config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
+    config = readconfig("../configs/standard-1year-ny.yml") # Just use 1 year for optimization
 end
 
 withreservoirs = false
@@ -13,8 +13,8 @@ include("model-waterdemand.jl")
 println("Running model...")
 @time run(model)
 
-include("optimization-given.jl")
-house = optimization_given(true, withreservoirs, model)
+include("optimization-given-ny.jl")
+house = optimization_given(true, true, model)
 
 using MathProgBase
 using Gurobi

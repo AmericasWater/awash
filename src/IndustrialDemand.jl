@@ -2,19 +2,32 @@
 using Mimi
 using DataFrames
 include("lib/datastore.jl")
+include("lib/industrial.jl")
 
 @defcomp IndustrialDemand begin
     regions = Index()
+    industry=Index() 
 
-    # Industrial demand
+    #Regression model ax+b=y
+    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")
+    constantvalue=Parameter(index=[regions, industry, time],unit="\$")
     
-    industrywaterdemand = Parameter(index=[regions, time],unit="1000 m^3")
+    #Optimized
+    #Water used to each industry to generate revenue
+    waterused=Parameter(index=[regions, industry, time], unit="1000m^3") 
     
+    #Computed
+    #Total Water used to each industry 
+    industry_waterdemand=Variable(index=[regions, time], unit="1000m^3") 
     
-    
+    #Revenue generated for each industry by using water 
+    industry_revenue=Variable(index=[regions,industry,time], unit="\$") 
     
     # Demanded water
-    waterdemand = Variable(index=[regions, time],unit="1000 m^3")
+    waterdemand = Variable(index=[regions,time],unit="1000 m^3")
+    # Industrial demand
+    industrywaterdemand = Variable(index=[regions, time],unit="1000 m^3")
+    
 end
 
 """
@@ -24,33 +37,58 @@ function run_timestep(c::IndustrialDemand, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
-
+    
+    industrywaterdemand=0
+    
     for rr in d.regions
-        v.waterdemand[rr, tt] = p.industrywaterdemand[rr, tt] #+ p.miningwaterdemand[rr, tt]
-        #v.industrialrevenue[rr,tt]=0.046*p.industrywaterdemand[rr,tt]+0.396
+        for ii in d.industry           v.industry_revenue[rr,ii,tt]=p.waterused[rr,ii,tt]*p.wateruserate[rr,ii,tt]+p.constantvalue[rr,ii,tt]
+            industrywaterdemand+=p.waterused[rr,ii,tt]
+    end
+        v.industrywaterdemand[rr, tt]=industrywaterdemand
+        v.waterdemand[rr,tt]=v.industrywaterdemand[rr,tt]
     end
 end
-
-
-
-
-
-
-
 
 
 """
 Add an industrial component to the model.
 """
 function initindustrialdemand(m::Model)
-    industrialdemand = addcomponent(m, IndustrialDemand);
-
+        
+    wateruserate=zeros(numcounties,numindustries,numstep);
+    constantvalue=zeros(numcounties,numindustries,numstep);
+    
+    for tt in 1:numstep
+        wateruserate[:,:,tt]=                    
+        (reshape(indata[indata[:year].==index2year(tt),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) 
+        constantvalue[:,:,tt]=
+        (reshape(indata[indata[:year].==index2year(tt),:b],11,60))'/12
+    end 
+        
     # data from USGS 2010 for the 2000 county definition
     recorded = getfilteredtable("extraction/USGS-2010.csv")
 
+ 
+    industrialdemand = addcomponent(m, IndustrialDemand);
     industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
-#    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
+    #industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
+    industrialdemand = addcomponent(m, IndustrialDemand);
+    industrialdemand[:wateruserate]=wateruserate
+    industrialdemand[:constantvalue]=constantvalue 
+    
+    industrialdemand[:waterused] = cached_fallback("extraction/waterused", () -> repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]));
+       
     industrialdemand
+end
+
+
+##Revenue to be optimized 
+function grad_industrialdemand_revenue_waterused(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])                 
+end
+
+function grad_industrialdemand_waterused(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])
 end
 
 function constraintoffset_industrialdemand_waterdemand(m::Model)

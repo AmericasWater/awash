@@ -51,6 +51,15 @@ else
     numaquifers = numcounties;
 end
 
+if config["filterstate"]=="36"    
+    industry = ["food","beverage","paper","petroleum","chem","plastic","nonmetal","metal","fabricated metal","machinery","electrical"]
+    end 
+numindustries=length(industry) 
+
+
+
+
+
 function newmodel()
     m = Model()
 
@@ -68,6 +77,8 @@ function newmodel()
     setindex(m, :canals, collect(1:numcanals))
     setindex(m, :reservoirs, collect(1:numreservoirs))
     setindex(m, :aquifers, collect(1:numaquifers))
-
+    if config["filterstate"]=="36"
+        setindex(m,:industry,industry)
+    end
     return m
 end

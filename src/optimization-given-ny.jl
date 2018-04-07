@@ -17,7 +17,7 @@ include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
 
-function optimization_given(allowgw=true, allowreservoirs=true, demandmodel=nothing)
+function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -33,12 +33,26 @@ function optimization_given(allowgw=true, allowreservoirs=true, demandmodel=noth
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation,:Allocation,:Reservoir]
-    parameters = [:withdrawals, :returns,:waterfromgw,:captures]
+    paramcomps = [:Allocation, :Allocation, :Allocation,:IndustrialDemand]
+    parameters = [:waterfromsupersource, :withdrawals, :returns,:waterused]
 
-    constcomps = [:WaterNetwork, :Allocation, :Allocation,:Reservoir,:Reservoir]
-    constraints = [:outflows, :balance, :returnbalance, :storagemin; :storagemax]
+    constcomps = [:WaterNetwork, :Allocation, :Allocation]
+    constraints = [:outflows, :balance, :returnbalance]
 
+    if allowgw
+        # Include groundwater
+        paramcomps = [paramcomps; :Allocation]
+        parameters = [parameters; :waterfromgw]
+    end
+
+    if allowreservoirs
+        # Include reservoir logic
+        paramcomps = [paramcomps; :Reservoir]
+        parameters = [parameters; :captures]
+
+        constcomps = [constcomps; :Reservoir; :Reservoir]
+        constraints = [constraints; :storagemin; :storagemax]
+    end
 
     ## Constraint definitions:
     # outflows is the water in the stream
@@ -52,6 +66,7 @@ function optimization_given(allowgw=true, allowreservoirs=true, demandmodel=noth
     if allowgw
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     end
+    
     setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 

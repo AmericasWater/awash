@@ -13,27 +13,13 @@ function reorderfips(values::Union{DataArrays.DataArray{Float64, 1}, Vector{Floa
     result
 end
 
-"Reorder `weather` and transpose, a T x N(`fromfips`) matrix, into a N(`tofips`) x T matrix."
-function reorderfips(weather::Array{Float64, 2}, fromfips, tofips)
-    result = zeros(length(tofips), size(weather, 1))
+"Reorder `weather`, a N(`fromfips`) x S x T matrix, into a N(`tofips`) x S x T matrix."
+function reorderfips(weather::DataFrame, fromfips, tofips)
+    result = zeros(length(tofips), size(weather, 2), size(weather, 3))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])
         if ii > 0
-            result[rr, :] = weather[:, ii]
-        end
-    end
-
-    result
-end
-
-"Reorder `weather`, a N(`fromfips`) x T matrix, into a N(`tofips`) x T matrix."
-function reorderfips_notranspose(weather::DataFrame, fromfips, tofips)
-    result = zeros(length(tofips), size(weather, 2))
-    for rr in 1:length(tofips)
-        ii = findfirst(fromfips .== tofips[rr])
-        if ii > 0
-            println(weather[ii, :])
-            result[rr, :] = weather[ii, :]
+            result[rr, :, :] = weather[ii, :, :]
         end
     end
 
@@ -41,23 +27,29 @@ function reorderfips_notranspose(weather::DataFrame, fromfips, tofips)
 end
 
 """
-Sum values within each timestep, returning a T x N(columns) matrix.
+Sum values within each timestep, and reorder dimensions, returning a N x S x T matrix.
 
 Assumes that `config` is defined globally
 """
 function sum2timestep(weather)
-    if config["timestep"] == 1
-        return weather[get(config, "startweather", 1):get(config, "startweather", 1)+numsteps-1, :]
-    end
+    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    scenarios = get(config, "scenarios", [1])
 
-    bytimestep = zeros(numsteps, size(weather, 2))
-    for timestep in 1:numsteps
-        allcounties = zeros(1, size(weather, 2))
-        for month in 1:config["timestep"]
-            allcounties += transpose(weather[round.(Int64, (timestep - 1) * config["timestep"] + month + get(config, "startweather", 1) - 1), :])
+    bytimestep = zeros(size(weather, 2), numscenarios, numtimesteps)
+
+    for ss in 1:length(scenarios)
+        if config["timestep"] == 1
+            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
         end
 
-        bytimestep[timestep, :] = allcounties
+        for timestep in 1:numsteps
+            allcounties = zeros(size(weather, 2))
+            for month in 1:config["timestep"]
+                allcounties += weather[round.(Int64, (timestep - 1) * config["timestep"] + month + scenarios[ss] - 1), :]
+            end
+
+            bytimestep[:, ss, timestep] = allcounties
+        end
     end
 
     bytimestep

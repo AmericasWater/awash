@@ -49,4 +49,4 @@ else
     end
 end
 
-addeds = sum2timestep(getadded(waternetwork2))' # transpose, so N x T.
+addeds = sum2timestep(getadded(waternetwork2))

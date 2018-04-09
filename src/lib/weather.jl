@@ -35,7 +35,7 @@ function sum2timestep(weather)
     weatherfromstart = weather[get(config, "startweather", 1):end, :]
     scenarios = get(config, "scenarios", [1])
 
-    bytimestep = zeros(size(weather, 2), numscenarios, numtimesteps)
+    bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
 
     for ss in 1:length(scenarios)
         if config["timestep"] == 1

@@ -125,13 +125,13 @@ function grad_reservoir_storage_captures(m::Model)
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-    gen(rr, tt) = m.external_parameters[:storagecapacitymin].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen)
+    gen(rr) = m.external_parameters[:storagecapacitymin].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen, [:time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
-    gen(rr, tt) = m.external_parameters[:storagecapacitymax].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen)
+    gen(rr) = m.external_parameters[:storagecapacitymax].values[rr]
+    hallsingle(m, :Reservoir, :storage, gen, [:time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)

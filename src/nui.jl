@@ -131,7 +131,7 @@ Produce a choropleth map of an output variable from a model run.
 * `component`: a symbol for a component (e.g., :Allocation)
 * `variable`: a symbol for a variable (e.g., :waterallocated)
 """
-function mapdata(component, variable=nothing, subset=nothing)
+function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
     if variable == nothing
 	data = vec(component)
     elseif subset == nothing
@@ -145,7 +145,7 @@ function mapdata(component, variable=nothing, subset=nothing)
     end
 
     df = DataFrame(fips=collect(masterregions[:fips]), value=data)
-    usmap(df)
+    usmap(df, centered=nothing)
 end
 
 open("../docs/intro.txt") do fp

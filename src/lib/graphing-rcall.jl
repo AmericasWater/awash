@@ -6,7 +6,7 @@ ggplotinited = false
 """
 df must have columns fips and the value column.
 """
-function usmap(df)
+function usmap(df, centered=nothing)
     global mapinited
 
     toshapefile = datapath("mapping/US_county_2000-simple")
@@ -33,7 +33,7 @@ function usmap(df)
 
     R"df = $df"
     R"df$fips = as.numeric(df$fips)"
-    if R"sum(df$value<0)>0 & sum(df$value>0)>0"[1] == 1  
+    if (centered==true) || (R"sum(df$value<0)>0 & sum(df$value>0)>0"[1] == 1)  
         R"ggplot(df) +
         geom_map(aes(fill=value, map_id=fips), map=shapes) +
         geom_map(data=stateshapes, map=stateshapes, aes(map_id=PID), color='#2166ac', fill=NA) +

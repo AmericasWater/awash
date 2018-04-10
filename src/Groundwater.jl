@@ -42,7 +42,7 @@ function run_timestep(c::Aquifer, tt::Int)
   d = c.Dimensions
   ## initialization
   if tt==1
-	  v.piezohead[:,:,tt] = p.piezohead0;
+	  v.piezohead[:,:,tt] = repmat(p.piezohead0, 1, numscenarios);
   else
 	  v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];
   end

@@ -9,7 +9,7 @@ include("lib/watercostdata.jl")
     scenarios = Index()
 
     # Water demand aggregated accross all sectors
-    watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
+    watertotaldemand = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
     # Water return flows
     waterreturn = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
@@ -79,7 +79,7 @@ function run_timestep(c::Allocation, tt::Int)
             v.watergw[rr, ss, tt] = p.waterfromgw[rr, ss, tt]
             v.waterallocated[rr, ss, tt] = p.waterfromgw[rr, ss, tt] + p.waterfromsupersource[rr, ss, tt] + v.swsupply[rr, ss, tt]
             v.cost[rr, ss, tt] = p.waterfromgw[rr, ss, tt]*p.unitgwcost[rr, ss, tt] + v.swcost[rr, ss, tt] + p.waterfromsupersource[rr, ss, tt]*p.unitsupercost
-            v.balance[rr, ss, tt] = v.waterallocated[rr, ss, tt] - p.watertotaldemand[rr, tt]
+            v.balance[rr, ss, tt] = v.waterallocated[rr, ss, tt] - p.watertotaldemand[rr, ss, tt]
             v.returnbalance[rr, ss, tt] = v.swreturn[rr, ss, tt] - p.waterreturn[rr, ss, tt]
         end
     end
@@ -90,7 +90,7 @@ Add a demand component to the model.
 """
 function initallocation(m::Model)
     allocation = addcomponent(m, Allocation);
-    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
 
     # Check if there are saved withdrawals and return flows (from optimize-surface)
 
@@ -148,7 +148,7 @@ function grad_allocation_cost_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :cost, :withdrawals, generate, [:time], [:time])
+    roomintersect(m, :Allocation, :cost, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 function grad_allocation_balance_withdrawals(m::Model)
@@ -162,7 +162,7 @@ function grad_allocation_balance_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :balance, :withdrawals, generate, [:time], [:time])
+    roomintersect(m, :Allocation, :balance, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 function grad_allocation_returnbalance_returns(m::Model)
@@ -176,7 +176,7 @@ function grad_allocation_returnbalance_returns(m::Model)
         end
     end
 
-    roomintersect(m, :Allocation, :returnbalance, :returns, generate, [:time], [:time])
+    roomintersect(m, :Allocation, :returnbalance, :returns, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)

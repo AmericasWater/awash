@@ -23,7 +23,7 @@ countylandareas = reorderfips(regions[:, :LandArea_sqmi] * 258.999, regions[:FIP
 
 # Load precipitation from the county-aggregated weather
 if get(config, "dataset", "counties") == "paleo"
-    precip = zeros(nrow(masterregions), numsteps)
+    precip = zeros(nrow(masterregions), numscenarios, numsteps)
 else
     precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
 end

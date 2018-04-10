@@ -41,8 +41,8 @@ function run_timestep(c::Reservoir, tt::Int)
 	p = c.Parameters
 	d = c.Dimensions
 
-	v.inflows[:, :, tt] = zeros(numscenarios, numreservoirs);
-	v.outflows[:, :, tt] = zeros(numscenarios, numreservoirs);
+	v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
+	v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
 
 	for gg in 1:numgauges
 		index = vertex_index(downstreamorder[gg])
@@ -56,9 +56,9 @@ function run_timestep(c::Reservoir, tt::Int)
 
 	for rr in d.reservoirs
 		if tt==1
-			v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt])^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
+			v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
 		else
-			v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt])^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
+			v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
 		end
 
                 for ss in 1:numscenarios

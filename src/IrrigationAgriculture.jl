@@ -75,7 +75,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
             v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
         end
 
-        v.totalirrigation[rr, tt] = totalirrigation
+        v.totalirrigation[rr, :, tt] = totalirrigation
         v.allagarea[rr, tt] = allagarea
     end
 end
@@ -138,7 +138,7 @@ function initirrigationagriculture(m::Model)
 
     # Sum precip to a yearly level
     stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 3) - cumsum([zeros(numcounties, numscenarios, stepsperyear) precip[:, :, 1:size(precip)[2] - stepsperyear]], 3)
+    rollingsum = cumsum(precip, 3) - cumsum(cat(3, zeros(numcounties, numscenarios, stepsperyear), precip[:, :, 1:size(precip)[3] - stepsperyear]), 3)
     agriculture[:precipitation] = rollingsum
 
     # Load in planted area by water management
@@ -183,6 +183,7 @@ function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)
             for cc in 1:numirrcrops
                 for ss in 1:numscenarios
                     A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc, ss], [numcounties, numirrcrops, numscenarios])] = max(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[rr, ss, tt]) / 100
+                end
             end
         end
 
@@ -225,3 +226,4 @@ end
 
 function grad_irrigationagriculture_cost_irrigatedareas(m::Model)
     roomdiagonal(m, :IrrigationAgriculture, :irrcultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres t
+end

@@ -73,7 +73,7 @@ function initunivariateagriculture(m::Model)
     # precip loaded by weather.jl
     # Sum precip to a yearly level
     stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
+    rollingsum = cumsum(precip, 3) - cumsum(cat(3, zeros(numcounties, numscenarios, stepsperyear), precip[:, :, 1:size(precip)[3] - stepsperyear]), 3)
 
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numscenarios, numsteps)

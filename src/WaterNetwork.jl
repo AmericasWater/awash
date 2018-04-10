@@ -70,7 +70,7 @@ function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 """
@@ -103,7 +103,7 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
@@ -119,7 +119,7 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:scenario, :time], [:scenario, :time])
+    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 """

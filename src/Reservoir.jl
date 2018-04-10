@@ -148,7 +148,7 @@ end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
     gen(rr) = m.external_parameters[:storagecapacitymax].values[rr]
-    hallsingle(m, :Reservoir, :storage, gen, [:scenario, :time])
+    hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)

@@ -1,4 +1,7 @@
-# The industrial demand component - water intensive industry not supplied by the public system
+## Industrial Demand Component
+#
+# Models water intensive industry not supplied by the public system
+
 using Mimi
 using DataFrames
 include("lib/datastore.jl")

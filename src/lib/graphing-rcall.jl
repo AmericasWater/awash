@@ -1,3 +1,7 @@
+## Graphing library, calling R
+#
+# Provides functions that help with making graphics.
+
 using RCall
 
 mapinited = false

@@ -1,3 +1,8 @@
+## Reproducability library
+#
+# Functions to make AWASH code consistent, even as underlying
+# libraries change.
+
 """
 Read a CSV file, with some type management.
 nullallow has the same number of elements as types.

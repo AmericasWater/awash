@@ -1,3 +1,8 @@
+## Known Demand Optimization Model construction
+#
+# Provides `optimization_given`, which produces a linear programming
+# model where demands are exogenous.
+
 using Mimi
 using OptiMimi
 

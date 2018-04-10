@@ -1,3 +1,7 @@
+## Weather information
+#
+# Load the weather data for the given configuration.
+
 # Can only be called after loading regionnet.jl
 
 using DataFrames

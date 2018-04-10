@@ -1,3 +1,7 @@
+## Construct Region Network
+#
+# Setup the network between regions, used for transportation.
+
 using Mimi
 
 # Region Network definitions

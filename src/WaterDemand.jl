@@ -1,4 +1,4 @@
-# The Water Demand component
+## Combined Water Demand Component
 #
 # Combines all of the sources of water demand.
 

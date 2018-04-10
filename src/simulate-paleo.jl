@@ -1,3 +1,7 @@
+## Simulate Paleoreconstruction
+#
+# Run the model using paleo streamflows.
+
 using DataArrays
 using DataFrames
 using OptiMimi

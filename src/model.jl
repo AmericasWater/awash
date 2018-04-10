@@ -1,3 +1,7 @@
+## Complete Model construction
+#
+# Includes both water management and production management.
+
 include("model-waterdemand.jl")
 
 ## Check if the optimize-surface script has produced captures data

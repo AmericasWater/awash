@@ -1,4 +1,7 @@
-# The livestock component
+## Livestock Component
+#
+# Currently assumes that livestock water demands are exogenously
+# provided.
 
 using Mimi
 using DataFrames

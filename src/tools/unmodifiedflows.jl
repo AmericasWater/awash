@@ -1,3 +1,7 @@
+## Unmodified Flows Tool
+#
+# Produce a file of unmodified flows by gauge.
+
 using Mimi
 using OptiMimi
 

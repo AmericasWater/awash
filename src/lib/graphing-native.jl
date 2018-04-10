@@ -1,3 +1,7 @@
+## Graphing library, using Julia native packages
+#
+# Provides functions that help with making graphics.
+
 using Gadfly, Shapefile, DataFrames
 
 """

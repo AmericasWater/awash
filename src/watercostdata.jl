@@ -1,3 +1,7 @@
+## Water Cost information
+#
+# Load data on the cost of water extraction.
+
 using DataFrames
 using RData
 

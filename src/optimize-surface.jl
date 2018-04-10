@@ -1,3 +1,7 @@
+## Perform Optimization with known demands
+#
+# Optimize a model from `optimization-given` with only surface waters.
+
 #### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
 
 include("lib/readconfig.jl")

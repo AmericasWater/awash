@@ -8,7 +8,7 @@ include("lib/industrial.jl")
     regions = Index()
     industry=Index() 
 
-    #Regression model ax+b=y
+    #Regression model ax(water)+b=y(revenue)
     wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")
     constantvalue=Parameter(index=[regions, industry, time],unit="\$")
     
@@ -54,29 +54,37 @@ end
 Add an industrial component to the model.
 """
 function initindustrialdemand(m::Model)
+    waterused=zeros(numcounties,numindustries,numsteps);
+    wateruserate=zeros(numcounties,numindustries,numsteps);
+    constantvalue=zeros(numcounties,numindustries,numsteps);
+    indata[:MGwithdrawal]=map(x -> parse(Float64, x), indata[:MGwithdrawal])
         
-    wateruserate=zeros(numcounties,numindustries,numstep);
-    constantvalue=zeros(numcounties,numindustries,numstep);
-    
-    for tt in 1:numstep
-        wateruserate[:,:,tt]=                    
-        (reshape(indata[indata[:year].==index2year(tt),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) 
-        constantvalue[:,:,tt]=
-        (reshape(indata[indata[:year].==index2year(tt),:b],11,60))'/12
-    end 
+    for tt in 1:numsteps
+        if tt==1
+            waterused[:,:,tt]=(reshape(indata[indata[:year].==index2year(tt),:MGwithdrawal],11,60))'/12*3.785
+            #Convert data from MG to 1000m^3)
+            wateruserate[:,:,tt]=                    
+            (reshape(indata[indata[:year].==index2year(tt),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) convert annual to monthly 
+            constantvalue[:,:,tt]=
+            (reshape(indata[indata[:year].==index2year(tt),:b],11,60))'/12
+        else 
+            waterused[:,:,tt]=(reshape(indata[indata[:year].==index2year(tt-1),:MGwithdrawal],11,60))'/12*3.785
+            wateruserate[:,:,tt]=                    
+            (reshape(indata[indata[:year].==index2year(tt-1),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) convert annual to monthly 
+            constantvalue[:,:,tt]=
+            (reshape(indata[indata[:year].==index2year(tt-1),:b],11,60))'/12
+        end 
+    end
         
     # data from USGS 2010 for the 2000 county definition
     recorded = getfilteredtable("extraction/USGS-2010.csv")
 
- 
-    industrialdemand = addcomponent(m, IndustrialDemand);
-    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
-    #industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);
     industrialdemand = addcomponent(m, IndustrialDemand);
     industrialdemand[:wateruserate]=wateruserate
     industrialdemand[:constantvalue]=constantvalue 
+    industrialdemand[:waterused] = cached_fallback("extraction/waterused", () ->waterused);
     
-    industrialdemand[:waterused] = cached_fallback("extraction/waterused", () -> repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]));
+    #Use MGWithdrawal data if not optimized
        
     industrialdemand
 end
@@ -84,7 +92,7 @@ end
 
 ##Revenue to be optimized 
 function grad_industrialdemand_revenue_waterused(m::Model)
-    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])                 
+    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])
 end
 
 function grad_industrialdemand_waterused(m::Model)

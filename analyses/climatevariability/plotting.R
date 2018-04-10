@@ -3,21 +3,21 @@ library(PBSmapping)
 library(maptools)
 
 
-shapes <- importShapefile("../../data/mapping/US_county_2000-simple")
+shapes <- importShapefile("../../../data/mapping/US_county_2000-simple")
 polydata <- attributes(shapes)$PolyData
 polydata$STATE <- as.numeric(levels(polydata$STATE))[polydata$STATE]
 polydata$COUNTY <- as.numeric(levels(polydata$COUNTY))[polydata$COUNTY]
 shapes$id <- polydata$STATE[shapes$PID] * 100 + polydata$COUNTY[shapes$PID] / 10;
 names(shapes) <- tolower(names(shapes));
 
-stateshapes <- importShapefile("../../data/mapping/tl_2010_us_state00/tl_2010_us_state00-simple")
+stateshapes <- importShapefile("../../../data/mapping/tl_2010_us_state00/tl_2010_us_state00-simple")
 statespolydata <- attributes(stateshapes)$PolyData
 stateshapes$x <- stateshapes$X
 stateshapes$y <- stateshapes$Y
 stateshapes$id <- stateshapes$PID
 
 
-mastercounties <- read.csv("../../data/global/counties.csv")
+mastercounties <- read.csv("../../../data/global/counties.csv")
 v_FIPS <- mastercounties$fips
 
 

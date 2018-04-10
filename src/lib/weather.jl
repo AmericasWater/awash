@@ -14,7 +14,7 @@ function reorderfips(values::Union{DataArrays.DataArray{Float64, 1}, Vector{Floa
 end
 
 "Reorder `weather`, a N(`fromfips`) x S x T matrix, into a N(`tofips`) x S x T matrix."
-function reorderfips(weather::DataFrame, fromfips, tofips)
+function reorderfips(weather::Union{DataArrays.DataArray{Float64, 3}, Array{Float64, 3}}, fromfips, tofips)
     result = zeros(length(tofips), size(weather, 2), size(weather, 3))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])

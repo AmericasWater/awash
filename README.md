@@ -8,3 +8,5 @@ The AWASH model is a combined simulation-optimization model of the
 supply and demand of water, food, and other sectors.  For more
 information, see the [introduction
 document](https://github.com/AmericasWater/awash/blob/master/docs/introduction.ipynb).
+
+Request access to our <a href="https://awashmodel.slack.com/">Slack system</a> to join the conversation.

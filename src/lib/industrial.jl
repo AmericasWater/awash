@@ -1,5 +1,6 @@
 indata=readtable(datapath("extraction/Industrial_Water_Use_Data.csv")); #4092,14
 month=readtable(datapath("industrial_month.csv")); #Monthly Distribution (12 monthsX11 industry) 
+month_repeat=[month;month;month;month;month;month];
 
 
 [indata[indata[nm].==".",nm]="0" for nm in names(indata)]

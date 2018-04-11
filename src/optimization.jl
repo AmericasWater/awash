@@ -1,3 +1,8 @@
+## Complete Optimization Model construction
+#
+# Produces a linear programming model where demands are determined by
+# the optimization.
+
 redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
 redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 

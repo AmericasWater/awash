@@ -1,3 +1,7 @@
+## Minimal Environment Setup
+#
+# Loads basic information all files need to run model functions.
+
 using DataFrames
 include("lib/datastore.jl")
 

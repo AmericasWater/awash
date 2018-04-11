@@ -1,3 +1,7 @@
+## File Caching library
+#
+# Provides a cache for files that only need to be loaded once.
+
 using CSV
 
 if !isdefined(:inputvalues)

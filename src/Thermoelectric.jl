@@ -1,4 +1,7 @@
-# The thermoelectric component
+## Thermoelectric Cooling Component
+#
+# Currently assumes that cooling water demands are exogenously
+# defined.
 
 using Mimi
 using DataFrames

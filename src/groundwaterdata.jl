@@ -1,3 +1,7 @@
+## Groundwater data
+#
+# Loads groundwater structure for different configurations.
+
 using DataFrames
 using RData
 

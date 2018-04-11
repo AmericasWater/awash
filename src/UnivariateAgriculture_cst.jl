@@ -1,3 +1,11 @@
+## Irrigation-invariate Agriculture Component
+#
+# Calculates the water demands for agriculture where irrigation demand
+# is a constant function of area.
+#
+# This version (in the _cst file) constrains areas to be constant of
+# the whole scope of optimization.
+
 using DataFrames
 using Mimi
 

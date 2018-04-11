@@ -1,7 +1,7 @@
-# The market component
+# Agriculture Market Component
 #
-# Determines the available resource for consumption, as a balance between local
-# production, imports, and exports.
+# Determines the available resource for consumption, as a balance
+# between local production, imports, and exports.
 
 using Mimi
 
@@ -67,8 +67,8 @@ function initmarket(m::Model)
         prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124]
     else
         prices = crop_information(allcrops, crop_prices, 0, warnonmiss=true)
-    end 
-    
+    end
+
     market[:produced] = repeat([0.], outer=[m.indices_counts[:regions], m.indices_counts[:allcrops], m.indices_counts[:time]])
     market[:domestic_prices] = repeat(transpose(prices), outer=[m.indices_counts[:regions], 1])
     market[:domestic_interest] = zeros(numcounties, numallcrops, numsteps)

@@ -1,6 +1,7 @@
-# The reservoir component
+## Reservoirs Component
 #
-# Manages the storage in reservoirs over time
+# Manages the storage in reservoirs over time.
+
 using Mimi
 using Distributions
 

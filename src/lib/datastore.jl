@@ -1,3 +1,7 @@
+## Data Management library
+#
+# Functions for accessing external data.
+
 using NullableArrays
 
 include("inputcache.jl")
@@ -94,7 +98,7 @@ function cached_fallback(filename, generate)
         elseif isfile(datapath("$filename$suffix-$confighash.jld"))
             return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
         elseif isfile(datapath("$filename$suffix.jld"))
-            return deserialize(open(datapath("$filename$suffix.jld")))            
+            return deserialize(open(datapath("$filename$suffix.jld")))
         end
     end
 

@@ -1,3 +1,8 @@
+## Combined Agriculture Component
+#
+# Combines the water demands, land use, and production from the
+# irrigated, univariate, and other (unmodeled) crops.
+
 using DataFrames
 using Mimi
 

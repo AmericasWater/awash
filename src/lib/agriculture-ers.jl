@@ -1,3 +1,7 @@
+## Agriculture Economic Research Service library
+#
+# Provides functions for accessing ERS data
+
 """
 Return the 4-letter crop code used by ERS
 """

@@ -1,3 +1,8 @@
+## Large Dataset library, using NetCDFs
+#
+# Handles large data files what need to be downloaded, which are done
+# in NetCDF format for computers with that package.
+
 using NetCDF
 
 """

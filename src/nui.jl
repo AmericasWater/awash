@@ -1,4 +1,7 @@
-# Install any packages that need to be installed
+## Basic User Interface
+#
+# Install any packages that need to be installed and sets up standard
+# functions.
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")

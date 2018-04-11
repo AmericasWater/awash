@@ -1,4 +1,4 @@
-# The groundwater component
+## Groundwater Component
 #
 # Manages the groundwater drawdowns over time
 

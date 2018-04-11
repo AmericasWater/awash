@@ -1,3 +1,7 @@
+## Agricultural data library
+#
+# Provides functions and data for crops.
+
 using DataFrames
 include("agriculture-ers.jl")
 

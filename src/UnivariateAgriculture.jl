@@ -1,3 +1,8 @@
+## Irrigation-invariate Agriculture Component
+#
+# Calculates the water demands for agriculture where irrigation demand
+# is a constant function of area.
+
 using DataFrames
 using Mimi
 

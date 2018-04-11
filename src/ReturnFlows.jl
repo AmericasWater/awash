@@ -1,9 +1,10 @@
-# The Return Flows component
+# Return Flows Component
 #
 # Handles the mapping between gauges and canals, on both the
 # withdrawal and return sides.
 #
-# Currently the return side of the Return Flows is not impelemented.
+# Currently the return side of the Return Flows is not impelemented in
+# simulation.
 
 using Mimi
 

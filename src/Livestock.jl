@@ -10,7 +10,7 @@ using DataFrames
     regions = Index()
 
     # Exogenous demands
-    demand = Parameter(index=[regions, time], unit="1000 m^3")
+    livestockdemand = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Copy through
     demand_copy = Variable(index=[regions, time], unit="1000 m^3")
@@ -25,7 +25,7 @@ function run_timestep(c::Livestock, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.demand_copy[rr, tt] = p.demand[rr, tt]
+        v.demand_copy[rr, tt] = p.livestockdemand[rr, tt]
     end
 end
 
@@ -36,7 +36,7 @@ function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    livestock[:demand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
+    livestock[:livestockdemand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
 
     livestock
 end

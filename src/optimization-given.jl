@@ -72,6 +72,9 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
     setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
+    if allowreservoirs
+        setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
+    end
 
     # Constrain that the water in the stream is non-negative:
     # That is, outflows + runoff > 0, or -outflows < runoff
@@ -86,9 +89,14 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         end
     else
         gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
-        cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+        #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+        cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
-            gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+	    if isfile(cachepath("partialhouse-gror$suffix.jld"))
+		    gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+	    else
+		    gror = grad_reservoir_outflows_captures(m);
+	    end
         end
     end
 
@@ -154,7 +162,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite.(vv))
+    for ii in find(.!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

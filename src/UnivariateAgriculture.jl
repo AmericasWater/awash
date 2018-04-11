@@ -147,7 +147,7 @@ function initunivariateagriculture(m::Model)
             else
                 column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[isna(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                constantareas[isna.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end
         end
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])

@@ -116,7 +116,7 @@ function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demand
             values_waterdemand_recordedsurfaceirrigation(m)
         end
     else
-        shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:Agriculture, :totalirrigation])
+        shaftvalues(m, :WaterDemand, :totalirrigation, demandmodel[:Agriculture,:demand_copy])
     end
 end
 

@@ -101,6 +101,9 @@ function initallocation(m::Model)
 
     else
         recorded = getfilteredtable("extraction/USGS-2010.csv")
+        if config["filterstate"]=="36"    
+    deleterows!(recorded,[30,52])
+        end
 
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
@@ -152,6 +155,8 @@ end
 ## Optional cost for drawing down a river (environmental change)
 function grad_allocation_cost_withdrawals(m::Model)
     function generate(A, tt)
+        mastercounties = readtable(datapath("global/counties-36.csv"))
+        deleterows!(mastercounties,[30,52])
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"

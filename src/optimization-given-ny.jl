@@ -31,8 +31,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation, :Allocation,:IndustrialDemand]
-    parameters = [:waterfromsupersource, :withdrawals, :returns,:waterused]
+    paramcomps = [:Allocation, :Allocation, :Allocation]
+    parameters = [:waterfromsupersource, :withdrawals, :returns]
 
     constcomps = [:WaterNetwork, :Allocation, :Allocation]
     constraints = [:outflows, :balance, :returnbalance]
@@ -60,9 +60,9 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:storagemin => :storage, :storagemax => :storage));
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
-    #if allowgw
-    #    setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
-    #end
+    if allowgw
+        setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
+    end
     setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 
@@ -146,6 +146,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     for ii in find(!isfinite(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
-
+ß
     house
 end

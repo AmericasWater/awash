@@ -10,7 +10,7 @@ suffix = getsuffix()
 if config["cst"]=="true"
     include("optimization_cst.jl")
 else
-    include ("optimization.jl")
+    include("optimization.jl")
 end
 
 using MathProgBase

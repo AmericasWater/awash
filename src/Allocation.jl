@@ -190,15 +190,15 @@ end
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["dataset"] == "three"
 	if optimtype == false
-	    genuu(rr, tt) = 1. * (rr > 1)
+	    genuu(rr, ss, tt) = 1. * (rr > 1)
 	else
-	    genuu(rr, tt) = 2. * (rr > 1)
+	    genuu(rr, ss, tt) = 2. * (rr > 1)
 	end
 	hallsingle(m, :Allocation, :balance, genuu)
     else
         recorded = getfilteredtable("extraction/USGS-2010.csv")
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-	gen(rr, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
 	hallsingle(m, :Allocation, :balance, gen)
     end
 end
@@ -208,9 +208,9 @@ function grad_allocation_returnbalance_waterreturn(m::Model)
 end
 
 function constraintoffset_allocation_otherdemand(m::Model)
-    other=readtable(datapath("other.csv"))
-    gen(rr,tt)=other[rr,:x1]
-    hallsingle(m, :Allocation, :balance,gen)
+    other = readtable(datapath("other.csv"))
+    gen(rr, ss, tt)=other[rr,:x1]
+    hallsingle(m, :Allocation, :balance, gen)
 end
 
 

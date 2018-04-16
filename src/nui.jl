@@ -2,7 +2,6 @@
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
 end
 
 if Pkg.installed("OptiMimi") == nothing

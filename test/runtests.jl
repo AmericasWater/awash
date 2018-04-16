@@ -16,9 +16,7 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("ExcelReaders") # Temporary!  Currently silently required by Mimi
 requirepackage("Mimi")
-Pkg.checkout("Mimi")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")

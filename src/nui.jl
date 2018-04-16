@@ -1,13 +1,15 @@
-# Install any packages that need to be installed
+## Basic User Interface
+#
+# Install any packages that need to be installed and sets up standard
+# functions.
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
 end
 
 if Pkg.installed("OptiMimi") == nothing
     Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi", "julia5")
+    Pkg.checkout("OptiMimi")
 end
 
 if Pkg.installed("Graphs") == nothing
@@ -16,6 +18,10 @@ end
 
 if Pkg.installed("MathProgBase") == nothing
     Pkg.add("MathProgBase")
+end
+
+if Pkg.installed("Missings") == nothing
+    Pkg.add("Missings")
 end
 
 if Pkg.installed("RCall") == nothing
@@ -112,21 +118,11 @@ function getvariables(component)
     DataFrame(name=[parlist; varlist], dims=[pardims; vardims])
 end
 
-function getdata(component, variable)
-    if variable in variables(model, component)
-        model[component, variable]
-    elseif variable in collect(keys(getmetainfo(model, component).parameters))
-        model.external_parameters[variable]
-    else
-        error("Unknown parameter or variable")
-    end
-end
-
 function savedata(filename, component, variable, subset=nothing)
     if subset == nothing
-        writecsv(filename, getdata(component, variable))
+        writecsv(filename, model[component, variable])
     else
-        writecsv(filename, getdata(component, variable)[subset...])
+        writecsv(filename, model[component, variable][subset...])
     end
 end
 
@@ -137,11 +133,13 @@ Produce a choropleth map of an output variable from a model run.
 * `component`: a symbol for a component (e.g., :Allocation)
 * `variable`: a symbol for a variable (e.g., :waterallocated)
 """
-function mapdata(component, variable, subset=nothing)
-    if subset == nothing
-        data = vec(getdata(component, variable))
+function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
+    if variable == nothing
+	data = vec(component)
+    elseif subset == nothing
+        data = vec(model[component, variable])
     else
-        data = vec(getdata(component, variable)[subset...])
+        data = vec(model[component, variable][subset...])
     end
 
     if length(data) != numcounties
@@ -149,7 +147,7 @@ function mapdata(component, variable, subset=nothing)
     end
 
     df = DataFrame(fips=collect(masterregions[:fips]), value=data)
-    usmap(df)
+    usmap(df, centered=nothing)
 end
 
 open("../docs/intro.txt") do fp

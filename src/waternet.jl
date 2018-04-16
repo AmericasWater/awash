@@ -1,3 +1,7 @@
+## Water Network Construction
+#
+# Load and connect the water network.
+
 using Mimi
 using Graphs
 using DataFrames
@@ -33,18 +37,19 @@ elseif isfile(datapath("waternet/waternet$suffix.jld"))
     draws = deserialize(open(datapath("waternet/waterdraws$suffix.jld"), "r"));
 else
     # Load the network of counties
-    if get(config, "dataset", "counties") == "counties"
-        waternetdata = load(datapath("waternet/waternet.RData"));
-        drawsdata = load(datapath("waternet/countydraws.RData"));
-    elseif config["dataset"] == "three"
+    if config["dataset"] == "three"
         waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
-    else
+    elseif config["dataset"] == "dummy"
         waternetdata = load(datapath("waternet/dummynet.RData"));
         drawsdata = load(datapath("waternet/dummydraws.RData"));
+    else
+        waternetdata = load(loadpath("waternet/waternet.RData"));
+        drawsdata = load(loadpath("waternet/countydraws.RData"));
     end
 
     netdata = waternetdata["network"];
+    netdata[:nextpt] = convert(DataVector{Int64}, netdata[:nextpt])
 
     # Load the county-network connections
     draws = drawsdata["draws"];
@@ -98,7 +103,9 @@ else
         nextid = "$(netdata[nextpt, :collection]).$(netdata[nextpt, :colid])"
 
         if thisid == nextid
-            error("Same same!")
+            #error("Same same!")
+            netdata[row, :nextpt] = NA
+            continue
         end
 
         if thisid in keys(wateridverts) && nextid in keys(wateridverts) &&

@@ -1,3 +1,8 @@
+## Complete Optimization Model construction
+#
+# Produces a linear programming model where demands are determined by
+# the optimization.
+
 redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
 redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 
@@ -110,15 +115,15 @@ if redohouse
     # Clean up
 
     house.b[isnan.(house.b)] = 0
-    house.b[!isfinite(house.b)] = 0
+    house.b[!isfinite.(house.b)] = 0
     house.f[isnan.(house.f)] = 0
-    house.f[!isfinite(house.f)] = 0
+    house.f[!isfinite.(house.f)] = 0
 
     ri, ci, vv = findnz(house.A)
     for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite(vv))
+    for ii in find(!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

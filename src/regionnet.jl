@@ -1,3 +1,7 @@
+## Construct Region Network
+#
+# Setup the network between regions, used for transportation.
+
 using Mimi
 
 # Region Network definitions
@@ -35,9 +39,9 @@ else
 
     # Load the network of counties
     if config["dataset"] == "counties"
-        counties = readtable(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
-        counties = readtable(datapath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = readtable(loadpath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end
     edges = Dict{String, Vector{String}}()
 

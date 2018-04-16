@@ -1,3 +1,7 @@
+## Perform Optimization with endogenous demands
+#
+# Optimize a model from `optimization`, with endogenous water demands.
+
 using Mimi
 using OptiMimi
 include("lib/readconfig.jl")

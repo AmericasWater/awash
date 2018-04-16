@@ -1,3 +1,7 @@
+## Agriculture Economic Research Service library
+#
+# Provides functions for accessing ERS data
+
 """
 Return the 4-letter crop code used by ERS
 """
@@ -46,10 +50,10 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = readtable(datapath("global/ers.csv"))
+    df = readtable(loadpath("global/ers.csv"))
 
-    reglink = readtable(datapath("agriculture/ers/reglink.csv"))
-    fips = canonicalindex(reglink[:FIPS])
+    reglink = readtable(loadpath("agriculture/ers/reglink.csv"))
+    fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
     if (item == "cost")
@@ -86,7 +90,7 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== year), :]
+    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
     result = zeros(size(masterregions, 1)) * NA
     for region in unique(reglink_abbr)
@@ -109,7 +113,7 @@ end
 List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
-    df = readtable(datapath("global/ers.csv"))
+    df = readtable(loadpath("global/ers.csv"))
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 
@@ -118,13 +122,15 @@ function getaverage(crop::AbstractString,item::AbstractString)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
 end
 
-uniopcost=zeros(numcounties, numunicrops)
-unioverhead=zeros(numcounties,numunicrops)
+if isdefined(:numcounties) # might not be, if loaded outside of model
+    uniopcost=zeros(numcounties, numunicrops)
+    unioverhead=zeros(numcounties,numunicrops)
 
-for cc in 1:length(unicrops)
-    crop = ers_crop(unicrops[cc])
-    if crop != nothing
-        uniopcost[:, cc] = getaverage(crop, "opcost")
-        unioverhead[:, cc] = getaverage(crop, "overhead")
+    for cc in 1:length(unicrops)
+        crop = ers_crop(unicrops[cc])
+        if crop != nothing
+            uniopcost[:, cc] = getaverage(crop, "opcost")
+            unioverhead[:, cc] = getaverage(crop, "overhead")
+        end
     end
 end

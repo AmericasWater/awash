@@ -1,9 +1,10 @@
-# The Return Flows component
+# Return Flows Component
 #
 # Handles the mapping between gauges and canals, on both the
 # withdrawal and return sides.
 #
-# Currently the return side of the Return Flows is not impelemented.
+# Currently the return side of the Return Flows is not impelemented in
+# simulation.
 
 using Mimi
 
@@ -55,8 +56,8 @@ Add a ReturnFlows component to the model.
 function initreturnflows(m::Model)
     returnflows = addcomponent(m, ReturnFlows);
 
-    returnflows[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
-    returnflows[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
+    returnflows[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
+    returnflows[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 
     returnflows
 end

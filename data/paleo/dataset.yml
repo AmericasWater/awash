@@ -1,0 +1,13 @@
+# This is a counties dataset, with a new river network
+parent-dataset: counties
+
+extdatasets:
+  waternet/waternet.RData:
+    url: https://www.dropbox.com/s/e27zvwjf21ngbjd/network.RData?dl=1
+    crc32: 0xcd18e301
+  waternet/runoff.RData:
+    url: https://www.dropbox.com/s/otbdnj5vmelfkjx/runoff.Rdata?dl=1
+    crc32: 0x96cca03a
+  waternet/stations-data.txt:
+    url: https://www.dropbox.com/s/ll7uhweqvvde3zm/stations-data.txt?dl=1
+    crc32: 0x875b976d

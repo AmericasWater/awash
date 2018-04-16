@@ -1,3 +1,8 @@
+## Graphing library
+#
+# Includes either graphing library, with `graphing-rcall.jl`
+# preferred.
+
 if Pkg.installed("RCall") != nothing
     print("installed")
     include("graphing-rcall.jl")

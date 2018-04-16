@@ -1,8 +1,8 @@
-# The transporation component
+## Agriculture Transporation Component
 #
-# Each region is linked to other regions, accoring to the `regionnet`.  This
-# component determines the total imports and exports for each region, based on the
-# transport on each edge.
+# Each region is linked to other regions, accoring to the `regionnet`.
+# This component determines the total imports and exports for each
+# region, based on the transport on each edge.
 
 using Mimi
 

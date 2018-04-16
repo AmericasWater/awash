@@ -1,10 +1,14 @@
+## Complete Model construction
+#
+# Includes both water management and production management.
+
 include("model-waterdemand.jl")
 
 ## Check if the optimize-surface script has produced captures data
 storedcaptures = cached_fallback("extraction/captures", () -> false)
 if storedcaptures == false
     warn("Missing saved reservoirs file.  Please run optimize-surface.jl with allowreservoirs.")
-elseif size(storedresult)[1] != numreservoirs || size(storedresult)[2] != numsteps
+elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != numsteps
     warn("Reservoir file does not match current configuration.  Please remove.")
 end
 

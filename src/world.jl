@@ -1,3 +1,8 @@
+## Environment setup
+#
+# Load the necessary information into the global environment for
+# creating simulation and optimization models.
+
 include("world-minimal.jl")
 include("regionnet.jl")
 include("waternet.jl")

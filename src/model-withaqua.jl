@@ -1,3 +1,7 @@
+## Water Demand Model construction, with aquifers
+#
+# Like model-waterdemand, but also includes aquifers.
+
 ## `config` must be defined before loading this file!
 
 include("world.jl")

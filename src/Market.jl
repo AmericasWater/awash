@@ -1,7 +1,7 @@
-# The market component
+# Agriculture Market Component
 #
-# Determines the available resource for consumption, as a balance between local
-# production, imports, and exports.
+# Determines the available resource for consumption, as a balance
+# between local production, imports, and exports.
 
 using Mimi
 

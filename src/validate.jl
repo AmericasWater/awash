@@ -1,3 +1,7 @@
+## Optimization Testing
+#
+# Old validation script, to be removed.
+
 ## This was extracted from simulate.jl, as the automated method of optimization
 
 println("Testing:")

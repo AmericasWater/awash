@@ -1,6 +1,7 @@
-# The Water Network component
+## Water Network Component
 #
-# Determines how flows added and removed from the network propogate through.
+# Determines how flows added and removed from the network propogate
+# through.
 
 # Requires `addeds` from weather.jl
 

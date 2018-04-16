@@ -1,4 +1,6 @@
-# The population demand component
+## Population Water Demand Component
+#
+# Determines domestic water demands, as a function of the population.
 
 using CSV
 using Mimi

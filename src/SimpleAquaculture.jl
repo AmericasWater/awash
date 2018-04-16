@@ -1,6 +1,7 @@
-# The Freshwater Aquaculture component.
+## Simple Freshwater Aquaculture Component
 #
-# It uses aquaculture production data as a baseline, with aggregate production.
+# It uses aquaculture production data as a baseline, with aggregate
+# production.
 
 using Mimi
 using DataFrames

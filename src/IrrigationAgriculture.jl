@@ -1,3 +1,8 @@
+## Irrigation-managed Agriculture Component
+#
+# Calculates the water demands for agriculture where irrigation rates
+# are responsive to precipitation.
+
 using DataFrames
 using Mimi
 

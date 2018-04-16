@@ -1,8 +1,10 @@
+## Inspection tool
+#
 # List every parameter and its options for being set
-## Possible options:
-## initialized constant (later: possible sources)
-## default connection (later: possible connections)
-## optimization constraint (later: possible optimizations)
+# Possible options:
+#   initialized constant (later: possible sources)
+#   default connection (later: possible connections)
+#   optimization constraint (later: possible optimizations)
 
 include("lib/readconfig.jl")
 config = readconfig("../configs/standard.yml")

@@ -1,3 +1,7 @@
+## Weather data library
+#
+# Management functions for weather data.
+
 include("datastore.jl")
 
 "Reorder `values`, currently ordered according to `fromfips`, to `tofips` order."

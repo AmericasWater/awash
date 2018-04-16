@@ -1,6 +1,7 @@
-# The Freshwater Aquaculture component.
+## Freshwater Aquaculture Component
 #
-# It uses aquaculture production data as a baseline, which is then allowed to change with temperature and production.
+# It uses aquaculture production data as a baseline, which is then
+# allowed to change with temperature and production.
 
 using Mimi
 using DataFrames

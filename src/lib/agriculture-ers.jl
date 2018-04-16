@@ -1,3 +1,7 @@
+## Agriculture Economic Research Service library
+#
+# Provides functions for accessing ERS data
+
 """
 Return the 4-letter crop code used by ERS
 """
@@ -118,13 +122,15 @@ function getaverage(crop::AbstractString,item::AbstractString)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
 end
 
-uniopcost = zeros(numcounties, numunicrops)
-unioverhead = zeros(numcounties, numunicrops)
+if isdefined(:numcounties) # might not be, if loaded outside of model
+    uniopcost=zeros(numcounties, numunicrops)
+    unioverhead=zeros(numcounties,numunicrops)
 
-for cc in 1:length(unicrops)
-    crop = ers_crop(unicrops[cc])
-    if crop != nothing
-        uniopcost[:, cc] = getaverage(crop, "opcost")
-        unioverhead[:, cc] = getaverage(crop, "overhead")
+    for cc in 1:length(unicrops)
+        crop = ers_crop(unicrops[cc])
+        if crop != nothing
+            uniopcost[:, cc] = getaverage(crop, "opcost")
+            unioverhead[:, cc] = getaverage(crop, "overhead")
+        end
     end
 end

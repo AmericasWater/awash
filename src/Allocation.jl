@@ -1,3 +1,8 @@
+## Water Allocation Component
+#
+# Determines how aggregate water demands per region can be satisfied
+# by available surface, ground, and purchased water resources.
+
 using Mimi
 using Distributions
 

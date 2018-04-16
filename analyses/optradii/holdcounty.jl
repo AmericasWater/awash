@@ -1,7 +1,7 @@
 include("../../src/lib/readconfig.jl")
 config = readconfig("../configs/complete-yearly.yml")
 
-allowreservoirs = true
+allowreservoirs = false
 
 include("../../src/optimization-given.jl")
 house = optimization_given(false, allowreservoirs)

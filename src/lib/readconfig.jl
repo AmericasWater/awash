@@ -1,3 +1,7 @@
+## Configuration Interpretation library
+#
+# Functions to read and interpret configuration files.
+
 using YAML
 
 function readconfig(ymlpath)

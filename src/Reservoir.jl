@@ -35,7 +35,7 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
 
     # Cost of captures
     unitcostcaptures= Parameter(unit="\$/1000m3")
-    cost = Variable(index=[reservoirs, time], unit="\$")
+    cost = Variable(index=[reservoirs, scenarios, time], unit="\$")
 end
 
 """
@@ -109,7 +109,7 @@ function initreservoir(m::Model, name=nothing)
         if "reshalf" in keys(config) && config["reshalf"] == "half"
             reservoir[:storage0] = (rcmax-reservoir[:storagecapacitymin])/2; #half full
         end
-        reservoir[:evaporation] = 0.05*ones(numreservoirs,numsteps);
+        reservoir[:evaporation] = 0.05*ones(numreservoirs, numscenarios, numsteps);
     end
 
     reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numscenarios, numsteps));

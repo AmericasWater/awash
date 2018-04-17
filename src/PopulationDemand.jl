@@ -61,15 +61,7 @@ function initpopulationdemand(m::Model, years)
     populationdemand = addcomponent(m, PopulationDemand)
 
     # How much of each crop will people buy per year?
-    populationdemand[:cropinterestperperson] = (365.25/12 * config["timestep"]) * [1., # .2 pounds meat (alfalfa / 10) per day
-                                                              1., # .2 pounds meat (otherhay / 10) per day
-                                                              .005, # bushels Barley per day
-                                                              .005, # bushels Barley.Winter per day
-                                                              .05, # bushels Maize per day
-    .01, # pounds Sorghum per day
-    .02, # bushels Soybeans per day
-    .05, # bushels Wheat per day
-    .05] # bushels Wheat.Winter per day
+    populationdemand[:cropinterestperperson] = (365.25/12 * config["timestep"]) * [crop_interest[crop] for crop in allcrops]
 
     allpops = Matrix{Float64}(m.indices_counts[:regions], length(years))
     totalpop = 0

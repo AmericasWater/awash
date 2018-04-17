@@ -18,7 +18,7 @@ returnpart = Dict([consumption[ii, :sector] => 1 - consumption[ii, :consumption]
     # Irrigation water (1000 m^3)
     totalirrigation = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
     # Combined water use for domestic sinks (1000 m^3)
-    domesticuse = Parameter(index=[regions, time], unit="1000 m^3") # XXX: What's the difference between this and urban?
+    domesticuse = Parameter(index=[regions, time], unit="1000 m^3")
     # Industrial and mining demand, self supplied
     industrialuse = Parameter(index=[regions,time],unit="1000 m^3")
     urbanuse = Parameter(index=[regions,time], unit="1000 m^3")
@@ -89,23 +89,23 @@ function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"], [:scenarios])
 end
 
 function grad_waterdemand_totalreturn_industrialuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"], [:scenarios])
 end
 
 function grad_waterdemand_totalreturn_thermoelectricuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"], [:scenarios])
 end
 
 function grad_waterdemand_totalreturn_livestockuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"], [:scenarios])
 end
 
 function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)

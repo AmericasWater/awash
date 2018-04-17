@@ -124,6 +124,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if config["dataset"] == "three"
         setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
     else
+        trythis = grad_waterdemand_totalreturn_domesticuse(m)
+
         setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
                                                   grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
 			                          grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
@@ -178,17 +180,17 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
+    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
 
     if allowgw
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps))
     elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
         rm(datapath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+allowgw])+1:end], numreservoirs, numsteps))
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+allowgw])+1:end], numreservoirs, numscenarios, numsteps))
     elseif isfile(datapath("extraction/captures$suffix.jld"))
         rm(datapath("extraction/captures$suffix.jld"))
     end

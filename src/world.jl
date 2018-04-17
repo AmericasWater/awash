@@ -10,13 +10,8 @@ include("waternet.jl")
 # Prepare the model
 
 if config["filterstate"] == "08"
-    unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # UnivariateAgriculture component crops
-    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
-    #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
-elseif config["filterstate"]=="08"
     unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # "corn", "wheat" # UnivariateAgriculture component crops
-    irrcrops = []
-
+    irrcrops = [] # UnivariateAgriculture component crops
 else
     unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
     irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice

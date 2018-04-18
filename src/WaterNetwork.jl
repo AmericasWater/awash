@@ -95,7 +95,6 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         # Propogate in downstream order
         for hh in 1:numgauges
             gg = vertex_index(downstreamorder[hh])
-            println(gg)
             gauge = downstreamorder[hh].label
             for upstream in out_neighbors(wateridverts[gauge], waternet)
                 index = vertex_index(upstream, waternet)
@@ -132,7 +131,6 @@ function constraintoffset_waternetwork_outflows(m::Model)
     # Propogate in downstream order
     for hh in 1:numgauges
         gg = vertex_index(downstreamorder[hh])
-        println(gg)
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             b[gg, :, :] += b[vertex_index(upstream, waternet), :, :]

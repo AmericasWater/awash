@@ -130,7 +130,6 @@ function grad_reservoir_outflows_captures(m::Model)
             gauge = downstreamorder[hh].label
             for upstream in out_neighbors(wateridverts[gauge], waternet)
                 index = vertex_index(upstream, waternet)
-                println(index)
                 if isreservoir[index] > 0
                     A[gg, isreservoir[index]] = -1
                 else

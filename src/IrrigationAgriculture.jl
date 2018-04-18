@@ -6,6 +6,7 @@
 using DataFrames
 using Mimi
 
+include("lib/coding.jl")
 include("lib/agriculture.jl")
 
 @defcomp IrrigationAgriculture begin
@@ -121,7 +122,7 @@ function initirrigationagriculture(m::Model)
                     end
 
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset)
-                    println("LOGIC: This should be sensitive to scenario weather.")
+                    warnonce("LOGIC: This should be sensitive to scenario weather.")
                     logirrigatedyield[rr, cc, :, tt] = min(logmodelyield, log(maximum_yields[irrcrops[cc]]))
                 end
 
@@ -172,13 +173,13 @@ function initirrigationagriculture(m::Model)
 end
 
 function grad_irrigationagriculture_production_irrigatedareas(m::Model)
-    roomdiagonal(m, :IrrigationAgriculture, :production, :irrigatedareas, (rr, cc, ss, tt) -> exp(m.external_parameters[:logirrigatedyield].values[rr, cc, ss, tt]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (rr1, cc1, ss1, tt1, rr2, cc2, tt2) -> exp(m.external_parameters[:logirrigatedyield].values[rr1, cc1, ss1, tt1]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_irrigationagriculture_production_rainfedareas(m::Model)
-    gen(rr, cc, tt) = exp(m.external_parameters[:logirrigatedyield].values[rr, cc, ss, tt] + m.external_parameters[:deficit_coeff].values[rr, cc] * max(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[rr, ss, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
-    roomdiagonal(m, :IrrigationAgriculture, :production, :rainfedareas, gen)
+    gen(rr1, cc1, ss1, tt1, rr2, cc2, tt2) = exp(m.external_parameters[:logirrigatedyield].values[rr1, cc1, ss1, tt1] + m.external_parameters[:deficit_coeff].values[rr1, cc1] * max(0., m.external_parameters[:water_demand].values[cc1] - m.external_parameters[:precipitation].values[rr1, ss1, tt1])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :rainfedareas, gen)
 end
 
 function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)

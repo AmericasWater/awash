@@ -28,6 +28,8 @@ function optimoutputs(house, sol)
 
         outputs[house.parameters[ii]] = sum(values)
     end
+
+    outputs
 end
 
 include("world-minimal.jl")
@@ -58,12 +60,14 @@ outputs2[:waterallocated] = sum(model[:Allocation, :waterallocated])
 
 ## Run the full optimization
 ignore, profile6 = resultandprofile(@timed include("optimization.jl"))
-sol, profile7 = resultandprofile(@timed linprog(-house.f, house.A, '<', house.b, house.lowers, house.uppers))
+sol, profile7 = resultandprofile(@timed houseoptimize(house, solver))
 
 outputs3 = optimoutputs(house, sol)
 
-result = DataFrame(group=[repmat([:profiling], 7 * length(keys(profile))); repmat([:outputs], length(outputs1) + length(outputs2) + length(outputs3))],
-                   variable=[keys(profile1); keys(profile2); keys(profile3); keys(profile4); keys(profile5); keys(profile6); keys(profile7); keys(outputs1); keys(outputs2); keys(outputs3)],
-                   value=[values(profile1); values(profile2); values(profile3); values(profile4); values(profile5); values(profile6); values(profile7); values(outputs1); values(outputs2); values(outputs3)])
+result = DataFrame(
+    group=[repeat(["load(optimization-given)", "optimization_given", "houseoptimize(given)", "load(model)", "run(model)", "load(optimization)", "houseoptimize(full)"], inner=length(keys(profile1))); repmat(["outputs.given"], length(outputs1)); repmat(["outputs.model"], length(outputs2)); repmat(["outputs.full"], length(outputs3))],
+    task=[repmat([:profiling], 7 * length(keys(profile1))); repmat([:outputs], length(outputs1) + length(outputs2) + length(outputs3))],
+                   variable=[collect(keys(profile1)); collect(keys(profile2)); collect(keys(profile3)); collect(keys(profile4)); collect(keys(profile5)); collect(keys(profile6)); collect(keys(profile7)); collect(keys(outputs1)); collect(keys(outputs2)); collect(keys(outputs3))],
+                   value=[collect(values(profile1)); collect(values(profile2)); collect(values(profile3)); collect(values(profile4)); collect(values(profile5)); collect(values(profile6)); collect(values(profile7)); collect(values(outputs1)); collect(values(outputs2)); collect(values(outputs3))])
 
 writetable("../results/diagnostic.csv", result)

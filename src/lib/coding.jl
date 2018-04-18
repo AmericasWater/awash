@@ -36,3 +36,12 @@ end
 function dropmissing(df::DataFrame, column::Symbol)
     df[.!isna.(df[column]),:]
 end
+
+warnedonce = []
+
+function warnonce(warning::String)
+    if !(warning in warnedonce)
+        push!(warnedonce, warning)
+        println(warning)
+    end
+end

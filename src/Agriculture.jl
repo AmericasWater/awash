@@ -71,7 +71,7 @@ function initagriculture(m::Model)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
-    for crop in Task(missingcrops)
+    for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
         agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
         agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
@@ -137,7 +137,7 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:time], [:time])
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:scenarios, :time], [:scenarios, :time])
 end
 
 function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
@@ -154,7 +154,7 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:time], [:time])
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:scenarios, :time], [:scenarios, :time])
 end
 
 

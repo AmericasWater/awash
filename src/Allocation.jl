@@ -132,7 +132,7 @@ function grad_allocation_balance_waterfromgw(m::Model)
 end
 
 function grad_allocation_cost_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, tt) -> m.external_parameters[:unitgwcost].values[rr,tt])
+    roomdiagonal(m, :Allocation, :cost, :waterfromgw, (rr, ss, tt) -> m.external_parameters[:unitgwcost].values[rr, ss, tt])
 end
 
 function grad_allocation_cost_waterfromsupersource(m::Model)
@@ -145,7 +145,6 @@ function grad_allocation_cost_withdrawals(m::Model)
     function generate(A)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            println(pp)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = m.external_parameters[:unitswcost].values[pp, 1]

@@ -6,6 +6,7 @@
 using DataFrames
 using Mimi
 
+include("lib/coding.jl")
 include("lib/agriculture.jl")
 
 @defcomp UnivariateAgriculture begin
@@ -120,13 +121,13 @@ function initunivariateagriculture(m::Model)
                     end
 
                     water_demand = water_requirements[unicrops[cc]] * 1000 # mm
-                    water_deficit = max(0., water_demand - rollingsum[rr, tt]) # mm
+                    water_deficit = max.(0., water_demand - rollingsum[rr, :, tt]) # mm
 
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit # wreq: delta / m
-                    println("LOGIC: This should be sensitive to scenario weather.")
-                    yield[rr, cc, :, tt] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
+                    warnonce("LOGIC: This should be sensitive to scenario weather.")
+                    yield[rr, cc, :, tt] = min.(exp.(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
+                    irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + mean(water_deficit) * unicrop_irrigationstress[unicrops[cc]] / 1000
                 end
             end
         end
@@ -175,11 +176,11 @@ function getunivariateirrigationrates(crop::AbstractString)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, ss, tt) -> m.parameters[:yield].values[rr, cc, ss, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (rr1, cc1, ss1, tt1, rr2, cc2, tt2) -> m.external_parameters[:yield].values[rr1, cc1, ss1, tt1] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
-    function generate(A)
+    function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
@@ -188,7 +189,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 
         return A
     end
-    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate, [:time], [:time])
+    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate)
 end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)

@@ -73,19 +73,19 @@ function initwaterdemand(m::Model)
 end
 
 function grad_waterdemand_swdemandbalance_totalirrigation(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :totalirrigation, 1.)
+    roomdiagonal(m, :WaterDemand, :totaldemand, :totalirrigation, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_domesticuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :domesticuse, 1.)
+    roomdiagonal(m, :WaterDemand, :totaldemand, :domesticuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_thermoelectricuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :thermoelectricuse, 1.)
+    roomdiagonal(m, :WaterDemand, :totaldemand, :thermoelectricuse, 1.)
 end
 
 function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :livestockuse, 1.)
+    roomdiagonal(m, :WaterDemand, :totaldemand, :livestockuse, 1.)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)

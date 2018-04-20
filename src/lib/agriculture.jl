@@ -233,7 +233,7 @@ uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barle
 """
 Determine which crops are not represented
 """
-function missingcrops()
+function missingcrops(c::Channel)
     for crop in alluniquecrops
         found = false
         if crop in allcrops
@@ -248,7 +248,7 @@ function missingcrops()
         end
 
         if !found
-            produce(crop)
+            put!(c, crop)
         end
     end
 end

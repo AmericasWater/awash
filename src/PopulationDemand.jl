@@ -23,7 +23,25 @@ function getpopulation(fips, year)
     end
 end
 
-configtransforms["repcap"] = (fips, x) -> getpopulation(fips, 2010) * x
+function getpopulation_yeardata(year)
+    populations[populations[:year] .== year, :]
+end
+
+function getpopulation_withinyear(fips, yeardata)
+    if typeof(fips) <: Int
+        pop = yeardata[yeardata[:FIPS] .== fips, :population]
+    else
+        pop = yeardata[yeardata[:FIPS] .== parse(Int64, fips), :population]
+    end
+    if length(pop) != 1
+        NA
+    else
+        pop[1]
+    end
+end
+
+population_2010data = getpopulation_yeardata(2010)
+configtransforms["repcap"] = (fips, x) -> getpopulation_withinyear(fips, population_2010data) * x
 
 @defcomp PopulationDemand begin
     regions = Index()
@@ -67,13 +85,16 @@ function initpopulationdemand(m::Model, years)
     totalpop = 0
     for tt in 1:length(years)
         year = years[tt]
+        population_yeardata = getpopulation_yeardata(year)
+        population_before = getpopulation_yeardata(div(year, 10) * 10)
+        population_after = getpopulation_yeardata((div(year, 10) + 1) * 10)
         for ii in 1:m.indices_counts[:regions]
             fips = m.indices_values[:regions][ii]
-            pop = getpopulation(fips, year)
+            pop = getpopulation_withinyear(fips, population_yeardata)
             if isna.(pop) && mod(year, 10) != 0
                 # Estimate from decade
-                pop0 = getpopulation(fips, div(year, 10) * 10)
-                pop1 = getpopulation(fips, (div(year, 10) + 1) * 10)
+                pop0 = getpopulation_withinyear(fips, population_before)
+                pop1 = getpopulation_withinyear(fips, population_after)
                 if isna.(pop1)
                     pop = pop0
                 else

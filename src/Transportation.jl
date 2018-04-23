@@ -154,9 +154,6 @@ function grad_transportation_regionexports_imported(m::Model)
 end
 
 function grad_transportation_cost_imported(m::Model)
-    function gen(ee, cc, tt)
-        m.external_parameters[:cost_edge].values[ee, tt] * volume_per_unit[cc]
-    end
-    #gen(ee, cc, ss, tt) = m.external_parameters[:cost_edge].values[ee, tt] * volume_per_unit[cc]
+    gen(ee, cc, tt) = m.external_parameters[:cost_edge].values[ee, tt] * volume_per_unit[cc]
     roomdiagonal(m, :Transportation, :cost, :imported, gen, [:scenarios])
 end

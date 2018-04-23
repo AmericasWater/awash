@@ -15,10 +15,14 @@ end
 include("ReturnFlows.jl");
 include("Market.jl");
 include("Transportation.jl");
-include("WaterNetwork.jl");
-include("Groundwater.jl");
+include("WaterNetwork.jl");i
+println("A")
+nclude("Groundwater.jl");
+println("B")
 include("Allocation.jl");
+println("C")
 include("Reservoir.jl");
+println("D")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation

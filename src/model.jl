@@ -15,9 +15,9 @@ end
 include("ReturnFlows.jl");
 include("Market.jl");
 include("Transportation.jl");
-include("WaterNetwork.jl");i
+include("WaterNetwork.jl");
 println("A")
-nclude("Groundwater.jl");
+include("Groundwater.jl");
 println("B")
 include("Allocation.jl");
 println("C")

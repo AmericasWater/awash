@@ -16,21 +16,21 @@ include("ReturnFlows.jl");
 include("Market.jl");
 include("Transportation.jl");
 include("WaterNetwork.jl");
-println("A")
 include("Groundwater.jl");
-println("B")
 include("Allocation.jl");
-println("C")
 include("Reservoir.jl");
-println("D")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
+println("AA")
 returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
+println("B")
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
+println("C")
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transportation, Agriculture
+println("D")
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];

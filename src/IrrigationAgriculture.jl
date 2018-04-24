@@ -87,7 +87,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
         v.allagarea[rr, tt] = allagarea
     end
 
-    v.production_sumregion[:, :, tt] = sum(v.production, 1)
+    v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
 end
 
 function initirrigationagriculture(m::Model)
@@ -177,12 +177,22 @@ function initirrigationagriculture(m::Model)
 end
 
 function grad_irrigationagriculture_production_irrigatedareas(m::Model)
-    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (rr1, cc1, ss1, tt1, rr2, cc2, tt2) -> exp(m.external_parameters[:logirrigatedyield].values[rr1, cc1, ss1, tt1]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
+    ## Common rr, cc, tt
+    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (ss1) -> exp(m.external_parameters[:logirrigatedyield].values[:, :, ss1, :]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
 function grad_irrigationagriculture_production_rainfedareas(m::Model)
-    gen(rr1, cc1, ss1, tt1, rr2, cc2, tt2) = exp(m.external_parameters[:logirrigatedyield].values[rr1, cc1, ss1, tt1] + m.external_parameters[:deficit_coeff].values[rr1, cc1] * max(0., m.external_parameters[:water_demand].values[cc1] - m.external_parameters[:precipitation].values[rr1, ss1, tt1])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+    ## Common rr, cc, tt
+    function gen(ss1)
+        A = zeros(numregions, numirrcrops, numsteps)
+        for cc in 1:numirrcrops
+            for tt in 1:numsteps
+                A[:, cc, tt] = exp(m.external_parameters[:logirrigatedyield].values[:, cc, ss1, tt] + m.external_parameters[:deficit_coeff].values[:, cc] * max.(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[:, ss1, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+            end
+        end
+        A
+    end
     roomdiagonalintersect(m, :IrrigationAgriculture, :production, :rainfedareas, gen)
 end
 

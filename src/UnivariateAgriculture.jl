@@ -76,7 +76,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
         v.allagarea[rr, tt] = allagarea
     end
 
-    v.production_sumregion[:, :, tt] = sum(v.production, 1)
+    v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
 end
 
 function initunivariateagriculture(m::Model)
@@ -180,14 +180,17 @@ function getunivariateirrigationrates(crop::AbstractString)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (rr1, cc1, ss1, tt1, rr2, cc2, tt2) -> m.external_parameters[:yield].values[rr1, cc1, ss1, tt1] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    ## Common rr, cc, tt
+    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (ss1) -> m.external_parameters[:yield].values[:, :, ss1, :] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
-    function generate(A, ss, tt)
-        for rr in 1:numcounties
-            for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, ss, tt] / 100
+    function generate(A, tt)
+        for ss in 1:numscenarios
+            for rr in 1:numcounties
+                for cc in 1:numunicrops
+                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, ss, tt] / 100
+                end
             end
         end
 

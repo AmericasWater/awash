@@ -19,6 +19,7 @@ include("PopulationDemand.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
 include("ReturnFlows.jl")
+include("UrbanDemand.jl")
 
 println("Creating model...")
 
@@ -33,6 +34,7 @@ agriculture = initagriculture(m); # dep. IrrigationAgriculture, UnivariateAgricu
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
+urbandemand = initurbandemand(m) # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
@@ -86,7 +88,7 @@ setconstraint!(house, room_relabel(grad_waterdemand_swdemandbalance_totalirrigat
 setconstraint!(house, room_relabel(grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_irrigationagriculture_totalirrigation_irrigatedareas(m), :totaldemand, :Allocation, :balance)) # +
 setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
 setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
-setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
+setconstraintoffset!(house, -hall_duplicate(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance, m, [false, true, false])) # -
 
 #Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
 setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +

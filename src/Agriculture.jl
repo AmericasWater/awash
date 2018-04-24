@@ -27,7 +27,7 @@ include("lib/agriculture.jl")
     # From UnivariateAgriculture
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
     unicropproduction = Parameter(index=[regions, unicrops, scenarios, time], unit="lborbu")
-    uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+    uniirrigation = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Outputs
     allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
@@ -43,7 +43,7 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        v.allirrigation[rr, :, tt] = p.othercropsirrigation[rr, tt] + p.irrirrigation[rr, :, tt] + p.uniirrigation[rr, tt]
+        v.allirrigation[rr, :, tt] = p.othercropsirrigation[rr, tt] + p.irrirrigation[rr, :, tt] + p.uniirrigation[rr, :, tt]
         v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
@@ -60,7 +60,7 @@ function run_timestep(s::Agriculture, tt::Int)
         end
     end
 
-    v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction, 1)
+    v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction[:, :, :, tt], 1)
 end
 
 function initagriculture(m::Model)

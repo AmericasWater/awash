@@ -1,5 +1,6 @@
-# Current options: usa (full-country), dummy (5-counties), three (3-counties)
-netset: three
+# Current options: counties (full-country), dummy (5-counties), three (3-counties)
+dataset: three
 
 # Type of optimization : "SW" if only surface water, "SWGW" if conjunctive use of surface and groundwater to meet demand
 optimtype: SWGW
+timestep: 1

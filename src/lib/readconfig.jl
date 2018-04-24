@@ -1,3 +1,7 @@
+## Configuration Interpretation library
+#
+# Functions to read and interpret configuration files.
+
 using YAML
 
 function readconfig(ymlpath)
@@ -5,7 +9,44 @@ function readconfig(ymlpath)
         ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
     end
 
-    YAML.load(open(ymlpath))
+    config = YAML.load(open(ymlpath))
+    dataset = readdatasetconfig(config["dataset"])
+
+    config = mergeconfigs(dataset, config)
+
+    config["indexcols"] = map(Symbol, config["indexcols"])
+
+    config
+end
+
+"""
+Read dataset configuration
+"""
+function readdatasetconfig(dataset)
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * dataset * "/dataset.yml")))
+    if "parent-dataset" in keys(dataset)
+        parent = readdatasetconfig(dataset["parent-dataset"])
+
+        return mergeconfigs(parent, dataset)
+    else
+        return dataset
+    end
+end
+
+"""
+Universal logic for merging config files
+"""
+function mergeconfigs(parent, child)
+    for key in keys(parent)
+        if !in(key, keys(child))
+            child[key] = parent[key]
+        else
+            if isa(parent[key], Dict) && isa(child[key], Dict)
+                child[key] = mergeconfigs(parent[key], child[key])
+            end
+        end
+    end
+    return child
 end
 
 function emptyconfig()
@@ -27,10 +68,16 @@ function index2time(tt::Int64)
     times[tt]
 end
 
-function index2yearindex(tt::Int64)
+# Consider reworking this using index2yearindex and similar
+function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
+    startyear = parse(Int16, split(config["startmonth"], '/')[2])
+    endyear = parse(Int16, split(config["endmonth"], '/')[2])
+
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
-    div(times[tt], 12) - div(startmonth, 12) + 1
+    years = startyear:endyear
+
+    years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
 end
 
 if !isdefined(:configtransforms)
@@ -46,7 +93,7 @@ TODO: This should look at config to see what these mean in context
 """
 function getindices(name::Symbol, as::Type=Any)
     if name == :regions
-        values = mastercounties[:fips]
+        values = masterregions[:fips]
     else
         error("We have not defined index $name yet.")
     end
@@ -76,7 +123,7 @@ to the values in `defindex`, an symbol known by `getindices`.
 function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbol, defindex::Symbol)
     if haskey(config, "$name-path") || haskey(config, "$name-column")
         path = datapath(get(config, "$name-path", defpath))
-        column = symbol(get(config, "$name-column", defcol))
+        column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
         data = readtable(path)
@@ -86,7 +133,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             return [transform(indices[ii], data[ii, column]) for ii in 1:nrow(data)]
         else
             if haskey(config, "$name-index")
-                indexcol = symbol(config["$name-index"])
+                indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
                 values = readtable(datapath(defpath))[:, defcol]
@@ -95,7 +142,11 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
-                        values[ii] = transform(data[rr, indexcol], data[rr, column])
+                        newvalue = transform(data[rr, indexcol], data[rr, column])
+                        if !isna.(newvalue)
+                            values[ii] = newvalue
+                        end
+
                     end
                 end
 

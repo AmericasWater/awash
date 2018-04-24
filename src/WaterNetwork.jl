@@ -1,6 +1,9 @@
-# The Water Network component
+## Water Network Component
 #
-# Determines how flows added and removed from the network propogate through.
+# Determines how flows added and removed from the network propogate
+# through.
+
+# Requires `addeds` from weather.jl
 
 using Mimi
 
@@ -48,16 +51,42 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
-function grad_waternetwork_outflows_withdrawals(m::Model)
-    function generate(A, tt)
+"""
+Construct a matrix that represents the *immediate* decrease in outflow caused by withdrawal
+"""
+function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
+    function generate(A)
         # Fill in GAUGES x CANALS matrix
         # First do local withdrawal
         for pp in 1:nrow(draws)
             gaugeid = draws[pp, :gaugeid]
-            gg = findfirst(collect(keys(wateridverts)) .== gaugeid)
-            if (gg == 0)
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex == nothing
                 println("Missing $gaugeid")
             else
+                gg = vertex_index(vertex)
+                A[gg, pp] = -1.
+            end
+        end
+    end
+
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
+end
+
+"""
+Construct a matrix that represents the decrease in outflow caused by withdrawal
+"""
+function grad_waternetwork_outflows_withdrawals(m::Model)
+    function generate(A)
+        # Fill in GAUGES x CANALS matrix
+        # First do local withdrawal
+        for pp in 1:nrow(draws)
+            gaugeid = draws[pp, :gaugeid]
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex == nothing
+                println("Missing $gaugeid")
+            else
+                gg = vertex_index(vertex)
                 A[gg, pp] = -1.
             end
         end
@@ -65,7 +94,6 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         # Propogate in downstream order
         for hh in 1:numgauges
             gg = vertex_index(downstreamorder[hh])
-            println(gg)
             gauge = downstreamorder[hh].label
             for upstream in out_neighbors(wateridverts[gauge], waternet)
                 index = vertex_index(upstream, waternet)
@@ -74,15 +102,15 @@ function grad_waternetwork_outflows_withdrawals(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
 end
 
 function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in CANALS x REGIONS
         # Determine how many canals are in this region
         for rr in 1:numcounties
-            fips = parse(Int64, mastercounties[rr, :fips])
+            fips = parse(Int64, masterregions[rr, :fips])
             thiscanals = find(draws[:fips] .== fips)
             for pp in 1:length(thiscanals)
                 A[thiscanals[pp], rr] = countyarea[rr] / 100.
@@ -90,16 +118,18 @@ function grad_waternetwork_antiwithdrawals_precipitation(m::Model)
         end
     end
 
-    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate)
+    roomintersect(m, :WaterNetwork, :precipitation, :withdrawals, generate, [:time], [:time])
 end
 
+"""
+Construct a vector of maximum outflows, as the sum downstream of all contributing runoff.
+"""
 function constraintoffset_waternetwork_outflows(m::Model)
     b = copy(addeds) # Start with direct added
 
     # Propogate in downstream order
     for hh in 1:numgauges
         gg = vertex_index(downstreamorder[hh])
-        println(gg)
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             b[gg, :] += b[vertex_index(upstream, waternet), :]

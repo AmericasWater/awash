@@ -1,6 +1,7 @@
-# The Freshwater Aquaculture component.
+## Freshwater Aquaculture Component
 #
-# It uses aquaculture production data as a baseline, which is then allowed to change with temperature and production.
+# It uses aquaculture production data as a baseline, which is then
+# allowed to change with temperature and production.
 
 using Mimi
 using DataFrames
@@ -70,7 +71,7 @@ function initaquaculture(m::Model)
     production = readtable(datapath("aquaculture/production.csv"))
     production_baseline = repeat(production[production[:year] .== 2010, :production] * scaling, outer=[numsteps])
     aquaculture[:production_baseline] = production_baseline
-    aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round(Int64, 1. / scaling)])
+    aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round.(Int64, 1. / scaling)])[1:numsteps] # doesn't follow actual historical timeline
 
     # Demand per entrant as average demand
     aquaculture[:entrant_demandpermt] = sum(demand_baseline) / mean(production_baseline)

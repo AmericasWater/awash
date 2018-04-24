@@ -1,8 +1,10 @@
-# Install any packages that need to be installed
+## Basic User Interface
+#
+# Install any packages that need to be installed and sets up standard
+# functions.
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
 end
 
 if Pkg.installed("OptiMimi") == nothing
@@ -18,35 +20,47 @@ if Pkg.installed("MathProgBase") == nothing
     Pkg.add("MathProgBase")
 end
 
+if Pkg.installed("Missings") == nothing
+    Pkg.add("Missings")
+end
+
 if Pkg.installed("RCall") == nothing
-    Pkg.add("RCall")
+    warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
 end
 
 if Pkg.installed("YAML") == nothing
     Pkg.add("YAML")
 end
 
-@windows_only iswindows = true
-if !isdefined(:iswindows) && Pkg.installed("NetCDF") == nothing
+if Pkg.installed("RData") == nothing
+    Pkg.add("RData")
+end
+
+if !is_windows() && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end
 
+using DataFrames
+
 using OptiMimi
 using MathProgBase
+import Mimi.getmetainfo
 
 include("lib/datastore.jl")
 include("lib/readconfig.jl")
 include("lib/graphing.jl")
 
-# Download any files we will need
-predownload()
-
+config = emptyconfig()
 model = nothing # The master model object for functions below
 
 function prepsimulate(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
     include("../src/model.jl")
 end
 
@@ -54,7 +68,12 @@ function prepoptimizesurface(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
-    include("optimization-surface.jl")
+
+    # Download any files we will need
+    predownload()
+
+    include("optimization-given.jl")
+    house = optimization_given(false)
     model = house
 end
 
@@ -62,6 +81,10 @@ function prepoptimize(configfile::AbstractString)
     global config, model
 
     config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
     include("optimization.jl")
     model = house
 end
@@ -78,50 +101,55 @@ function runmodel(solver=nothing)
     end
 end
 
+"""
+Return a table of the parameters and variables of a component, and
+their corresponding dimensions.
+
+`component` should be a symbol, like `:MyComponent`.
+"""
 function getvariables(component)
-    parameters = fieldnames(model.components[component].Parameters)
-    variables = fieldnames(model.components[component].Variables)
+    parlist = collect(keys(getmetainfo(model, component).parameters))
 
-    pardims = map(name -> string(size(model.components[component].Parameters.(name))), parameters)
-    vardims = map(name -> string(size(model.components[component].Variables.(name))), variables)
+    varlist = variables(model, component)
 
-    DataFrame(name=[parameters; variables], dims=[pardims; vardims])
-end
+    pardims = map(name -> getindexlabels(model, component, name), parlist)
+    vardims = map(name -> getindexlabels(model, component, name), varlist)
 
-function getdata(component, variable)
-    if variable in fieldnames(model.components[component].Parameters)
-        model.components[component].Parameters.(variable)
-    elseif variable in fieldnames(model.components[component].Variables)
-        model[component, variable]
-    else
-        error("Unknown parameter or variable")
-    end
+    DataFrame(name=[parlist; varlist], dims=[pardims; vardims])
 end
 
 function savedata(filename, component, variable, subset=nothing)
     if subset == nothing
-        writecsv(filename, getdata(component, variable))
+        writecsv(filename, model[component, variable])
     else
-        writecsv(filename, getdata(component, variable)[subset...])
+        writecsv(filename, model[component, variable][subset...])
     end
 end
 
-function mapdata(component, variable, subset=nothing)
-    if subset == nothing
-        data = vec(getdata(component, variable))
+"""
+Produce a choropleth map of an output variable from a model run.
+
+# Arguments:
+* `component`: a symbol for a component (e.g., :Allocation)
+* `variable`: a symbol for a variable (e.g., :waterallocated)
+"""
+function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
+    if variable == nothing
+	data = vec(component)
+    elseif subset == nothing
+        data = vec(model[component, variable])
     else
-        data = vec(getdata(component, variable)[subset...])
+        data = vec(model[component, variable][subset...])
     end
 
     if length(data) != numcounties
         error("This does not appear to be a county result.")
     end
 
-    df = DataFrame(fips=collect(mastercounties[:fips]), value=data)
-    usmap(df)
+    df = DataFrame(fips=collect(masterregions[:fips]), value=data)
+    usmap(df, centered=nothing)
 end
 
 open("../docs/intro.txt") do fp
-    println(readall(fp))
+    println(readstring(fp))
 end
-

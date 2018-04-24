@@ -1,42 +1,51 @@
+## Perform Optimization with known demands
+#
+# Optimize a model from `optimization-given` with only surface waters.
+
+#### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
+
 include("lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
-#config = readconfig("../configs/dummy3.yml")
+if !isdefined(:config)
+    config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+end
+
+if "rescap" in keys(config) && config["rescap"] == "zero"
+	allowreservoirs = false
+else
+	allowreservoirs = true
+end
 
 include("optimization-given.jl")
+house = optimization_given(false, allowreservoirs)
 
-house = optimization_given(false)
-
-serialize(open("../data/fullhouse$suffix.jld", "w"), house)
+serialize(open(datapath("fullhouse$suffix.jld"), "w"), house)
 
 using MathProgBase
-using Gurobi
-solver = GurobiSolver()
+using Clp
+solver = ClpSolver()
 
 @time sol = houseoptimize(house, solver)
-
-# If model is infeasible, figure out what's causing that
-#topbot = findinfeasiblepair(house, solver)
-#sol = linprog(-house.f, house.A[1:topbot[1],:], '<', house.b[1:topbot[1]], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[1:topbot[1]-1,:], '<', house.b[1:topbot[1]-1], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[topbot[2]:end,:], '<', house.b[topbot[2]:end], house.lowers, house.uppers, solver)
-#sol = linprog(-house.f, house.A[topbot[2]+1:end,:], '<', house.b[topbot[2]+1:end], house.lowers, house.uppers, solver)
 
 summarizeparameters(house, sol.sol)
 
 # Look at the constraints: only possible for small models
-#constraining(house, sol.sol)
+#constdf = constraining(house, sol.sol)
 
 # Save the results
 varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
-serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], m.indices_counts[:canals], m.indices_counts[:time]))
-serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], m.indices_counts[:canals], m.indices_counts[:time]))
-serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], m.indices_counts[:reservoirs], m.indices_counts[:time]))
+serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
+serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+if allowreservoirs
+    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
+end
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)
+
+cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
 offset = cwro.f
-offset[isnan(offset)] = 0
+offset[isnan.(offset)] = 0
 outflows = offset - values
-outflows = reshape(outflows, m.indices_counts[:gauges], m.indices_counts[:time])
-writecsv("outflows-forcarolyn.csv", outflows)
+outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
+writecsv(datapath("extraction/outflows-bygauge.csv"), outflows)

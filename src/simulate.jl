@@ -1,14 +1,18 @@
+## Simulate the model
+#
+# Construct the model with `model` and run it.
+
 using DataArrays
 using DataFrames
 using OptiMimi
 
 include("lib/readconfig.jl")
-config = readconfig("../configs/standard.yml")
+if !isdefined(:config) || isempty(config)
+     config = readconfig("../configs/single.yml")
+end
 
 include("model.jl")
 
 # Run it and time it!
 println("Running model...")
 @time run(model)
-
-

@@ -1,15 +1,21 @@
+## Large Dataset library, using NetCDFs
+#
+# Handles large data files what need to be downloaded, which are done
+# in NetCDF format for computers with that package.
+
 using NetCDF
 
 """
 Download all the datasets that we will need
 """
 function predownload()
-    for name in keys(ncdatasets)
-        filepath = datapath("cache/" * ncdatasets[name]["filename"] * ".nc")
+    for name in keys(config["ncdatasets"])
+        filepath = cachepath(config["ncdatasets"][name]["filename"] * ".nc")
 
         if !isfile(filepath)
             println("Downloading $name...")
-            download(ncdatasets[name]["ncurl"], filepath)
+            println(config["ncdatasets"][name]["ncurl"])
+            download(config["ncdatasets"][name]["ncurl"], filepath)
         end
     end
 end
@@ -17,12 +23,12 @@ end
 """
 Get an array from a NetCDF file, downloading as needed
 """
-function dncload(name::AbstractString, variable::AbstractString, dims::Vector{ASCIIString})
-    filepath = datapath("cache/" * ncdatasets[name]["filename"] * ".nc")
+function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractString, dims::Vector{T})
+    filepath = cachepath(config["ncdatasets"][name]["filename"] * ".nc")
 
     if !isfile(filepath)
         println("Downloading $name...")
-        download(ncdatasets[name]["ncurl"], filepath)
+        download(config["ncdatasets"][name]["ncurl"], filepath)
     end
 
     ## TODO: check dims

@@ -73,3 +73,11 @@ end
 # for yy in 1:10
 #     println(leapindex2timeindexes(yy, 6, 3))
 # end
+
+function timeindex2yearindexes(tt::Int64)
+    timeindex2leapindexes(tt, config["timestep"], 12)
+end
+
+function yearindex2timeindexes(yy::Int64)
+    timeindex2leapindexes(yy, config["timestep"], 12)
+end

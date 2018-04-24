@@ -51,6 +51,8 @@ include("lib/agriculture.jl")
     production = Variable(index=[regions, irrcrops, scenarios, time], unit="lborbu")
     # Total cultivation costs per crop
     irrcultivationcost = Variable(index=[regions, irrcrops, time], unit="\$")
+
+    production_sumregion = Variable(index=[irrcrops, scenarios, time], unit="lborbu")
 end
 
 function run_timestep(s::IrrigationAgriculture, tt::Int)
@@ -84,6 +86,8 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
         v.totalirrigation[rr, :, tt] = totalirrigation
         v.allagarea[rr, tt] = allagarea
     end
+
+    v.production_sumregion[:, :, tt] = sum(v.production, 1)
 end
 
 function initirrigationagriculture(m::Model)
@@ -98,7 +102,7 @@ function initirrigationagriculture(m::Model)
         kdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
-            if config["dataset"] == "counties"
+            if configdescends(config, "counties")
                 regionid = masterregions[rr, :fips]
             else
                 regionid = masterregions[rr, :state]
@@ -232,4 +236,10 @@ end
 
 function grad_irrigationagriculture_cost_irrigatedareas(m::Model)
     roomdiagonal(m, :IrrigationAgriculture, :irrcultivationcost, :irrigatedareas, (rr, cc, tt) -> cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"]/12) # convert acres t
+end
+
+function constraintoffset_irrigationagriculture_productionsumregion(m::Model)
+    productions = currentcropproduction.(irrcrops)
+    gen(cc) = productions[cc]
+    hallsingle(m, :IrrigationAgriculture, :production_sumregion, gen, [:scenarios, :time])
 end

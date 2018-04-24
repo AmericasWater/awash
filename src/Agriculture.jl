@@ -32,6 +32,7 @@ include("lib/agriculture.jl")
     # Outputs
     allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
     allcropproduction = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
+    allcropproduction_sumregion = Variable(index=[allcrops, scenarios, time], unit="lborbu")
     allirrigation = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
 end
@@ -58,6 +59,8 @@ function run_timestep(s::Agriculture, tt::Int)
             v.allagarea[rr, tt] += v.allcropareas[rr, cc, tt]
         end
     end
+
+    v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction, 1)
 end
 
 function initagriculture(m::Model)

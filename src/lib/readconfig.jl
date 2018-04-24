@@ -13,7 +13,7 @@ function readconfig(ymlpath)
     if "parent-config" in keys(config)
         config = mergeconfigs(readconfig(joinpath(dirname(ymlpath), config["parent-config"] * ".yml")), config)
     end
-    
+
     dataset = readdatasetconfig(config["dataset"])
 
     config = mergeconfigs(dataset, config)
@@ -154,4 +154,22 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
     else
         readtable(datapath(defpath))[:, defcol]
     end
+end
+
+"""
+Does this config derive have the given dataset as ancestor
+"""
+function configdescends(config, dataset)
+    if config["dataset"] == dataset
+        return true
+    end
+
+    if "parent-dataset" in keys(config)
+        # Copied from readdatasetconfig, but without recursion
+        parent = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["parent-dataset"] * "/dataset.yml")))
+        parent["dataset"] = config["parent-dataset"]
+        return configdescends(parent, dataset)
+    end
+
+    return false
 end

@@ -23,7 +23,7 @@ include("lib/agriculture.jl")
     yield = Parameter(index=[regions, unicrops, scenarios, time], unit="none")
 
     # Coefficient on the effects of water deficits
-    irrigation_rate = Parameter(index=[regions, unicrops, time], unit="mm")
+    irrigation_rate = Parameter(index=[regions, unicrops, scenarios, time], unit="mm")
 
     # Computed
     # Total agricultural area
@@ -31,7 +31,7 @@ include("lib/agriculture.jl")
     allagarea = Variable(index=[regions, time], unit="Ha")
 
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
+    totalirrigation = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Total production: lb or bu
     yield2 = Variable(index=[regions, unicrops, scenarios, time], unit="none")
@@ -41,6 +41,8 @@ include("lib/agriculture.jl")
 
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
+
+    production_sumregion = Variable(index=[unicrops, scenarios, time], unit="lborbu")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -49,7 +51,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        totalirrigation = 0.
+        totalirrigation = zeros(numscenarios)
         allagarea = 0.
 
         for cc in d.unicrops
@@ -57,7 +59,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             allagarea += p.totalareas[rr, cc, tt]
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
-            totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
+            totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, :, tt] / 100
 
             # Calculate total production
             v.yield2[rr, cc, :, tt] = p.yield[rr, cc, :, tt]
@@ -70,9 +72,11 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
         end
 
-        v.totalirrigation[rr, tt] = totalirrigation
+        v.totalirrigation[rr, :, tt] = totalirrigation
         v.allagarea[rr, tt] = allagarea
     end
+
+    v.production_sumregion[:, :, tt] = sum(v.production, 1)
 end
 
 function initunivariateagriculture(m::Model)
@@ -83,12 +87,12 @@ function initunivariateagriculture(m::Model)
 
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numscenarios, numsteps)
-    irrigation_rate = zeros(numcounties, numunicrops, numsteps)
+    irrigation_rate = zeros(numcounties, numunicrops, numscenarios, numsteps)
 
     for cc in 1:numunicrops
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
             yield[:, cc, :, :] = read_nareshyields(unicrops[cc])
-            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+            irrigation_rate[:,cc,:,:] = known_irrigationrate[unicrops[cc]]
             continue
         end
 
@@ -97,7 +101,7 @@ function initunivariateagriculture(m::Model)
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
-            if config["dataset"] == "counties"
+            if configdescends(config, "counties")
                 regionid = masterregions[rr, :fips]
             else
                 regionid = masterregions[rr, :state]
@@ -127,7 +131,7 @@ function initunivariateagriculture(m::Model)
                     warnonce("LOGIC: This should be sensitive to scenario weather.")
                     yield[rr, cc, :, tt] = min.(exp.(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tt] = unicrop_irrigationrate[unicrops[cc]] + mean(water_deficit) * unicrop_irrigationstress[unicrops[cc]] / 1000
+                    irrigation_rate[rr, cc, :, tt] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
                 end
             end
         end
@@ -180,10 +184,10 @@ function grad_univariateagriculture_production_totalareas(m::Model)
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
-    function generate(A, tt)
+    function generate(A, ss, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
+                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, ss, tt] / 100
             end
         end
 
@@ -227,4 +231,10 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
     end
 
     roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate, [:time], [:time])
+end
+
+function constraintoffset_univariateagriculture_productionsumregion(m::Model)
+    productions = currentcropproduction.(unicrops)
+    gen(cc) = productions[cc]
+    hallsingle(m, :UnivariateAgriculture, :production_sumregion, gen, [:scenarios, :time])
 end

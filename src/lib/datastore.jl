@@ -232,7 +232,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                 network = waternetdata["network"]
                 network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
 
-                contribs = cachereadtable(loadpath("waternet/contribs.csv"), types=[String, String, Float64], null="NA")
+                contribs = cachereadtable(loadpath("waternet/contribs.csv"), eltypes=[String, String, Float64])
                 contribs = dropmissing(contribs, :sink)
 
                 addeds = vcat(addeds, zeros(nrow(network) - nrow(stations), size(addeds)[2]))

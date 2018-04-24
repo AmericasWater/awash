@@ -13,6 +13,7 @@ include("../src/model.jl")
 println("Running model...")
 @time run(model)
 
+include("../src/lib/coding.jl")
 df1 = getdataframe(model, :Agriculture, :allirrigation)
 rename!(df1, :allirrigation, :value)
 df1[:variable] = :allirrigation
@@ -39,7 +40,7 @@ if isfile(outputpath)
     end
 
     if length(mismatches) > 0
-        println(mismatches) 
+        println(mismatches)
         println("Simulated:")
         println(alldf[mismatches, :])
         println("Recorded:")

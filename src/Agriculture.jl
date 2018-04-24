@@ -13,6 +13,7 @@ include("lib/agriculture.jl")
     irrcrops = Index()
     unicrops = Index()
     allcrops = Index()
+    scenarios = Index()
 
     # Inputs
     othercropsarea = Parameter(index=[regions, time], unit="Ha")
@@ -20,18 +21,19 @@ include("lib/agriculture.jl")
 
     # From IrrigationAgriculture
     irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
-    irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
-    irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+    irrcropproduction = Parameter(index=[regions, irrcrops, scenarios, time], unit="lborbu")
+    irrirrigation = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
     # From UnivariateAgriculture
     unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
-    unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
-    uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
+    unicropproduction = Parameter(index=[regions, unicrops, scenarios, time], unit="lborbu")
+    uniirrigation = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Outputs
     allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
-    allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
-    allirrigation = Variable(index=[regions, time], unit="1000 m^3")
+    allcropproduction = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
+    allcropproduction_sumregion = Variable(index=[allcrops, scenarios, time], unit="lborbu")
+    allirrigation = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
 end
 
@@ -41,22 +43,24 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
+        v.allirrigation[rr, :, tt] = p.othercropsirrigation[rr, tt] + p.irrirrigation[rr, :, tt] + p.uniirrigation[rr, :, tt]
         v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
                 v.allcropareas[rr, cc, tt] = p.irrcropareas[rr, irrcc, tt]
-                v.allcropproduction[rr, cc, tt] = p.irrcropproduction[rr, irrcc, tt]
+                v.allcropproduction[rr, cc, :, tt] = p.irrcropproduction[rr, irrcc, :, tt]
             else
                 unicc = findfirst(unicrops, allcrops[cc])
                 v.allcropareas[rr, cc, tt] = p.unicropareas[rr, unicc, tt]
-                v.allcropproduction[rr, cc, tt] = p.unicropproduction[rr, unicc, tt]
+                v.allcropproduction[rr, cc, :, tt] = p.unicropproduction[rr, unicc, :, tt]
             end
 
             v.allagarea[rr, tt] += v.allcropareas[rr, cc, tt]
         end
     end
+
+    v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction[:, :, :, tt], 1)
 end
 
 function initagriculture(m::Model)
@@ -70,14 +74,14 @@ function initagriculture(m::Model)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
-    for crop in Task(missingcrops)
+    for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
         agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
         agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
     end
 
-    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
-    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))
+    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numscenarios, numsteps))
+    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numscenarios, numsteps))
 
     agriculture
 end
@@ -136,22 +140,24 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:time], [:time])
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:scenarios, :time], [:scenarios, :time])
 end
 
 function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
     function gen(A)
-        # A: R x ALL x R x IRR
+        # A: R * ALL * S x R * IRR * S
         if !isempty(irrcrops)
             for irrcc in 1:numirrcrops
                 allcc = findfirst(allcrops, irrcrops[irrcc])
                 for rr in 1:numregions
-                    A[fromindex([rr, allcc], [numregions, numallcrops]), fromindex([rr, irrcc], [numregions, numirrcrops])] = 1
+                    for ss in 1:numscenarios
+                        A[fromindex([rr, allcc, ss], [numregions, numallcrops, numscenarios]), fromindex([rr, irrcc, ss], [numregions, numirrcrops, numscenarios])] = 1
+                    end
                 end
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:time], [:time])
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:scenarios, :time], [:scenarios, :time])
 end
 
 

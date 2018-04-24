@@ -5,7 +5,7 @@
 using DataFrames
 using RData
 
-include("lib/datastore.jl")
+include("datastore.jl")
 
 # energy cost to lift 1000m3 by 1m
 #energycostperlift = 1.

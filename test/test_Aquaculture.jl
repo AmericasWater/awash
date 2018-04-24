@@ -1,17 +1,20 @@
+using Base.Test
+
 # Load the component
-include("../src/Aquaculture.jl")
 include("../src/lib/readconfig.jl")
+config = readconfig("../configs/single-state.yml")
+
+include("../src/Aquaculture.jl")
 
 # Set up the model
-counties = convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:,:FIPS])
+regions = regionindex(readtable(datapath("aquaculture/usgsextract.csv")), :)
 
-config = readconfig("../configs/single.yml")
 numsteps = 1
-numcounties = length(counties)
+numcounties = length(regions)
 
 m = Model()
 setindex(m, :time, [1]) # Single period
-setindex(m, :regions, counties)
+setindex(m, :regions, convert(Vector{AbstractString}, regions))
 
 # Add the component
 initaquaculture(m)

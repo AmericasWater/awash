@@ -1,14 +1,16 @@
-# The livestock component
+## Livestock Component
+#
+# Currently assumes that livestock water demands are exogenously
+# provided.
 
 using Mimi
 using DataFrames
 
 @defcomp Livestock begin
     regions = Index()
-    crops = Index()
 
     # Exogenous demands
-    demand = Parameter(index=[regions, time], unit="1000 m^3")
+    livestockdemand = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Copy through
     demand_copy = Variable(index=[regions, time], unit="1000 m^3")
@@ -23,7 +25,7 @@ function run_timestep(c::Livestock, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.demand_copy[rr, tt] = p.demand[rr, tt]
+        v.demand_copy[rr, tt] = p.livestockdemand[rr, tt]
     end
 end
 
@@ -33,7 +35,8 @@ Add a Livestock component to the model.
 function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
-    livestock[:demand] = repeat(convert(Vector,readtable(datapath("demand/simulation2010demanddata.csv"))[:,:LI_WFrTo]) / config["timestep"], outer=[1, numsteps])
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    livestock[:livestockdemand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numsteps])
 
     livestock
 end

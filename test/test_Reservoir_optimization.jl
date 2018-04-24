@@ -2,13 +2,13 @@ using OptiMimi
 using Base.Test
 
 include("../src/lib/readconfig.jl")
-config = readconfig("../configs/standard-1year.yml")
+config = readconfig("../configs/standard-1year-state.yml")
 
 include("../src/model.jl")
 
 @time room1 = grad_reservoir_storage_captures(model)
 
-indices = Dict{Symbol, Any}(:time => collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])), :reservoirs => collect(1:numreservoirs))
+indices = Dict{Symbol, Any}(:time => collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])), :reservoirs => collect(1:numreservoirs), :gauges => collect(1:numgauges))
 @time room2 = grad_component(indices, initreservoir, :storage, :captures)
 
 @test room1.A == room2.A

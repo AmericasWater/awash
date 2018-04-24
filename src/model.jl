@@ -1,59 +1,44 @@
-## `config` must be defined before loading this file!
+## Complete Model construction
+#
+# Includes both water management and production management.
 
-include("world.jl")
-include("weather.jl")
+include("model-waterdemand.jl")
 
-include("PopulationDemand.jl");
-include("Agriculture.jl");
+## Check if the optimize-surface script has produced captures data
+storedcaptures = cached_fallback("extraction/captures", () -> false)
+if storedcaptures == false
+    warn("Missing saved reservoirs file.  Please run optimize-surface.jl with allowreservoirs.")
+elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != numsteps
+    warn("Reservoir file does not match current configuration.  Please remove.")
+end
+
 include("ReturnFlows.jl");
-include("WaterDemand.jl");
 include("Market.jl");
 include("Transportation.jl");
 include("WaterNetwork.jl");
 include("Groundwater.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
-include("IndustrialDemand.jl");
-include("UrbanDemand.jl");
-include("Thermoelectric.jl")
-include("Livestock.jl")
 
-println("Creating model...")
-
-# First solve entire problem in a single timestep
-model = newmodel();
-
-# Add all of the components
-thermoelectric = initthermoelectric(model); # exogenous
-livestock = initlivestock(model); # exogenous
-agriculture = initagriculture(model); # optimization-only
-industrialdemand = initindustrialdemand(model); # exogenous
-urbandemand = initurbandemand(model); # exogenous
-waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
-reservoir = initreservoir(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
+reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
 transportation = inittransportation(model); # optimization-only
-market = initmarket(model); # dep. Transporation, Agriculture
+market = initmarket(model); # dep. Transportation, Agriculture
 
 # Connect up the components
-waterdemand[:totalirrigation] = agriculture[:totalirrigation];
-waterdemand[:thermoelectricuse] = thermoelectric[:demand_copy];
-waterdemand[:livestockuse] = livestock[:demand_copy];
-waterdemand[:urbanuse] = urbandemand[:waterdemand];
-waterdemand[:industrialuse] = industrialdemand[:waterdemand];
-
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
 allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-allocation[:withdrawals] = returnflows[:copy_withdrawals];
 groundwater[:withdrawal] = allocation[:watergw];
+reservoir[:inflowsgauges] = waternetwork[:inflows];
+reservoir[:outflowsgauges] = waternetwork[:outflows];
 
-market[:produced] = agriculture[:production];
+market[:produced] = agriculture[:allcropproduction];
 market[:regionimports] = transportation[:regionimports];
 market[:regionexports] = transportation[:regionexports];

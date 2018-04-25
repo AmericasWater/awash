@@ -92,7 +92,7 @@ function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, dat
         return df
     else
         # Initial blank DF
-        df = DataFrame()
+        df = nothing
 
         # Indexes is #, :, :, ... for each index of first dimension
         indexes = repmat(Any[Colon()], length(vardiminfo))
@@ -100,7 +100,11 @@ function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, dat
             indexes[1] = ii
             subdf = getdataframe_helper(m, name, vardiminfo[2:end], data[indexes...])
             subdf[vardiminfo[1]] = m.indices_values[vardiminfo[1]][ii]
-            df = vcat(df, subdf)
+            if df == nothing
+                df = subdf
+            else
+                df = vcat(df, subdf)
+            end
         end
 
         return df

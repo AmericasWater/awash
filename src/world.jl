@@ -44,6 +44,7 @@ else
     numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
+numyears = length(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)

@@ -133,3 +133,15 @@ end
 for ii in find(.!isfinite.(vv))
     house.A[ri[ii], ci[ii]] = 1e9
 end
+
+# rhs = sum(abs.(house.A), 2)
+# invalid = (rhs .== 0) .& (house.b .!= 0)
+
+# valid = (rhs .> 0)
+# scaling = house.b ./ rhs
+# findfirst(isnan.(scaling))
+# findfirst(isnan.(scaling[valid]))
+
+# quantile(abs.(vec(scaling[valid & (house.b .!= 0)])))
+
+# cumsum(varlengths(house.model, house.constcomps, house.constraints))

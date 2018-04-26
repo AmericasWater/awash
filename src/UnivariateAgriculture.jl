@@ -43,6 +43,7 @@ include("lib/agriculture.jl")
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
 
     production_sumregion = Variable(index=[unicrops, scenarios, time], unit="lborbu")
+    area_sumregion = Variable(index=[unicrops, time], unit="lborbu")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -77,6 +78,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
     end
 
     v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
+    v.area_sumregion[:, tt] = sum(p.totalareas[:, :, tt], 1)
 end
 
 function initunivariateagriculture(m::Model)
@@ -184,6 +186,10 @@ function grad_univariateagriculture_production_totalareas(m::Model)
     roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (ss1) -> m.external_parameters[:yield].values[:, :, ss1, :] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
+function grad_univariateagriculture_areasumregion_totalareas(m::Model)
+    roomdiagonal(m, :UnivariateAgriculture, :area_sumregion, :totalareas, (cc, tt) -> 1, [:regions])
+end
+
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     function generate(A, tt)
         for ss in 1:numscenarios
@@ -241,3 +247,9 @@ function constraintoffset_univariateagriculture_productionsumregion(m::Model)
     gen(cc) = productions[cc]
     hallsingle(m, :UnivariateAgriculture, :production_sumregion, gen, [:scenarios, :time])
 end
+
+function constraintoffset_univariateagriculture_areasumregion(m::Model)
+    areas = sum.(currentcroparea.(unicrops))
+    hallsingle(m, :UnivariateAgriculture, :area_sumregion, (cc) -> areas[cc], [:time])
+end
+

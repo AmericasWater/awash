@@ -269,8 +269,17 @@ end
 Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    df[:, crop] * 0.404686
+    df = getfilteredtable("agriculture/totalareas.csv")
+    if Symbol(crop) in names(df)
+        return df[:, Symbol(crop)] * 0.404686
+    end
+    
+    cropnames = uniquemapping[crop]
+    for cropname in cropnames
+        if Symbol(cropname) in names(df)
+            return df[:, Symbol(cropname)] * 0.404686
+        end
+    end
 end
 
 """
@@ -279,17 +288,17 @@ Return the observed production for a given crop, in lb in bu
 function currentcropproduction(crop::AbstractString)
     cropnames = uniquemapping[crop]
     if "barley" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/barley_production_in_bu.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/barley_production_in_bu.csv")[:PRODUCTION_2010])
     elseif "corn" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/maize_production_in_bu.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/maize_production_in_bu.csv")[:PRODUCTION_2010])
     elseif "sorghum" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/sorghum_production_in_lb.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/sorghum_production_in_lb.csv")[:PRODUCTION_2010])
     elseif "soybeans" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/soybeans_production_in_bu.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/soybeans_production_in_bu.csv")[:PRODUCTION_2010])
     elseif "wheat" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/wheat_production_in_bu.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/wheat_production_in_bu.csv")[:PRODUCTION_2010])
     elseif "hay" in cropnames
-        sum(getfilteredtable(loadpath("agriculture/allyears/hay_production_in_lb.csv"))[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/hay_production_in_lb.csv")[:PRODUCTION_2010])
     else
         return 0
     end

@@ -53,6 +53,7 @@ include("lib/agriculture.jl")
     irrcultivationcost = Variable(index=[regions, irrcrops, time], unit="\$")
 
     production_sumregion = Variable(index=[irrcrops, scenarios, time], unit="lborbu")
+    area_sumregion = Variable(index=[irrcrops, time], unit="lborbu")
 end
 
 function run_timestep(s::IrrigationAgriculture, tt::Int)
@@ -77,7 +78,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
             v.lograinfedyield[rr, cc, :, tt] = p.logirrigatedyield[rr, cc, :, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, :, tt]
 
             # Calculate total production
-            v.production[rr, cc, :, tt] = exp(p.logirrigatedyield[rr, cc, :, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp(v.lograinfedyield[rr, cc, :, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+            v.production[rr, cc, :, tt] = exp.(p.logirrigatedyield[rr, cc, :, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp.(v.lograinfedyield[rr, cc, :, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
             v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
@@ -88,6 +89,7 @@ function run_timestep(s::IrrigationAgriculture, tt::Int)
     end
 
     v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
+    v.area_sumregion[:, tt] = sum(p.irrigatedareas[:, :, tt], 1) + sum(p.rainfedareas[:, :, tt], 1)
 end
 
 function initirrigationagriculture(m::Model)
@@ -178,7 +180,7 @@ end
 
 function grad_irrigationagriculture_production_irrigatedareas(m::Model)
     ## Common rr, cc, tt
-    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (ss1) -> exp(m.external_parameters[:logirrigatedyield].values[:, :, ss1, :]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (ss1) -> exp.(m.external_parameters[:logirrigatedyield].values[:, :, ss1, :]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
@@ -188,7 +190,7 @@ function grad_irrigationagriculture_production_rainfedareas(m::Model)
         A = zeros(numregions, numirrcrops, numsteps)
         for cc in 1:numirrcrops
             for tt in 1:numsteps
-                A[:, cc, tt] = exp(m.external_parameters[:logirrigatedyield].values[:, cc, ss1, tt] + m.external_parameters[:deficit_coeff].values[:, cc] * max.(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[:, ss1, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+                A[:, cc, tt] = exp.(m.external_parameters[:logirrigatedyield].values[:, cc, ss1, tt] + m.external_parameters[:deficit_coeff].values[:, cc] * max.(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[:, ss1, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
             end
         end
         A
@@ -252,4 +254,17 @@ function constraintoffset_irrigationagriculture_productionsumregion(m::Model)
     productions = currentcropproduction.(irrcrops)
     gen(cc) = productions[cc]
     hallsingle(m, :IrrigationAgriculture, :production_sumregion, gen, [:scenarios, :time])
+end
+
+function grad_irrigationagriculture_areasumregion_irrigatedareas(m::Model)
+    roomdiagonal(m, :IrrigationAgriculture, :area_sumregion, :irrigatedareas, (cc, tt) -> 1, [:regions])
+end
+
+function grad_irrigationagriculture_areasumregion_rainfedareas(m::Model)
+    roomdiagonal(m, :IrrigationAgriculture, :area_sumregion, :rainfedareas, (cc, tt) -> 1, [:regions])
+end
+
+function constraintoffset_irrigationagriculture_areasumregion(m::Model)
+    areas = currentcroparea.(irrcrops)
+    hallsingle(m, :IrrigationAgriculture, :area_sumregion, (cc) -> areas[cc], [:time])
 end

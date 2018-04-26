@@ -7,6 +7,7 @@ using OptiMimi
 
 redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 allowreservoirs = false
+agconstraint = :area # or production
 
 include("world.jl")
 include("weather.jl")
@@ -40,8 +41,13 @@ urbandemand = initurbandemand(m) # Just here for the parameters
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture, :IrrigationAgriculture, :Allocation]
 parameters = [:waterfromgw, :withdrawals, :totalareas, :rainfedareas, :irrigatedareas, :returns]
-constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture]
-constraints = [:allagarea, :outflows, :balance, :returnbalance, :production_sumregion, :production_sumregion]
+if agconstraint == :production
+    constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture]
+    constraints = [:allagarea, :outflows, :balance, :returnbalance, :production_sumregion, :production_sumregion]
+else
+    constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Allocation, :UnivariateAgriculture, :IrrigationAgriculture]
+    constraints = [:allagarea, :outflows, :balance, :returnbalance, :area_sumregion, :area_sumregion]
+end
 
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets
@@ -99,11 +105,19 @@ setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_domesticu
                                           :totalreturn, :Allocation, :returnbalance)) # +
 
 # Constrain sum over region of production for each crop < observed production
-setconstraint!(house, varsum(grad_univariateagriculture_production_totalareas(m), 1, m, :production_sumregion))
-setconstraintoffset!(house, constraintoffset_univariateagriculture_productionsumregion(m))
-setconstraint!(house, varsum(grad_irrigationagriculture_production_irrigatedareas(m), 1, m, :production_sumregion))
-setconstraint!(house, varsum(grad_irrigationagriculture_production_rainfedareas(m), 1, m, :production_sumregion))
-setconstraintoffset!(house, constraintoffset_irrigationagriculture_productionsumregion(m))
+if agconstraint == :production
+    setconstraint!(house, varsum(grad_univariateagriculture_production_totalareas(m), 1, m, :production_sumregion))
+    setconstraintoffset!(house, constraintoffset_univariateagriculture_productionsumregion(m))
+    setconstraint!(house, varsum(grad_irrigationagriculture_production_irrigatedareas(m), 1, m, :production_sumregion))
+    setconstraint!(house, varsum(grad_irrigationagriculture_production_rainfedareas(m), 1, m, :production_sumregion))
+    setconstraintoffset!(house, constraintoffset_irrigationagriculture_productionsumregion(m))
+else
+    setconstraint!(house, grad_univariateagriculture_areasumregion_totalareas(m))
+    setconstraintoffset!(house, constraintoffset_univariateagriculture_areasumregion(m))
+    setconstraint!(house, grad_irrigationagriculture_areasumregion_irrigatedareas(m))
+    setconstraint!(house, grad_irrigationagriculture_areasumregion_rainfedareas(m))
+    setconstraintoffset!(house, constraintoffset_irrigationagriculture_areasumregion(m))
+end
 
 # Clean up
 

@@ -1,3 +1,6 @@
+using Gurobi
+solver = GurobiSolver()
+
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/paleo-4scen.yml")
 

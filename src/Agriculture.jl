@@ -7,6 +7,7 @@ using DataFrames
 using Mimi
 
 include("lib/agriculture.jl")
+include("lib/leapsteps.jl")
 
 @defcomp Agriculture begin
     year = Index()
@@ -42,7 +43,7 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     yys = timeindex2yearindexes(tt)
-    
+
     for rr in d.regions
         v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
         v.allagarea[rr, yys] = p.othercropsarea[rr, yys]

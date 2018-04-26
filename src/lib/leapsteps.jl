@@ -20,13 +20,6 @@ function timeindex2leapindexes(tt::Int64, timestep::Int64, nummonths::Int64)
     end
 end
 
-# for tt in 1:10
-#     println(timeindex2leapindexes(tt, 3, 6))
-# end
-# for tt in 1:10
-#     println(timeindex2leapindexes(tt, 6, 3))
-# end
-
 # Returns vector of 1 or more timesteps that contributed to the
 # completion of this leap, and a scaling value for how each timestep
 # contributed (typically all 1's)
@@ -66,13 +59,6 @@ function leapindex2timeindexes(yy::Int64, timestep::Int64, nummonths::Int64)
         return timeindexes, timescaling
     end
 end
-
-# for yy in 1:10
-#     println(leapindex2timeindexes(yy, 3, 6))
-# end
-# for yy in 1:10
-#     println(leapindex2timeindexes(yy, 6, 3))
-# end
 
 function timeindex2yearindexes(tt::Int64)
     timeindex2leapindexes(tt, config["timestep"], 12)

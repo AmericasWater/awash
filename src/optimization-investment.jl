@@ -35,7 +35,7 @@ aquifer = initaquifer(m);
 # Only include variables needed in constraints and parameters needed in optimization
 
 paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
-parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :addstorage, :removestorage]
+parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :increasestorage, :decreasestorage]
 
 constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir; :Reservoir]
 constraints = [:outflows, :balance, :returnbalance, :storagemin; :storagemax]

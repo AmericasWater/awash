@@ -34,13 +34,7 @@ end
 
 include("world-minimal.jl")
 
-rm(datapath("extraction/withdrawals$suffix.jld"), force=true)
-rm(datapath("extraction/returns$suffix.jld"), force=true)
-rm(datapath("extraction/waterfromgw$suffix.jld"), force=true)
-rm(datapath("extraction/captures$suffix.jld"), force=true)
-rm(cachepath("partialhouse2$suffix.jld"), force=true)
-rm(cachepath("partialhouse$suffix.jld"), force=true)
-rm(cachepath("partialhouse-gror$suffix.jld"), force=true)
+clearslate()
 
 ## Optimize canal usage
 ignore, profile1 = resultandprofile(@timed include("optimization-given.jl"))

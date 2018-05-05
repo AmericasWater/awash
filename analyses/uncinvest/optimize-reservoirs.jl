@@ -1,10 +1,9 @@
 #### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
 
-include("lib/readconfig.jl")
-config = readconfig("../configs/paleo-4scen.yml")
+include("../../src/lib/readconfig.jl")
+config = readconfig("../../configs/paleo-4scen.yml")
 
-include("optimization-given.jl")
-house = optimization_given(true, withreservoirs, model)
+include("../../src/optimization-investment.jl")
 
 using MathProgBase
 using Gurobi

@@ -18,7 +18,7 @@ include("WaterDemand.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
 include("ReturnFlows.jl")
-include("Reservoir.jl")
+include("ChangingReservoir.jl")
 include("Groundwater.jl")
 
 # First solve entire problem in a single timestep
@@ -35,10 +35,10 @@ aquifer = initaquifer(m);
 # Only include variables needed in constraints and parameters needed in optimization
 
 paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
-parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :increasestorage, :decreasestorage]
+parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :increasestorage, :reducestorage]
 
-constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir; :Reservoir]
-constraints = [:outflows, :balance, :returnbalance, :storagemin; :storagemax]
+constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir]
+constraints = [:outflows, :balance, :returnbalance, :storagemin, :storagemax]
 
 if allowgw
     # Include groundwater
@@ -60,6 +60,8 @@ end
 setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
 setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
+setobjective!(house, -varsum(grad_reservoir_cost_increasestorage(m)) / numscenarios)
+setobjective!(house, -varsum(grad_reservoir_cost_reducestorage(m)) / numscenarios)
 
 # Constrain that the water in the stream is non-negative:
 # That is, outflows + runoff > 0, or -outflows < runoff
@@ -116,9 +118,11 @@ setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirri
 setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
 setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
 
-# Constrain storage < max
+# Constrain storage < max + increasestorage[tt-1] - reducestorage[tt-1] => storage - increasestorage[tt-1] + reducestorage[tt-1] < max
 setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
-setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
+setconstraint!(house, grad_reservoir_storagecapacitymax_increasestorage(m)) # +
+setconstraint!(house, grad_reservoir_storagecapacitymax_reducestorage(m)) # -
+setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax0(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax)) # +
 
 setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
 

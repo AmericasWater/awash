@@ -33,3 +33,28 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
         reservoirs
     end
 end
+
+"""
+Calculate the estimated cost of construction of a reservoir of this capacity
+"""
+function estimatecost(capacity)
+    capacityaf = capacity * 1000 / 1233.48 # Convert to acre-ft
+    if log(capacityaf) < 10
+        capacityaf = exp(10)
+    end
+
+    exp.(0.7 + 0.9 * log((log(capacityaf) - 9.5) / 0.01))
+end
+
+"""
+Marginal cost of increasing capacity, at the given capacity
+"""
+function marginalcost(capacity)
+    capacityaf = capacity * 1000 / 1233.48 # Convert to acre-ft
+    if log(capacityaf) < 10
+        capacityaf = exp(10)
+    end
+
+    estimatecost(capacity) * 0.9 * (1 / capacityaf) / ((log(capacityaf) - 9.5) / 0.01)
+end
+

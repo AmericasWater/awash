@@ -60,8 +60,32 @@ function leapindex2timeindexes(yy::Int64, timestep::Int64, nummonths::Int64)
     end
 end
 
+# Returns vector of 1 or more years that were in play during this timestep
+function timeindex2contributingleapindexes(tt::Int64, timestep::Int64, nummonths::Int64)
+    if timestep == nummonths
+        return Int64[tt]
+    elseif timestep < nummonths
+        thisleap = div(tt * timestep, nummonths)
+        lastleap = div((tt - 1) * timestep, nummonths)
+        if thisleap == lastleap
+            return [thisleap]
+        else
+            return collect((lastleap + 1):thisleap)
+        end
+    else # timestep > nummonths
+        thisleap = div(tt * timestep, nummonths)
+        lastleap = div((tt - 1) * timestep, nummonths)
+        return collect((lastleap + 1):thisleap)
+    end
+end
+
+
 function timeindex2yearindexes(tt::Int64)
     timeindex2leapindexes(tt, config["timestep"], 12)
+end
+
+function timeindex2contributingyearindexes(tt::Int64)
+    timeindex2contributingleapindexes(tt, config["timestep"], 12)
 end
 
 function yearindex2timeindexes(yy::Int64)

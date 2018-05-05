@@ -31,10 +31,10 @@ include("lib/leapsteps.jl")
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Outputs
-    allcropareas = Variable(index=[regions, allcrops, year], unit="Ha") # vs. year
-    allcropproduction = Variable(index=[regions, allcrops, year], unit="lborbu") # vs. year
+    allcropareas = Variable(index=[regions, allcrops, time], unit="Ha")
+    allcropproduction = Variable(index=[regions, allcrops, time], unit="lborbu")
     allirrigation = Variable(index=[regions, time], unit="1000 m^3")
-    allagarea = Variable(index=[regions, year], unit="Ha") # vs. year
+    allagarea = Variable(index=[regions, time], unit="Ha")
 end
 
 function run_timestep(s::Agriculture, tt::Int)
@@ -43,22 +43,23 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     yys = timeindex2yearindexes(tt)
+    contyys = timeindex2contributingyearindexes(tt)
 
     for rr in d.regions
         v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
-        v.allagarea[rr, yys] = p.othercropsarea[rr, yys]
+        v.allagarea[rr, tt] = mean(p.othercropsarea[rr, contyys])
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
-                v.allcropareas[rr, cc, yys] = p.irrcropareas[rr, irrcc, yys]
-                v.allcropproduction[rr, cc, yys] = p.irrcropproduction[rr, irrcc, yys]
+                v.allcropareas[rr, cc, tt] = mean(p.irrcropareas[rr, irrcc, contyys])
+                v.allcropproduction[rr, cc, tt] = sum(p.irrcropproduction[rr, irrcc, yys])
             else
                 unicc = findfirst(unicrops, allcrops[cc])
-                v.allcropareas[rr, cc, yys] = p.unicropareas[rr, unicc, yys]
-                v.allcropproduction[rr, cc, yys] = p.unicropproduction[rr, unicc, yys]
+                v.allcropareas[rr, cc, tt] = mean(p.unicropareas[rr, unicc, contyys])
+                v.allcropproduction[rr, cc, tt] = sum(p.unicropproduction[rr, unicc, yys])
             end
 
-            v.allagarea[rr, yys] += v.allcropareas[rr, cc, yys]
+            v.allagarea[rr, tt] += mean(v.allcropareas[rr, cc, contyys])
         end
     end
 end

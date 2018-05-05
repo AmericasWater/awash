@@ -383,7 +383,7 @@ end
 """
 Collect all crop info from one of the dictionaries, aware of name changes
 """
-function crop_information(crops::Vector{Any}, dict, default; warnonmiss=false)
+function crop_information(crops::Union{Vector{Any}, Vector{String}}, dict, default; warnonmiss=false)
     [crop_information(crop, dict, default, warnonmiss=warnonmiss) for crop in crops]
 end
 

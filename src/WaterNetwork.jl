@@ -17,6 +17,7 @@ using Mimi
 
     inflows = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream outflows
     outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed + returned
+    unmodifieds = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream unmodifieds + added
 end
 
 """
@@ -31,12 +32,15 @@ function run_timestep(c::WaterNetwork, tt::Int)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         allflow = 0.
+        unmodified = 0.
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             allflow += v.outflows[vertex_index(upstream, waternet), tt]
+            unmodified += v.unmodifieds[vertex_index(upstream, waternet), tt]
         end
 
         v.inflows[gg, tt] = allflow
         v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt] + p.returned[gg, tt]
+        v.unmodified[gg, tt] = unmodified + p.added[gg, tt]
     end
 end
 

@@ -16,11 +16,13 @@ using DataFrames
     withdrawalsw = Parameter(index=[gauges, time], unit="1000 m^3")
     withdrawalswregion = Parameter(index=[regions, time], unit="1000 m^3")
 
-    availabilitysw = Variable(index=[regions, time], unit="1000 m^3")
-    
+    availabilityrunoffall = Variable(index=[regions, time], unit="1000 m^3")
+    availabilityrunofflocal = Variable(index=[regions, time], unit="1000 m^3")
+    availabilityinflowlocal = Variable(index=[regions, time], unit="1000 m^3")
+
     indexgw = Variable(index=[regions, time], unit="1000 m^3")
     indexsw = Variable(index=[gauges, time], unit="1000 m^3")
-    
+
     indexWaSSli = Variable(index=[regions, time], unit="1000 m^3")
     indexWaSSI = Variable(index=[regions, time], unit="1000 m^3")
     indexWSI = Variable(index=[regions, time], unit="1000 m^3")
@@ -43,15 +45,46 @@ function run_timestep(c::WaterStressIndex, tt::Int)
     end
 
 
-    for pp in 1:nrow(draws)
-        regionids = regionindex(draws, pp)
-        rr = findfirst(regionindex(masterregions, :) .== regionids)
-        if rr > 0 
-            v.availabilitysw[rr, tt] = p.runoffgauge[gg, tt]
-            + p.inflowgauge[gg, tt] # only stream inflows from border of county ...
+    v.availabilityrunoffall[:,tt] = zeros(numcounties)
+    v.availabilityrunofflocal[:,tt] = zeros(numcounties)
+    v.availabilityinflowlocal[:,tt] = zeros(numcounties)
 
+    for pp in 1:nrow(draws)
+        gaugeid = draws[pp, :gaugeid]
+        vertex = get(wateridverts, gaugeid, nothing)
+        if vertex != nothing
+            gg = vertex_index(vertex)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
+            v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
+            if draws[pp, :justif] == "contains"
+                v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
+
+                # Checking if the gauge is the last one
+                gauge = downstreamorder[gg].label
+                for upstream in out_neighbors(wateridverts[gauge], waternet)
+                    for ii in find(draws[:gaugeid] .== upstream.label)
+                        if draws[:justif][ii] == "contains"
+                            if draws[:fips][ii] != draws[:fips][pp]
+                                v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
+
+    v.indexWaSSli = (v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
+    v.indexWaSSI = (v.withdrawalgw + v.withdrawalswregion)./((1-p.environmentalfactor).*(v.availabilityrunofflocal + v.availabilityinflowlocal) + p.rechargegw)
+    v.indexWSI = 1./(1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
+
+end
+
+
+
+#            + p.inflowgauge[gg, tt] # only stream inflows from border of county ...
+
 
 end
 
@@ -64,6 +97,6 @@ function initwaterstressindex(m::Model)
     waterstressindex[:runoffgauge] = addeds[:, 1:numsteps]
     waterstressindex[:rechargegw] = recharge;
     waterstressindex[:environmentalfactor] = 0.37; #conservative estimate: 37% annual flow, 50% annual flow. source: doi:10.1088/1748-9326/aa51dc
+
     waterstressindex
 end
-

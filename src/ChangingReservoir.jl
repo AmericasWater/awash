@@ -148,7 +148,7 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm((1-m.external_parameters[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> (vtt >= ptt && vss == pss) ? spdiagm((1-m.external_parameters[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0) : spzeros(numreservoirs, numreservoirs), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
@@ -177,7 +177,7 @@ function grad_reservoir_cost_increasestorage(m::Model)
 end
 
 function grad_reservoir_storagecapacitymax_increasestorage(m::Model)
-    roomchunks(m, :Reservoir, :storage, :storagecapacitymax, (vtt, ptt) -> ifelse(vtt >= ptt, spdiagm(ones(numreservoirs), 0), spzeros(numreservoirs, numreservoirs)), [:time], [:time])
+    roomchunks(m, :Reservoir, :storagecapacitymax, :increasestorage, (vtt, ptt) -> vtt >= ptt + ceil(Int64, 12 / config["timestep"]) ? spdiagm(ones(numreservoirs), 0) : spzeros(numreservoirs, numreservoirs), [:time], [:time])
 end
 
 function grad_reservoir_storagecapacitymax_reducestorage(m::Model)

@@ -1,9 +1,5 @@
 ## Known Demand Reservoir size Optimization Model construction
 
-###################33333333333333 TODO:
-## Add cost of changes in reservoir
-## Modify constraints to account for changes
-
 using Mimi
 using OptiMimi
 
@@ -115,16 +111,16 @@ setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirri
 # max storage is reservoir max
 
 # Constrain storage > min or -storage < -min
-setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
+@time setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
 setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
 
 # Constrain storage < max + increasestorage[tt-1] - reducestorage[tt-1] => storage - increasestorage[tt-1] + reducestorage[tt-1] < max
 setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
-setconstraint!(house, grad_reservoir_storagecapacitymax_increasestorage(m)) # +
-setconstraint!(house, grad_reservoir_storagecapacitymax_reducestorage(m)) # -
+setconstraint!(house, room_relabel(room_duplicate(grad_reservoir_storagecapacitymax_increasestorage(m), :storage, :increasestorage, house.model), :storage, :Reservoir, :storagemax)) # +
+setconstraint!(house, room_relabel(room_duplicate(grad_reservoir_storagecapacitymax_reducestorage(m), :storage, :reducestorage, house.model), :storage, :Reservoir, :storagemax)) # -
 setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax0(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax)) # +
 
-setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
+setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numscenarios * numsteps) * -Inf))
 
 # Clean up
 

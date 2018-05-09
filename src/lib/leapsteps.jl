@@ -68,7 +68,7 @@ function timeindex2contributingleapindexes(tt::Int64, timestep::Int64, nummonths
         thisleap = div(tt * timestep, nummonths)
         lastleap = div((tt - 1) * timestep, nummonths)
         if thisleap == lastleap
-            return [thisleap]
+            return [lastleap + 1]
         else
             return collect((lastleap + 1):thisleap)
         end

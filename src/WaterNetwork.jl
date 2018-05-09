@@ -40,7 +40,7 @@ function run_timestep(c::WaterNetwork, tt::Int)
 
         v.inflows[gg, tt] = allflow
         v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt] + p.returned[gg, tt]
-        v.unmodified[gg, tt] = unmodified + p.added[gg, tt]
+        v.unmodifieds[gg, tt] = unmodified + p.added[gg, tt]
     end
 end
 

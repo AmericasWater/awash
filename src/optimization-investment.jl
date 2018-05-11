@@ -49,13 +49,14 @@ end
 
 house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:storagemin => :storage, :storagemax => :storage));
 
-# Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
+# Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost + maintenance_cost + investment_cost
 if allowgw
     setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
 end
 setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
 setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
+setobjective!(house, -varsum(grad_reservoir_cost_capacity(m) * (grad_reservoir_cost_increasestorage(m) - grad_reservoir_cost_reducestorage(m))))
 setobjective!(house, -varsum(grad_reservoir_cost_increasestorage(m)) / numscenarios)
 setobjective!(house, -varsum(grad_reservoir_cost_reducestorage(m)) / numscenarios)
 

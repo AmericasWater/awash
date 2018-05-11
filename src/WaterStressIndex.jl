@@ -56,17 +56,19 @@ function run_timestep(c::WaterStressIndex, tt::Int)
             gg = vertex_index(vertex)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
-            v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
-            if draws[pp, :justif] == "contains"
-                v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
-
-                # Checking if the gauge is the last one
-                gauge = downstreamorder[gg].label
-                for upstream in out_neighbors(wateridverts[gauge], waternet)
-                    for ii in find(draws[:gaugeid] .== upstream.label)
-                        if draws[:justif][ii] == "contains"
-                            if draws[:fips][ii] != draws[:fips][pp]
-                                v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+            if rr > 0
+                v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
+                if draws[pp, :justif] == "contains"
+                    v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
+                
+                    # Checking if the gauge is the last one
+                    gauge = downstreamorder[gg].label
+                    for upstream in out_neighbors(wateridverts[gauge], waternet)
+                        for ii in find(draws[:gaugeid] .== upstream.label)
+                            if draws[:justif][ii] == "contains"
+                                if draws[:fips][ii] != draws[:fips][pp]
+                                    v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+                                end
                             end
                         end
                     end
@@ -75,18 +77,12 @@ function run_timestep(c::WaterStressIndex, tt::Int)
         end
     end
 
-    v.indexWaSSli = (v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
-    v.indexWaSSI = (v.withdrawalgw + v.withdrawalswregion)./((1-p.environmentalfactor).*(v.availabilityrunofflocal + v.availabilityinflowlocal) + p.rechargegw)
-    v.indexWSI = 1./(1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
+    v.indexWaSSli = (p.withdrawalgw + p.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
+    v.indexWaSSI = (p.withdrawalgw + p.withdrawalswregion)./((1-p.environmentalfactor).*(v.availabilityrunofflocal + v.availabilityinflowlocal) + p.rechargegw)
+   # v.indexWSI = 1./(1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
 
 end
 
-
-
-#            + p.inflowgauge[gg, tt] # only stream inflows from border of county ...
-
-
-end
 
 """
 Add a WaterStressIndex component to the model.

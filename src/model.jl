@@ -49,5 +49,6 @@ market[:regionexports] = transportation[:regionexports];
 
 waterstressindex[:inflowgauge] = waternetwork[:inflows];
 waterstressindex[:withdrawalsw] = returnflows[:removed];
+waterstressindex[:withdrawalswregion] = allocation[:swsupply];
 waterstressindex[:withdrawalgw] = allocation[:watergw];
 environmentaldemand[:naturalflow] = waternetwork[:unmodifieds];

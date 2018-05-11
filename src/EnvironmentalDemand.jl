@@ -33,12 +33,17 @@ Add an urban component to the model.
 function initenvrionmentaldemand(m::Model)
     environmentaldemand = addcomponent(m, EnvironmentalDemand);
     # set according to config file
-    environmentaldemand[:flowrequirementfactor] = config["proportionnaturalflowforenvironment"]
+
+    if config["proportionnaturalflowforenvironment"] == nothing
+        environmentaldemand[:flowrequirementfactor] = 0
+    else
+        environmentaldemand[:flowrequirementfactor] = config["proportionnaturalflowforenvironment"]
+    end
 
     environmentaldemand
 end
 
-function constraintoffset_environmentalflow(m::Model)
-    gen(rr, tt) = m.external_parameters[:naturalflow].values[gg, tt] * m.external_parameters[:flowrequirementfactor].values[]
-    hallsingle(m, :EnvironmentalDemand, :minenvironmentalflow, gen)
-end
+#function constraintoffset_environmentalflow(m::Model)
+#    gen(rr, tt) = m.external_parameters[:naturalflow].values[gg, tt] * m.external_parameters[:flowrequirementfactor].values[]
+#    hallsingle(m, :EnvironmentalDemand, :minenvironmentalflow, gen)
+#end

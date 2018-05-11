@@ -2,6 +2,7 @@
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/paleo-4scen.yml")
+#config["timestep"] = 60
 
 include("../../src/optimization-investment.jl")
 

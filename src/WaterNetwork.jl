@@ -144,7 +144,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
         if get(config, "proportionnaturalflowforenvironment", nothing) == nothing
             b[gg, tt]
         else
-            config["proportionnaturalflowforenvironment"]*b[gg, tt]
+            (1-config["proportionnaturalflowforenvironment"])*b[gg, tt]
         end
     end
 

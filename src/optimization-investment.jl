@@ -56,7 +56,8 @@ end
 setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
 setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
 setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
-setobjective!(house, -varsum(grad_reservoir_cost_capacity(m) * (grad_reservoir_cost_increasestorage(m) - grad_reservoir_cost_reducestorage(m))))
+setobjective!(house, -varsum(grad_reservoir_cost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_increasestorage(m)))
+setobjective!(house, -varsum(grad_reservoir_cost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_reducestorage(m)))
 setobjective!(house, -varsum(grad_reservoir_cost_increasestorage(m)) / numscenarios)
 setobjective!(house, -varsum(grad_reservoir_cost_reducestorage(m)) / numscenarios)
 

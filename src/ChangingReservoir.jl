@@ -125,7 +125,7 @@ function initreservoir(m::Model, name=nothing)
     reservoir[:inflowsgauges] = zeros(numgauges, numscenarios, numsteps);
 
     reservoir[:unitcostcaptures] = 187.;
-    reservoir[:unitcostcapaicty] = 50.;
+    reservoir[:unitcostcapacity] = 50.;
     reservoir
 end
 
@@ -173,8 +173,8 @@ function grad_reservoir_cost_captures(m::Model)
     roomdiagonal(m, :Reservoir, :cost, :captures, m.external_parameters[:unitcostcaptures].value)
 end
 
-function grad_reservoir_cost_capacity(m::Model)
-    roomdiagonal(m, :Reservoir, :cost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value)
+function grad_reservoir_cost_storagecapacitymax(m::Model)
+    roomdiagonal(m, :Reservoir, :cost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value, [:scenarios])
 end
 
 function grad_reservoir_cost_increasestorage(m::Model)

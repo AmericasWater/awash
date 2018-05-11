@@ -40,7 +40,8 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     reducestorage = Parameter(index=[reservoirs, time], unit="1000 m^3")
 
     # Cost of captures
-    unitcostcaptures= Parameter(unit="\$/1000m3")
+    unitcostcapacity = Parameter(unit="\$ / 1000 m^3")
+    unitcostcaptures = Parameter(unit="\$ / 1000 m^3")
     cost = Variable(index=[reservoirs, scenarios, time], unit="\$")
 end
 
@@ -65,7 +66,6 @@ function run_timestep(c::Reservoir, tt::Int)
     end
 
     for rr in d.reservoirs
-        v.cost[rr, :, tt] = p.unitcostcaptures*p.captures[rr, :, tt]
 	if tt==1
 	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
             v.storagecapacitymax[rr, tt] = p.storagecapacitymax0[rr, tt]
@@ -73,6 +73,8 @@ function run_timestep(c::Reservoir, tt::Int)
 	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
             v.storagecapacitymax[rr, tt] = v.storagecapacitymax[rr, tt - 1] + p.increasestorage[rr, tt-1] - p.reducestorage[rr, tt-1]
 	end
+
+        v.cost[rr, :, tt] = p.unitcostcaptures * p.captures[rr, :, tt] + p.unitcostcapacity * v.storagecapacitymax[rr, tt]
 
         for ss in 1:numscenarios
 	    if p.captures[rr,ss,tt]<0
@@ -122,7 +124,8 @@ function initreservoir(m::Model, name=nothing)
     reservoir[:outflowsgauges] = zeros(numgauges, numscenarios, numsteps);
     reservoir[:inflowsgauges] = zeros(numgauges, numscenarios, numsteps);
 
-    reservoir[:unitcostcaptures] = 1.;
+    reservoir[:unitcostcaptures] = 187.;
+    reservoir[:unitcostcapacity] = 50.;
     reservoir
 end
 
@@ -168,6 +171,10 @@ end
 
 function grad_reservoir_cost_captures(m::Model)
     roomdiagonal(m, :Reservoir, :cost, :captures, m.external_parameters[:unitcostcaptures].value)
+end
+
+function grad_reservoir_cost_storagecapacitymax(m::Model)
+    roomdiagonal(m, :Reservoir, :cost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value, [:scenarios])
 end
 
 function grad_reservoir_cost_increasestorage(m::Model)

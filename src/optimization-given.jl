@@ -76,8 +76,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
     end
 
-    # Constrain that the water in the stream is non-negative:
-    # That is, outflows + runoff > 0, or -outflows < runoff
+    # Constrain that the water in the stream is non-negative, or superior to environmental requirement
+    # That is, outflows + runoff > envrequirement, or -outflows < runoff - envrequirement
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
         serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
@@ -92,11 +92,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
         cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
-	    if isfile(cachepath("partialhouse-gror$suffix.jld"))
-		    gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
-	    else
-		    gror = grad_reservoir_outflows_captures(m);
-	    end
+            if isfile(cachepath("partialhouse-gror$suffix.jld"))
+                gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+            else
+                gror = grad_reservoir_outflows_captures(m);
+            end
         end
     end
 
@@ -126,7 +126,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     else
         setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
                                                   grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
-			                          grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
+                                                  grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
                                                   grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
                                                   grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m),
         :totalreturn, :Allocation, :returnbalance)) # +

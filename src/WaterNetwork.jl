@@ -141,8 +141,11 @@ function constraintoffset_waternetwork_outflows(m::Model)
     end
 
     function generate(gg, tt)
-        # Determine number of gauges in county
-        b[gg, tt]
+        if get(config, "proportionnaturalflowforenvironment", nothing) == nothing
+            b[gg, tt]
+        else
+            config["proportionnaturalflowforenvironment"]*b[gg, tt]
+        end
     end
 
     hallsingle(m, :WaterNetwork, :outflows, generate)

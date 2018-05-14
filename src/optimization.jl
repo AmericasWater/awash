@@ -8,8 +8,8 @@ include("Agriculture.jl")
 include("WaterDemand.jl")
 include("IndustrialDemand.jl")
 include("PopulationDemand.jl")
-include("Market.jl")
-include("Transportation.jl")
+#include("Market.jl")
+#include("Transportation.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
 include("UrbanDemand.jl")
@@ -34,8 +34,8 @@ urbandemand = initurbandemand(m) # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :Allocation,:IndustrialDemand]
-parameters = [:waterfromgw, :withdrawals,:waterused]
+paramcomps = [:Allocation, :Allocation,:IndustrialDemand,:IndustrialDemand,:IndudstrialDemand]
+parameters = [:waterfromgw, :withdrawals,:supersource,:waterused,:dummy]
 constcomps = [:WaterNetwork, :Allocation]
 constraints = [:outflows, :balance]
 ## Constraint definitions:
@@ -46,12 +46,16 @@ constraints = [:outflows, :balance]
 if redohouse
     house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints);
 
-    # Optimize revenue_domestic + revenue_international - pumping_cost - transit_cost
+    # Optimize industrial revenue-gw cost - swcost 
+    #Industrial Revenue=(supersource-C)+a*industrial water use= Revenue 
     println("Objectives...")
     setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
+    setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
+    setobjective!(house,deriv_industrialdemand_totalrevenue_waterused(m)*grad_industrialdemand_totalrevenue_waterused(m))
+    setobjective!(house,deriv_industrialdemand_totalrevenue_supersource(m)*grad_industrialdemand_totalrevenue_supersource(m))    
+    setobjective!(house,-deriv_industrialdemand_totalrevenue_dummy(m)*grad_industrialdemand_totalrevenue_dummy(m))        
    
-    setobjective!(house, deriv_market_totalrevenue_internationalsales(m))
-    setobjective!(house, deriv_market_totalrevenue_produced(m) * room_relabel(grad_agriculture_allcropproduction_unicropproduction(m) * room_relabel(grad_univariateagriculture_production_totalareas(m), :production, :Agriculture, :unicropproduction), :allcropproduction, :Market, :produced))
+    
 
     println("Constraints...")
 
@@ -70,13 +74,47 @@ if redohouse
     setconstraintoffset!(house, cwro) # +
 
     
-    # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
+    # industrial - pumping - withdrawals < -otherdemands
     setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_univariateagriculture_totalirrigation_totalareas(m)) # +
     setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_irrigationagriculture_totalirrigation_irrigatedareas(m)) # +
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
     setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
 
+    ####FIX ABOVE######
+    
+    
+    #-Dummy<=0
+    setconstraint!(house,-grad_industrialdemand_positive_dummy(m))
+    setconstraintoffset!(house,constraintoffset_industrialdemand_positive(m))
+    
+    #-Supersource<=0
+    setconstraint!(house,-grad_industrialdemand_positive2_supersource(m))
+    setconstraintoffset!(house,hall_relabel(constraintoffset_industrialdemand_positive(m),:supersource,:IndustrialDemand,:positive2))
+    
+    #BALANCE1::::Supersource-Dummy<=1
+    setconstraint!(house,-room_relable(grad_industrialdemand_positive2_supersource(m),:supersource,:IndustrialDemand,:balance1)
+    setconstraint!(house,-room_relable(grad_industrialdemand_positive_dummy(m),:dummy,:IndustrialDemand,:balance1)
+    setconstraintoffset!(house,constraintoffset_industrialdemand_balance1(m))
+    
+        
+    #BALANCE2:::Dummy-Supersource<=0
+    setconstraint!(house,-room_relabel(grad_industrialdemand_positive2_supersource(m),:supersource,:IndustrialDemand,:balance2))
+    setconstraint!(house,room_relabel(grad_industrialdemand_positive_dummy(m),:dummy,:IndustrialDemand,:balance2)
+    setconstraintoffset!(house,constraintoffset_industrialdemand_balance2(m))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     # Clean up
 

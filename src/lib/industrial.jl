@@ -51,5 +51,6 @@ indata[:m]=m;
 indata[:b]=b;  #Linear Approximation of values 
 indata[:y_hat]=y_hat;
 indata[:fix_revenue]=exp(fix_rev);
+indata[:d]=2*indata[:b]
 
 writetable("industrial.csv",indata)

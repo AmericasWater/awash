@@ -9,13 +9,20 @@ include("lib/industrial.jl")
     industry=Index() 
 
     #Regression model ax(water)+b=y(revenue)
-    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")
-    constantvalue=Parameter(index=[regions, industry, time],unit="\$")
+    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")   #slope
+    constantvalue=Parameter(index=[regions, industry, time],unit="\$")    #Intercept
+    min_wateruse=Parameter(index=[regions, industry, time], unit="1000m^3") #min water level
+    
     
     #Optimized
     #Water used to each industry to generate revenue
-    waterused=Parameter(index=[regions, industry, time], unit="1000m^3") 
+    waterused=Parameter(index=[regions, industry, time], unit="1000m^3")
+    dummy=Parameter(index=[regions, industry, time], unit="1000m^3") 
+    supersource=Parameter(index=[regions, industry, time], unit="1000m^3")     
     waterused_copy=Variable(index=[regions, industry, time], unit="1000m^3") 
+    
+    
+    
     #Computed
     #Total Water used to each industry 
     industry_waterdemand=Variable(index=[regions, time], unit="1000m^3") 
@@ -43,7 +50,7 @@ function run_timestep(c::IndustrialDemand, tt::Int)
         for ii in d.industry
             v.waterused_copy[rr,ii,tt]=p.waterused[rr,ii,tt]
             industrywaterdemand += v.waterused_copy[rr,ii,tt]
-            v.industry_revenue[rr,ii,tt]=p.waterused[rr,ii,tt]*p.wateruserate[rr,ii,tt]+p.constantvalue[rr,ii,tt]
+            #v.industry_revenue[rr,ii,tt]=p.waterused[rr,ii,tt]*p.wateruserate[rr,ii,tt]+p.constantvalue[rr,ii,tt]*p.supersource[rr,ii,tt]-p.constantvalue[rr,ii,tt]*p.dummy[rr,ii,tt]
             
     end
         v.industrywaterdemand[rr, tt]=industrywaterdemand
@@ -59,7 +66,9 @@ function initindustrialdemand(m::Model)
     waterused=zeros(numcounties,numindustries,numsteps);
     wateruserate=zeros(numcounties,numindustries,numsteps);
     constantvalue=zeros(numcounties,numindustries,numsteps);
+    min_wateruse=zeros(numcounties,numindustries,numsteps);
     indata[:MGwithdrawal]=map(x -> parse(Float64, x), indata[:MGwithdrawal])
+    indata[:MG_min_of_min_withdrawal]=map(x -> parse(Float64, x), indata[:MG_min_of_min_withdrawal])
         for tt in 1:numsteps
         if tt==1
             waterused[:,:,tt]=(reshape(indata[indata[:year].==index2year(tt),:MGwithdrawal],11,60))'*3.785.*repmat(convert(Array,month_repeat[tt,:]),numcounties)
@@ -69,7 +78,9 @@ function initindustrialdemand(m::Model)
             wateruserate[:,:,tt]=                    
             (reshape(indata[indata[:year].==index2year(tt),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) convert annual to monthly 
             constantvalue[:,:,tt]=
-            (reshape(indata[indata[:year].==index2year(tt),:b],11,60))'/12
+            (reshape(indata[indata[:year].==index2year(tt),:b],11,60))'/12*3.785
+            min_wateruse[:,:,tt]=                    
+            (reshape(indata[indata[:year].==index2year(tt),:MG_min_of_min_withdrawal],11,60))'/12*3.785
             
             else         
             waterused[:,:,tt]=(reshape(indata[indata[:year].==index2year(tt-1),:MGwithdrawal],11,60))'*3.785.*repmat(convert(Array,month_repeat[tt,:]),numcounties)
@@ -79,7 +90,9 @@ function initindustrialdemand(m::Model)
             wateruserate[:,:,tt]=                    
             (reshape(indata[indata[:year].==index2year(tt-1),:m],11,60))'/12*3.785  #Convert slope from $/MG to $/1000m^3) convert annual to monthly 
             constantvalue[:,:,tt]=
-            (reshape(indata[indata[:year].==index2year(tt-1),:b],11,60))'/12
+            (reshape(indata[indata[:year].==index2year(tt-1),:b],11,60))'/12*3.785
+            min_wateruse[:,:,tt]=
+            (reshape(indata[indata[:year].==index2year(tt-1),:MG_min_of_min_withdrawal],11,60))'/12*3.785
             end 
     end
         
@@ -91,7 +104,8 @@ function initindustrialdemand(m::Model)
 
         industrialdemand = addcomponent(m, IndustrialDemand);
         industrialdemand[:wateruserate]=wateruserate
-        industrialdemand[:constantvalue]=constantvalue 
+        industrialdemand[:min_wateruse]=min_wateruse
+        industrialdemand[:constantvalue]=constantvalue
         industrialdemand[:waterused] = cached_fallback("extraction/waterused", () ->waterused);
         #Use MGWithdrawal data if not optimized
        
@@ -100,17 +114,70 @@ end
 
 
 ##Revenue to be optimized 
-function grad_industrialdemand_revenue_waterused(m::Model)
-    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])
-end
-
-function grad_industrialdemand_waterused(m::Model)
-    roomdiagonal(m, :IndustrialDemand,:revenue,:waterused, (rr, ii, tt) -> m.parameters[:wateruserate].values[rr,ii,tt]+m.parameters[:constantvalue].values[rr,ii,tt])
-end
 
 function constraintoffset_industrialdemand_waterdemand(m::Model)
     gen(rr, tt) = m.parameters[:industrywaterdemand].values[rr,tt]
     hallsingle(m, :IndustrialDemand, :waterdemand, gen)
 end
+
+
+
+function grad_industrialdemand_totalrevenue_waterused(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:totalrevenue,:waterused, (rr,ii,tt) -> 1.)
+end
+
+function grad_industrialdemand_totalrevenue_supersource(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:totalrevenue,:supersource, (rr,ii,tt) -> 1.)
+end
+
+function grad_industrialdemand_totalrevenue_dummy(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:totalrevenue,:dummy, (rr,ii,tt) -> 1.)
+end
+
+
+function deriv_industrialdemand_totalrevenue_waterused(m::Model)
+    gen(rr, ii, tt) = m.parameters[:wateruserate].values[rr,ii,tt]
+    hallsingle(m, :IndustrialDemand,:waterused, gen)
+end
+
+
+function deriv_industrialdemand_totalrevenue_supersource(m::Model)
+    gen(rr, ii, tt) = m.parameters[:constantvalue].values[rr,ii,tt]
+    hallsingle(m, :IndustrialDemand,:supersource, gen)
+end
+
+
+function deriv_industrialdemand_totalrevenue_dummy(m::Model)
+    gen(rr, ii, tt) = m.parameters[:constantvalue].values[rr,ii,tt]
+    hallsingle(m, :IndustrialDemand,:dummy, gen)
+end
+
+function grad_industrialdemand_positive1_dummy(m::Model)
+    roomdiagonal(m,:IndustrialDemand,:positive1,:dummy, (rr,ii,tt)=>1.)
+end 
+
+function grad_industrialdemand_positive2_supersource(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:positive2,:supersource, (rr,ii,tt) -> 1.)
+end
+
+
+function grad_industrialdemand_balance1_dummy(m::Model)
+    roomdiagonal(m,:IndustrialDemand,:balance1,:dummy, (rr,ii,tt)=>1.)
+end 
+
+function grad_industrialdemand_balance1_supersource(m::Model)
+    roomdiagonal(m, :IndustrialDemand,:balance1,:supersource, (rr,ii,tt) -> 1.)
+end
+
+
+
+
+
+
+
+
+
+
+
 
 

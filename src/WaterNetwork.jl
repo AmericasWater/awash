@@ -18,6 +18,7 @@ using Mimi
 
     inflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # Sum of upstream outflows
     outflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # inflow + added - removed + returned
+    unmodifieds = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # Sum of upstream unmodifieds + added
 end
 
 """
@@ -32,12 +33,15 @@ function run_timestep(c::WaterNetwork, tt::Int)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         allflow = zeros(numscenarios)
+        unmodified = zeros(numscenarios)
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             allflow += v.outflows[vertex_index(upstream, waternet), :, tt]
+            unmodified += v.unmodifieds[vertex_index(upstream, waternet), :, tt]
         end
 
         v.inflows[gg, :, tt] = allflow
         v.outflows[gg, :, tt] = allflow + p.added[gg, :, tt] - p.removed[gg, :, tt] + p.returned[gg, :, tt]
+        v.unmodifieds[gg, :, tt] = unmodified + p.added[gg, :, tt]
     end
 end
 
@@ -137,9 +141,14 @@ function constraintoffset_waternetwork_outflows(m::Model)
         end
     end
 
-    function generate(gg, ss, tt)
-        # Determine number of gauges in county
-        b[gg, ss, tt]
+    if get(config, "proportionnaturalflowforenvironment", nothing) == nothing
+        function generate(gg, ss, tt)
+            b[gg, ss, tt]
+        end
+    else
+        function generate(gg, tt)
+            (1-config["proportionnaturalflowforenvironment"])*b[gg, ss, tt]
+        end
     end
 
     hallsingle(m, :WaterNetwork, :outflows, generate)

@@ -9,20 +9,23 @@ include("lib/industrial.jl")
     industry=Index() 
 
     #Regression model ax(water)+b=y(revenue)
-    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")   #slope
-    constantvalue=Parameter(index=[regions, industry, time],unit="\$")    #Intercept
-    min_wateruse=Parameter(index=[regions, industry, time], unit="1000m^3") #min water level
+    wateruserate=Parameter(index=[regions, industry, time],unit="\$/1000m^3")   #slope (a)
+    constantvalue=Parameter(index=[regions, industry, time],unit="\$")    #Intercept (b')
+    min_wateruse=Parameter(index=[regions, industry, time], unit="1000m^3") #min water level (c) 
+    d_value=Parameter(index=[regions, industry, time], unit="\$/1000m^3") #d value (2b) 
     
     
     #Optimized
     #Water used to each industry to generate revenue
-    waterused=Parameter(index=[regions, industry, time], unit="1000m^3")
-    dummy=Parameter(index=[regions, industry, time], unit="1000m^3") 
-    supersource=Parameter(index=[regions, industry, time], unit="1000m^3")     
+    waterused=Parameter(index=[regions, industry, time], unit="1000m^3")  #X:water above c level 
+    waterused_norev=Parameter(index=[regions, industry, time], unit="1000m^3") #Y: water below c level 
+    
+    fake1=Parameter(index=[regions, industry, time], unit="1000m^3") #Fake water use Z
+    fake2=Parameter(index=[regions, industry, time], unit="1000m^3") #fake water use W 
+    
     waterused_copy=Variable(index=[regions, industry, time], unit="1000m^3") 
     
-    
-    
+        
     #Computed
     #Total Water used to each industry 
     industry_waterdemand=Variable(index=[regions, time], unit="1000m^3") 
@@ -48,9 +51,10 @@ function run_timestep(c::IndustrialDemand, tt::Int)
     for rr in d.regions
         industrywaterdemand=0
         for ii in d.industry
-            v.waterused_copy[rr,ii,tt]=p.waterused[rr,ii,tt]
+            v.waterused_copy[rr,ii,tt]=p.waterused[rr,ii,tt]+p.waterused_norev[rr,ii,tt]
             industrywaterdemand += v.waterused_copy[rr,ii,tt]
-            #v.industry_revenue[rr,ii,tt]=p.waterused[rr,ii,tt]*p.wateruserate[rr,ii,tt]+p.constantvalue[rr,ii,tt]*p.supersource[rr,ii,tt]-p.constantvalue[rr,ii,tt]*p.dummy[rr,ii,tt]
+            v.industry_revenue[rr,ii,tt]=(p.waterused_norev[rr,ii,tt]-p.min_wateruse[rr,ii,tt])*p.constantvalue[rr,ii,tt]
+-p.d_value[rr,ii,tt]*p.fake1[rr,ii,tt]-p.d_value[rr,ii,tt]*p.fake2[rr,ii,tt]+p.wateruserate[rr,ii,tt]*p.waterused[rr,ii,tt]
             
     end
         v.industrywaterdemand[rr, tt]=industrywaterdemand
@@ -106,7 +110,9 @@ function initindustrialdemand(m::Model)
         industrialdemand[:wateruserate]=wateruserate
         industrialdemand[:min_wateruse]=min_wateruse
         industrialdemand[:constantvalue]=constantvalue
-        industrialdemand[:waterused] = cached_fallback("extraction/waterused", () ->waterused);
+        industrialdemand[:waterused] = cached_fallback("extraction/waterused", () ->waterused-min_wateruse); #water above c 
+        industrialdemand[:waterused_norev] = cached_fallback("extraction/waterused_norev", () ->min_wateruse); #water below c 
+
         #Use MGWithdrawal data if not optimized
        
     industrialdemand

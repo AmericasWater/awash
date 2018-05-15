@@ -8,9 +8,8 @@ using DataFrames
     gauges = Index()
 
     flowrequirementfactor = Parameter(unit="")
-    naturalflow = Parameter(index=[gauges, time],unit="1000 m^3")
-    minenvironmentalflow = Variable(index=[gauges, time],unit="1000 m^3")
-    environmentaldemand = Variable(index=[regions, time],unit="1000 m^3")
+    naturalflow = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
+    minenvironmentalflow = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
 end
 
 """
@@ -21,19 +20,8 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    v.environmentaldemand[:, tt] = zeros(numregions);
     for gg in d.gauges
-        v.minenvironmentalflow[gg, tt] = p.flowrequirementfactor * p.naturalflow[gg, tt];
-    end
-
-    for pp in 1:nrow(draws)
-        if draws[:justif][pp] == "contains"
-            regionids = regionindex(draws, pp)
-            rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr > 0
-                v.environmentaldemand[rr, tt] += p.flowrequirementfactor * p.naturalflow[pp, tt];
-            end
-        end
+        v.minenvironmentalflow[gg, :, tt] = p.flowrequirementfactor * p.naturalflow[gg, :, tt];
     end
 end
 

@@ -1,0 +1,9 @@
+# Take all additional configuration from paleo.yml
+parent-config: complete
+
+timestep: 1
+
+# Four scenarios, each with 60 years
+scenarios: [ 8, 13, 17, 20, 34, 51 ]
+scenario-length: 12
+

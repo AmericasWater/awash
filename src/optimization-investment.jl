@@ -6,7 +6,7 @@ using OptiMimi
 include("world.jl")
 include("weather.jl")
 
-redogwwo = !isfile(cachepath("partialhouse2$suffix.jld"))
+redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 allowgw = true
 demandmodel = nothing
 

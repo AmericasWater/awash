@@ -141,15 +141,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
         end
     end
 
-    if get(config, "proportionnaturalflowforenvironment", nothing) == nothing
-        function generate(gg, ss, tt)
-            b[gg, ss, tt]
-        end
-    else
-        function generate(gg, tt)
-            (1-config["proportionnaturalflowforenvironment"])*b[gg, ss, tt]
-        end
-    end
+    generate = get(config, "proportionnaturalflowforenvironment", nothing) == nothing ? (gg, ss, tt) -> b[gg, ss, tt] : (gg, ss, tt) -> (1-config["proportionnaturalflowforenvironment"])*b[gg, ss, tt]
 
     hallsingle(m, :WaterNetwork, :outflows, generate)
 end

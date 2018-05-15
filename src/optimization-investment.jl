@@ -33,8 +33,8 @@ aquifer = initaquifer(m);
 paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
 parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :increasestorage, :reducestorage]
 
-constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir]
-constraints = [:outflows, :balance, :returnbalance, :storagemin, :storagemax]
+constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
+constraints = [:outflows, :balance, :returnbalance, :storagemin, :storagemax, :storagecapacitymax]
 
 if allowgw
     # Include groundwater
@@ -51,15 +51,13 @@ house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraint
 
 # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost + maintenance_cost + investment_cost
 if allowgw
-    setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
+    setobjective!(house, -varsum(discounted(m, grad_allocation_cost_waterfromgw(m), .03)))
 end
-setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
-setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
-setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
-setobjective!(house, -varsum(grad_reservoir_cost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_increasestorage(m)))
-setobjective!(house, -varsum(grad_reservoir_cost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_reducestorage(m)))
-setobjective!(house, -varsum(grad_reservoir_cost_increasestorage(m)) / numscenarios)
-setobjective!(house, -varsum(grad_reservoir_cost_reducestorage(m)) / numscenarios)
+setobjective!(house, -varsum(discounted(m, grad_allocation_cost_withdrawals(m), .03)))
+setobjective!(house, -varsum(discounted(m, grad_allocation_cost_waterfromsupersource(m), .03)))
+setobjective!(house, -varsum(discounted(m, grad_reservoir_cost_captures(m), .03)))
+setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_increasestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_increasestorage(m), .03)))
+setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_reducestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_reducestorage(m), .03)))
 
 # Constrain that the water in the stream is non-negative:
 # That is, outflows + runoff > 0, or -outflows < runoff
@@ -121,6 +119,11 @@ setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage,
 setconstraint!(house, room_relabel(room_duplicate(grad_reservoir_storagecapacitymax_increasestorage(m), :storage, :increasestorage, house.model), :storage, :Reservoir, :storagemax)) # +
 setconstraint!(house, room_relabel(room_duplicate(grad_reservoir_storagecapacitymax_reducestorage(m), :storage, :reducestorage, house.model), :storage, :Reservoir, :storagemax)) # -
 setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax0(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax)) # +
+
+# Constrain maxstorage >= 0 => maxstorage0 + increases - decreases >= 0 => -increases + decreases < maxstorage
+setconstraint!(house, -grad_reservoir_storagecapacitymax_increasestorage(m)) # -
+setconstraint!(house, -grad_reservoir_storagecapacitymax_reducestorage(m)) # +
+setconstraintoffset!(house, constraintoffset_reservoir_storagecapacitymax0_noscenarios(m))
 
 setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numscenarios * numsteps) * -Inf))
 

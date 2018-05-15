@@ -43,6 +43,7 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     unitcostcapacity = Parameter(unit="\$ / 1000 m^3")
     unitcostcaptures = Parameter(unit="\$ / 1000 m^3")
     cost = Variable(index=[reservoirs, scenarios, time], unit="\$")
+    investcost = Variable(index=[reservoirs, time], unit="\$")
 end
 
 """
@@ -75,6 +76,7 @@ function run_timestep(c::Reservoir, tt::Int)
 	end
 
         v.cost[rr, :, tt] = p.unitcostcaptures * p.captures[rr, :, tt] + p.unitcostcapacity * v.storagecapacitymax[rr, tt]
+        v.investcost[rr, :, tt] = p.unitcostcapacity * v.storagecapacitymax[rr, tt] # TODO: Add changing storage investment costs
 
         for ss in 1:numscenarios
 	    if p.captures[rr,ss,tt]<0
@@ -164,6 +166,11 @@ function constraintoffset_reservoir_storagecapacitymax0(m::Model)
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
+function constraintoffset_reservoir_storagecapacitymax0_noscenarios(m::Model)
+    gen(rr) = m.external_parameters[:storagecapacitymax0].values[rr]
+    hallsingle(m, :Reservoir, :storagecapacitymax, gen, [:time])
+end
+
 function constraintoffset_reservoir_storage0(m::Model)
     gen(rr, ss, tt) = (1-m.external_parameters[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.external_parameters[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
@@ -173,14 +180,14 @@ function grad_reservoir_cost_captures(m::Model)
     roomdiagonal(m, :Reservoir, :cost, :captures, m.external_parameters[:unitcostcaptures].value)
 end
 
-function grad_reservoir_cost_storagecapacitymax(m::Model)
-    roomdiagonal(m, :Reservoir, :cost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value, [:scenarios])
+function grad_reservoir_investcost_storagecapacitymax(m::Model)
+    roomdiagonal(m, :Reservoir, :investcost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value, [:scenarios])
 end
 
-function grad_reservoir_cost_increasestorage(m::Model)
+function grad_reservoir_investcost_increasestorage(m::Model)
     # Set the constant marginal cost of increasing storage as the point-value marginal cost
     costs = marginalcost.(m.external_parameters[:storagecapacitymax0].values)
-    roomdiagonal(m, :Reservoir, :cost, :increasestorage, (rr) -> costs[rr], [:scenarios, :time])
+    roomdiagonal(m, :Reservoir, :investcost, :increasestorage, (rr) -> costs[rr], [:scenarios, :time])
 end
 
 function grad_reservoir_storagecapacitymax_increasestorage(m::Model)
@@ -192,7 +199,7 @@ function grad_reservoir_storagecapacitymax_reducestorage(m::Model)
 end
 
 ### XXX: Should use different equation
-function grad_reservoir_cost_reducestorage(m::Model)
+function grad_reservoir_investcost_reducestorage(m::Model)
     costs = marginalcost.(m.external_parameters[:storagecapacitymax0].values)
-    roomdiagonal(m, :Reservoir, :cost, :reducestorage, (rr) -> costs[rr], [:scenarios, :time])
+    roomdiagonal(m, :Reservoir, :investcost, :reducestorage, (rr) -> costs[rr], [:scenarios, :time])
 end

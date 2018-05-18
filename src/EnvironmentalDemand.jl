@@ -43,12 +43,7 @@ Add an urban component to the model.
 function initenvrionmentaldemand(m::Model)
     environmentaldemand = addcomponent(m, EnvironmentalDemand);
     # set according to config file
-
-    if get(config, "proportionnaturalflowforenvironment", nothing) == nothing
-        environmentaldemand[:flowrequirementfactor] = 0.
-    else
-        environmentaldemand[:flowrequirementfactor] = config["proportionnaturalflowforenvironment"]
-    end
+    environmentaldemand[:flowrequirementfactor] = get(config, "proportionnaturalflowforenvironment", 0.)
 
     environmentaldemand
 end

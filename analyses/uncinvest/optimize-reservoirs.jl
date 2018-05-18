@@ -22,16 +22,21 @@ decreases = reshape(sol.sol[parends[5]+1:parends[6]], numreservoirs, numsteps)
 
 rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])./1000 #data in cubic meters, change to 1000m3
 
-decreases = reshape(decreases, numreservoirs, numsteps)
-
-## Adjust the cost of removing reservoirs
+decreases .== rcmax
 
 cost_increase = house.f[parends[4]+1:parends[5]]
 cost_decrease = house.f[parends[5]+1:parends[6]]
 
-result = []
-for scale in [0, .01, .1, 1]
-    house.f[parends[5]+1:parends[6]] = cost_decrease * scale
+## Adjust the maintenance cost
+
+result = DataFrame(scale=Float64[], decrease=Float64[])
+
+for scale in [1e-7, 1e-8] #[1e-6, 1e-5] #1e-4, 1e-3] #[0, .01, .1, 1]
+    maintenance = grad_reservoir_investcost_storagecapacitymax(m)
+    maintenance.A *= scale
+    setobjective!(house, -varsum(discounted(m, maintenance * grad_reservoir_storagecapacitymax_reducestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_reducestorage(m), .03)))
     sol = houseoptimize(house, solver)
-    append!(result, sum(sol.sol[parends[5]+1:parends[6]]))
+    push!(result, [scale, sum(sol.sol[parends[5]+1:parends[6]])])
 end
+
+writetable("decrease-bycost.csv", result)

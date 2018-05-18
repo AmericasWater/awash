@@ -30,7 +30,7 @@ reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transportation, Agriculture
 waterstressindex = initwaterstressindex(model);
-environmentaldemand = initenvrionmentaldemand(model);
+environmentaldemand = initenvrionmentaldemand(model); # dep. WaterNetwork
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
@@ -51,4 +51,5 @@ waterstressindex[:inflowgauge] = waternetwork[:inflows];
 waterstressindex[:withdrawalsw] = returnflows[:removed];
 waterstressindex[:withdrawalswregion] = allocation[:swsupply];
 waterstressindex[:withdrawalgw] = allocation[:watergw];
-environmentaldemand[:naturalflow] = waternetwork[:unmodifieds];
+environmentaldemand[:naturalflows] = waternetwork[:unmodifieds];
+environmentaldemand[:outflowsgauges] = waternetwork[:outflows];

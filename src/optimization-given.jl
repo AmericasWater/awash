@@ -21,6 +21,7 @@ include("Allocation.jl")
 include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
+include("EnvironmentalDemand.jl")
 
 function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing)
     # First solve entire problem in a single timestep
@@ -35,6 +36,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     returnflows = initreturnflows(m); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
+    environmentaldemand = initenvironmentaldemand(m); # dep. WaterNetwork
+
 
     # Only include variables needed in constraints and parameters needed in optimization
 
@@ -107,7 +110,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         setconstraint!(house, -gror) # +
     end
     # Specify that these can at most equal the cummulative runoff
-    setconstraintoffset!(house, cwro) # +
+    if get(config, "proportionnaturalflowforenvironment", 0.) > 0.
+        setconstraintoffset!(house, cwro - constraintoffset_environmentalflows(m)) # +
+    else
+        setconstraintoffset!(house, cwro)
+    end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -

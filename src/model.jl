@@ -30,7 +30,7 @@ reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transportation, Agriculture
 waterstressindex = initwaterstressindex(model);
-environmentaldemand = initenvrionmentaldemand(model); # dep. WaterNetwork
+environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];

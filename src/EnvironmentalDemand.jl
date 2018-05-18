@@ -31,8 +31,18 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
         v.balanceenvironmentalflows[gg, tt] = p.outflowsgauges[gg, tt] - v.minenvironmentalflows[gg, tt];
     end
 
-    for pp in 1:nrow(draws)
-        if draws[:justif][pp] == "contains"
+    if config["dataset"] == "counties"
+        for pp in 1:nrow(draws)
+            if draws[:justif][pp] == "contains"
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr > 0
+                    v.environmentaldemand[rr, tt] += p.flowrequirementfactor * p.naturalflows[pp, tt];
+                end
+            end
+        end
+    elseif config["dataset"] == "states"
+        for pp in 1:nrow(draws)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
             if rr > 0

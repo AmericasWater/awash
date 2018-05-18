@@ -49,26 +49,52 @@ function run_timestep(c::WaterStressIndex, tt::Int)
     v.availabilityrunofflocal[:,tt] = zeros(numcounties)
     v.availabilityinflowlocal[:,tt] = zeros(numcounties)
 
-    for pp in 1:nrow(draws)
-        gaugeid = draws[pp, :gaugeid]
-        vertex = get(wateridverts, gaugeid, nothing)
-        if vertex != nothing
-            gg = vertex_index(vertex)
-            regionids = regionindex(draws, pp)
-            rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr > 0
-                v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
-                if draws[pp, :justif] == "contains"
+    if config["dataset"] == "counties"
+        for pp in 1:nrow(draws)
+            gaugeid = draws[pp, :gaugeid]
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex != nothing
+                gg = vertex_index(vertex)
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr > 0
+                    v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
+                    if draws[pp, :justif] == "contains"
+                        v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
+
+                        # Checking if the gauge is the last one
+                        gauge = downstreamorder[gg].label
+                        for upstream in out_neighbors(wateridverts[gauge], waternet)
+                            for ii in find(draws[:gaugeid] .== upstream.label)
+                                if draws[:justif][ii] == "contains"
+                                    if draws[:fips][ii] != draws[:fips][pp]
+                                        v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    elseif config["dataset"] == "states"
+        for pp in 1:nrow(draws)
+            gaugeid = draws[pp, :gaugeid]
+            vertex = get(wateridverts, gaugeid, nothing)
+            if vertex != nothing
+                gg = vertex_index(vertex)
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr > 0
+                    v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
                     v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
-                
+
                     # Checking if the gauge is the last one
                     gauge = downstreamorder[gg].label
                     for upstream in out_neighbors(wateridverts[gauge], waternet)
                         for ii in find(draws[:gaugeid] .== upstream.label)
-                            if draws[:justif][ii] == "contains"
-                                if draws[:fips][ii] != draws[:fips][pp]
-                                    v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
-                                end
+                            if draws[:state][ii] != draws[:state][pp]
+                                v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
                             end
                         end
                     end

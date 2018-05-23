@@ -29,14 +29,15 @@ cost_decrease = house.f[parends[5]+1:parends[6]]
 
 ## Adjust the maintenance cost
 
-result = DataFrame(scale=Float64[], decrease=Float64[])
+result = DataFrame(scale=Float64[], increase=Float64[], decrease=Float64[])
 
-for scale in [1e-7, 1e-8] #[1e-6, 1e-5] #1e-4, 1e-3] #[0, .01, .1, 1]
+for scale in [0, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, .01, .1, 1]
     maintenance = grad_reservoir_investcost_storagecapacitymax(m)
     maintenance.A *= scale
+    setobjective!(house, -varsum(discounted(m, maintenance * grad_reservoir_storagecapacitymax_increasestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_increasestorage(m), .03)))
     setobjective!(house, -varsum(discounted(m, maintenance * grad_reservoir_storagecapacitymax_reducestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_reducestorage(m), .03)))
     sol = houseoptimize(house, solver)
-    push!(result, [scale, sum(sol.sol[parends[5]+1:parends[6]])])
+    push!(result, [scale, sum(sol.sol[parends[4]+1:parends[5]]), sum(sol.sol[parends[5]+1:parends[6]])])
 end
 
 writetable("decrease-bycost.csv", result)

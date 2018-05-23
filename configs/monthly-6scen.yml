@@ -3,7 +3,7 @@ parent-config: complete
 
 timestep: 1
 
-# Four scenarios, each with 60 years
-scenarios: [ 100, 148, 436, 616, 664, 724 ]
-scenario-length: 12
+# Six scenarios, each for 2 years; only the second year is for output
+scenarios: [ 88, 136, 424, 604, 652, 712 ]
+scenario-length: 24
 

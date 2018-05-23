@@ -9,6 +9,8 @@ ggplot(decrease, aes(scale, decrease)) +
 
 decrease$factscale <- factor(decrease$scale, levels=sort(decrease$scale))
 
-ggplot(decrease, aes(factscale, decrease)) +
+alldf <- data.frame(factscale=rep(decrease$factscale, 2), decrease=c(decrease$decrease, -decrease$increase), group=rep(c("Decrease", "Increase"), each=nrow(decrease)))
+
+ggplot(alldf, aes(factscale, decrease, fill=group)) +
     geom_bar(stat="identity") + theme_bw() + ggtitle("Optimal removal vs. costs") +
     xlab("Scaling for costs") + ylab("Removal capacity (1000 m^3)")

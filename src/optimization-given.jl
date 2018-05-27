@@ -92,8 +92,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         end
     else
         gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
-        #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-        cwro = constraintoffset_waternetwork_outflows(m);
+        cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+        #cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
             if isfile(cachepath("partialhouse-gror$suffix.jld"))
                 gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));

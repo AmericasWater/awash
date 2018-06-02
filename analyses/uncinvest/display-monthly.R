@@ -4,7 +4,7 @@ load("~/research/water/awash/data/counties/waternet/waternet.RData")
 source("../../rlib/load_display.R")
 library(maps)
 
-suffix <- "-50.0"
+suffix <- "-37.0"
 
 captures <- read.csv(paste0("captures-monthly", suffix, ".csv"))
 
@@ -18,6 +18,33 @@ points(captures$lon, captures$lat, cex=sqrt(1000 * captures$capmaxs / 1e10), pch
 points(captures$lon[captures$capmaxs > 0], captures$lat[captures$capmaxs > 0], cex=1 + sqrt(captures$maxcap[captures$capmaxs > 0] / 1e10), col='#008000')
 points(captures$lon[captures$capmaxs > 0], captures$lat[captures$capmaxs > 0], cex=1.2 + sqrt(captures$maxcap[captures$capmaxs > 0] / 1e10), col='#008000')
 dev.off()
+
+ggplot(captures, aes(1000 * capmaxs / maxcap)) +
+    geom_histogram() + scale_y_log10() + scale_x_continuous(expand=c(0, 0)) +
+    theme_minimal() + xlab("Portion of current capacity to fill") + ylab("Number of reservoirs")
+
+sum(captures$capmaxs == 0) / nrow(captures)
+mean(1000 * captures$capmaxs[captures$capmaxs > 0] / captures$maxcap[captures$capmaxs > 0])
+
+resinfo <- read.csv("../../../../water2/allusgs/reservoirs/reservoirs.csv")
+resinfo <- cbind(resinfo, captures[1:nrow(resinfo),])
+resinfo$used <- resinfo$capmaxs > 0
+resinfo$ratio <- 1000 * resinfo$capmaxs / resinfo$maxcap
+
+resinfo$logmax <- log(resinfo$MAXCAP)
+summary(lm(logmax ~ used + ratio, resinfo))
+summary(lm(YEAR ~ used + ratio, resinfo))
+summary(lm(HEIGHT ~ used + ratio, resinfo))
+resinfo$logarea <- log(resinfo$DRAINAREA)
+summary(lm(logarea ~ used + ratio, subset(resinfo, DRAINAREA > 0)))
+
+resinfo$toppurp <- substr(resinfo$PURP, 1, 1)
+for (toppurp in unique(resinfo$toppurp)) {
+    resinfo$ispurp <- resinfo$toppurp == toppurp
+    print(toppurp)
+    print(summary(lm(ispurp ~ used + ratio, resinfo)))
+}
+
 
 gwextracts <- read.csv(paste0("groundwater-monthly", suffix, ".csv"))
 source("~/projects/research-common/R/ggmap.R")

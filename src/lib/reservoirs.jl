@@ -43,7 +43,7 @@ function estimatecost(capacity)
         capacityaf = exp(10)
     end
 
-    exp.(0.7 + 0.9 * log((log(capacityaf) - 9.5) / 0.01))
+    exp.(0.7 + 0.9 * log((log(capacityaf) - 9.5) / 0.01)) * 1e6 # dollars
 end
 
 """
@@ -55,6 +55,6 @@ function marginalcost(capacity)
         capacityaf = exp(10)
     end
 
-    estimatecost(capacity) * 0.9 * (1 / capacityaf) / ((log(capacityaf) - 9.5) / 0.01)
+    estimatecost(capacity) * 0.9 * ((1 / capacityaf) / (log(capacityaf) - 9.5)) # Convert back to 1000 m^3, in dollars
 end
 

@@ -1,7 +1,9 @@
 # Return Flows Component
 #
-# Handles the mapping between gauges and canals, on both the
-# withdrawal and return sides.
+# Return flows are defined as a given proportion of the withdrawals
+# applied to each county.  Under optimization, withdrawals determine
+# the amount and location of returns, as just down-stream of the
+# withdrawal canal.
 #
 # Currently the return side of the Return Flows is not impelemented in
 # simulation.
@@ -60,7 +62,50 @@ function initreturnflows(m::Model)
     returnflows = addcomponent(m, ReturnFlows);
 
     returnflows[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
-    returnflows[:returns] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
+    returnflows[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
 
     returnflows
+end
+
+"""
+Construct a matrix that represents the decrease in outflow caused by withdrawal
+"""
+function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    # Expected returns by county: sum of (RSTxRST * RST)
+    expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
+        grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
+        grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
+        grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
+        grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m)
+    # Expected withdrawals by county: sum of RST
+    expectedwithdrawals = values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
+        values_waterdemand_recordeddomestic(m) + values_waterdemand_recordedindustrial(m) +
+        values_waterdemand_recordedthermoelectric(m) + values_waterdemand_recordedlivestock(m)
+
+    # Return portion by county
+    regionreturns = expectedreturns.b ./ expectedwithdrawals.b
+
+    # Rearrange to canals
+    canalreturns = zeros(nrow(draws))
+    for pp in 1:nrow(draws)
+        if draws[:justif] == "contains"
+            regionid = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionid)
+            if rr > 0
+                canalreturns[pp] = regionreturns[rr]
+            end
+        end
+    end
+
+    # Construct room
+    function generate(A)
+        matrix_gauges_canals(A, returnportion)
+        immediateA = copy(A)
+
+        matrix_downstreamgauges_canals(A)
+
+        A -= immediateA
+    end
+
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end

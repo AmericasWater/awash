@@ -56,7 +56,7 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
-function matrix_gauges_canals(A::Matrix{Float64}, canal_values::Vector{Float64})
+function matrix_gauges_canals(A::AbstractMatrix{Float64}, canal_values::Vector{Float64})
     # Fill in GAUGES x CANALS matrix with local relationships
     for pp in 1:nrow(draws)
         gaugeid = draws[pp, :gaugeid]
@@ -70,7 +70,7 @@ function matrix_gauges_canals(A::Matrix{Float64}, canal_values::Vector{Float64})
     end
 end
 
-function matrix_downstreamgauges_canals(A::Matrix{Float64})
+function matrix_downstreamgauges_canals(A::AbstractMatrix{Float64})
     # Propogate in downstream order
     for hh in 1:numgauges
         gg = vertex_index(downstreamorder[hh])

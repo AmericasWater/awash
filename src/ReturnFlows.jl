@@ -72,15 +72,15 @@ Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     # Expected returns by county: sum of (RSTxRST * RST)
-    expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
+    expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, includegw, demandmodel) +
         grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
         grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
         grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
         grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m)
     # Expected withdrawals by county: sum of RST
-    expectedwithdrawals = values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
-        values_waterdemand_recordeddomestic(m) + values_waterdemand_recordedindustrial(m) +
-        values_waterdemand_recordedthermoelectric(m) + values_waterdemand_recordedlivestock(m)
+    expectedwithdrawals = values_waterdemand_recordedirrigation(m, includegw, demandmodel).x +
+        values_waterdemand_recordeddomestic(m).x + values_waterdemand_recordedindustrial(m).x +
+        values_waterdemand_recordedthermoelectric(m).x + values_waterdemand_recordedlivestock(m).x
 
     # Return portion by county
     regionreturns = expectedreturns.b ./ expectedwithdrawals.b

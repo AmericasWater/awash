@@ -30,11 +30,11 @@ aquifer = initaquifer(m);
 
 # Only include variables needed in constraints and parameters needed in optimization
 
-paramcomps = [:Allocation, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
-parameters = [:waterfromsupersource, :withdrawals, :returns, :captures, :increasestorage, :reducestorage]
+paramcomps = [:Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
+parameters = [:waterfromsupersource, :withdrawals, :captures, :increasestorage, :reducestorage]
 
-constcomps = [:WaterNetwork, :Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
-constraints = [:outflows, :balance, :returnbalance, :storagemin, :storagemax, :storagecapacitymax]
+constcomps = [:WaterNetwork, :Allocation, :Reservoir, :Reservoir, :Reservoir]
+constraints = [:outflows, :balance, :storagemin, :storagemax, :storagecapacitymax]
 
 if allowgw
     # Include groundwater
@@ -63,15 +63,14 @@ setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapa
 # That is, outflows + runoff > 0, or -outflows < runoff
 if redogwwo
     gwwo = grad_waternetwork_outflows_withdrawals(m);
-    serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
-    cwro = constraintoffset_waternetwork_outflows(m);
-    serialize(open(cachepath("partialhouse2$suffix.jld"), "w"), cwro);
+    serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
+    grwo = grad_returnflows_outflows_withdrawals(m, allowgw, demandmodel);
+    serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
     gror = grad_reservoir_outflows_captures(m);
     serialize(open(cachepath("partialhouse-gror$suffix.jld"), "w"), gror);
 else
-    gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
-    #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-    cwro = constraintoffset_waternetwork_outflows(m);
+    gwwo = deserialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "r"));
+    grwo = deserialize(open(cachepath("partialhouse-grwo$suffix.jld"), "r"));
     if isfile(cachepath("partialhouse-gror$suffix.jld"))
 	gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
     else
@@ -80,11 +79,10 @@ else
 end
 
 # Specify the components affecting outflow: withdrawals, returns, captures
-setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
-setconstraint!(house, room_relabel_parameter(gwwo - grad_waternetwork_immediateoutflows_withdrawals(m), :withdrawals, :Allocation, :returns)) # -
+setconstraint!(house, -gwwo + grwo) # + -
 setconstraint!(house, -gror) # +
 # Specify that these can at most equal the cummulative runoff
-setconstraintoffset!(house, cwro) # +
+setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m)) # +
 
 # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
 setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
@@ -93,17 +91,6 @@ if allowgw
 end
 setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
 setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
-
-# Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
-# `waterreturn` is by region, and is then distributed into canals as `returns`
-# `returns` must be less than `waterreturn`, so that additional water doesn't appear in streams
-setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
-setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
-                                          grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
-			                  grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
-                                          grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
-                                          grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m),
-                                          :totalreturn, :Allocation, :returnbalance)) # +
 
 # Reservoir constraints:
 # initial storage and evaporation have been added

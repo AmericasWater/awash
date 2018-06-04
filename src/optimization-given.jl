@@ -81,9 +81,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
         serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
-        grwo = grad_returnflows_outflows_withdrawals(m);
+        grwo = grad_returnflows_outflows_withdrawals(m, allowgw, demandmodel);
         serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
-        cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
             gror = grad_reservoir_outflows_captures(m);
             serialize(open(cachepath("partialhouse-gror$suffix.jld"), "w"), gror);
@@ -91,7 +90,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     else
         gwwo = deserialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "r"));
         grwo = deserialize(open(cachepath("partialhouse-grwo$suffix.jld"), "r"));
-        cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
             if isfile(cachepath("partialhouse-gror$suffix.jld"))
                 gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
@@ -107,7 +105,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         setconstraint!(house, -gror) # +
     end
     # Specify that these can at most equal the cummulative runoff
-    setconstraintoffset!(house, cwro) # +
+    setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m)) # +
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -

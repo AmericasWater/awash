@@ -3,6 +3,7 @@ setwd("~/research/water/awash6/analyses/uncinvest")
 load("~/research/water/awash/data/counties/waternet/waternet.RData")
 source("../../rlib/load_display.R")
 library(maps)
+library(ggplot2)
 
 suffix <- "-37.0"
 

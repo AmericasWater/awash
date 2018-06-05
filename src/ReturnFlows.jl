@@ -83,7 +83,7 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
         values_waterdemand_recordedthermoelectric(m).x + values_waterdemand_recordedlivestock(m).x
 
     # Return portion by county
-    regionreturns = expectedreturns.b ./ expectedwithdrawals.b
+    regionreturns = expectedreturns.f ./ expectedwithdrawals
 
     # Rearrange to canals
     canalreturns = zeros(nrow(draws))
@@ -99,7 +99,7 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
 
     # Construct room
     function generate(A)
-        matrix_gauges_canals(A, returnportion)
+        matrix_gauges_canals(A, canalreturns)
         immediateA = copy(A)
 
         matrix_downstreamgauges_canals(A)

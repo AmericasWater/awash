@@ -79,7 +79,8 @@ function getadded(stations::DataFrame)
     # Check if the weather file needs to be downloaded
     gage_latitude = knownvariable("runoff", "gage_latitude")
     gage_longitude = knownvariable("runoff", "gage_longitude")
-    gage_totalflow = knownvariable("runoff", "totalflow")
+    gage_totalflow = knownvariable("runoff", "totalflow") / 14.1821
+    println("WARNING: Dividing contributing area flows by 14.1821 to match county.")
     gage_area = knownvariable("runoff", "contributing_area")
 
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)

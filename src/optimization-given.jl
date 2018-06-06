@@ -13,7 +13,7 @@ else
     include("weather.jl")
 end
 
-redogwwo = !isfile(cachepath("partialhouse2$suffix.jld"))
+redogwwo = !isfile(cachepath("partialhouse-gwwo$suffix.jld"))
 
 include("WaterDemand.jl")
 include("WaterNetwork.jl")

@@ -87,8 +87,18 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
 
     # Rearrange to canals
     canalreturns = zeros(nrow(draws))
-    for pp in 1:nrow(draws)
-        if draws[:justif] == "contains"
+    if :justif in names(draws)
+        for pp in 1:nrow(draws)
+            if draws[pp, :justif] == "contains"
+                regionid = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionid)
+                if rr > 0
+                    canalreturns[pp] = regionreturns[rr]
+                end
+            end
+        end
+    else
+        for pp in 1:nrow(draws)
             regionid = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionid)
             if rr > 0

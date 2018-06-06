@@ -62,7 +62,7 @@ function initreturnflows(m::Model)
     returnflows = addcomponent(m, ReturnFlows);
 
     returnflows[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
-    returnflows[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
+    returnflows[:returns] = zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time])
 
     returnflows
 end

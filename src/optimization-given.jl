@@ -164,13 +164,13 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
 
     if allowgw
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps))
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties, numscenarios, numsteps))
     elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
         rm(datapath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+allowgw])+1:end], numreservoirs, numscenarios, numsteps))
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2+allowgw])+1:end], numreservoirs, numscenarios, numsteps))
     elseif isfile(datapath("extraction/captures$suffix.jld"))
         rm(datapath("extraction/captures$suffix.jld"))
     end

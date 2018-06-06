@@ -87,7 +87,7 @@ Construct a matrix that represents the *immediate* decrease in outflow caused by
 """
 function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
     function generate(A)
-        matrix_gauges_canals(A, -ones(nrow(draws)))
+        matrix_gauges_canals(A, -.99 * ones(nrow(draws)))
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
@@ -98,7 +98,7 @@ Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A)
-        matrix_gauges_canals(A, -ones(nrow(draws)))
+        matrix_gauges_canals(A, -.99 * ones(nrow(draws)))
         matrix_downstreamgauges_canals(A)
     end
 
@@ -132,7 +132,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :, :] += b[vertex_index(upstream, waternet), :, :]
+            b[gg, :, :] += .99 * b[vertex_index(upstream, waternet), :, :]
         end
     end
 

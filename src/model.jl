@@ -19,7 +19,7 @@ include("WaterNetwork.jl");
 include("Groundwater.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
-include("WaterStressIndex.jl")
+include("EnvironmentalDemand.jl")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
@@ -28,7 +28,7 @@ waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
 transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transportation, Agriculture
-waterstressindex = initwaterstressindex(model);
+environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
@@ -45,10 +45,5 @@ market[:produced] = agriculture[:allcropproduction];
 market[:regionimports] = transportation[:regionimports];
 market[:regionexports] = transportation[:regionexports];
 
-waterstressindex[:inflowgauge] = waternetwork[:inflows];
-waterstressindex[:withdrawalsw] = returnflows[:removed];
-waterstressindex[:withdrawalswregion] = allocation[:swsupply];
-waterstressindex[:withdrawalgw] = allocation[:watergw];
-
-
-
+environmentaldemand[:naturalflows] = waternetwork[:unmodifieds];
+environmentaldemand[:outflowsgauges] = waternetwork[:outflows];

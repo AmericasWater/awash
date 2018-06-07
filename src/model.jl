@@ -32,7 +32,6 @@ environmentaldemand = initenvrionmentaldemand(model);
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
-allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];

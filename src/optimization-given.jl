@@ -165,6 +165,7 @@ Save the results for simulation runs
 function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=false, allowreservoirs=true)
     # The size of each optimized parameter
     varlens = varlengths(house.model, house.paramcomps, house.parameters)
+    println(varlens) # XXX
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files

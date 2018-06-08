@@ -56,9 +56,4 @@ else
     writetable(outputpath, alldf)
 end
 
-if !isfile(datapath("extraction/withdrawals$suffix.jld"))
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
-end
-if !isfile(datapath("extraction/captures$suffix.jld"))
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:end], numreservoirs, numscenarios, numsteps))
-end
+save_optimization_given(house, sol, false, true)

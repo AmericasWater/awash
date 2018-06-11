@@ -17,10 +17,7 @@ solver = ClpSolver()
 
 @time sol = houseoptimize(house, solver)
 # Save the results for simulation
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
-serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
-serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
-serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numscenarios, numsteps))
+save_optimization_given(house, sol, false, true)
 
 # Run the model
 include("../src/model.jl")

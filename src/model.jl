@@ -13,22 +13,24 @@ elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != nu
 end
 
 include("ReturnFlows.jl");
-include("Market.jl");
-include("Transportation.jl");
+#include("Market.jl");
+#include("Transportation.jl");
 include("WaterNetwork.jl");
-include("Groundwater.jl");
+#include("Groundwater.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
 include("EnvironmentalDemand.jl")
+include("WaterStressIndex.jl")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
 returnflows = initreturnflows(model); # dep. Allocation
-groundwater = initaquifer(model); # Allocation or optimization-only
+#groundwater = initaquifer(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
-transportation = inittransportation(model); # optimization-only
-market = initmarket(model); # dep. Transportation, Agriculture
+#transportation = inittransportation(model); # optimization-only
+#market = initmarket(model); # dep. Transportation, Agriculture
 environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
+waterstressindex = initwaterstressindex(model);
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
@@ -37,13 +39,17 @@ returnflows[:withdrawals] = allocation[:copy_withdrawals];
 returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
-groundwater[:withdrawal] = allocation[:watergw];
+#groundwater[:withdrawal] = allocation[:watergw];
 reservoir[:inflowsgauges] = waternetwork[:inflows];
 reservoir[:outflowsgauges] = waternetwork[:outflows];
 
-market[:produced] = agriculture[:allcropproduction];
-market[:regionimports] = transportation[:regionimports];
-market[:regionexports] = transportation[:regionexports];
+#market[:produced] = agriculture[:allcropproduction];
+#market[:regionimports] = transportation[:regionimports];
+#market[:regionexports] = transportation[:regionexports];
 
 environmentaldemand[:naturalflows] = waternetwork[:unmodifieds];
 environmentaldemand[:outflowsgauges] = waternetwork[:outflows];
+waterstressindex[:inflowgauge] = waternetwork[:inflows];
+waterstressindex[:withdrawalsw] = returnflows[:removed];
+waterstressindex[:withdrawalswregion] = allocation[:swsupply];
+waterstressindex[:withdrawalgw] = allocation[:watergw];

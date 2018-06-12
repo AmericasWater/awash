@@ -157,3 +157,8 @@ for ii in 1:nrow(reservoirs)
         isreservoir[vertex_index(wateridverts[resid])] = ii
     end
 end
+
+# Filter county connections draws
+if get(config, "filtercanals", nothing) != nothing
+    draws = draws[find(draws[:justif] .== config["filtercanals"]),:]
+end

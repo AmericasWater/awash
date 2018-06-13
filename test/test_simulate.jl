@@ -34,8 +34,13 @@ if isfile(outputpath)
         @test compdf[ii, :regions] == string(alldf[ii, :regions])
         @test compdf[ii, :time] == alldf[ii, :time]
         @test compdf[ii, :variable] == string(alldf[ii, :variable])
-        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value])) && compdf[ii, :value] != alldf[ii, :value]
-            push!(mismatches, ii)
+        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value]))
+            compfrac = compdf[ii, :value] / sum(abs(compdf[compdf[:variable] .== compdf[ii, :variable], :value]))
+            allfrac = alldf[ii, :value] / sum(abs(alldf[alldf[:variable] .== alldf[ii, :variable], :value]))
+            if compdf[ii, :value] != alldf[ii, :value]
+                push!(mismatches, ii)
+                println(abs(compdf[ii, :value] - alldf[ii, :value]))
+            end
         end
     end
 

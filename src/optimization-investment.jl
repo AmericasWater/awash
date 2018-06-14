@@ -24,7 +24,7 @@ m = newmodel();
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 reservoir = initreservoir(m); # Allocation or optimization-only
-returnflows = initreturnflows(m); # dep. Allocation
+returnflows = initreturnflows(m, allowgw, demandmodel); # dep. Allocation
 waternetwork = initwaternetwork(m); # dep. ReturnFlows
 aquifer = initaquifer(m);
 

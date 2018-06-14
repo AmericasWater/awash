@@ -33,7 +33,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if allowreservoirs
         reservoir = initreservoir(m); # Allocation or optimization-only
     end
-    returnflows = initreturnflows(m); # dep. Allocation
+    returnflows = initreturnflows(m, allowreservoirs, demandmodel); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
     environmentaldemand = initenvironmentaldemand(m); # dep. WaterNetwork

@@ -44,7 +44,8 @@ summarizeparameters(house, sol.sol)
 # Look at the constraints: only possible for small models
 #constraining(house, sol.sol)
 
-save_optimization_given(house, true, allowreservoirs)
+# Save the results
+save_optimization_given(house, sol, allowgw=true, allowreservoirs=withreservoirs)
 
 analysis = nothing
 

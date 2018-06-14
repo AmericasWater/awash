@@ -13,7 +13,7 @@ else
     include("weather.jl")
 end
 
-redogwwo = !isfile(cachepath("partialhouse2$suffix.jld"))
+redogwwo = !isfile(cachepath("partialhouse-gwwo$suffix.jld"))
 
 include("WaterDemand.jl")
 include("WaterNetwork.jl")
@@ -33,7 +33,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if allowreservoirs
         reservoir = initreservoir(m); # Allocation or optimization-only
     end
-    returnflows = initreturnflows(m); # dep. Allocation
+    returnflows = initreturnflows(m, allowreservoirs, demandmodel); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
     environmentaldemand = initenvironmentaldemand(m); # dep. WaterNetwork
@@ -41,11 +41,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation, :Allocation]
-    parameters = [:waterfromsupersource, :withdrawals, :returns]
+    paramcomps = [:Allocation, :Allocation]
+    parameters = [:waterfromsupersource, :withdrawals]
 
-    constcomps = [:WaterNetwork, :Allocation, :Allocation]
-    constraints = [:outflows, :balance, :returnbalance]
+    constcomps = [:WaterNetwork, :Allocation]
+    constraints = [:outflows, :balance]
 
     if allowgw
         # Include groundwater
@@ -83,17 +83,16 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # That is, outflows + runoff > envrequirement, or -outflows < runoff - envrequirement
     if redogwwo
         gwwo = grad_waternetwork_outflows_withdrawals(m);
-        serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
-        cwro = constraintoffset_waternetwork_outflows(m);
-        serialize(open(cachepath("partialhouse2$suffix.jld"), "w"), cwro);
+        serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
+        grwo = grad_returnflows_outflows_withdrawals(m, allowgw, demandmodel);
+        serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
         if allowreservoirs
             gror = grad_reservoir_outflows_captures(m);
             serialize(open(cachepath("partialhouse-gror$suffix.jld"), "w"), gror);
         end
     else
-        gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
-        #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-        cwro = constraintoffset_waternetwork_outflows(m);
+        gwwo = deserialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "r"));
+        grwo = deserialize(open(cachepath("partialhouse-grwo$suffix.jld"), "r"));
         if allowreservoirs
             if isfile(cachepath("partialhouse-gror$suffix.jld"))
                 gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
@@ -103,17 +102,16 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         end
     end
 
-    # Specify the components affecting outflow: withdrawals, returns, captures
-    setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
-    setconstraint!(house, room_relabel_parameter(gwwo - grad_waternetwork_immediateoutflows_withdrawals(m), :withdrawals, :Allocation, :returns)) # -
+    # Specify the components affecting outflow: withdrawals - returns + captures < runoff
+    setconstraint!(house, -gwwo + grwo) # + -
     if allowreservoirs
         setconstraint!(house, -gror) # +
     end
     # Specify that these can at most equal the cummulative runoff
     if get(config, "proportionnaturalflowforenvironment", 0.) > 0.
-        setconstraintoffset!(house, cwro - constraintoffset_environmentalflows(m)) # +
+        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m) - constraintoffset_environmentalflows(m)) # +
     else
-        setconstraintoffset!(house, cwro)
+        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m))
     end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
@@ -123,21 +121,6 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
-
-    # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
-    # `waterreturn` is by region, and is then distributed into canals as `returns`
-    # `returns` must be less than `waterreturn`, so that additional water doesn't appear in streams
-    setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
-    if config["dataset"] == "three"
-        setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
-    else
-        setconstraintoffset!(house, -hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
-                                                  grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
-                                                  grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m) +
-                                                  grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m) +
-                                                  grad_waterdemand_totalreturn_livestockuse(m) * values_waterdemand_recordedlivestock(m),
-        :totalreturn, :Allocation, :returnbalance)) # +
-    end
 
     if allowreservoirs
         # Reservoir constraints:
@@ -186,16 +169,15 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
 
     # Save into serialized files
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 
     if allowgw
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties, numsteps))
     elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
         rm(datapath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+allowgw])+1:end], numreservoirs, numsteps))
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2+allowgw])+1:end], numreservoirs, numsteps))
     elseif isfile(datapath("extraction/captures$suffix.jld"))
         rm(datapath("extraction/captures$suffix.jld"))
     end

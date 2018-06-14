@@ -15,8 +15,8 @@ using Mimi
 
     # How much to send from each gauge to each county
     withdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    # How much is returned through canals (assuming 2-way canals!)
-    returns = Parameter(index=[canals, time], unit="1000 m^3")
+    # Return rate by canal
+    returnrate = Parameter(index=[canals], unit="fraction")
 
     # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
     copy_withdrawals = Variable(index=[canals, time], unit="1000 m^3")
@@ -38,7 +38,7 @@ function run_timestep(c::ReturnFlows, tt::Int)
 
     for pp in 1:nrow(draws)
         v.copy_withdrawals[pp, tt] = p.withdrawals[pp, tt]
-        if p.withdrawals[pp, tt] > 0 || p.returns[pp, tt] > 0
+        if p.withdrawals[pp, tt] > 0
             gaugeid = draws[pp, :gaugeid]
             vertex = get(wateridverts, gaugeid, nothing)
             if vertex == nothing
@@ -46,8 +46,17 @@ function run_timestep(c::ReturnFlows, tt::Int)
             else
                 gg = vertex_index(vertex)
                 v.removed[gg, tt] += p.withdrawals[pp, tt]
-                v.returned[gg, tt] += p.returns[pp, tt]
             end
+        end
+    end
+
+    # Propogate in downstream order
+    for hh in 1:numgauges
+        gg = vertex_index(downstreamorder[hh])
+        gauge = downstreamorder[hh].label
+        for upstream in out_neighbors(wateridverts[gauge], waternet)
+            index = vertex_index(upstream, waternet)
+            v.returned[gg, tt] += p.returnrate[index] * v.removed[index, tt]
         end
     end
 end
@@ -55,19 +64,21 @@ end
 """
 Add a ReturnFlows component to the model.
 """
-function initreturnflows(m::Model)
+function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     returnflows = addcomponent(m, ReturnFlows);
 
     returnflows[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-    returnflows[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time])
+    # Calculate return flows from withdrawals
+    returnflows[:returnrate] = vector_canalreturns(m, includegw, demandmodel)
 
     returnflows
 end
 
+
 """
-Construct a matrix that represents the decrease in outflow caused by withdrawal
+Construct the return flow rate based on observed sector-specific demands
 """
-function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     # Expected returns by county: sum of (RTxRT * RT)
     expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, includegw, demandmodel) +
         grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
@@ -103,6 +114,15 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
             end
         end
     end
+
+    canalreturns
+end
+
+"""
+Construct a matrix that represents the decrease in outflow caused by withdrawal
+"""
+function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+    canalreturns = vector_canalreturns(m, includegw, demandmodel)
 
     # Construct room
     function generate(A)

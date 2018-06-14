@@ -4,20 +4,17 @@ filterstate: null
 
 
 # Current options: counties (full-country), dummy (5-counties)
-dataset: counties
+dataset: paleo
 
 # First and last month of the simulation
-startmonth: 10/2009
-endmonth: 9/2010
+startmonth: 10/1450
+endmonth: 9/1460
 
 # First entry in VIC_WB to include
-startweather: 721
-  
+startweather: 1
+
 # Months per time step
-timestep: 1
-  
-# Type of optimization: "SW" for only surface water, "SWGW" for the conjunctive use of both resources
-optimtype: "SWGW"
+timestep: 12
 
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"

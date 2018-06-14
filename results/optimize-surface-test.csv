@@ -23,6 +23,7 @@
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
+"waterfromsupersource",474632.83536866546
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
@@ -96,9 +97,13 @@
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
 "waterfromsupersource",0.0
+<<<<<<< HEAD
+"withdrawals",3.7428904756463134e8
+=======
 "waterfromsupersource",0.0
 "withdrawals",3.747636804e8
 "returns",3.8249689835583806e8
+>>>>>>> 249a368895f270f0b51558865343436c654b785d
 "captures",-0.0
 "captures",-0.0
 "captures",-0.0
@@ -218,7 +223,7 @@
 "captures",-0.0
 "captures",-0.0
 "captures",-0.0
-"captures",-0.0
+"captures",0.0
 "captures",-0.0
 "captures",-0.0
 "captures",-0.0
@@ -444,30 +449,8 @@
 "captures",-0.0
 "captures",-0.0
 "captures",-0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
-"captures",0.0
 "captures",0.0
-"captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -480,6 +463,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -490,6 +474,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -511,6 +496,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -529,20 +515,25 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -554,6 +545,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -566,6 +558,8 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -577,6 +571,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -601,6 +596,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -637,6 +633,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -657,12 +654,14 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -699,6 +698,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -711,6 +711,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -729,11 +730,14 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0
@@ -785,6 +789,7 @@
 "captures",0.0
 "captures",0.0
 "captures",0.0
+"captures",-0.0
 "captures",0.0
 "captures",0.0
 "captures",0.0

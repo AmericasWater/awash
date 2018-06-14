@@ -7,10 +7,12 @@ library(tmap)      # package for plotting
 library(readxl)    # for reading Excel
 library(tmaptools) 
 data(wrld_simpl)
-setwd('C:/Users/luc/Desktop/awash/analyses/climatevariability/analyzereservoir/')
+result_path = paste0("C:/Users/luc/Desktop/awash/analyses/climatevariability/", "paleo_10yrs_12months/")
+setwd(result_path)
 
-start_year=2000
-end_year=2009
+
+start_year=2001
+end_year=2010
 nyears=end_year-start_year+1
 time_ind0 <- 1:nyears
 dir.create('plots', showWarnings=F)
@@ -33,11 +35,6 @@ region_ind[which(region_ind %in% c("ID", "OR", "WA"))] <- "X"
 
 # Read-in reservoir data
 resdf <- read.csv("../../../data/counties/reservoirs/allreservoirs.csv")
-
-
-# Delete Alaskan reservoir
-AL_Idx=which(resdf$lat>50)
-resdf<-resdf[-AL_Idx,]
 
 
 

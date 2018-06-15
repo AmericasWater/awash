@@ -8,7 +8,7 @@ dataset: counties
 
 # First and last month of the simulation
 startmonth: 10/2000
-endmonth: 9/2010
+endmonth: 9/2060
 
 # First entry in VIC_WB to include
 startweather: 1

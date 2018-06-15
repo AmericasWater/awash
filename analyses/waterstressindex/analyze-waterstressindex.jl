@@ -1,120 +1,53 @@
 #cd("../../src")
-include("../../src/nui.jl")
-config = readconfig("../configs/standard-10year.yml");
+include("nui.jl")
+config = readconfig("../configs/standard-60year.yml");
+savingresultspath = "../analyses/waterstressindex/60years/"
 
 
-# Optimization without reservoirs
-config["rescap"] = "zero";
+#### PART I: current withdrawals risk
+config["rescap"] = "zero"; # Optimization without reservoirs
+config["filtercanals"] = nothing;
+config["waterrightconst"] = nothing;
+flowprop = [0. 0.37 0.5];
+config["proportionnaturalflowforenvironment"] = flowprop[3];
+surfconj = "surface";
+savedem = true;
+
+rm("../data/counties/extraction/withdrawals.jld")
+rm("../data/counties/extraction/waterfromgw.jld")
+rm("../data/counties/extraction/returns.jld")
+rm("../data/cache/counties/partialhouse.jld")
+rm("../data/cache/counties/partialhouse2.jld")
+
+include("runoptisim.jl")
+
+
+#### PART II: conjunctive strategy
+surfconj = "conj";
+savedem = false;
+config["waterrightconst"] = "SWGW";
+include("runoptisim.jl")
+config["waterrightconst"] = "GW";
+include("runoptisim.jl")
+config["waterrightconst"] = "SW";
+include("runoptisim.jl")
+config["waterrightconst"] = nothing;
+include("runoptisim.jl")
+
+#### PART III: infra strategy
+config["rescap"] = "full"; # Optimization without reservoirs
+config["filtercanals"] = nothing;
+config["waterrightconst"] = nothing;
+surfconj = "surface";
+include("runoptisim.jl")
+
+rm("../data/counties/extraction/withdrawals.jld")
+rm("../data/counties/extraction/waterfromgw.jld")
+rm("../data/counties/extraction/returns.jld")
+rm("../data/cache/counties/partialhouse.jld")
+rm("../data/cache/counties/partialhouse2.jld")
+config["rescap"] = "zero"; # Optimization without reservoirs
 config["filtercanals"] = "contains";
 config["waterrightconst"] = nothing;
-flowprop = [0. 0.37 0.5]
-
-# Optimization with reservoirs at their current capacities
-#config["rescap"] = "full";
-for ee in 1:length(flowprop)
-    savingresultspath = "../analyses/waterstressindex/10years/"
-    config["proportionnaturalflowforenvironment"] = flowprop[ee]
-    propenv = config["proportionnaturalflowforenvironment"]
-    reval = config["rescap"]
-    if get(config, "filtercanals", nothing) != nothing
-        configname = "surface-propenv$propenv-rescap$reval-nocanal"
-    else
-        configname = "surface-propenv$propenv-rescap$reval"
-    end
-
-    include("../../src/optimize-surface.jl");
-    writecsv("$savingresultspath/failure-$configname.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));
-
-    include("../../src/simulate.jl")
-
-    savedata("$savingresultspath/dem_tot-$configname.csv", :WaterDemand, :totaldemand)
-    #savedata("$savingresultspath/dem_ir.csv", :WaterDemand, :totalirrigation)
-    #savedata("$savingresultspath/dem_do.csv", :WaterDemand, :domesticuse)
-    #savedata("$savingresultspath/dem_in.csv", :WaterDemand, :industrialuse)
-    #savedata("$savingresultspath/dem_ur.csv", :WaterDemand, :urbanuse)
-    #savedata("$savingresultspath/dem_th.csv", :WaterDemand, :thermoelectricuse)
-    #savedata("$savingresultspath/dem_li.csv", :WaterDemand, :livestockuse)
-
-    savedata("$savingresultspath/allocation_wgw-$configname.csv", :Allocation, :watergw)
-    savedata("$savingresultspath/allocation_wsw-$configname.csv", :Allocation, :swsupply)
-    savedata("$savingresultspath/allocation_bal-$configname.csv", :Allocation, :balance)
-
-    savedata("$savingresultspath/wsi_indexgw-$configname.csv", :WaterStressIndex, :indexgw)
-    savedata("$savingresultspath/wsi_indexsw-$configname.csv", :WaterStressIndex, :indexsw)
-    savedata("$savingresultspath/wsi_indexWaSSli-$configname.csv", :WaterStressIndex, :indexWaSSli)
-    savedata("$savingresultspath/wsi_indexWaSSI-$configname.csv", :WaterStressIndex, :indexWaSSI)
-    #savedata("$savingresultspath/wsi_indexWSI.csv", :WaterStressIndex, :indexWSI)
-
-    if get(config, "filtercanals", nothing) != nothing
-        configname = "conj-propenv$propenv-rescap$reval-nocanal"
-    else
-        configname = "conj-propenv$propenv-rescap$reval"
-    end
-    include("../../src/optimize-waterallocation.jl");
-    writecsv("$savingresultspath/failure-$configname.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));
-
-    include("../../src/simulate.jl")
-
-    savedata("$savingresultspath/dem_tot-$configname.csv", :WaterDemand, :totaldemand)
-    #savedata("$savingresultspath/dem_ir.csv", :WaterDemand, :totalirrigation)
-    #savedata("$savingresultspath/dem_do.csv", :WaterDemand, :domesticuse)
-    #savedata("$savingresultspath/dem_in.csv", :WaterDemand, :industrialuse)
-    #savedata("$savingresultspath/dem_ur.csv", :WaterDemand, :urbanuse)
-    #savedata("$savingresultspath/dem_th.csv", :WaterDemand, :thermoelectricuse)
-    #savedata("$savingresultspath/dem_li.csv", :WaterDemand, :livestockuse)
-
-    savedata("$savingresultspath/allocation_wgw-$configname.csv", :Allocation, :watergw)
-    savedata("$savingresultspath/allocation_wsw-$configname.csv", :Allocation, :swsupply)
-    savedata("$savingresultspath/allocation_bal-$configname.csv", :Allocation, :balance)
-
-    savedata("$savingresultspath/wsi_indexgw-$configname.csv", :WaterStressIndex, :indexgw)
-    savedata("$savingresultspath/wsi_indexsw-$configname.csv", :WaterStressIndex, :indexsw)
-    savedata("$savingresultspath/wsi_indexWaSSli-$configname.csv", :WaterStressIndex, :indexWaSSli)
-    savedata("$savingresultspath/wsi_indexWaSSI-$configname.csv", :WaterStressIndex, :indexWaSSI)
-    #savedata("$savingresultspath/wsi_indexWSI.csv", :WaterStressIndex, :indexWSI)
-end
-
-
-config["filtercanals"] = nothing;
-config["waterrightconst"] = "GW";
-
-for ee in 1:length(flowprop)
-    savingresultspath = "../analyses/waterstressindex/10years/"
-    config["proportionnaturalflowforenvironment"] = flowprop[ee]
-    propenv = config["proportionnaturalflowforenvironment"]
-    reval = config["rescap"]
-
-    if get(config, "filtercanals", nothing) != nothing
-        configname = "conj-propenv$propenv-rescap$reval-nocanal"
-    else
-        configname = "conj-propenv$propenv-rescap$reval"
-    end
-    if get(config, "waterrightconst", nothing) != nothing
-        waterrightval = config["waterrightconst"]
-        configname = "$configname-rights$waterrightval"
-    end
-
-
-    include("optimize-waterallocation.jl");
-    writecsv("$savingresultspath/failure-$configname.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));
-
-    include("simulate.jl")
-
-    savedata("$savingresultspath/dem_tot-$configname.csv", :WaterDemand, :totaldemand)
-    #savedata("$savingresultspath/dem_ir.csv", :WaterDemand, :totalirrigation)
-    #savedata("$savingresultspath/dem_do.csv", :WaterDemand, :domesticuse)
-    #savedata("$savingresultspath/dem_in.csv", :WaterDemand, :industrialuse)
-    #savedata("$savingresultspath/dem_ur.csv", :WaterDemand, :urbanuse)
-    #savedata("$savingresultspath/dem_th.csv", :WaterDemand, :thermoelectricuse)
-    #savedata("$savingresultspath/dem_li.csv", :WaterDemand, :livestockuse)
-
-    savedata("$savingresultspath/allocation_wgw-$configname.csv", :Allocation, :watergw)
-    savedata("$savingresultspath/allocation_wsw-$configname.csv", :Allocation, :swsupply)
-    savedata("$savingresultspath/allocation_bal-$configname.csv", :Allocation, :balance)
-
-    savedata("$savingresultspath/wsi_indexgw-$configname.csv", :WaterStressIndex, :indexgw)
-    savedata("$savingresultspath/wsi_indexsw-$configname.csv", :WaterStressIndex, :indexsw)
-    savedata("$savingresultspath/wsi_indexWaSSli-$configname.csv", :WaterStressIndex, :indexWaSSli)
-    savedata("$savingresultspath/wsi_indexWaSSI-$configname.csv", :WaterStressIndex, :indexWaSSI)
-    #savedata("$savingresultspath/wsi_indexWSI.csv", :WaterStressIndex, :indexWSI)
-end
+surfconj = "surface";
+include("runoptisim.jl")

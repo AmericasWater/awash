@@ -55,38 +55,12 @@ function initwaternetwork(m::Model)
     waternetwork
 end
 
-function matrix_gauges_canals(A::AbstractMatrix{Float64}, canal_values::Vector{Float64})
-    # Fill in GAUGES x CANALS matrix with local relationships
-    for pp in 1:nrow(draws)
-        gaugeid = draws[pp, :gaugeid]
-        vertex = get(wateridverts, gaugeid, nothing)
-        if vertex == nothing
-            println("Missing $gaugeid")
-        else
-            gg = vertex_index(vertex)
-            A[gg, pp] = canal_values[pp]
-        end
-    end
-end
-
-function matrix_downstreamgauges_canals(A::AbstractMatrix{Float64})
-    # Propogate in downstream order
-    for hh in 1:numgauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            index = vertex_index(upstream, waternet)
-            A[gg, :] += A[index, :]
-        end
-    end
-end
-
 """
 Construct a matrix that represents the *immediate* decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
     function generate(A)
-        matrix_gauges_canals(A, -.99 * ones(nrow(draws)))
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
@@ -97,7 +71,7 @@ Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A)
-        matrix_gauges_canals(A, -.99 * ones(nrow(draws)))
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
         matrix_downstreamgauges_canals(A)
     end
 
@@ -131,7 +105,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :] += .99 * b[vertex_index(upstream, waternet), :]
+            b[gg, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :]
         end
     end
 

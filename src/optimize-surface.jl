@@ -15,6 +15,7 @@ else
 	allowreservoirs = true
 end
 
+
 include("optimization-given.jl")
 house = optimization_given(false, allowreservoirs)
 
@@ -38,6 +39,11 @@ serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.
 serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 if allowreservoirs
     serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
+elseif isfile(datapath("extraction/captures$suffix.jld"))
+    rm(datapath("extraction/captures$suffix.jld"))
+end
+if isfile(datapath("extraction/waterfromgw$suffix.jld"))
+    rm(datapath("extraction/waterfromgw$suffix.jld"))
 end
 
 # How much water is in the streams?

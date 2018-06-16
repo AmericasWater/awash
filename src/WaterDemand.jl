@@ -59,14 +59,15 @@ Add a WaterDemand component to the model.
 function initwaterdemand(m::Model)
     waterdemand = addcomponent(m, WaterDemand);
 
-    # Set optimized parameters to 0
-    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    # Initialized at USGS values, replaced by model-waterdemand
     recorded = getfilteredtable("extraction/USGS-2010.csv")
+    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
+    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
+    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
     waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
-    waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
+    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
+    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383./12., outer=[1, m.indices_counts[:time]]);;
+
 
     waterdemand
 end
@@ -243,4 +244,3 @@ end
 function values_waterdemand_recordedlivestock(m::Model)
     values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
 end
-

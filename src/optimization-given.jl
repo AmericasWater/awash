@@ -22,8 +22,9 @@ include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
 include("EnvironmentalDemand.jl")
+include("WaterRight.jl")
 
-function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing)
+function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -37,6 +38,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
     environmentaldemand = initenvironmentaldemand(m); # dep. WaterNetwork
+    waterright = initwaterright(m); # dep. Allocation
 
 
     # Only include variables needed in constraints and parameters needed in optimization
@@ -60,6 +62,17 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
         constcomps = [constcomps; :Reservoir; :Reservoir]
         constraints = [constraints; :storagemin; :storagemax]
+    end
+
+    if waterrightconst == "SW"
+        constcomps = [constcomps; :WaterRight]
+        constraints = [constraints; :swtotal]
+    elseif waterrightconst == "GW"
+        constcomps = [constcomps; :WaterRight]
+        constraints = [constraints; :gwtotal]
+    elseif waterrightconst == "SWGW"
+        constcomps = [constcomps; :WaterRight; :WaterRight]
+        constraints = [constraints; :swtotal; :gwtotal]
     end
 
     ## Constraint definitions:
@@ -92,8 +105,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         end
     else
         gwwo = deserialize(open(cachepath("partialhouse$suffix.jld"), "r"));
-        #cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-        cwro = constraintoffset_waternetwork_outflows(m);
+        cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
+        #cwro = constraintoffset_waternetwork_outflows(m);
         if allowreservoirs
             if isfile(cachepath("partialhouse-gror$suffix.jld"))
                 gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
@@ -155,6 +168,23 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
         setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
     end
+
+    # Water rights constraints: swwithdrawals < swwaterights | gwwithdrawals < gwwaterrights
+    if waterrightconst == "SW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_swtotal_withdrawals(m), :swtimestep, :Allocation, :withdrawals)) # +
+        setconstraintoffset!(house, constraintoffset_waterright_swrighttotal(m)) # +
+    elseif waterrightconst == "GW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_gwtotal_waterfromgw(m), :gwtimestep, :Allocation, :waterfromgw))
+        setconstraintoffset!(house, constraintoffset_waterright_gwrighttotal(m)) # +
+    elseif waterrightconst == "SWGW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_swtotal_withdrawals(m), :swtimestep, :Allocation, :withdrawals)) # +
+        setconstraintoffset!(house, constraintoffset_waterright_swrighttotal(m)) # +
+        setconstraint!(house, room_relabel_parameter(grad_waterright_gwtotal_waterfromgw(m), :gwtimestep, :Allocation, :waterfromgw))
+        setconstraintoffset!(house, constraintoffset_waterright_gwrighttotal(m)) # +
+    end
+
+
+
 
     # Clean up
 

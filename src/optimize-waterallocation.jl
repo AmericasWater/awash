@@ -18,13 +18,16 @@ end
 
 
 # Run the water demand simulation to determine values
-include("model-waterdemand.jl")
-
-println("Running model...")
-@time run(model)
-
-include("optimization-given.jl")
-house = optimization_given(true, withreservoirs, model)
+if get(config, "demandmodel", nothing) == "USGS"
+    include("optimization-given.jl")
+    house = optimization_given(true, withreservoirs, nothing, get(config, "waterrightconst", nothing))
+else
+    include("model-waterdemand.jl")
+    println("Running demand model...")
+    @time run(model)
+    include("optimization-given.jl")
+    house = optimization_given(true, withreservoirs, model)
+end
 
 using MathProgBase
 using Gurobi

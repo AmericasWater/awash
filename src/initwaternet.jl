@@ -7,6 +7,8 @@ using Graphs
 using DataFrames
 using RData
 
+include("lib/waternet.jl")
+
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end

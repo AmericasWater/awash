@@ -6,7 +6,7 @@ config = emptyconfig()
 
 include("../../../src/lib/datastore.jl")
 include("../../../src/lib/reservoirs.jl")
-include("../../../src/waternet.jl")
+include("../../../src/initwaternet.jl")
 
 result = readtable("newnetwork.csv")
 allreservoirs = readtable(datapath("reservoirs/allreservoirs.csv"))
@@ -64,7 +64,7 @@ for label in keys(outlets)
     countstatefips = countmap(allstatefips)
     maxval, maxkey = findmax(countstatefips)
     statefips = parse(Int, maxval[1])
-    
+
     push!(result, [colcolid; sum(allreservoirs[outlets[label], :area]);
                    network[networkrow, :lat]; network[networkrow, :lon];
                    NA; sum(allreservoirs[outlets[label], :MAXCAP]);

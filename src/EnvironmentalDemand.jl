@@ -44,7 +44,7 @@ function constraintoffset_environmentalflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :, :] += .99 * b[vertex_index(upstream, waternet), :, :]
+            b[gg, :, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :, :]
         end
     end
 

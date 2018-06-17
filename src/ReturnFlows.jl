@@ -134,7 +134,9 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
 
         matrix_downstreamgauges_canals(A)
 
-        A -= immediateA
+        for ii in eachindex(A)
+            A[ii] -= immediateA[ii]
+        end
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])

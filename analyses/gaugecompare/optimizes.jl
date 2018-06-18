@@ -8,7 +8,7 @@ include("../../src/optimization-given.jl")
 redogwwo = true
 
 house = optimization_given(false, false)
-flows_nw = constraintoffset_waternetwork_outflows(house.model).f #
+flows_nw = constraintoffset_waternetwork_outflows(house.model).f # Natural flows
 sol = houseoptimize(house, solver)
 flows_rfnr = flows_nw - getconstraintsolution(house, sol, :outflows) # Return flows, no reservoirs
 

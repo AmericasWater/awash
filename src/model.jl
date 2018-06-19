@@ -13,8 +13,8 @@ elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != nu
 end
 
 include("ReturnFlows.jl");
-include("Market.jl");
-include("Transportation.jl");
+#include("Market.jl");
+#include("Transportation.jl");
 include("WaterNetwork.jl");
 include("Groundwater.jl");
 include("Allocation.jl");
@@ -26,8 +26,8 @@ returnflows = initreturnflows(model); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
-transportation = inittransportation(model); # optimization-only
-market = initmarket(model); # dep. Transportation, Agriculture
+#transportation = inittransportation(model); # optimization-only
+#market = initmarket(model); # dep. Transportation, Agriculture
 environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
 
 # Connect up the components
@@ -41,9 +41,9 @@ groundwater[:withdrawal] = allocation[:watergw];
 reservoir[:inflowsgauges] = waternetwork[:inflows];
 reservoir[:outflowsgauges] = waternetwork[:outflows];
 
-market[:produced] = agriculture[:allcropproduction];
-market[:regionimports] = transportation[:regionimports];
-market[:regionexports] = transportation[:regionexports];
+#market[:produced] = agriculture[:allcropproduction];
+#market[:regionimports] = transportation[:regionimports];
+#market[:regionexports] = transportation[:regionexports];
 
 environmentaldemand[:naturalflows] = waternetwork[:unmodifieds];
 environmentaldemand[:outflowsgauges] = waternetwork[:outflows];

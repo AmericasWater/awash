@@ -22,7 +22,7 @@ include("Reservoir.jl");
 include("EnvironmentalDemand.jl")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
-returnflows = initreturnflows(model); # dep. Allocation
+returnflows = initreturnflows(model, true); # dep. Allocation
 groundwater = initaquifer(model); # Allocation or optimization-only
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
@@ -32,9 +32,7 @@ environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
-allocation[:waterreturn] = waterdemand[:totalreturn];
 returnflows[:withdrawals] = allocation[:copy_withdrawals];
-returnflows[:returns] = allocation[:copy_returns];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 groundwater[:withdrawal] = allocation[:watergw];

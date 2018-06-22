@@ -2,6 +2,7 @@ using MathProgBase
 using DataFrames
 using OptiMimi
 using Gurobi
+using NaNMath
 
 filepaths = ["currentprofits-pfixed-lybymc.csv", "all2050profits-pfixed-notime-histco-lybymc.csv", "all2070profits-pfixed-notime-histco-lybymc.csv"]
 
@@ -23,17 +24,15 @@ for crop in areacrops
     knownareas[:mytotal] += knownareas[crop]
 end
 
-if switchcost > 0
-    baseline = readcsv("actualcrops.csv")
-    baselinerow = zeros(nrow(knownareas))
-    for ii in 1:nrow(knownareas)
-        baselinerow[ii] = findfirst(knownareas[ii, :fips] .== baseline[:fips])
-    end
+baseline = readtable("actualcrops.csv")
+baselinerow = zeros(Int64, nrow(knownareas))
+for ii in 1:nrow(knownareas)
+    baselinerow[ii] = findfirst(knownareas[ii, :fips] .== baseline[:fips])
 end
 
-results = DataFrame(filepath=String[], costs=Float64[], objective=Float64[])
+results = DataFrame(filepath=String[], choice=String[], costs=Float64[], objective=Float64[], exclcosts=Float64[])
 
-for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 10)))]
+for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 10))); 750; Inf]
     for filepath in filepaths
         mat = readcsv(filepath)' # Transpose to crop x county
 
@@ -41,7 +40,7 @@ for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 10)))]
 
         # Objectve
         if switchcost > 0
-            ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj] - switchcost * (baseline[baselinerow[jj], :maxcrop] != String(areacrops[ii])))
+            ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj] - switchcost * (baselinerow[jj] == 0 ? 1 : (isna(baseline[baselinerow[jj], :maxcrop]) ? 1 : baseline[baselinerow[jj], :maxcrop] != String(areacrops[ii]))))
         else
             ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj])
         end
@@ -70,7 +69,18 @@ for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 10)))]
         solver = GurobiSolver()
         sol = linprog(-ff, AA, '<', bb, lowers, uppers, solver)
 
-        push!(results, [filepath, switchcost, -sol.objval])
+        ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj])
+        withoutswitchcost = NaNMath.sum(sol.sol .* ff)
+
+        push!(results, [filepath, "optimal", switchcost, -sol.objval, withoutswitchcost])
+
+        if switchcost == 0
+            sol0 = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> knownareas[jj, areacrops[ii]] * 0.404686)
+            sol0[ff .== -Inf] = 0
+            baselinecrops = NaNMath.sum(sol0 .* ff)
+            push!(results, [filepath, "observed", NA, baselinecrops, baselinecrops])
+        end
+
         println(results)
     end
 end

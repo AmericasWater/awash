@@ -17,9 +17,16 @@ ggplot(subset(df, is.na(costs) | costs %in% c(0, Inf) | round(log10(costs), 3) =
     geom_line()
 
 ggplot(df, aes(year, objective, colour=costs, group=costs, linetype=choice)) +
-    geom_line() + theme_minimal() + xlab(NULL) + ylab("Total profits") + scale_colour_continuous(name="Switching costs") + scale_linetype_discrete(name=NULL)
+    geom_line() + theme_minimal() + xlab(NULL) + ylab("Total profits") + scale_colour_continuous(name="Switching\ncosts ($/Ha)", trans="sqrt", breaks=c(0, 100, 400, 900)) + scale_linetype_discrete(name=NULL)
 ggsave("profits-byprice.pdf", width=7, height=3)
 
-ggplot(df, aes(year, switchcosts, colour=costs, group=costs, linetype=choice)) +
-    geom_line() + theme_minimal() + xlab(NULL) + ylab("Total profits") + scale_colour_continuous(name="Switching costs") + scale_linetype_discrete(name=NULL)
-ggsave("switch-byprice.pdf", width=7, height=3)
+ggplot(df, aes(costs, switchcosts / exclcosts)) +
+    facet_grid(year ~ .) + geom_hline(yintercept=0) +
+    geom_line() + theme_minimal() + xlab("Switching costs ($/Ha)") + ylab("Incurred switching costs (% additional)") + scale_y_continuous(labels=scales::percent) + scale_x_continuous(expand=c(0, 0))
+ggsave("switch-byprice.pdf", width=5, height=3)
+
+df$switchfrac <- df$switchcosts / df$exclcosts
+for (year in c(2010, 2050, 2070)) {
+    print(max(df$switchfrac[df$year == year]))
+    print(df$costs[df$switchfrac == max(df$switchfrac[df$year == year])])
+}

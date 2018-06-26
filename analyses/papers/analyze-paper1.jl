@@ -41,4 +41,11 @@ include("runoptisim.jl")
 # CASE III: no canals, no reservoirs
 config["filtercanals"] = "contains";
 config["rescap"] = "zero"; # Optimization without reservoirs
+
+rm("../data/counties/extraction/withdrawals.jld")
+rm("../data/counties/extraction/returns.jld")
+rm("../data/cache/counties/partialhouse.jld")
+rm("../data/cache/counties/partialhouse2.jld")
+
+
 include("runoptisim.jl")

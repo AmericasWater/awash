@@ -7,14 +7,15 @@ library(tmap)      # package for plotting
 library(readxl)    # for reading Excel
 library(tmaptools) 
 data(wrld_simpl)
-result_path = paste0("C:/Users/luc/Desktop/awash/analyses/climatevariability/", "paleo_10yrs_12months/")
+result_path = paste0("C:/Users/luc/Desktop/awash/analyses/climatevariability/", "analyzereservoir_60yrs_12months/")
 setwd(result_path)
 
 
-start_year=2001
-end_year=2010
+start_year=1950
+end_year=2009
+tstep_py=1
 nyears=end_year-start_year+1
-time_ind0 <- 1:nyears
+time_ind0 <- (1:nyears)*tstep_py
 dir.create('plots', showWarnings=F)
 # - county fips, state fips, region indexes
 mastercounties <- read.csv("../../../data/global/counties.csv")
@@ -42,9 +43,7 @@ resdf <- read.csv("../../../data/counties/reservoirs/allreservoirs.csv")
 captures <- as.matrix(read.csv("captures.csv", header = F)) # reservoir level
 storage <- as.matrix(read.csv("storage.csv", header = F)) # reservoir level
 smax <- matrix(as.matrix(read.csv("storagecapmax.csv", header = F)), nrow = dim(captures)[1], ncol = dim(captures)[2])#*(1-0.05)^12
-captures <- captures[-AL_Idx,]
-storage <- storage[-AL_Idx,]
-smax <- smax[-AL_Idx,]
+
 
 failuresin <- read.csv("failuresin.csv", header = F)
 failurecon <- read.csv("failurecon.csv", header = F)
@@ -66,12 +65,6 @@ mpctcap <- 100*rowMeans(propcapture)
 
 
 resdf$state=state_ind[match(resdf$fips, fips[1:3109])]
-
-resdf_NY=resdf[resdf$state=='NY',]
-
-
-
-
 
 # Reservoir maps
 map <- map_data("usa")
@@ -98,7 +91,7 @@ p <- ggplot()+
 
 png(paste0('plots/sd_capture_map.png'), height = 800, width = 1200)
 p1 <- p +
-   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(sd_cap)), size=1)+
+   geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(sd_cap)), size=2)+
    scale_colour_gradient(low='blue', high='red')+
    ggtitle('Log1p of the standard deviation of captures across years')+
    theme_bw()
@@ -107,7 +100,7 @@ dev.off()
 
 png(paste0('plots/max_capture_map.png'), height = 800, width = 1200)
 p1 <- p +
-  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_capture)), size=1)+
+  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_capture)), size=2)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of the maximum capture across years')+
   theme_bw()
@@ -116,44 +109,46 @@ dev.off()
 
 png(paste0('plots/max_release_map.png'), height = 800, width = 1200)
 p1 <- p +
-  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_release)), size=1)+
+  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(max_release)), size=2)+
   scale_colour_gradient(low='blue', high='red')+
   ggtitle('Log1p of the maximum release across years')+
   theme_bw()
 p1
 dev.off()
 
-which(apply(capture, MARGIN=2, FUN = sum)==max(apply(capture, MARGIN=2, FUN = sum)))
-which(apply(release, MARGIN=2, FUN = sum)==min(apply(release, MARGIN=2, FUN = sum)))
-resdf$capture2006=capture[,7]
-resdf$release2009=capture[,10]
+Idx1=which(apply(capture, MARGIN=2, FUN = sum)==max(apply(capture, MARGIN=2, FUN = sum)))
+Idx2=which(apply(release, MARGIN=2, FUN = sum)==min(apply(release, MARGIN=2, FUN = sum)))
+Idx3=which(apply(abs(captures), MARGIN=2, FUN = sum)==max(apply(abs(captures), MARGIN=2, FUN = sum)))
+resdf$capturemax=capture[,Idx1]
+resdf$releasemax=capture[,Idx2]
+resdf$capturesmax=captures[,Idx3]
 
-png(paste0('plots/capture2006_map.png'), height = 800, width = 1200)
+png(paste0('plots/capturemax_map.png'), height = 800, width = 1200)
 p1 <- p +
-  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(capture2006)), size=1)+
+  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(capturemax)), size=2)+
   scale_colour_gradient(low='blue', high='red')+
-  ggtitle('Log1p of 2006 captures')+
+  ggtitle(paste0('Log1p of captures in ', start_year+Idx1, ', year with largest captures'))+
   theme_bw()
 p1
 dev.off()
 
-png(paste0('plots/release2009_map.png'), height = 800, width = 1200)
+png(paste0('plots/releasemax_map.png'), height = 800, width = 1200)
 p1 <- p +
-  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(release2009)), size=1)+
+  geom_point(data=resdf, aes(x=lon, y=lat, colour = log1p(releasemax)), size=2)+
   scale_colour_gradient(low='blue', high='red')+
-  ggtitle('Log1p of 2009 releases')+
+  ggtitle(paste0('Log1p of releases in ', start_year+Idx2, ', year with largest releases'))+
   theme_bw()
 p1
 dev.off()
 
 
 ## Analyses of reservoirs with highest variance across years
-nres=9
+nres=10
 IdX=order(resdf$sd_cap, decreasing = T)[1:nres]
 df_nres <- resdf[IdX, ]
 
 # Map
-png(paste0('plots/release2009_map.png'), height = 800, width = 1200)
+png(paste0('plots/variancemax10_map.png'), height = 800, width = 1200)
 p1 <- ggplot()+
   geom_polygon(data=map, aes(x=long, y=lat, group = group),colour="black", fill="white") + 
   geom_point(data=df_nres, aes(x=lon, y=lat, size=sd_cap), colour='red')+
@@ -168,9 +163,9 @@ capture_nres <- t(capture[IdX, ])
 release_nres <- t(release[IdX, ])
 
 colnames(captures_nres)=colnames(capture_nres)=colnames(release_nres)=paste0('dam_',df_nres$colid)
-rownames(captures_nres)=rownames(capture_nres)=rownames(release_nres)=start_year:end_year
+rownames(captures_nres)=rownames(capture_nres)=rownames(release_nres)=time_ind0
 
-df_nres2 <- data.frame(Year=rep(c(start_year:end_year), nres), captures=as.vector(captures_nres),
+df_nres2 <- data.frame(Year=rep(c(1:nyears), nres), captures=as.vector(captures_nres),
                        capture = as.vector(capture_nres), release=as.vector(release_nres),
                        name=rep(colnames(captures_nres), each=nyears))
 
@@ -237,7 +232,8 @@ dev.off()
 
 # Evolution of number of "inactive" reservoirs
 regions=region_ind[match(resdf$fips, fips[1:3109])]
-df1<-data.frame(Year=rep(c(start_year:end_year), each=nrow(resdf)), 
+
+df1<-data.frame(Time=time_ind0, 
                 inact0=as.vector((abs(captures) < 1000)),
                 inact1=as.vector((abs(captures) < 1e-1)),
                 inact2=as.vector((abs(captures) < 1e-2)), 
@@ -246,11 +242,11 @@ df1<-data.frame(Year=rep(c(start_year:end_year), each=nrow(resdf)),
                 region=rep(regions, nyears))
 
 df1 %>% 
-  group_by(Year, region) %>% 
+  group_by(Time, region) %>% 
   summarise(inact0 = sum(inact0), inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df2
 
 df1 %>% 
-  group_by(Year) %>% 
+  group_by(Time) %>% 
   summarise(inact0 = sum(inact0), inact1 = sum(inact1), inact2 = sum(inact2), inact3 = sum(inact3)) ->df3
 
 df2$inact0_prop=df2$inact0/as.vector(rep(table(regions), 10))
@@ -260,50 +256,64 @@ df2$inact3_prop=df2$inact3/as.vector(rep(table(regions), 10))
 
 
 png(paste0('plots/ev_reservoirs_less10e6.png'), height = 800, width = 1200)
-p <- ggplot(data=df2, aes(x=Year, colour=region))+
+p <- ggplot(data=df2, aes(x=Time, colour=region))+
   geom_point(aes(y=inact1_prop))+
   theme_bw()+
-  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10^6 m3')+
-  scale_x_continuous(breaks=c(start_year:end_year))
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10^6 m3')
+  #scale_x_continuous(breaks=c(start_year:end_year))
 p
 dev.off()
 
 png(paste0('plots/ev_reservoirs_less100.png'), height = 800, width = 1200)
-p <- ggplot(data=df2, aes(x=Year, colour=region))+
+p <- ggplot(data=df2, aes(x=Time, colour=region))+
   geom_point(aes(y=inact1_prop))+
   theme_bw()+
-  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 100 m3')+
-  scale_x_continuous(breaks=c(start_year:end_year))
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 100 m3')
+  #scale_x_continuous(breaks=c(Time))
 p
 dev.off()
 
 png(paste0('plots/ev_reservoirs_less10.png'), height = 800, width = 1200)
-p <- ggplot(data=df2, aes(x=Year, colour=region))+
+p <- ggplot(data=df2, aes(x=Time, colour=region))+
   geom_point(aes(y=inact2_prop))+
   theme_bw()+
-  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10 m3')+
-  scale_x_continuous(breaks=c(start_year:end_year))
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 10 m3')
+  #scale_x_continuous(breaks=c(start_year:end_year))
 p
 dev.off()
 
 png(paste0('plots/ev_reservoirs_less1.png'), height = 800, width = 1200)
-p <- ggplot(data=df2, aes(x=Year, colour=region))+
+p <- ggplot(data=df2, aes(x=Time, colour=region))+
   geom_point(aes(y=inact3_prop))+
   theme_bw()+
-  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 1 m3')+
-  scale_x_continuous(breaks=c(start_year:end_year))
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases of less than 1 m3')
+  #scale_x_continuous(breaks=c(start_year:end_year))
+p
+dev.off()
+n_res=nrow(resdf)
+
+png(paste0('plots/ev_reservoirs_less.png'), height = 800, width = 1200)
+p <- ggplot(data=df3, aes(x=Time))+
+  geom_line(aes(y=inact0/n_res))+
+  geom_line(aes(y=inact1/n_res), color='lightsalmon')+
+  geom_line(aes(y=inact2/n_res), color='cyan3')+
+  geom_line(aes(y=inact3/n_res), color='darkgreen')+
+  theme_bw()+
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases inferior to given threhsolds')
+  #scale_x_continuous(breaks=c(start_year:end_year))
 p
 dev.off()
 
+
+df33=data.frame(inact=c(df3$inact0, df3$inact1, df3$inact2, df3$inact3), Time=rep(df3$Time, times=4), 
+                threshold=c(rep(1e6, length(time_ind0)),rep(1e3, length(time_ind0)),rep(1e2, length(time_ind0)),
+                            rep(1e1, length(time_ind0))))
+
 png(paste0('plots/ev_reservoirs_less.png'), height = 800, width = 1200)
-p <- ggplot(data=df3, aes(x=Year))+
-  geom_line(aes(y=inact0))+
-  geom_line(aes(y=inact1), color='lightsalmon')+
-  geom_line(aes(y=inact2), color='cyan3')+
-  geom_line(aes(y=inact3), color='darkgreen')+
+p <- ggplot(data=df33, aes(x=Time, y=inact/n_res, color=threshold))+
   theme_bw()+
-  ggtitle('Evolution of the proportion of reservoirs with captures/releases inferior to given threhsolds')+
-  scale_x_continuous(breaks=c(start_year:end_year))
+  ggtitle('Evolution of the proportion of reservoirs with captures/releases inferior to given threhsolds')
+#scale_x_continuous(breaks=c(start_year:end_year))
 p
 dev.off()
 

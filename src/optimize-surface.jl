@@ -32,14 +32,15 @@ summarizeparameters(house, sol.sol)
 #constdf = constraining(house, sol.sol)
 
 # Save the results
-save_optimization_given(house, sol, allowgw=false, allowreservoirs=true)
+save_optimization_given(house, sol, false, allowreservoirs)
+varlens = varlengths(house.model, house.paramcomps, house.parameters)
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)
 
-cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-offset = cwro.f
-offset[isnan.(offset)] = 0
-outflows = offset - values
-outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
-writecsv(datapath("extraction/outflows-bygauge.csv"), outflows)
+#cwro = deserialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "r"));
+#offset = cwro.f
+#offset[isnan.(offset)] = 0
+#outflows = offset - values
+#outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
+#writecsv(datapath("extraction/outflows-bygauge.csv"), outflows)

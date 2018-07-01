@@ -1,6 +1,6 @@
 #cd("../../src")
 include("../../src/nui.jl")
-config = readconfig("../configs/standard-5year.yml");
+config = readconfig("../configs/standard-1yearmonthly.yml");
 savingresultspath = "../analyses/papers/paper1/"
 
 
@@ -10,6 +10,8 @@ config["proportionnaturalflowforenvironment"] = flowprop[3];
 surfconj = "surface";
 savedem = true;
 evalsim = false;
+starty = 1;
+endy = 60;
 
 if isfile("../data/counties/extraction/withdrawals.jld")
     rm("../data/counties/extraction/withdrawals.jld")

@@ -32,6 +32,11 @@ if get(config, "dataset", "counties") == "paleo"
 else
     precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
     recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numscenarios, numsteps])*100; # 1000m3 / timestep
+    precip[find(masterregions[:fips] .== "25019"),:] = zeros(numsteps) # set to 0 for Nantucket, MA
+    recharge[find(masterregions[:fips] .== "25019"),:] = zeros(numsteps)
+    precip[find(masterregions[:fips] .== "53055"),:] = zeros(numsteps) # set to 0 for San Juan, WA
+    recharge[find(masterregions[:fips] .== "53055"),:] = zeros(numsteps)
+
 end
 
 # Load data from the water budget

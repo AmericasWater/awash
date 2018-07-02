@@ -25,6 +25,8 @@ library(maps)
 
 decreases <- read.csv("decreases.csv")
 
+##decreases <- decreases[-which(decreases$maxcap == max(decreases$maxcap)),]
+
 pdf("decreases.pdf", width=8, height=5)
 par(mar=rep(0, 4))
 map("state")

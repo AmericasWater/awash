@@ -8,16 +8,17 @@ library(ggplot2)
 suffix <- "-37.0"
 
 captures <- read.csv(paste0("captures-monthly", suffix, ".csv"))
+captures <- captures[-which(captures$maxcap == max(captures$maxcap)),]
 
 pdf(paste0("captures-monthly", suffix, ".pdf"), width=8, height=5)
 par(mar=rep(0, 4))
 map("state")
 drawNetwork(network, col="#00008040")
 points(captures$lon, captures$lat, cex=sqrt(captures$maxcap / 1e10))
-points(captures$lon, captures$lat, cex=sqrt(1000 * captures$capmaxs / 1e10), col='red')
-points(captures$lon, captures$lat, cex=sqrt(1000 * captures$capmaxs / 1e10), pch=16, col='red')
+points(captures$lon, captures$lat, cex=sqrt(1000 * captures$capmaxs / 1e10), col='green')
+points(captures$lon, captures$lat, cex=sqrt(1000 * captures$capmaxs / 1e10), pch=16, col='green')
 points(captures$lon[captures$capmaxs > 0], captures$lat[captures$capmaxs > 0], cex=1 + sqrt(captures$maxcap[captures$capmaxs > 0] / 1e10), col='#008000')
-points(captures$lon[captures$capmaxs > 0], captures$lat[captures$capmaxs > 0], cex=1.2 + sqrt(captures$maxcap[captures$capmaxs > 0] / 1e10), col='#008000')
+points(captures$lon[captures$capmaxs > 0], captures$lat[captures$capmaxs > 0], cex=1 + sqrt(captures$maxcap[captures$capmaxs > 0] / 1e10), col='red')
 dev.off()
 
 ggplot(captures, aes(1000 * capmaxs / maxcap)) +
@@ -53,8 +54,13 @@ source("~/projects/research-common/R/ggmap.R")
 usgsdata <- read.csv("../../data/counties/extraction/USGS-2010.csv")
 
 gg.usmap(usgsdata$TO_GW * 1383, usgsdata$FIPS) + scale_fill_gradient(trans="log", name="GW Extracts", breaks=c(10, 100, 1000, 1e4, 1e5, 1e6, 1e7), limits=range(gwextracts$maxsums[gwextracts$maxsums > 0]))
+ggsave("gw-baseline.pdf", height=4, width=8)
 
 gg.usmap(gwextracts$maxsums, gwextracts$fips) + scale_fill_gradient(trans="log", name="GW Extracts", breaks=c(10, 100, 1000, 1e4, 1e5, 1e6, 1e7))
+ggsave("gw-nores.pdf", height=4, width=8)
+
+gg.usmap(gwextracts$maxsums_res, gwextracts$fips) + scale_fill_gradient(trans="log", name="GW Extracts", breaks=c(10, 100, 1000, 1e4, 1e5, 1e6, 1e7))
+ggsave("gw-withres.pdf", height=4, width=8)
 
 plotsmd1 <- log(gwextracts$summaxdiff)
 plotsmd1[is.nan(plotsmd1) | !is.finite(plotsmd1)] <- 0

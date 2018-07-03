@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/waterstressindex")
+setwd("~/research/awash/analyses/waterstressindex")
 
 library(ncdf4)
 library(dplyr)
@@ -26,16 +26,24 @@ for (ii in 1:nrow(df)) {
 df$swdemand <- df$TO_SW * 1383
 df$demand <- df$TO_To * 1383
 
-df$minflow <- apply(totalflow, 2, min)
-df$minflow[df$minflow == 0] <- NA
-
-envpossible <- 1 - df$swdemand / df$minflow
-envpossible[envpossible < 0] <- 0
-
+df$envpossible <- NA
+df$envpossible.worst <- NA
+for (ii in 1:nrow(df)) {
+    envpossible <- 1 - df$swdemand[ii] / totalflow[, ii]
+    envpossible[envpossible < 0] <- 0
+    df$envpossible[ii] <- mean(envpossible)
+    df$envpossible.worst[ii] <- min(envpossible)
+}
+    
 source("~/projects/research-common/R/ggmap.R")
 
-gg.usmap(envpossible, df$FIPS) +
-    scale_fill_gradient2(name="Minimum\nEnv. Flow\nRemaining", low="#d7191c", mid="#ffffbf", high="#2c7bb6", midpoint=.5, labels = scales::percent) + coord_map("albers", lat0=39, lat1=45) +
+gg.usmap(df$envpossible, df$FIPS) +
+    scale_fill_gradient2(name="Maximum\nSupportable\nEnv. Flow", low="#d7191c", mid="#ffffbf", high="#2c7bb6", midpoint=.5, labels = scales::percent) + coord_map("albers", lat0=39, lat1=45) +
 theme(legend.justification=c(1,0), legend.position=c(1,0))
-ggsave("vsenv-local.pdf", width=7, height=4)
+ggsave("vsenv-local-mean.pdf", width=7, height=4)
+
+gg.usmap(df$envpossible.worst, df$FIPS) +
+    scale_fill_gradient2(name="Maximum\nSupportable\nEnv. Flow", low="#d7191c", mid="#ffffbf", high="#2c7bb6", midpoint=.5, labels = scales::percent) + coord_map("albers", lat0=39, lat1=45) +
+theme(legend.justification=c(1,0), legend.position=c(1,0))
+ggsave("vsenv-local-min.pdf", width=7, height=4)
 

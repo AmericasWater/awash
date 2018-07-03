@@ -4,8 +4,10 @@
 
 using Mimi
 using Graphs
-using DataFrames
+using DataFrames, DataArrays
 using RData
+
+include("lib/waternet.jl")
 
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}

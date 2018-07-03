@@ -28,6 +28,7 @@ for (gauge in unique(df$gauge)) {
 df$observed <- df$observed * 60 * 60 * 24 * 365 / 1000
 df$modified <- df$flows_nw - df$flows_nrnr > mean(df$flows_nw - df$flows_nrnr)
 
+ava0 <- df$observed > 0 & df$flows_nw > 0 & df$flows_nrnr > 1e-3 & df$flows_rfnr > 1e-3 & df$flows_rfwr > 1e-3
 ava <- df$observed > 0 & df$flows_nw > 0 & df$flows_nrnr > 1e-3 & df$flows_rfnr > 1e-3 & df$flows_rfwr > 1e-3 & df$modified
 
 library(ggplot2)
@@ -51,17 +52,24 @@ ggplot(subset(df, ava), aes(flows_nw / observed)) +
     geom_density() + scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6)) +
     theme_minimal() + xlab("Ratio of simulated to observed")
 
+mm.nw <- format(median(df$flows_nw[ava] / df$observed[ava], na.rm=T), digits=3)
+mm.nrnr <- format(median(df$flows_nrnr[ava] / df$observed[ava], na.rm=T), digits=3)
+mm.rfnr <- format(median(df$flows_rfnr[ava] / df$observed[ava], na.rm=T), digits=3)
+mm.rfwr <- format(median(df$flows_rfwr[ava] / df$observed[ava], na.rm=T), digits=3)
 
+df$modified.label <- "Large Modified Flows"
+df$modified.label[!df$modified] <- "Small Modified Flows"
 
-ggplot(subset(df, ava)) +
+ggplot(subset(df, ava0)) +
+    facet_grid(modified.label ~ .) +
     geom_density(aes(flows_nw / observed, colour='a')) +
     geom_density(aes(flows_nrnr / observed, colour='b')) +
     geom_density(aes(flows_rfnr / observed, colour='c')) +
     geom_density(aes(flows_rfwr / observed, colour='d')) +
     scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
-    scale_colour_discrete(name="Simulation\nAssumption", breaks=c('a', 'b', 'c', 'd'), labels=c("Natural flows", "Withdrawals only", "Withdrawals & Returns", "Withdrawals, Returns, & Reservoirs")) +
+    scale_colour_discrete(name="Simulation\nAssumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0("Withdrawals only (MM: ", mm.nrnr, ")"), paste0("Withdrawals & Returns (MM: ", mm.rfnr, ")"), paste0("Withdrawals, Returns, & Reservoirs (MM: ", mm.rfwr, ")"))) +
     theme_minimal() + xlab("Ratio of simulated to observed")
-
+ggsave("compare.pdf", width=8, height=5)
 
 
 ggplot(subset(df, ava), aes(observed, flows_nw)) +

@@ -1,8 +1,10 @@
+## Inspection tool
+#
 # List every parameter and its options for being set
-## Possible options:
-## initialized constant (later: possible sources)
-## default connection (later: possible connections)
-## optimization constraint (later: possible optimizations)
+# Possible options:
+#   initialized constant (later: possible sources)
+#   default connection (later: possible connections)
+#   optimization constraint (later: possible optimizations)
 
 include("lib/readconfig.jl")
 config = readconfig("../configs/standard.yml")
@@ -13,8 +15,8 @@ using DataFrames
 using StatsBase
 import Mimi: CertainScalarParameter, UncertainScalarParameter
 
-paramcomps = [:Allocation, :Allocation, :Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
-parameters = [:waterfromsupersource, :waterfromgw, :withdrawals, :returns, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+paramcomps = [:Allocation, :Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
+parameters = [:waterfromsupersource, :waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 ## Constraint definitions:

@@ -1,5 +1,9 @@
+## Combined Agriculture Component
+#
+# Combines the water demands, land use, and production from the
+# irrigated, univariate, and other (unmodeled) crops.
+
 using DataFrames
-using CSV
 using Mimi
 
 include("lib/agriculture.jl")
@@ -37,7 +41,7 @@ function run_timestep(s::Agriculture, tt::Int)
     d = s.Dimensions
 
     for rr in d.regions
-        v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt]
+        v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
         v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
@@ -66,7 +70,7 @@ function initagriculture(m::Model)
     othercropirrigation[knownareas[:total] .== 0] = 0
     agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
 
-    for crop in Task(missingcrops)
+    for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
         agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
         agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
@@ -152,7 +156,7 @@ end
 
 
 function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
-    sorghum=CSV.read(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
     sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]
     hallsingle(m, :Agriculture, :sorghumarea,gen)

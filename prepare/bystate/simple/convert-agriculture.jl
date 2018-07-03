@@ -26,6 +26,37 @@ end
 
 converttable("agriculture/allyears/Master_Spreadsheet_All.csv", config, translate)
 
+## ERS data
+config = Dict{Symbol, Any}()
+config[:source] = "counties"
+config[:sourceid] = :FIPS
+config[:target] = "states"
+config[:targetid] = :ST
+config[:masterfile] = "data/global/counties.csv"
+config[:mastersourceid] = :fips
+config[:mastertargetid] = :state
+config[:forcematching] = false
+
+function translate(column, values)
+    if column == :FIPS
+        nothing
+    else
+        maxcount = 0
+        maxvalue = "NA"
+        for value in unique(values)
+            count = sum(values .== value)
+            if count > maxcount
+                maxcount = count
+                maxvalue = value
+            end
+        end
+
+        maxvalue
+    end
+end
+
+converttable("agriculture/ers/reglink.csv", config, translate)
+
 ## Model coefficients
 config = Dict{Symbol, Any}()
 config[:source] = "counties"

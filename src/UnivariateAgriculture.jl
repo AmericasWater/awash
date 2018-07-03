@@ -1,4 +1,8 @@
-using CSV
+## Irrigation-invariate Agriculture Component
+#
+# Calculates the water demands for agriculture where irrigation demand
+# is a constant function of area.
+
 using DataFrames
 using Mimi
 
@@ -87,8 +91,8 @@ function initunivariateagriculture(m::Model)
         end
 
         # Load degree day data
-        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
-        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
+        gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
+        kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
@@ -102,12 +106,12 @@ function initunivariateagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
-                        if ismissing.(numgdds)
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, Symbol("x$year")]
-                        if ismissing.(numkdds)
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -143,7 +147,7 @@ function initunivariateagriculture(m::Model)
             else
                 column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[ismissing(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                constantareas[isna.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end
         end
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
@@ -169,11 +173,11 @@ function getunivariateirrigationrates(crop::AbstractString)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.external_parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
-    function generate(A)
+    function generate(A, tt)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
@@ -182,7 +186,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
 
         return A
     end
-    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate, [:time], [:time])
+    roomintersect(m, :UnivariateAgriculture, :totalirrigation, :totalareas, generate)
 end
 
 function grad_univariateagriculture_cost_totalareas(m::Model)

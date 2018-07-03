@@ -1,10 +1,14 @@
+## Agricultural data library
+#
+# Provides functions and data for crops.
 using CSV, DataFrames, Missings
+
 include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
 unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
-                                "corn.co.rainfed"=>0,"corn.co.irrigated"=>73.1,
-                                "wheat.co.rainfed" => 0,"wheat.co.irrigated"=>7.4,
+                                "corn.co.rainfed" => 0,"corn.co.irrigated"=>73.1,
+                                "wheat.co.rainfed" => 0, "wheat.co.irrigated"=>7.4,
                                 "sorghum" => 19.2 / 1.1364914374721, "soybeans" => 0.,#"sorghum" => 0., "soybeans" => 0.,
                                 "wheat" => 7.4, "hay" => 10.) # (mm/year) / m-deficiency
 
@@ -55,7 +59,7 @@ maximum_yields = Dict("alfalfa" => 25., "otherhay" => 25., "Hay" => 4., "hay" =>
                       "corn.co.rainfed" => 160,  "corn.co.irrigated" => 160,
                       "Sorghum" => 50., "sorghum" => 50.,
                       "Soybeans" => 20., "soybeans" => 20.,
-                      "Wheat" => 100., "Wheat.Winter" => 100.,
+                      "Wheat" => 100., "Wheat.Winter" => 100., "wheat" => 100.,
                       "wheat.co.rainfed" => 100,  "wheat.co.irrigated" => 100)
 
 crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
@@ -116,9 +120,9 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    if ismissing.(sdev1) || isnan.(sdev1)
+    if isna.(sdev1) || isnan.(sdev1)
         mean2, sdev2
-    elseif ismissing.(sdev2) || isnan.(sdev2)
+    elseif isna.(sdev2) || isnan.(sdev2)
         mean1, sdev1
     else
         (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
@@ -126,7 +130,7 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
-    if ismissing.(mean1)
+    if isna.(mean1)
         meanfallback, sdevfallback
     else
         mean1, sdev1
@@ -135,16 +139,16 @@ end
 
 function findcroppath(prefix, crop, suffix, recurse=true)
     println(prefix * crop * suffix)
-    if isfile(datapath(prefix * crop * suffix))
-        return datapath(prefix * crop * suffix)
+    if isfile(loadpath(prefix * crop * suffix))
+        return loadpath(prefix * crop * suffix)
     end
 
-    if isupper(crop[1]) && isfile(datapath(prefix * lcfirst(crop) * suffix))
-        return datapath(prefix * lcfirst(crop) * suffix)
+    if isupper(crop[1]) && isfile(loadpath(prefix * lcfirst(crop) * suffix))
+        return loadpath(prefix * lcfirst(crop) * suffix)
     end
 
-    if islower(crop[1]) && isfile(datapath(prefix * ucfirst(crop) * suffix))
-        return datapath(prefix * ucfirst(crop) * suffix)
+    if islower(crop[1]) && isfile(loadpath(prefix * ucfirst(crop) * suffix))
+        return loadpath(prefix * ucfirst(crop) * suffix)
     end
 
     if !recurse
@@ -171,7 +175,7 @@ if isfile(cachepath("agmodels.jld")) ## this might cause issues when juggling be
 else
     # Prepare all the agricultural models
     agmodels = Dict{String, Dict{String, StatisticalAgricultureModel}}() # {crop: {fips: model}}
-    nationals = CSV.read(joinpath(datapath("agriculture/nationals.csv")))
+    nationals = readtable(joinpath(loadpath("agriculture/nationals.csv")))
     nationalcrop = Dict{String, String}("barley" => "Barley", "corn" => "Maize",
                                         "sorghum" => "Sorghum", "soybeans" => "Soybeans",
                                         "wheat" => "Wheat", "hay" => "alfalfa")
@@ -184,14 +188,14 @@ else
         national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
         bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
         if bayespath != nothing
-            counties = CSV.read(bayespath)
+            counties = readtable(bayespath)
             combiner = fallbackpool
         else
             croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
             if croppath == nothing
                 continue
             end
-            counties = CSV.read(croppath)
+            counties = readtable(croppath)
             combiner = gaussianpool
         end
 
@@ -227,7 +231,7 @@ uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barle
 """
 Determine which crops are not represented
 """
-function missingcrops()
+function missingcrops(c::Channel)
     for crop in alluniquecrops
         found = false
         if crop in allcrops
@@ -242,7 +246,7 @@ function missingcrops()
         end
 
         if !found
-            produce(crop)
+            put!(c, crop)
         end
     end
 end
@@ -251,7 +255,7 @@ end
 Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
-    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
     df[:, crop] * 0.404686
 end
 
@@ -259,7 +263,7 @@ end
 Return the current irrigation for the given crop, in mm
 """
 function cropirrigationrates(crop::AbstractString)
-    df = getfilteredtable(datapath("agriculture/totalareas.csv"))
+    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
     getunivariateirrigationrates(crop)
 end
 
@@ -269,25 +273,25 @@ Read Naresh's special yield file format
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
-        df = CSV.read(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
-        bayespath = datapath("agriculture/bayesian/Corn.csv")
+        bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
-        df = CSV.read(datapath("colorado/blended_predicted_corn.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
-        bayespath = datapath("agriculture/bayesian/Corn.csv")
+        bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
-        df = CSV.read(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[1:61,:]
-        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+        bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
-        df = CSV.read(datapath("colorado/blended_predicted_wheat.txt"), separator=' ')
+        df = readtable(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
         fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
         yields = df[62:122,:]
-        bayespath = datapath("agriculture/bayesian/Wheat.csv")
+        bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     end
 
     # Get the order into our fips
@@ -295,7 +299,7 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
 
     if use2010yields
         # Collect coefficients to remove the trend
-        coefficients = CSV.read(bayespath)
+        coefficients = readtable(bayespath)
         timecoeffs = coefficients[coefficients[:coef] .== "time", :]
 
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
@@ -319,8 +323,8 @@ end
 Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
-    df = CSV.read(filepath)
-    df[:fips] = [ismissing.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df = readtable(filepath)
+    df[:fips] = [isna.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 
     # Reorder these values to match regions
@@ -334,7 +338,7 @@ end
 """
 Collect all crop info from one of the dictionaries, aware of name changes
 """
-function crop_information(crops::Vector{Any}, dict, default; warnonmiss=false)
+function crop_information(crops::Union{Vector{Any}, Vector{String}}, dict, default; warnonmiss=false)
     [crop_information(crop, dict, default, warnonmiss=warnonmiss) for crop in crops]
 end
 

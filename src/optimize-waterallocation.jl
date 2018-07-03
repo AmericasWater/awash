@@ -1,3 +1,8 @@
+## Perform Optimization with known demands
+#
+# Optimize a model from `optimization-given` with both surface and
+# groundwater.
+
 #### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
 
 include("lib/readconfig.jl")
@@ -5,7 +10,12 @@ if !isdefined(:config)
     config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 end
 
-withreservoirs = false
+if "rescap" in keys(config) && config["rescap"] == "zero"
+	withreservoirs = false
+else
+	withreservoirs = true
+end
+
 
 # Run the water demand simulation to determine values
 include("model-waterdemand.jl")
@@ -35,17 +45,7 @@ summarizeparameters(house, sol.sol)
 #constraining(house, sol.sol)
 
 # Save the results
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
-
-serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
-
-if withreservoirs
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
-elseif isfile(datapath("extraction/captures$suffix.jld"))
-    rm(datapath("extraction/captures$suffix.jld"))
-end
+save_optimization_given(house, sol, allowgw=true, allowreservoirs=withreservoirs)
 
 analysis = nothing
 

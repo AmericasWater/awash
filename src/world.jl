@@ -1,20 +1,21 @@
+## Environment setup
+#
+# Load the necessary information into the global environment for
+# creating simulation and optimization models.
+
 include("world-minimal.jl")
 include("regionnet.jl")
-include("waternet.jl")
+include("initwaternet.jl")
 
 # Prepare the model
 
 if config["filterstate"] == "08"
     unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # UnivariateAgriculture component crops
-    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    irrcrops = String[] # Full Agriculture component, with rainfed/irrigated choice
     #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
-elseif config["filterstate"]=="08"
-    unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # "corn", "wheat" # UnivariateAgriculture component crops
-    irrcrops = [] 
-    
 else
     unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
-    irrcrops = [] # Full Agriculture component, with rainfed/irrigated choice
+    irrcrops = String[] # Full Agriculture component, with rainfed/irrigated choice
     #irrcrops = ["alfalfa", "otherhay", "Barley", "Barley.Winter", "Maize", "Sorghum", "Soybeans", "Wheat", "Wheat.Winter"]
 end
 
@@ -30,11 +31,13 @@ numedges = num_edges(regionnet)
 numgauges = length(keys(wateridverts)) # Ordering is by the values of vertex_index
 if config["dataset"] == "three"
     numsteps = 3
-else
+elseif "endmonth" in keys(config) && "startmonth" in keys(config)
     numsteps = round.(Int64, (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"])
     if (parsemonth(config["endmonth"]) - parsemonth(config["startmonth"]) + 1) / config["timestep"] != numsteps
         println("Configuration does not describe an integer number of timesteps")
     end
+else
+    numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
 numunicrops = length(unicrops)

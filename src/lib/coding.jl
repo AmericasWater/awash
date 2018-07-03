@@ -1,8 +1,13 @@
+## Reproducability library
+#
+# Functions to make AWASH code consistent, even as underlying
+# libraries change.
+
 """
 Read a CSV file, with some type management.
 nullallow has the same number of elements as types.
   nullallow[ii] may be nothing, in which case nulls produce an error
-  nullallow[ii] may be NA, in which case nulls are allowed
+  nullallow[ii] may be missing, in which case nulls are allowed
   nullallow[ii] may be a value, in which case nulls are replaced with the value.
 """
 function robustcsvread(filepath::String, types::Vector{DataType}, null::String, nullallow::Vector{Any})
@@ -31,4 +36,3 @@ end
 function dropmissing(df::DataFrame, column::Symbol)
     df[.!df[column].isnull,:]
 end
-

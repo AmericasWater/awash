@@ -4,12 +4,12 @@ irrigateds = readtable("../../data/counties/agriculture/irrigatedareas.csv")
 rainfeds = readtable("../../data/counties/agriculture/rainfedareas.csv")
 
 alltotals = DataFrame(FIPS=irrigateds[:FIPS])
-mapping = Dict{Symbol, Vector{Symbol}}(:barley => [:Barley, :Barley_Winter],
+mapping = Dict{Symbol, Vector{Symbol}}(:barley => [:Barley, :Barley_Winter], :rice => [:Rice],
                                                        :corn => [:Maize], :sorghum => [:Sorghum],
-                                                       :soybeans => [:Soybean],
+                                                       :soybeans => [:Soybean], :cotton => [:Cotton],
                                                        :wheat => [:Wheat, :Wheat_Winter],
                                                        :hay => [:Alfalfa, :Otherhay])
-for crop in [:barley, :corn, :sorghum, :soybeans, :wheat, :hay]
+for crop in [:barley, :corn, :cotton, :rice, :sorghum, :soybeans, :wheat, :hay]
     totals = zeros(nrow(irrigateds))
     for irrcrop in mapping[crop]
         thisirrigateds = irrigateds[irrcrop]

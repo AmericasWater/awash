@@ -1,4 +1,8 @@
-using CSV, YAML
+## Configuration Interpretation library
+#
+# Functions to read and interpret configuration files.
+
+using YAML
 
 function readconfig(ymlpath)
     if ymlpath[1:11] == "../configs/"
@@ -6,18 +10,43 @@ function readconfig(ymlpath)
     end
 
     config = YAML.load(open(ymlpath))
+    dataset = readdatasetconfig(config["dataset"])
 
-    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
-
-    for key in keys(dataset)
-        if !in(key, keys(config))
-            config[key] = dataset[key]
-        end
-    end
+    config = mergeconfigs(dataset, config)
 
     config["indexcols"] = map(Symbol, config["indexcols"])
 
     config
+end
+
+"""
+Read dataset configuration
+"""
+function readdatasetconfig(dataset)
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * dataset * "/dataset.yml")))
+    if "parent-dataset" in keys(dataset)
+        parent = readdatasetconfig(dataset["parent-dataset"])
+
+        return mergeconfigs(parent, dataset)
+    else
+        return dataset
+    end
+end
+
+"""
+Universal logic for merging config files
+"""
+function mergeconfigs(parent, child)
+    for key in keys(parent)
+        if !in(key, keys(child))
+            child[key] = parent[key]
+        else
+            if isa(parent[key], Dict) && isa(child[key], Dict)
+                child[key] = mergeconfigs(parent[key], child[key])
+            end
+        end
+    end
+    return child
 end
 
 function emptyconfig()
@@ -89,7 +118,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
         column = Symbol(get(config, "$name-column", defcol))
         transform = configtransforms[get(config, "$name-transform", "identity")]
 
-        data = CSV.read(path)
+        data = readtable(path)
         if nrow(data) == length(getindices(defindex))
             # We can use these values directly
             indices = getindices(defindex)
@@ -99,14 +128,14 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 indexcol = Symbol(config["$name-index"])
 
                 # Read in the default values
-                values = CSV.read(datapath(defpath))[:, defcol]
+                values = readtable(datapath(defpath))[:, defcol]
                 indices = getindices(defindex, typeof(values[1]))
                 # Fill in the new values where given
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
                     if ii > 0
                         newvalue = transform(data[rr, indexcol], data[rr, column])
-                        if !ismissing.(newvalue)
+                        if !isna.(newvalue)
                             values[ii] = newvalue
                         end
 
@@ -119,6 +148,6 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
             end
         end
     else
-        CSV.read(datapath(defpath))[:, defcol]
+        readtable(datapath(defpath))[:, defcol]
     end
 end

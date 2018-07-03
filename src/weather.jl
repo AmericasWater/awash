@@ -1,6 +1,10 @@
+## Weather information
+#
+# Load the weather data for the given configuration.
+
 # Can only be called after loading regionnet.jl
 
-using CSV, DataFrames
+using DataFrames
 using RData
 include("lib/weather.jl")
 include("lib/coding.jl")
@@ -13,7 +17,7 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = CSV.read(datapath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64], null="NA")
+regions = CSV.read(loadpath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64], null="NA")
 regions[:FIPS] = regionindex(regions, :)
 
 
@@ -23,19 +27,27 @@ regions[Symbol("LandArea-sqmi")] = replacemissing(regions, Symbol("LandArea-sqmi
 countylandareas = reorderfips(regions[:, Symbol("LandArea-sqmi")] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather
-precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
+if get(config, "dataset", "counties") == "paleo"
+    precip = zeros(nrow(masterregions), numsteps)
+    recharge = zeros(nrow(masterregions), numsteps)
+else
+    precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
+    recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numsteps])*100; # 1000m3 / timestep
+    precip[isnan.(precip)] = 0
+    recharge[isnan.(recharge)] = 0
+end
 
 # Load data from the water budget
 
 # Reorder stations to gauge order
 if config["ncregion"] == "county"
-    waternetdata = load(datapath("waternet/waternet.RData"));
+    waternetdata = load(loadpath("waternet/waternet.RData"));
     waternetwork = waternetdata["network"]
     waternetwork[:gaugeid] = map(ii -> "$(waternetwork[ii, :collection]).$(waternetwork[ii, :colid])", 1:size(waternetwork)[1])
     gaugeindices = map(ii -> findfirst(waternetwork[:gaugeid], gaugeorder[ii]), 1:length(gaugeorder))
     waternetwork2 = waternetwork[gaugeindices, :]
 else
-    waternetdata = load(datapath("waternet/waternet-counties.RData"));
+    waternetdata = load(loadpath("waternet/waternet-counties.RData"));
     waternetwork = waternetdata["network"]
     waternetwork[:gaugeid] = map(ii -> "$(waternetwork[ii, :collection]).$(waternetwork[ii, :colid])", 1:size(waternetwork)[1])
 

@@ -1,4 +1,8 @@
-using CSV
+## Large Dataset library, without using NetCDFs
+#
+# Handles large data files what need to be downloaded, which are done
+# in CSV format for computers what do not have NetCDF support.
+
 using DataFrames
 
 """
@@ -34,7 +38,7 @@ function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractStri
     if filepath in keys(currentCSVFiles)
         df = currentCSVFiles[filepath]
     else
-        df = CSV.read(filepath, header=false)
+        df = readtable(filepath, header=false)
         currentCSVFiles[filepath] = df
     end
 

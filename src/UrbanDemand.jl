@@ -1,4 +1,8 @@
-# The urban water demand component - comprising domestic, commerical and public supplied industrial sectors
+## Urban Water Demand Component
+#
+# Comprises domestic, commerical and public supplied industrial
+# sectors.
+
 using Mimi
 using DataFrames
 include("lib/readconfig.jl")

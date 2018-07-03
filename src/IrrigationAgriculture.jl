@@ -1,4 +1,8 @@
-using CSV
+## Irrigation-managed Agriculture Component
+#
+# Calculates the water demands for agriculture where irrigation rates
+# are responsive to precipitation.
+
 using DataFrames
 using Mimi
 
@@ -88,8 +92,8 @@ function initirrigationagriculture(m::Model)
     deficit_coeff = zeros(numcounties, numirrcrops)
     for cc in 1:numirrcrops
         # Load degree day data
-        gdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
-        kdds = CSV.read(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
+        gdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-gdd.csv")))
+        kdds = readtable(joinpath(datapath("agriculture/edds/$(irrcrops[cc])-kdd.csv")))
 
         for rr in 1:numcounties
             if config["dataset"] == "counties"
@@ -103,12 +107,12 @@ function initirrigationagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
-                        if ismissing.(numgdds)
+                        if isna.(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, Symbol("x$year")]
-                        if ismissing.(numkdds)
+                        if isna.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -152,8 +156,8 @@ function initirrigationagriculture(m::Model)
         columns = convert(Vector{Int64}, columns)
         for cc in columns
             # Replace NAs with 0, and convert to float. TODO: improve this
-            rainfeds[ismissing.(rainfeds[cc]), cc] = 0.
-            irrigateds[ismissing.(irrigateds[cc]), cc] = 0.
+            rainfeds[isna.(rainfeds[cc]), cc] = 0.
+            irrigateds[isna.(irrigateds[cc]), cc] = 0.
             # Convert to Ha
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686

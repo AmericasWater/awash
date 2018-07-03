@@ -1,4 +1,8 @@
-using CSV, Gadfly, Shapefile, DataFrames
+## Graphing library, using Julia native packages
+#
+# Provides functions that help with making graphics.
+
+using Gadfly, Shapefile, DataFrames
 
 """
 df must have columns fips and the value column.
@@ -9,9 +13,9 @@ function usmap(df, centered=false)
         read(fd, Shapefile.Handle)
     end
 
-    attrs = CSV.read(datapath("mapping/US_county_2000-simple.csv"))
+    attrs = readtable(datapath("mapping/US_county_2000-simple.csv"))
     attrs[:fips] = attrs[:STATE] * 100 + attrs[:COUNTY] / 10
-    attrs[:fips][ismissing.(attrs[:fips])] = 0
+    attrs[:fips][isna.(attrs[:fips])] = 0
 
     xxs = []
     yys = []

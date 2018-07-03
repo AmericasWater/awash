@@ -1,8 +1,12 @@
+## Minimal Environment Setup
+#
+# Loads basic information all files need to run model functions.
+
 using DataFrames
-using CSV
 include("lib/datastore.jl")
 
 suffix = getsuffix()
+
 
 masterregions = CSV.read(datapath(config["masterregions"]), types=[String, String, String])
 masterregions[:fips] = convert(Vector{String}, masterregions[:fips])

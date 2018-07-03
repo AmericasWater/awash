@@ -1,4 +1,6 @@
-# The population demand component
+## Population Water Demand Component
+#
+# Determines domestic water demands, as a function of the population.
 
 using CSV
 using Mimi
@@ -6,7 +8,7 @@ using DataFrames
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
-populations = CSV.read(datapath("county-pops.csv"), types=[Int64, String, String, Int64, Float64]);
+populations = CSV.read(loadpath("county-pops.csv"), types=[Int64, String, String, Int64, Float64]);
 
 function getpopulation(fips, year)
     if typeof(fips) <: Int
@@ -21,7 +23,25 @@ function getpopulation(fips, year)
     end
 end
 
-configtransforms["repcap"] = (fips, x) -> getpopulation(fips, 2010) * x
+function getpopulation_yeardata(year)
+    populations[populations[:year] .== year, :]
+end
+
+function getpopulation_withinyear(fips, yeardata)
+    if typeof(fips) <: Int
+        pop = yeardata[yeardata[:FIPS] .== fips, :population]
+    else
+        pop = yeardata[yeardata[:FIPS] .== parse(Int64, fips), :population]
+    end
+    if length(pop) != 1
+        NA
+    else
+        pop[1]
+    end
+end
+
+population_2010data = getpopulation_yeardata(2010)
+configtransforms["repcap"] = (fips, x) -> getpopulation_withinyear(fips, population_2010data) * x
 
 @defcomp PopulationDemand begin
     regions = Index()
@@ -73,20 +93,23 @@ function initpopulationdemand(m::Model, years)
     totalpop = 0
     for tt in 1:length(years)
         year = years[tt]
+        population_yeardata = getpopulation_yeardata(year)
+        population_before = getpopulation_yeardata(div(year, 10) * 10)
+        population_after = getpopulation_yeardata((div(year, 10) + 1) * 10)
         for ii in 1:m.indices_counts[:regions]
             fips = m.indices_values[:regions][ii]
-            pop = getpopulation(fips, year)
-            if ismissing.(pop) && mod(year, 10) != 0
+            pop = getpopulation_withinyear(fips, population_yeardata)
+            if isna.(pop) && mod(year, 10) != 0
                 # Estimate from decade
-                pop0 = getpopulation(fips, div(year, 10) * 10)
-                pop1 = getpopulation(fips, (div(year, 10) + 1) * 10)
-                if ismissing.(pop1)
+                pop0 = getpopulation_withinyear(fips, population_before)
+                pop1 = getpopulation_withinyear(fips, population_after)
+                if isna.(pop1)
                     pop = pop0
                 else
                     pop = pop0 * (1 - mod(year, 10) / 10) + pop1 * mod(year, 10) / 10
                 end
             end
-            if ismissing.(pop)
+            if isna.(pop)
                 pop = 0.
             end
             allpops[ii, tt] = pop

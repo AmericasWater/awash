@@ -1,6 +1,7 @@
-# The Water Network component
+## Water Network Component
 #
-# Determines how flows added and removed from the network propogate through.
+# Determines how flows added and removed from the network propogate
+# through.
 
 # Requires `addeds` from weather.jl
 
@@ -16,6 +17,7 @@ using Mimi
 
     inflows = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream outflows
     outflows = Variable(index=[gauges, time], unit="1000 m^3") # inflow + added - removed + returned
+    unmodifieds = Variable(index=[gauges, time], unit="1000 m^3") # Sum of upstream unmodifieds + added
 end
 
 """
@@ -30,12 +32,15 @@ function run_timestep(c::WaterNetwork, tt::Int)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         allflow = 0.
+        unmodified = 0.
         for upstream in out_neighbors(wateridverts[gauge], waternet)
             allflow += v.outflows[vertex_index(upstream, waternet), tt]
+            unmodified += v.unmodifieds[vertex_index(upstream, waternet), tt]
         end
 
         v.inflows[gg, tt] = allflow
         v.outflows[gg, tt] = allflow + p.added[gg, tt] - p.removed[gg, tt] + p.returned[gg, tt]
+        v.unmodifieds[gg, tt] = unmodified + p.added[gg, tt]
     end
 end
 
@@ -55,18 +60,7 @@ Construct a matrix that represents the *immediate* decrease in outflow caused by
 """
 function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
     function generate(A)
-        # Fill in GAUGES x CANALS matrix
-        # First do local withdrawal
-        for pp in 1:nrow(draws)
-            gaugeid = draws[pp, :gaugeid]
-            vertex = get(wateridverts, gaugeid, nothing)
-            if vertex == nothing
-                println("Missing $gaugeid")
-            else
-                gg = vertex_index(vertex)
-                A[gg, pp] = -1.
-            end
-        end
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
@@ -77,29 +71,8 @@ Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A)
-        # Fill in GAUGES x CANALS matrix
-        # First do local withdrawal
-        for pp in 1:nrow(draws)
-            gaugeid = draws[pp, :gaugeid]
-            vertex = get(wateridverts, gaugeid, nothing)
-            if vertex == nothing
-                println("Missing $gaugeid")
-            else
-                gg = vertex_index(vertex)
-                A[gg, pp] = -1.
-            end
-        end
-
-        # Propogate in downstream order
-        for hh in 1:numgauges
-            gg = vertex_index(downstreamorder[hh])
-            println(gg)
-            gauge = downstreamorder[hh].label
-            for upstream in out_neighbors(wateridverts[gauge], waternet)
-                index = vertex_index(upstream, waternet)
-                A[gg, :] += A[index, :]
-            end
-        end
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
+        matrix_downstreamgauges_canals(A)
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
@@ -130,15 +103,13 @@ function constraintoffset_waternetwork_outflows(m::Model)
     # Propogate in downstream order
     for hh in 1:numgauges
         gg = vertex_index(downstreamorder[hh])
-        println(gg)
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :] += b[vertex_index(upstream, waternet), :]
+            b[gg, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :]
         end
     end
 
     function generate(gg, tt)
-        # Determine number of gauges in county
         b[gg, tt]
     end
 

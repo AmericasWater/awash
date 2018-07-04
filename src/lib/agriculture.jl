@@ -1,8 +1,8 @@
 ## Agricultural data library
 #
 # Provides functions and data for crops.
-using CSV, DataFrames, Missings
 
+using DataFrames
 include("agriculture-ers.jl")
 
 ## Univariate crop parametrs
@@ -15,9 +15,11 @@ unicrop_irrigationstress = Dict("barley" => 95.2, "corn" => 73.1,
 unicrop_irrigationrate = Dict("barley" => 315.8, "corn" => 13.0,
                               "sorghum" => 19.2, "soybeans" => 330.2,
                               "wheat" => 21.4, "hay" => 386.1,
-                              "corn.co.rainfed" => 0,"corn.co.irrigated" => 1.6 * 304.8,
-                              "wheat.co.rainfed" => 0,"wheat.co.irrigated" => 1.9 * 304.8
-                              ) # mm/year
+                         "corn.co.rainfed" => 0,"corn.co.irrigated" => 1.6 * 304.8,
+                   "wheat.co.rainfed" => 0,"wheat.co.irrigated" => 1.9 * 304.8
+    ) # mm/year
+
+
 
 ## Barley: consistent ~94% irrigated, say at 19 in. when full water stress
 ## Sorghum: Variable 9 - 18% irrigated (.7 ft/acre), so say half intercept half stress

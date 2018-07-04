@@ -41,7 +41,7 @@ else
     if config["dataset"] == "counties"
         counties = CSV.read(loadpath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     else
-        counties = CSV.read(loadpath("county-info$suffix.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+        counties = CSV.read(loadpath("county-info$suffix.csv"), types=[String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
     end
     edges = Dict{String, Vector{String}}()
 

@@ -19,7 +19,7 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     outflows = Variable(index=[reservoirs, time], unit="1000 m^3")
     # Evaporation
     evaporation = Parameter(index=[reservoirs, time], unit="")
-
+    
     # Storage
     storage = Variable(index=[reservoirs, time], unit="1000 m^3")
     storage0 = Parameter(index=[reservoirs], unit="1000 m^3")
@@ -38,10 +38,10 @@ function run_timestep(c::Reservoir, tt::Int)
     v = c.Variables
     p = c.Parameters
     d = c.Dimensions
-
+    
     v.inflows[:,tt] = zeros(numreservoirs);
     v.outflows[:,tt] = zeros(numreservoirs);
-
+    
     for gg in 1:numgauges
         index = vertex_index(downstreamorder[gg])
         if isreservoir[index] > 0
@@ -50,7 +50,7 @@ function run_timestep(c::Reservoir, tt::Int)
             v.outflows[rr,tt] = p.outflowsgauges[gg, tt];
         end
     end
-
+    
     for rr in d.reservoirs
         v.cost[rr,tt] = p.unitcostcaptures*p.captures[rr,tt]
         if tt==1

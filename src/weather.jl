@@ -32,6 +32,8 @@ if get(config, "dataset", "counties") == "paleo"
 else
     precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
     recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numsteps])*100; # 1000m3 / timestep
+    precip[isnan.(precip)] = 0
+    recharge[isnan.(recharge)] = 0
 end
 
 # Load data from the water budget

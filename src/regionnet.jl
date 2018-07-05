@@ -38,11 +38,7 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    if config["dataset"] == "counties"
-        counties = CSV.read(loadpath("county-info.csv"), types=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
-    else
-        counties = CSV.read(loadpath("county-info$suffix.csv"), types=[String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
-    end
+    counties = CSV.read(loadpath("county-info.csv"))
     edges = Dict{String, Vector{String}}()
 
     for row in 1:size(counties, 1)

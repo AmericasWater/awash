@@ -28,9 +28,7 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
 end
 
 function replacemissing{T}(df::DataFrame, column::Symbol, replace::T)
-    entries = df[column]
-    entries[entries.isnull] = replace
-    convert(Vector{T}, entries)
+    collect(Missings.replace(df[column], replace))
 end
 
 function dropmissing(df::DataFrame, column::Symbol)

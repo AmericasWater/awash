@@ -28,13 +28,21 @@ df$demand <- df$TO_To * 1383
 
 df$envpossible <- NA
 df$envpossible.worst <- NA
+df$failurefrac <- NA
+df$failurefrac.worst <- NA
 for (ii in 1:nrow(df)) {
     envpossible <- 1 - df$swdemand[ii] / totalflow[, ii]
     envpossible[envpossible < 0] <- 0
     df$envpossible[ii] <- mean(envpossible)
     df$envpossible.worst[ii] <- min(envpossible)
+
+    failurefrac <- (df$swdemand[ii] - (1 - .37) * totalflow[, ii]) / totalflow[, ii]
+    failurefrac[failurefrac > 1] <- 1
+    failurefrac[failurefrac < 0] <- 0
+    df$failurefrac[ii] <- mean(failurefrac)
+    df$failurefrac.worst[ii] <- max(failurefrac)
 }
-    
+
 source("~/projects/research-common/R/ggmap.R")
 
 gg.usmap(df$envpossible, df$FIPS) +
@@ -47,3 +55,17 @@ gg.usmap(df$envpossible.worst, df$FIPS) +
 theme(legend.justification=c(1,0), legend.position=c(1,0))
 ggsave("vsenv-local-min.pdf", width=7, height=4)
 
+gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst) +
+    geom_polygon(aes(size=borders)) +
+    scale_fill_gradientn(name="Failure\nFraction", colours=c("#e0f3f8", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+coord_map("albers", lat0=39, lat1=45) +
+    scale_colour_gradientn(name="Failure\nFraction", colours=c("#e0f3f8", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+coord_map("albers", lat0=39, lat1=45) +
+    scale_size(range=c(0, .5)) + guides(size=F) +
+    theme(legend.justification=c(1,0), legend.position=c(1,0))
+ggsave("failfrac-local.pdf", width=7, height=4)
+
+## CHANGES:
+## 1. Add white state outlines.
+## 2. Define env flow metric as "additional flow available", where 0 is in a de-emphasizing colour.
+## Then can put next to each other.

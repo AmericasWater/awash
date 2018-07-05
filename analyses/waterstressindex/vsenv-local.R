@@ -26,46 +26,37 @@ for (ii in 1:nrow(df)) {
 df$swdemand <- df$TO_SW * 1383
 df$demand <- df$TO_To * 1383
 
-df$envpossible <- NA
-df$envpossible.worst <- NA
 df$failurefrac <- NA
 df$failurefrac.worst <- NA
+df$natflowav <- NA
+df$natflowav.worst <- NA
 for (ii in 1:nrow(df)) {
-    envpossible <- 1 - df$swdemand[ii] / totalflow[, ii]
-    envpossible[envpossible < 0] <- 0
-    df$envpossible[ii] <- mean(envpossible)
-    df$envpossible.worst[ii] <- min(envpossible)
-
-    failurefrac <- (df$swdemand[ii] - (1 - .37) * totalflow[, ii]) / totalflow[, ii]
+    failurefrac <- (df$swdemand[ii] - (1 - .37) * totalflow[, ii]) / df$swdemand[ii]
     failurefrac[failurefrac > 1] <- 1
     failurefrac[failurefrac < 0] <- 0
-    df$failurefrac[ii] <- mean(failurefrac)
+    df$failurefrac[ii] <- median(failurefrac)
     df$failurefrac.worst[ii] <- max(failurefrac)
+
+    natflowav <- 1 - df$swdemand[ii] / totalflow[, ii]
+    natflowav[natflowav < 0] <- 0
+    df$natflowav[ii] <- median(natflowav)
+    df$natflowav.worst[ii] <- min(natflowav)
 }
 
 source("~/projects/research-common/R/ggmap.R")
 
-gg.usmap(df$envpossible, df$FIPS) +
-    scale_fill_gradient2(name="Maximum\nSupportable\nEnv. Flow", low="#d7191c", mid="#ffffbf", high="#2c7bb6", midpoint=.5, labels = scales::percent) + coord_map("albers", lat0=39, lat1=45) +
-theme(legend.justification=c(1,0), legend.position=c(1,0))
-ggsave("vsenv-local-mean.pdf", width=7, height=4)
-
-gg.usmap(df$envpossible.worst, df$FIPS) +
-    scale_fill_gradient2(name="Maximum\nSupportable\nEnv. Flow", low="#d7191c", mid="#ffffbf", high="#2c7bb6", midpoint=.5, labels = scales::percent) + coord_map("albers", lat0=39, lat1=45) +
-theme(legend.justification=c(1,0), legend.position=c(1,0))
-ggsave("vsenv-local-min.pdf", width=7, height=4)
-
-gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst) +
-    geom_polygon(aes(size=borders)) +
-    scale_fill_gradientn(name="Failure\nFraction", colours=c("#e0f3f8", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
-coord_map("albers", lat0=39, lat1=45) +
-    scale_colour_gradientn(name="Failure\nFraction", colours=c("#e0f3f8", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst, extra.polygon.aes=aes(size=borders)) +
+    scale_fill_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+    scale_colour_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
 coord_map("albers", lat0=39, lat1=45) +
     scale_size(range=c(0, .5)) + guides(size=F) +
     theme(legend.justification=c(1,0), legend.position=c(1,0))
 ggsave("failfrac-local.pdf", width=7, height=4)
 
-## CHANGES:
-## 1. Add white state outlines.
-## 2. Define env flow metric as "additional flow available", where 0 is in a de-emphasizing colour.
-## Then can put next to each other.
+gg.usmap(df$natflowav, df$FIPS, df$natflowav.worst, extra.polygon.aes=aes(size=1 - borders)) +
+    scale_fill_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
+    scale_colour_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
+    coord_map("albers", lat0=39, lat1=45) +
+    scale_size(range=c(0, .5)) + guides(size=F) +
+    theme(legend.justification=c(1,0), legend.position=c(1,0))
+ggsave("natflowa-local.pdf", width=7, height=4)

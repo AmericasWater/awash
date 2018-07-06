@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/waterstressindex")
+setwd("~/research/water/awash/analyses/waterstressindex")
 
 library(ncdf4)
 library(dplyr)
@@ -44,23 +44,33 @@ for (ii in 1:nrow(df)) {
 }
 
 source("~/projects/research-common/R/ggmap.R")
+library(png)
+library(grid)
+library(cowplot)
 
-gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst, extra.polygon.aes=aes(size=borders)) +
+gl <- rasterGrob(readPNG("failfrac-legend.png"), interpolate=TRUE)
+gg <- gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst, extra.polygon.aes=aes(size=borders)) +
     scale_fill_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
     scale_colour_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
-coord_map("albers", lat0=39, lat1=45) +
     scale_size(range=c(0, .5)) + guides(size=F) +
     theme(legend.justification=c(1,0), legend.position=c(1,0),
           panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-          axis.text.x=element_blank(), axis.text.y=element_blank())
-ggsave("failfrac-local.pdf", width=7, height=4)
+          axis.text.x=element_blank(), axis.text.y=element_blank(),
+          plot.margin=unit(rep(0, 4), "cm")) + scale_x_continuous(expand=c(0, 0)) + scale_y_continuous(expand=c(0, 0))
+hh <- ggdraw(gg)
+hh + draw_grob(gl, 0.05, 0.02, 0.22, 0.2)
+ggsave("failfrac-local.pdf", width=5.9, height=3.2)
 
-gg.usmap(df$natflowav, df$FIPS, df$natflowav.worst, extra.polygon.aes=aes(size=1 - borders)) +
-    scale_fill_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
-    scale_colour_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
-    coord_map("albers", lat0=39, lat1=45) +
+gl <- rasterGrob(readPNG("natflowa-legend.png"), interpolate=TRUE)
+gg <- gg.usmap(df$natflowav, df$FIPS, df$natflowav.worst, extra.polygon.aes=aes(size=1 - borders)) +
+    scale_fill_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#abd9e9", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
+    scale_colour_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#abd9e9", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
     scale_size(range=c(0, .5)) + guides(size=F) +
     theme(legend.justification=c(1,0), legend.position=c(1,0),
           panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-          axis.text.x=element_blank(), axis.text.y=element_blank())
-ggsave("natflowa-local.pdf", width=7, height=4)
+          axis.text.x=element_blank(), axis.text.y=element_blank(),
+          plot.margin=unit(rep(0, 4), "cm")) +
+        scale_x_continuous(expand=c(0, 0)) + scale_y_continuous(expand=c(0, 0))
+hh <- ggdraw(gg)
+hh + draw_grob(gl, 0.05, 0.02, 0.22, 0.2)
+ggsave("natflowa-local.pdf", width=5.9, height=3.2)

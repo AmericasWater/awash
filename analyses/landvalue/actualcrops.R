@@ -1,6 +1,8 @@
 setwd("~/research/awash/analyses/landvalue")
 
 do.generate.actualcrops <- F
+comparefile <- "maxbayesian-pfixed.csv" #"constopt-currentprofits-pfixed.csv"
+comparecol <- "crop" #"topcrop"
 
 if (do.generate.actualcrops) {
     
@@ -61,10 +63,11 @@ if (do.cropdrop) {
     
 ## Compare to optimal current crops
 
-optcrops <- read.csv("maxbayesian-pfixed.csv")
+results2 <- subset(results2, !is.na(maxcrop.before))
+optcrops <- read.csv(comparefile)
 results3 <- results2 %>% left_join(optcrops)
 
-results3$crop <- as.character(results3$crop)
+results3$crop <- as.character(results3[, comparecol])
 results3$crop[results3$crop == "Barley"] <- "BARLEY"
 results3$crop[results3$crop == "Corn"] <- "CORN"
 results3$crop[results3$crop == "Cotton"] <- "COTTON"
@@ -72,23 +75,23 @@ results3$crop[results3$crop == "Rice"] <- "RICE"
 results3$crop[results3$crop == "Soybean"] <- "SOYBEANS"
 results3$crop[results3$crop == "Wheat"] <- "WHEAT"
 
-sum(results3$crop == results3$maxcrop, na.rm=T) / nrow(results3)
+sum(results3$crop == results3$maxcrop.before, na.rm=T) / nrow(results3)
 
 croplist <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT")
 sumdf <- data.frame(cropii=c(), cropjj=c(), portion=c())
 for (cropii in croplist) {
     for (cropjj in croplist) {
-        portion <- sum(results3$crop == cropii & results3$maxcrop == cropjj, na.rm=T) / nrow(results3)
+        portion <- sum(results3$maxcrop.before == cropii & results3$crop == cropjj, na.rm=T) / nrow(results3)
         sumdf <- rbind(sumdf, data.frame(cropii, cropjj, portion))
     }
-    portion <- sum(results3$crop == cropii & is.na(results3$maxcrop), na.rm=T) / nrow(results3)
+    portion <- sum(results3$maxcrop.before == cropii & is.na(results3$crop), na.rm=T) / nrow(results3)
     sumdf <- rbind(sumdf, data.frame(cropii, cropjj="NONE", portion))
 }
 for (cropjj in croplist) {
-    portion <- sum(is.na(results3$crop) & results3$maxcrop == cropjj, na.rm=T) / nrow(results3)
+    portion <- sum(is.na(results3$maxcrop.before) & results3$crop == cropjj, na.rm=T) / nrow(results3)
     sumdf <- rbind(sumdf, data.frame(cropii="NONE", cropjj, portion))
 }
-portion <- sum(is.na(results3$crop) & is.na(results3$maxcrop), na.rm=T) / nrow(results3)
+portion <- sum(is.na(results3$maxcrop.before) & is.na(results3$crop), na.rm=T) / nrow(results3)
 sumdf <- rbind(sumdf, data.frame(cropii="NONE", cropjj="NONE", portion))
 
 croplist2 <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT", "NONE")

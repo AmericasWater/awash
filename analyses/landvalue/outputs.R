@@ -1,10 +1,10 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/awash/analyses/landvalue")
 
-periods <- c("Optimal\nCurrent", "Unadapted\n2070 CC", "Unadapted\n2070 HC", "Optimal\n2070 CC", "Optimal\n2070 HC")
-prefixes <- c("current", "unadapted", "unadapted-histco", "all2070", "all2070")
+periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2070 CC", "Unadapted\n2070 HC", "Optimal\n2070 CC", "Optimal\n2070 HC")
+prefixes <- c("observed", "current", "unadapted", "unadapted-histco", "all2070", "all2070")
 ## lowersuffixes <- c("pfixed-zeroy", NA, "pfixed-notime-zeroy")
 ## uppersuffixes <- c("pfixed-limity", NA, "pfixed-notime-limity")
-suffixes <- c("pfixed-lybymc", NA, NA, "pfixed-notime-lybymc", "pfixed-notime-histco-lybymc")
+suffixes <- c(NA, "pfixed", NA, NA, "pfixed-notime", "pfixed-notime-histco")
 
 df <- data.frame(period=c(), crop=c(), productionlo=c(), productionhi=c(), profitlo=c(), profithi=c())
 
@@ -45,8 +45,12 @@ for (ii in 1:length(periods)) {
 
     ## df <- rbind(df, data.frame(period=periods[ii], crop=names(allocation)[3:8], productionlo, productionhi, profitlo, profithi))
 
-    if (is.na(suffixes[ii])) {
-        allocation.file <- paste0("constopt-currentprofits-", suffixes[1], ".csv")
+    if (prefixes[ii] == "observed") {
+        allocation.file <- "../../prepare/agriculture/all2010.csv"
+        yields.file <- "currentyields-pfixed.csv"
+        profits.file <- "currentprofits-pfixed.csv"
+    } else if (is.na(suffixes[ii])) {
+        allocation.file <- paste0("constopt-currentprofits-", suffixes[2], ".csv")
         yields.file <- paste0(prefixes[ii+2], "yields-", suffixes[ii+2], ".csv")
         profits.file <- paste0(prefixes[ii+2], "profits-", suffixes[ii+2], ".csv")
     } else {
@@ -55,7 +59,27 @@ for (ii in 1:length(periods)) {
         profits.file <- paste0(prefixes[ii], "profits-", suffixes[ii], ".csv")
     }
 
-    allocation <- read.csv(allocation.file)
+    if (allocation.file == "../../prepare/agriculture/all2010.csv") {
+        obsdf <- read.csv("../../prepare/agriculture/all2010.csv")
+        obsdf <- subset(obsdf, Commodity %in% c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT"))
+        obsdf$value <- as.numeric(gsub(",", "", as.character(obsdf$Value)))
+        obsdf$fips <- obsdf$State.ANSI * 1000 + obsdf$County.ANSI
+        obsdf$fips[is.na(obsdf$fips)] <- obsdf$State.ANSI[is.na(obsdf$fips)] * 1000
+        
+        allocation <- read.csv("constopt-currentprofits-pfixed.csv")
+        for (jj in 1:nrow(allocation)) {
+            subdf <- subset(obsdf, fips == allocation$fips[jj])
+            rows <- grep("ACRES", subdf$Data.Item)
+            allocation$Barley[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "BARLEY"])
+            allocation$Corn[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "CORN"])
+            allocation$Cotton[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "COTTON"])
+            allocation$Rice[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "RICE"])
+            allocation$Soybean[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "SOYBEANS"])
+            allocation$Wheat[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "WHEAT"])
+        }
+    } else {
+        allocation <- read.csv(allocation.file)
+    }
     yields <- read.csv(yields.file, header=F)
     profits <- read.csv(profits.file, header=F)
 

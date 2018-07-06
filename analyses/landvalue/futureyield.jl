@@ -8,10 +8,10 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-holdcoeff = true
+holdcoeff = false #true
 allowtime = false
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
-futureyear = 2070
+futureyear = 2050
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
@@ -59,11 +59,7 @@ for ii in 1:length(bayes_crops)
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus)
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus)
 
-    if crop == "Corn"
-        alldifferences = zeros(5, nrow(bios), length(biomodels))
-    else
-        alldifferences = zeros(6, nrow(bios), length(biomodels))
-    end
+    alldifferences = zeros(6, nrow(bios), length(biomodels))
     for jj in 1:length(biomodels)
         # Load future bioclim data
         bios_future = readtable(expanduser("~/Dropbox/Agriculture Weather/bioclims-$futureyear/$(biomodels[jj])85bi$(futureyear % 100).csv"))
@@ -73,9 +69,7 @@ for ii in 1:length(bayes_crops)
         alldifferences[3, :, jj] = bios_future[:bio5_mean] - bios[:bio5_mean]
         alldifferences[4, :, jj] = bios_future[:bio12_mean] - bios[:bio12_mean]
         alldifferences[5, :, jj] = bios_future[:bio15_mean] - bios[:bio15_mean]
-        if crop != "Corn"
-            alldifferences[6, :, jj] = 0
-        end
+        alldifferences[6, :, jj] = 0
     end
 
     differences = mean(alldifferences, 3)

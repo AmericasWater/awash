@@ -1,6 +1,6 @@
 setwd("~/research/awash/analyses/landvalue")
 
-basename = "max2070-pfixed-notime-histco" # "maxbayesian-pfixed" # "constopt-all2070profits-pfixed-notime-histco-lybymc"
+basename = "constopt-all2070profits-pfixed-notime-histco" # "constopt-currentprofits-pfixed" #"max2070-pfixed-notime-histco" # "maxbayesian-pfixed"
 
 if (startsWith(basename, "constopt")) {
     column <- "topcrop"

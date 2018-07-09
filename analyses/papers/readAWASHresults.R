@@ -1,6 +1,7 @@
 #### READ the results and construct the dataframe for analysis
 
-fips <- read.csv("../../../data/global/counties.csv")$fips
+mc <- read.csv("../../../data/global/counties.csv")
+fips <- mc$fips
 
 if(ismultiyr){
   result <- array(dim = c(4, yearstot, 3109, ttperyy, length(vrights)))
@@ -58,10 +59,10 @@ for(rr in 1:length(vrights)){
     
     configname <- paste0(voptim[rr],"-propenv", flowprop[ee], "-rescap", vreval[rr], vrights[rr])
     
-    failure <- as.matrix(read.csv(paste0(savingresultspath, "failure-", configname,".csv"), header = F))
+    failure <- as.matrix(read.csv(paste0(savingresultspath, "failure-", configname,suffix,".csv"), header = F))
     failure[which(failure < 0)] <- 0
     if(voptim[rr]=="conj"){
-      GW <- as.matrix(read.csv(paste0(savingresultspath, "gw-", configname,".csv"), header = F))
+      GW <- as.matrix(read.csv(paste0(savingresultspath, "gw-", configname,suffix,".csv"), header = F))
     }else{
       GW_ <- as.matrix(read.csv("../../../data/counties/extraction/USGS-2010.csv", header = T)[,31]) * 1383./ttperyy
       GW <- replicate(ttperyy*yearstot,GW_[,1])

@@ -4,12 +4,6 @@
 
 
 # - county fips, state fips, region index
-mc <- read.csv("../../../data/global/counties.csv")
-state_ind <- vector(length = dim(dffailure)[1])
-for(cc in 1:dim(mc)[1]){
-  state_ind[which(dffailure$fips==mc$fips[cc])] <- as.character(mc$state[cc])
-}
-
 region_ind <- state_ind
 if(regiondef == "climateregion"){
   region_ind[which(region_ind %in% c("CT", "DC", "DE", "ME", "MD", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"))] <- "Northeast"

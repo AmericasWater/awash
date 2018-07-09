@@ -4,8 +4,10 @@
 
 using Mimi
 using Graphs
-using DataFrames
+using DataFrames, DataArrays
 using RData
+
+include("lib/waternet.jl")
 
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
@@ -38,7 +40,7 @@ elseif isfile(datapath("waternet/waternet$suffix.jld"))
 else
     # Load the network of counties
     if config["dataset"] == "three"
-        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, NA]), dist=repmat([1], 3)))
+        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, missing]), dist=repmat([1], 3)))
         drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
     elseif config["dataset"] == "dummy"
         waternetdata = load(datapath("waternet/dummynet.RData"));
@@ -103,7 +105,7 @@ else
 
         if thisid == nextid
             #error("Same same!")
-            netdata[row, :nextpt] = NA
+            netdata[row, :nextpt] = missing
             continue
         end
 

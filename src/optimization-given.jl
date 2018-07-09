@@ -43,8 +43,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation, :Allocation]
-    parameters = [:waterfromsupersource, :withdrawals, :returns]
+    paramcomps = [:Allocation, :Allocation, :Allocation, :Allocation]
+    parameters = [:quarterwaterfromsupersource, :waterfromsupersource, :withdrawals, :returns]
 
     constcomps = [:WaterNetwork, :Allocation, :Allocation]
     constraints = [:outflows, :balance, :returnbalance]
@@ -80,13 +80,14 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # swbalance is the demand minus supply
     # Reservoir storage cannot be <min or >max
 
-    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:storagemin => :storage, :storagemax => :storage));
+    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quarterwaterfromsupersource, :waterfromsupersource, :storagemin => :storage, :storagemax => :storage));
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     end
     setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
+    setobjective!(house, -.5 * hall_relabel(varsum(grad_allocation_cost_waterfromsupersource(m)), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
     if allowreservoirs
         setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
@@ -130,12 +131,16 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
+    setconstraint!(house, -room_relabel(grad_allocation_balance_waterfromsupersource(m), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource)) # -
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
     if allowgw
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     end
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
+
+    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, recorded[:, :TO_SW]))
 
     # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
     # `waterreturn` is by region, and is then distributed into canals as `returns`
@@ -215,17 +220,17 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1:2]+1:sum(varlens[1:3])], numcanals, numsteps))
+    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcanals, numsteps))
 
     if allowgw
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4])+1:sum(varlens[1:5])], numcounties, numsteps))
     elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
         rm(datapath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+allowgw])+1:end], numreservoirs, numsteps))
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:4+allowgw])+1:end], numreservoirs, numsteps))
     elseif isfile(datapath("extraction/captures$suffix.jld"))
         rm(datapath("extraction/captures$suffix.jld"))
     end

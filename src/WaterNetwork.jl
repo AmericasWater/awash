@@ -60,18 +60,7 @@ Construct a matrix that represents the *immediate* decrease in outflow caused by
 """
 function grad_waternetwork_immediateoutflows_withdrawals(m::Model)
     function generate(A)
-        # Fill in GAUGES x CANALS matrix
-        # First do local withdrawal
-        for pp in 1:nrow(draws)
-            gaugeid = draws[pp, :gaugeid]
-            vertex = get(wateridverts, gaugeid, nothing)
-            if vertex == nothing
-                println("Missing $gaugeid")
-            else
-                gg = vertex_index(vertex)
-                A[gg, pp] = -1.
-            end
-        end
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
@@ -82,28 +71,8 @@ Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
 function grad_waternetwork_outflows_withdrawals(m::Model)
     function generate(A)
-        # Fill in GAUGES x CANALS matrix
-        # First do local withdrawal
-        for pp in 1:nrow(draws)
-            gaugeid = draws[pp, :gaugeid]
-            vertex = get(wateridverts, gaugeid, nothing)
-            if vertex == nothing
-                println("Missing $gaugeid")
-            else
-                gg = vertex_index(vertex)
-                A[gg, pp] = -1.
-            end
-        end
-
-        # Propogate in downstream order
-        for hh in 1:numgauges
-            gg = vertex_index(downstreamorder[hh])
-            gauge = downstreamorder[hh].label
-            for upstream in out_neighbors(wateridverts[gauge], waternet)
-                index = vertex_index(upstream, waternet)
-                A[gg, :] += A[index, :]
-            end
-        end
+        matrix_gauges_canals(A, -CANAL_FACTOR * ones(nrow(draws)))
+        matrix_downstreamgauges_canals(A)
     end
 
     roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:time], [:time])
@@ -136,7 +105,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :] += b[vertex_index(upstream, waternet), :]
+            b[gg, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :]
         end
     end
 

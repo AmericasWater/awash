@@ -1,7 +1,4 @@
-setwd("~/research/awash/analyses/waterstressindex")
-
-library(ncdf4)
-library(dplyr)
+setwd("~/research/water/awash/analyses/waterstressindex")
 
 df <- read.csv("../../data/counties/extraction/USGS-2010.csv")
 df <- df %>% left_join(read.csv("../../data/counties/county-info.csv"))
@@ -43,24 +40,6 @@ for (ii in 1:nrow(df)) {
     df$natflowav.worst[ii] <- min(natflowav)
 }
 
-source("~/projects/research-common/R/ggmap.R")
+include("vsenv-lib.R")
 
-gg.usmap(df$failurefrac, df$FIPS, df$failurefrac.worst, extra.polygon.aes=aes(size=borders)) +
-    scale_fill_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
-    scale_colour_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
-coord_map("albers", lat0=39, lat1=45) +
-    scale_size(range=c(0, .5)) + guides(size=F) +
-    theme(legend.justification=c(1,0), legend.position=c(1,0),
-          panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-          axis.text.x=element_blank(), axis.text.y=element_blank())
-ggsave("failfrac-local.pdf", width=7, height=4)
-
-gg.usmap(df$natflowav, df$FIPS, df$natflowav.worst, extra.polygon.aes=aes(size=1 - borders)) +
-    scale_fill_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
-    scale_colour_gradientn(name="Natural\nFlow\nAvailable", colours=c("#fee090", "#fee090", "#e0f3f8", "#74add1", "#313695"), values=c(0, .37, .37001, .685, 1), labels = scales::percent, limits=c(0, 1)) +
-    coord_map("albers", lat0=39, lat1=45) +
-    scale_size(range=c(0, .5)) + guides(size=F) +
-    theme(legend.justification=c(1,0), legend.position=c(1,0),
-          panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-          axis.text.x=element_blank(), axis.text.y=element_blank())
-ggsave("natflowa-local.pdf", width=7, height=4)
+plot.failavail(df$fips, df$failurefrac, df$failurefrac.worst, df$natflowav, df$natflowav.worst, "local")

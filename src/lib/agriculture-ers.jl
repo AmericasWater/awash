@@ -53,7 +53,7 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
     df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
 
     reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), nullable=false)
-    fips = canonicalindex(reglink[:FIPS])
+    fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
     if (item == "cost")

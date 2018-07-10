@@ -64,7 +64,7 @@ for(rr in 1:length(vrights)){
     if(voptim[rr]=="conj"){
       GW <- as.matrix(read.csv(paste0(savingresultspath, "gw-", configname,suffix,".csv"), header = F))
     }else{
-      GW_ <- as.matrix(read.csv("../../../data/counties/extraction/USGS-2010.csv", header = T)[,31]) * 1383./ttperyy
+      GW_ <- as.matrix(read.csv("../../../data/counties/extraction/USGS-2010.csv", header = T)[,29]) * 1383./ttperyy
       GW <- replicate(ttperyy*yearstot,GW_[,1])
     }
     

@@ -2,10 +2,10 @@ library(ncdf4)
 
 vic<-nc_open("../../../data/cache/counties/VIC_WB.nc")
 
-attributes(vic)
-print(vic)
+#attributes(vic)
+#print(vic)
 
-attributes(vic$var)$names
+#attributes(vic$var)$names
 precip <- ncvar_get(vic, "precip")
 FIPS <- ncvar_get(vic, "state_fips")*1000+ncvar_get(vic, "county_fips")
 precip[which(is.na(precip))] <- 0
@@ -20,8 +20,8 @@ rain[which(is.na(rain))] <- 0
 
 Rain <- result[1,,,]
 Rain_var <- result[1,,,]
-for(ss in 1:4){Rain[,,ss] <- rain}
-for(ss in 1:4){
+for(ss in 1:length(vrights)){Rain[,,ss] <- rain}
+for(ss in 1:length(vrights)){
   Rain_var[,,ss] <- (rain - rowMeans(rain))/rowMeans(rain)
   Rain_var[which(rowSums(rain)==0),,ss] <- 0
 }

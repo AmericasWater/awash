@@ -125,13 +125,14 @@ df$prode9 <- df$production / 1e9
 printdf <- dcast(df, crop ~ period + optimized, value.var='prode9')
 print(xtable(printdf), digits=3, include.rownames=F)
 
-printdf <- cbind(data.frame(period=printdf$period, optimized=printdf$optimized),
-                 rbind(100 * printdf[1, 3:8] / printdf[1, 3:8],
-                       100 * printdf[2, 3:8] / printdf[1, 3:8],
-                       100 * printdf[3, 3:8] / printdf[1, 3:8],
-                       100 * printdf[4, 3:8] / printdf[1, 3:8],
-                       100 * printdf[5, 3:8] / printdf[1, 3:8],
-                       100 * printdf[6, 3:8] / printdf[1, 3:8]))
+printdf <- cbind(data.frame(crop=printdf$crop),
+                 rbind(100 * printdf[1, 2:7] / printdf[1, 2],
+                       100 * printdf[2, 2:7] / printdf[2, 2],
+                       100 * printdf[3, 2:7] / printdf[3, 2],
+                       100 * printdf[4, 2:7] / printdf[4, 2],
+                       100 * printdf[5, 2:7] / printdf[5, 2],
+                       100 * printdf[6, 2:7] / printdf[6, 2]))
+print(xtable(printdf, digits=0), include.rownames=F)
 
 
 ggplot(df, aes(optimized, profit, fill=crop)) +

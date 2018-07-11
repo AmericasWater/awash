@@ -1,10 +1,10 @@
-setwd("~/research/awash/analyses/landvalue")
+setwd("~/research/water/awash/analyses/landvalue")
 
-periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2070 CC", "Unadapted\n2070 HC", "Optimal\n2070 CC", "Optimal\n2070 HC")
-prefixes <- c("observed", "current", "unadapted", "unadapted-histco", "all2070", "all2070")
+periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2050", "Optimal\n2050", "Unadapted\n2070", "Optimal\n2070")
+prefixes <- c("observed", "current", "unadapted-histco", "all2050", "unadapted-histco", "all2070")
 ## lowersuffixes <- c("pfixed-zeroy", NA, "pfixed-notime-zeroy")
 ## uppersuffixes <- c("pfixed-limity", NA, "pfixed-notime-limity")
-suffixes <- c(NA, "pfixed", NA, NA, "pfixed-notime", "pfixed-notime-histco")
+suffixes <- c(NA, "pfixed", NA, "pfixed-notime-histco", NA, "pfixed-notime-histco")
 
 df <- data.frame(period=c(), crop=c(), productionlo=c(), productionhi=c(), profitlo=c(), profithi=c())
 
@@ -51,8 +51,8 @@ for (ii in 1:length(periods)) {
         profits.file <- "currentprofits-pfixed.csv"
     } else if (is.na(suffixes[ii])) {
         allocation.file <- paste0("constopt-currentprofits-", suffixes[2], ".csv")
-        yields.file <- paste0(prefixes[ii+2], "yields-", suffixes[ii+2], ".csv")
-        profits.file <- paste0(prefixes[ii+2], "profits-", suffixes[ii+2], ".csv")
+        yields.file <- paste0(prefixes[ii+1], "yields-", suffixes[ii+1], ".csv")
+        profits.file <- paste0(prefixes[ii+1], "profits-", suffixes[ii+1], ".csv")
     } else {
         allocation.file <- paste0("constopt-", prefixes[ii], "profits-", suffixes[ii], ".csv")
         yields.file <- paste0(prefixes[ii], "yields-", suffixes[ii], ".csv")
@@ -65,23 +65,25 @@ for (ii in 1:length(periods)) {
         obsdf$value <- as.numeric(gsub(",", "", as.character(obsdf$Value)))
         obsdf$fips <- obsdf$State.ANSI * 1000 + obsdf$County.ANSI
         obsdf$fips[is.na(obsdf$fips)] <- obsdf$State.ANSI[is.na(obsdf$fips)] * 1000
-        
+
         allocation <- read.csv("constopt-currentprofits-pfixed.csv")
         for (jj in 1:nrow(allocation)) {
             subdf <- subset(obsdf, fips == allocation$fips[jj])
             rows <- grep("ACRES", subdf$Data.Item)
-            allocation$Barley[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "BARLEY"])
-            allocation$Corn[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "CORN"])
-            allocation$Cotton[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "COTTON"])
-            allocation$Rice[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "RICE"])
-            allocation$Soybean[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "SOYBEANS"])
-            allocation$Wheat[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "WHEAT"])
+            allocation$Barley[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "BARLEY"] * 0.404686)
+            allocation$Corn[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "CORN"] * 0.404686)
+            allocation$Cotton[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "COTTON"] * 0.404686)
+            allocation$Rice[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "RICE"] * 0.404686)
+            allocation$Soybean[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "SOYBEANS"] * 0.404686)
+            allocation$Wheat[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "WHEAT"] * 0.404686)
         }
     } else {
         allocation <- read.csv(allocation.file)
     }
     yields <- read.csv(yields.file, header=F)
     profits <- read.csv(profits.file, header=F)
+
+    allocation[, 3:8][profits == -Inf] <- 0 # Just affects observed
 
     production <- colSums(allocation[, 3:8] * yields, na.rm=T)
     profit <- colSums(allocation[, 3:8] * profits, na.rm=T)
@@ -100,23 +102,41 @@ library(ggplot2)
 ##     geom_bar(stat="identity") +
 ##     theme_bw() + xlab(NULL) + ylab("Profit (USD)")
 
+df$optimized <- "Observed"
+df$optimized[df$period %in% c("Optimal\nCurrent", "Optimal\n2050", "Optimal\n2070")] <- "Optimized"
 
-ggplot(subset(df, period %in% c("Optimal\nCurrent", "Unadapted\n2070 HC", "Optimal\n2070 HC")), aes(crop, production, fill=period)) +
+df$period <- as.character(df$period)
+df$period[df$period %in% c("Observed", "Optimal\nCurrent")] <- "Current"
+df$period[df$period %in% c("Unadapted\n2050", "Optimal\n2050")] <- "2050"
+df$period[df$period %in% c("Unadapted\n2070", "Optimal\n2070")] <- "2070"
+df$period <- factor(df$period, levels=c("Current", "2050", "2070"))
+
+ggplot(df, aes(period, production, fill=optimized)) +
+    facet_wrap(~ crop, scales="free") +
     geom_bar(stat="identity", position=position_dodge()) +
+    scale_fill_discrete(name="") +
     theme_bw() + xlab(NULL) + ylab("Production")
 
 library(reshape2)
-df$prode9 <- df$production / 1e9
-printdf <- dcast(subset(df, period %in% c("Optimal\nCurrent", "Unadapted\n2070 HC", "Optimal\n2070 HC")), period ~ crop, value.var='prode9')
-printdf$period <- c("Optimal Current", "Unadapted 2070 HC", "Optimal HC")
-
-printdf <- rbind(printdf, cbind(data.frame(period=printdf$period), rbind(printdf[1, -1] / printdf[1, -1],
-                                                      printdf[2, -1] / printdf[1, -1],
-                                                      printdf[3, -1] / printdf[1, -1])))
-
 library(xtable)
+
+df$prode9 <- df$production / 1e9
+
+printdf <- dcast(df, crop ~ period + optimized, value.var='prode9')
 print(xtable(printdf), digits=3, include.rownames=F)
 
-ggplot(df, aes(period, profit, fill=crop)) +
+printdf <- cbind(data.frame(period=printdf$period, optimized=printdf$optimized),
+                 rbind(100 * printdf[1, 3:8] / printdf[1, 3:8],
+                       100 * printdf[2, 3:8] / printdf[1, 3:8],
+                       100 * printdf[3, 3:8] / printdf[1, 3:8],
+                       100 * printdf[4, 3:8] / printdf[1, 3:8],
+                       100 * printdf[5, 3:8] / printdf[1, 3:8],
+                       100 * printdf[6, 3:8] / printdf[1, 3:8]))
+
+
+ggplot(df, aes(optimized, profit, fill=crop)) +
+    facet_grid(. ~ period) +
     geom_bar(stat="identity") +
+    scale_fill_discrete(name="") +
     theme_bw() + xlab(NULL) + ylab("Profit (USD)")
+

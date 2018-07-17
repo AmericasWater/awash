@@ -1,4 +1,6 @@
-setwd("~/research/awash/analyses/landvalue")
+setwd("~/research/water/awash/analyses/landvalue")
+
+do.cornsoy.combo <- T
 
 ##   Baseline
 ## Check
@@ -53,7 +55,17 @@ df <- baseline %>% left_join(actualcrops, by="fips") %>% left_join(current, by="
 
 df <- subset(df, !is.na(observed))
 
-optims <- c("Local Current", "Local 2050", "Local 2070", "Constr. Current", "Constr. 2050", "Constr. 2070")
+if (do.cornsoy.combo) {
+    df$observed[df$observed == "Corn"] <- "Soybean"
+    df$maxnow[df$maxnow == "Corn"] <- "Soybean"
+    df$topnow[df$topnow == "Corn"] <- "Soybean"
+    df$max2050[df$max2050 == "Corn"] <- "Soybean"
+    df$top2050[df$top2050 == "Corn"] <- "Soybean"
+    df$max2070[df$max2070 == "Corn"] <- "Soybean"
+    df$top2070[df$top2070 == "Corn"] <- "Soybean"
+}
+
+optims <- c("Local 2010", "Local 2050", "Local 2070", "Constr. 2010", "Constr. 2050", "Constr. 2070")
 columns <- c("maxnow", "max2050", "max2070", "topnow", "top2050", "top2070")
 
 results <- matrix(NA, 6, 7)

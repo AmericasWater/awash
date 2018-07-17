@@ -24,7 +24,7 @@ include("Groundwater.jl")
 include("EnvironmentalDemand.jl")
 include("WaterRight.jl")
 
-function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing)
+function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing; nocache=redogwwo)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -43,8 +43,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Only include variables needed in constraints and parameters needed in optimization
 
-    paramcomps = [:Allocation, :Allocation]
-    parameters = [:waterfromsupersource, :withdrawals]
+    paramcomps = [:Allocation, :Allocation, :Allocation]
+    parameters = [:quarterwaterfromsupersource, :waterfromsupersource, :withdrawals]
 
     constcomps = [:WaterNetwork, :Allocation]
     constraints = [:outflows, :balance]
@@ -80,7 +80,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # swbalance is the demand minus supply
     # Reservoir storage cannot be <min or >max
 
-    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quarterwaterfromsupersource, :waterfromsupersource, :storagemin => :storage, :storagemax => :storage));
+    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quarterwaterfromsupersource => :waterfromsupersource, :storagemin => :storage, :storagemax => :storage));
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw
@@ -95,7 +95,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Constrain that the water in the stream is non-negative, or superior to environmental requirement
     # That is, outflows + runoff > envrequirement, or -outflows < runoff - envrequirement
-    if redogwwo
+    if nocache
         gwwo = grad_waternetwork_outflows_withdrawals(m);
         serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
         grwo = grad_returnflows_outflows_withdrawals(m, allowgw, demandmodel);
@@ -129,7 +129,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
-    setconstraint!(house, -room_relabel(grad_allocation_balance_waterfromsupersource(m), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource)) # -
+    setconstraint!(house, -room_relabel_parameter(grad_allocation_balance_waterfromsupersource(m), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource)) # -
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
     if allowgw
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
@@ -138,7 +138,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, recorded[:, :TO_SW]))
+    setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, vec(repeat((config["timestep"] * convert(Vector, recorded[:, :TO_SW]) * 1383. / 12) / 4, outer=[1, numsteps]))))
 
     if allowreservoirs
         # Reservoir constraints:

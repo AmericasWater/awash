@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/awash/analyses/landvalue")
 
 ##   Baseline
 ## Check

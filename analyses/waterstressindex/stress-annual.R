@@ -1,6 +1,6 @@
 setwd("~/research/awash/analyses/waterstressindex")
 
-suffix <- "nores-nocanal-contain"
+suffix <- "withres-nocanal"
 
 source("vsenv-lib.R")
 

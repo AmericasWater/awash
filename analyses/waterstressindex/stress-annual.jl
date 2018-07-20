@@ -6,15 +6,14 @@ config = readconfig("../../configs/complete-yearly.yml")
 using Gurobi
 solver = GurobiSolver()
 
-allowreservoirs = true
-filtercanals = false
+suffixbase = "annual"
 
-for filtercanals in [true] #, false]
+for filtercanals in [false, true]
     for allowreservoirs in [false, true]
         if allowreservoirs
-            suffix = "withres"
+            suffix = "$suffixbase-withres"
         else
-            suffix = "nores"
+            suffix = "$suffixbase-nores"
         end
 
         config["proportionnaturalflowforenvironment"] = .37
@@ -55,12 +54,12 @@ for filtercanals in [true] #, false]
             minefp[(supersource .> 0) .& (minefp .== 0)] = efp
 
             df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)
-            writetable("stress-annual-$suffix.csv", df)
+            writetable("stress-$suffix.csv", df)
         end
         
         minefp[(minefp .== 0)] = 100.
 
         df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)
-        writetable("stress-annual-$suffix.csv", df)
+        writetable("stress-$suffix.csv", df)
     end
 end

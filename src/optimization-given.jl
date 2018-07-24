@@ -87,7 +87,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         setobjective!(house, -varsum(grad_allocation_cost_waterfromgw(m)))
     end
     setobjective!(house, -varsum(grad_allocation_cost_withdrawals(m)))
-    setobjective!(house, -.5 * hall_relabel(varsum(grad_allocation_cost_waterfromsupersource(m)), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource))
+    setobjective!(house, -hall_relabel(varsum(grad_allocation_cost_waterfromsupersourcecheaper(m)), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource))
     setobjective!(house, -varsum(grad_allocation_cost_waterfromsupersource(m)))
     if allowreservoirs
         setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
@@ -200,7 +200,7 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1:2]+1:sum(varlens[1:3])], numcanals, numsteps))
+    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
 
     if allowgw
         serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))

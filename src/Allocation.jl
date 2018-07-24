@@ -125,6 +125,10 @@ function grad_allocation_cost_waterfromsupersource(m::Model)
     roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, 10000.)
 end
 
+function grad_allocation_cost_waterfromsupersourcecheaper(m::Model)
+    roomdiagonal(m, :Allocation, :cost, :waterfromsupersource, 5000.)
+end
+
 function grad_allocation_cost_withdrawals(m::Model)
     @assert nrow(draws) == size(m.external_parameters[:unitswcost].values[:, 1])[1]
 

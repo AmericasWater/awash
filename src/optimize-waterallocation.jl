@@ -48,7 +48,7 @@ summarizeparameters(house, sol.sol)
 #constraining(house, sol.sol)
 
 # Save the results
-save_optimization_given(house, sol, allowgw=true, allowreservoirs=withreservoirs)
+save_optimization_given(house, sol, true, withreservoirs)
 
 analysis = nothing
 

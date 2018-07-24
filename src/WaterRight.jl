@@ -90,10 +90,8 @@ end
 
 function grad_waterright_gwtotal_waterfromgw(m::Model)
     function generate(A)
-        for tt in 1:numsteps
-            for rr in 1:numcounties
-                A[rr, rr] = 1
-            end
+        for rr in 1:numcounties
+            A[rr, rr + collect(0:numregions:(numregions*numsteps-1))] = 1
         end
         return A
     end

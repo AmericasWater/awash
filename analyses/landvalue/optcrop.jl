@@ -8,6 +8,7 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
+trendyear = 62 + 60
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
@@ -61,7 +62,7 @@ for ii in 1:length(bayes_crops)
         try # fails if weatherrow == 0 or NAs in gdds or kdds
             gdds_row = convert(Matrix{Float64}, gdds[weatherrow, end-9:end]) #2:end])
             kdds_row = convert(Matrix{Float64}, kdds[weatherrow, end-9:end]) #2:end])
-            time_row = 62 # Give all yields as 2010; otherwise collect(1:61)
+            time_row = trendyear # Give all yields as 2010; otherwise collect(1:61)
             price_row = price[weatherrow]
             costs_row = costs[weatherrow]
             if profitfix && profitfixdf[weatherrow, :obscrop] == crop
@@ -107,6 +108,9 @@ if limityield != "ignore"
 end
 if length(suffixes) > 0
     suffixes = [""; suffixes]
+end
+if trendyear != 62
+    push!(suffixes, "$(2010+trendyear - 62)")
 end
 suffix = join(suffixes, "-")
 

@@ -8,8 +8,8 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-holdcoeff = false #true
-allowtime = false
+holdcoeff = true #false
+allowtime = true #false
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 futureyear = 2050
 bayesdir = "posterior_distributions_variance"

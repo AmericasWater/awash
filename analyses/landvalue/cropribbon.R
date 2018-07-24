@@ -79,4 +79,9 @@ for (ff in 1:length(comparefiles)) {
             xspline(xstart + c(1, 1.25), c(rep(yjj - 50*sumdf$portion[ii], 2)), lwd=4.5 * 100 * sumdf$portion[ii], border=colors[croplist2 == sumdf$cropjj[ii]], lend=1)
         }
     }
+
+    for (crop in c(croplist, "NONE")) {
+        print(paste("% start", crop, "=", sum(sumdf$portion[sumdf$cropii == crop])))
+        print(paste("% end", crop, "=", sum(sumdf$portion[sumdf$cropjj == crop])))
+    }
 }

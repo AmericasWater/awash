@@ -1,6 +1,7 @@
-setwd("~/research/awash/analyses/waterstressindex")
+setwd("~/research/water/awash/analyses/waterstressindex")
 
-suffix <- "withres-nocanal"
+alldemand <- T
+suffix <- "alldemand-withres"
 
 source("vsenv-lib.R")
 
@@ -10,7 +11,11 @@ supersources <- split.fipsyears(df$supersource, max)
 minefps <- split.fipsyears(df$minefp, min)
 
 demand <- read.csv("../../data/counties/extraction/USGS-2010.csv")
-demand$allsw <- demand$TO_SW * 1383
+if (alldemand) {
+    demand$allsw <- demand$TO_To * 1383 + .001
+} else {
+    demand$allsw <- demand$TO_SW * 1383 + .001
+}
 
 demand$allsw[demand$allsw == 0] <- 1
 

@@ -6,7 +6,8 @@ config = readconfig("../../configs/complete-yearly.yml")
 using Gurobi
 solver = GurobiSolver()
 
-suffixbase = "annual"
+allowgw = "demandonly"
+suffixbase = "annual-alldemand"
 
 for filtercanals in [false, true]
     for allowreservoirs in [false, true]
@@ -25,10 +26,15 @@ for filtercanals in [false, true]
             config["filtercanals"] = nothing
         end
 
+        if isfile("stress-$suffix.csv")
+            continue
+        end
+        println(suffix)
+
         rm("../../data/counties/extraction/withdrawals.jld", force=true)
         include("../../src/optimization-given.jl")
 
-        house = optimization_given(false, allowreservoirs, nocache=true)
+        house = optimization_given(allowgw, allowreservoirs, nocache=true)
         sol = houseoptimize(house, solver)
         supersource0 = getparametersolution(house, sol.sol, :quarterwaterfromsupersource) + getparametersolution(house, sol.sol, :waterfromsupersource)
 
@@ -56,7 +62,7 @@ for filtercanals in [false, true]
             df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)
             writetable("stress-$suffix.csv", df)
         end
-        
+
         minefp[(minefp .== 0)] = 100.
 
         df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)

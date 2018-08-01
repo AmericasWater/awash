@@ -6,9 +6,11 @@ config = readconfig("../../configs/complete.yml")
 using Gurobi
 solver = GurobiSolver()
 
-suffixbase = "monthly"
+allowgw = false #"demandonly"
+suffixbase = "monthly" #"monthly-alldemand"
+
 burnyears = 2
-saveyears = 5
+saveyears = 2
 
 for filtercanals in [false, true]
     for allowreservoirs in [false, true]
@@ -46,7 +48,7 @@ for filtercanals in [false, true]
             rm("../../data/counties/extraction/withdrawals.jld", force=true)
             include("../../src/optimization-given.jl")
 
-            house = optimization_given(false, allowreservoirs, nocache=true)
+            house = optimization_given(allowgw, allowreservoirs, nocache=true)
             sol = houseoptimize(house, solver)
             supersource0 = getparametersolution(house, sol.sol, :quarterwaterfromsupersource) + getparametersolution(house, sol.sol, :waterfromsupersource)
 

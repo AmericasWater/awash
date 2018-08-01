@@ -6,8 +6,8 @@ config = readconfig("../../configs/complete-yearly.yml")
 using Gurobi
 solver = GurobiSolver()
 
-allowgw = "demandonly"
-suffixbase = "annual-alldemand"
+allowgw = false #"demandonly"
+suffixbase = "annual" #"annual-alldemand"
 
 for filtercanals in [false, true]
     for allowreservoirs in [false, true]

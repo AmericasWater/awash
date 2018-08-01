@@ -7,13 +7,16 @@ library(cowplot)
 source("~/projects/research-common/R/ggmap.R")
 
 split.fipsyears <- function(longform, minormax) {
-    wideform <- matrix(longform, 3109, 61)
+    wideform <- matrix(longform, 3109, length(longform) / 3109)
     medianval <- apply(wideform, 1, median)
     worstval <- apply(wideform, 1, minormax)
     list(median=medianval, worst=worstval)
 }
 
-plot.failavail <- function(fips, failurefrac, failurefrac.worst, naturalflow, naturalflow.worst, suffix) {
+plot.failavail <- function(fips, failurefrac, failurefrac.worst, naturalflow, naturalflow.worst, suffix, force.disjunct=F) {
+    naturalflow[failurefrac > 0 & naturalflow > .37] <- .34
+    naturalflow.worst[failurefrac.worst > 0 & naturalflow.worst > .37] <- .34
+
     gl <- rasterGrob(readPNG("failfrac-legend.png"), interpolate=TRUE)
     gg <- gg.usmap(failurefrac, fips, failurefrac.worst, extra.polygon.aes=aes(size=borders)) +
         scale_fill_gradientn(name="Failure\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +

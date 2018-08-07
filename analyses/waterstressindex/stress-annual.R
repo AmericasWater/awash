@@ -181,10 +181,39 @@ ggsave(paste0("time-natflowa-annual-", infix, "compare.pdf"), width=7, height=4)
 
 ## Time-series by region
 
-infix <- "" #"alldemand-"
+df1 <- cbind(data.frame(assump="Default"), read.csv("results/stress-annual-worst-alldemand-nores.csv"))
+df1 <- rbind(df1, cbind(data.frame(assump="Storage"), read.csv("results/stress-annual-worst-alldemand-withres.csv")))
+df1 <- rbind(df1, cbind(data.frame(assump="No canals"), read.csv("results/stress-annual-worst-alldemand-nores-nocanal.csv")))
+df1 <- rbind(df1, cbind(data.frame(assump="Local flow"), read.csv("results/stress-annual-worst-alldemand-local.csv")))
 
-df <- cbind(data.frame(assump="Default"), read.csv(paste0("stress-annual-", infix, "nores.csv")))
-df <- rbind(df, cbind(data.frame(assump="Storage"), read.csv(paste0("stress-annual-", infix, "withres.csv"))))
-df <- rbind(df, cbind(data.frame(assump="No canals"), read.csv(paste0("stress-annual-", infix, "nores-nocanal.csv"))))
+df0 <- cbind(data.frame(assump="Default"), read.csv("results/stress-annual-worst-nores.csv"))
+df0 <- rbind(df0, cbind(data.frame(assump="Storage"), read.csv("results/stress-annual-worst-withres.csv")))
+df0 <- rbind(df0, cbind(data.frame(assump="No canals"), read.csv("results/stress-annual-worst-nores-nocanal.csv")))
+df0 <- rbind(df0, cbind(data.frame(assump="Local flow"), read.csv("results/stress-annual-worst-local.csv")))
+
+df <- df0 %>% left_join(df1, by=c("assump", "time", "fips"))
+df$supersource <- df$supersource.y - df$supersource.x
+df$minefp.y[df$minefp.y == 37] <- 0
+df$minefp <- df$minefp.y + (100 - df$minefp.x)
+
+library(maps)
+data(state.fips)
+
+df$statefips <- floor(df$fips / 1000)
+df <- df %>% left_join(state.fips, by=c("statefips"="fips"))
+state_ind <- df$abb
+regiondef <- "climateregion"
 
 source("../papers/loadingregion.R")
+df$region <- region_ind
+
+timedf <- df %>% group_by(time, assump, region) %>% summarize(supersource=sum(supersource, na.rm=T), minefp=mean(minefp, na.rm=T))
+
+ggplot(timedf, aes(time, supersource, colour=assump)) +
+    facet_wrap(~ region) + geom_line() + scale_x_continuous(expand=c(0, 0)) +
+    theme_minimal() + scale_colour_discrete(name="Assumption", breaks=c("Local flow", "No canals", "Default", "Storage")) +
+    xlab(NULL) + ylab("Demand Failure (1000 m^3)")
+ggsave("timeregion-annual-worst-compare.pdf", width=8, height=4)
+
+ggplot(timedf, aes(time, minefp, colour=assump)) +
+    facet_wrap(~ region) + geom_line()

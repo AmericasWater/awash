@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/waterstressindex")
+setwd("~/research/awash/analyses/waterstressindex")
 
 library(dplyr)
 library(ncdf4)
@@ -28,6 +28,34 @@ for (ii in 1:nrow(df)) {
 # 1e6 Gal / day * (0.00378541 m^3 / Gal) * (365.25 day / year)
 df$swdemand <- df$TO_SW * 1383
 df$demand <- df$TO_To * 1383
+
+## Save stress-annual-worst-*-local.csv files
+tosave.all <- data.frame(time=c(), fips=c(), supersource=c(), minefp=c())
+tosave.sw <- data.frame(time=c(), fips=c(), supersource=c(), minefp=c())
+for (ii in 1:nrow(df)) {
+    demand <- df$demand[ii] / 12
+    supersource <- (demand - (1 - .37) * worstflow[, ii])
+    supersource[supersource < 0] <- 0
+
+    minefp <- 100 * (1 - demand / worstflow[, ii])
+    minefp[minefp < 0] <- 0
+
+    tosave.all <- rbind(tosave.all, data.frame(time=1948 + (1:61), fips=df$FIPS[ii], supersource=12*supersource, minefp))
+
+    demand <- df$swdemand[ii] / 12
+    supersource <- (demand - (1 - .37) * worstflow[, ii])
+    supersource[supersource < 0] <- 0
+
+    minefp <- 100 * (1 - demand / worstflow[, ii])
+    minefp[minefp < 0] <- 0
+
+    tosave.sw <- rbind(tosave.sw, data.frame(time=1948 + (1:61), fips=df$FIPS[ii], supersource=12*supersource, minefp))
+}    
+    
+write.csv(tosave.all, "results/stress-annual-worst-alldemand-local.csv", row.names=F)
+write.csv(tosave.sw, "results/stress-annual-worst-local.csv", row.names=F)
+
+## Make maps
 
 get.terms <- function(df, myflow, demand) {
     df$failurefrac <- NA

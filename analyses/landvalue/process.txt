@@ -1,0 +1,16 @@
+ - actualcrops.R
+ - optcrop.jl
+ - futureyield.jl with holdcoeff=T x (2050, 2070)
+ - display.R with maxbayesian-pfixed
+ - display.R with max2050-pfixed-notime-histco
+ - display.R with max2070-pfixed-notime-histco
+ - constrainopt.jl with currentprofits-pfixed
+ - constrainopt.jl with all2050profits-pfixed-notime-histco
+ - constrainopt.jl with all2070profits-pfixed-notime-histco
+ - display.R with constopt-currentprofits-pfixed
+ - display.R with constopt-all2050profits-pfixed-notime-histco
+ - display.R with constopt-all2070profits-pfixed-notime-histco
+ - changes.R
+ - futureyield.jl with holdcoeff=F x (2050, 2070)
+ - constrainopt.jl with all2050profits-pfixed-notime
+ - constrainopt.jl with all2070profits-pfixed-notime

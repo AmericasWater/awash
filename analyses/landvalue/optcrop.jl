@@ -1,4 +1,4 @@
-using NaNMath
+using NaNMath, DataArrays
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")
@@ -8,7 +8,10 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-limityield = "lybymc" #"zeroy" # "ignore" "limity"
+trendyear = 62 + 60
+limityield = "ignore" #"lybymc" #"zeroy" # "limity"
+bayesdir = "posterior_distributions_variance"
+cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
 if profitfix
     profitfixdf = readtable("farmvalue-limited.csv")
@@ -28,7 +31,6 @@ allyields = zeros(6, nrow(masterregions))
 maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
                       "Rice" => 10180, "Soybean" => 249, "Wheat" => 142.5)
 
-# NOTE: Using otherhay edds for cotton and rice
 bayes_crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
 for ii in 1:length(bayes_crops)
@@ -41,11 +43,11 @@ for ii in 1:length(bayes_crops)
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
 
-    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
-    # bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
+    # bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
 
     df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
     for rr in 1:nrow(df)
@@ -60,7 +62,7 @@ for ii in 1:length(bayes_crops)
         try # fails if weatherrow == 0 or NAs in gdds or kdds
             gdds_row = convert(Matrix{Float64}, gdds[weatherrow, end-9:end]) #2:end])
             kdds_row = convert(Matrix{Float64}, kdds[weatherrow, end-9:end]) #2:end])
-            time_row = 2010 # Give all yields as 2010; otherwise collect(1949:2009)
+            time_row = trendyear # Give all yields as 2010; otherwise collect(1:61)
             price_row = price[weatherrow]
             costs_row = costs[weatherrow]
             if profitfix && profitfixdf[weatherrow, :obscrop] == crop
@@ -106,6 +108,9 @@ if limityield != "ignore"
 end
 if length(suffixes) > 0
     suffixes = [""; suffixes]
+end
+if trendyear != 62
+    push!(suffixes, "$(2010+trendyear - 62)")
 end
 suffix = join(suffixes, "-")
 

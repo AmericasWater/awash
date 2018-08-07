@@ -52,7 +52,7 @@ If a value is given for the region, use that; otherwise use US averages
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
     df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
 
-    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), nullable=false)
+    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), allowmissing=:none)
     fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 

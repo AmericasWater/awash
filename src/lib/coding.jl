@@ -11,7 +11,7 @@ nullallow has the same number of elements as types.
   nullallow[ii] may be a value, in which case nulls are replaced with the value.
 """
 function robustcsvread(filepath::String, types::Vector{DataType}, null::String, nullallow::Vector{Any})
-    df = CSV.read(filepath, types=types, null=null)
+    df = CSV.read(filepath, types=types, missingstring=null)
     for ii in 1:length(types)
         try
             if nullallow[ii] == nothing

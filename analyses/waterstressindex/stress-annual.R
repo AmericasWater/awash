@@ -181,6 +181,11 @@ ggsave(paste0("time-natflowa-annual-", infix, "compare.pdf"), width=7, height=4)
 
 ## Time-series by region
 
+setwd("~/research/awash/analyses/waterstressindex")
+
+library(dplyr)
+library(ggplot2)
+
 df1 <- cbind(data.frame(assump="Default"), read.csv("results/stress-annual-worst-alldemand-nores.csv"))
 df1 <- rbind(df1, cbind(data.frame(assump="Storage"), read.csv("results/stress-annual-worst-alldemand-withres.csv")))
 df1 <- rbind(df1, cbind(data.frame(assump="No canals"), read.csv("results/stress-annual-worst-alldemand-nores-nocanal.csv")))
@@ -209,8 +214,9 @@ df$region <- region_ind
 
 timedf <- df %>% group_by(time, assump, region) %>% summarize(supersource=sum(supersource, na.rm=T), minefp=mean(minefp, na.rm=T))
 
+timedf$region <- factor(timedf$region, levels=c("Northwest", "East North Central", "Northeast", "West", "West North Central", "Central", "Southwest", "South", "Southeast"))
 ggplot(timedf, aes(time, supersource, colour=assump)) +
-    facet_wrap(~ region) + geom_line() + scale_x_continuous(expand=c(0, 0)) +
+    facet_wrap(~ region) + geom_line() + scale_x_continuous(expand=c(0, 0), limits=c(1950, 2005)) +
     theme_minimal() + scale_colour_discrete(name="Assumption", breaks=c("Local flow", "No canals", "Default", "Storage")) +
     xlab(NULL) + ylab("Demand Failure (1000 m^3)")
 ggsave("timeregion-annual-worst-compare.pdf", width=8, height=4)

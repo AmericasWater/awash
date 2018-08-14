@@ -195,13 +195,13 @@ function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAI
     function generate(A,tt)
         A[:] = 1
     end
-    roomintersect(m,:Allocation, :totaluse, :withdrawals,generate)
+    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
 end
 
 
 function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT
     gen(tt)=(7.820581169848508e6)*2
-    hallsingle(m, :Allocation, :totaluse,gen)
+    hallsingle(m, :Allocation, :totaluse, gen)
 end
 
 
@@ -209,7 +209,7 @@ end
 function constraintoffset_allocation_otherdemand(m::Model)
     other=readtable(datapath("other.csv"))
     gen(rr,tt)=other[rr,:x1]
-    hallsingle(m, :Allocation, :balance,gen)
+    hallsingle(m, :Allocation, :balance, gen)
 end
 
 

@@ -1,15 +1,18 @@
 setwd("~/research/awash/analyses/landvalue")
 
+do.cornsoy.combo <- T
+
 ##   Baseline
 ## Check
 
-##   L0 C0 L5 C5 L7 C7
-## L0 1
-## C0 y  1
-## L5 y  X  1
-## C5 y  y  y  1
-## L7 y  X  z  X  1
-## C7 y  y  z  y  y  1
+##    OB L0 C0 L5 C5 L7 C7
+## OB  1
+## L0  y  1
+## C0  y  y  1
+## L5  y  y  X  1
+## C5  y  y  y  y  1
+## L7  y  y  X  z  X  1
+## C7  y  y  y  z  y  y  1
 
 ##   L0 L5 L7
 ## L0 1
@@ -24,40 +27,63 @@ setwd("~/research/awash/analyses/landvalue")
 ## C5 y  1
 ## C7 y  y  1
 
+actualcrops <- read.csv("actualcrops.csv")
+actualcrops$observed <- as.character(actualcrops$maxcrop.before)
+actualcrops$observed[actualcrops$observed == "BARLEY"] <- "Barley"
+actualcrops$observed[actualcrops$observed == "CORN"] <- "Corn"
+actualcrops$observed[actualcrops$observed == "COTTON"] <- "Cotton"
+actualcrops$observed[actualcrops$observed == "RICE"] <- "Rice"
+actualcrops$observed[actualcrops$observed == "SOYBEANS"] <- "Soybean"
+actualcrops$observed[actualcrops$observed == "WHEAT"] <- "Wheat"
 
-baseline <- read.csv("maxbayesian-pfixed-lybymc.csv")
+baseline <- read.csv("maxbayesian-pfixed.csv")
 baseline$maxnow <- baseline$crop
-current <- read.csv("constopt-currentprofits-pfixed-lybymc.csv")
+current <- read.csv("constopt-currentprofits-pfixed.csv")
 current$topnow <- current$topcrop
-lo2050 <- read.csv("max2050-pfixed-notime-histco-lybymc.csv")
+lo2050 <- read.csv("max2050-pfixed-notime-histco.csv")
 lo2050$max2050 <- lo2050$crop
-in2050 <- read.csv("constopt-all2050profits-pfixed-notime-histco-lybymc.csv")
+in2050 <- read.csv("constopt-all2050profits-pfixed-notime-histco.csv")
 in2050$top2050 <- in2050$topcrop
-lo2070 <- read.csv("max2070-pfixed-notime-histco-lybymc.csv")
+lo2070 <- read.csv("max2070-pfixed-notime-histco.csv")
 lo2070$max2070 <- lo2070$crop
-in2070 <- read.csv("constopt-all2070profits-pfixed-notime-histco-lybymc.csv")
+in2070 <- read.csv("constopt-all2070profits-pfixed-notime-histco.csv")
 in2070$top2070 <- in2070$topcrop
 
 library(dplyr)
 
-df <- baseline %>% left_join(current, by="fips") %>% left_join(in2050, by="fips") %>% left_join(in2070, by="fips") %>% left_join(lo2050, by="fips") %>% left_join(lo2070, by="fips")
+df <- baseline %>% left_join(actualcrops, by="fips") %>% left_join(current, by="fips") %>% left_join(in2050, by="fips") %>% left_join(in2070, by="fips") %>% left_join(lo2050, by="fips") %>% left_join(lo2070, by="fips")
 
-optims <- c("Local Current", "Local 2050", "Local 2070", "Constr. Current", "Constr. 2050", "Constr. 2070")
+df <- subset(df, !is.na(observed))
+
+if (do.cornsoy.combo) {
+    df$observed[df$observed == "Corn"] <- "Soybean"
+    df$maxnow[df$maxnow == "Corn"] <- "Soybean"
+    df$topnow[df$topnow == "Corn"] <- "Soybean"
+    df$max2050[df$max2050 == "Corn"] <- "Soybean"
+    df$top2050[df$top2050 == "Corn"] <- "Soybean"
+    df$max2070[df$max2070 == "Corn"] <- "Soybean"
+    df$top2070[df$top2070 == "Corn"] <- "Soybean"
+}
+
+optims <- c("Local 2010", "Local 2050", "Local 2070", "Constr. 2010", "Constr. 2050", "Constr. 2070")
 columns <- c("maxnow", "max2050", "max2070", "topnow", "top2050", "top2070")
 
-results <- matrix(NA, 6, 6)
+results <- matrix(NA, 6, 7)
 row.names(results) <- optims
-colnames(results) <- optims
+colnames(results) <- c("Observed", optims)
 
 for (ii in 1:6)
-    for (jj in 1:6) {
+    for (jj in 0:6) {
         if (jj > ii)
             next
-        results[ii, jj] <- sum((is.na(df[, columns[ii]]) & is.na(df[, columns[jj]])) | df[, columns[ii]] == df[, columns[jj]], na.rm=T) / nrow(df)
+        if (jj == 0)
+            results[ii, 1] <- sum((is.na(df[, columns[ii]]) & is.na(df$observed)) | df[, columns[ii]] == df$observed, na.rm=T) / nrow(df)
+        else
+            results[ii, jj+1] <- sum((is.na(df[, columns[ii]]) & is.na(df[, columns[jj]])) | df[, columns[ii]] == df[, columns[jj]], na.rm=T) / nrow(df)
     }
 
 library(xtable)
 
-print(xtable((1 - results[, 1:3]) * 100, digits=1))
+print(xtable((1 - results[, 1:4]) * 100, digits=1))
 
-xtable((1 - results[4:6, 4:6]) * 100, digits=1)
+xtable((1 - results[4:6, c(1, 5:7)]) * 100, digits=1)

@@ -17,12 +17,12 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+regions = CSV.read(loadpath("county-info.csv"))
 regions[:FIPS] = regionindex(regions, :)
 
-regions[ismissing.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
+regions[:TotalArea_sqmi] = replacemissing(regions, :TotalArea_sqmi, 0.)
 countyareas = reorderfips(regions[:, :TotalArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
-regions[ismissing.(regions[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
+regions[:LandArea_sqmi] = replacemissing(regions, :LandArea_sqmi, 0.)
 countylandareas = reorderfips(regions[:, :LandArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather

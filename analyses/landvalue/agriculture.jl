@@ -1,3 +1,5 @@
+using DataArrays
+
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/standard-1year.yml")
 
@@ -41,12 +43,12 @@ masterregions[:profitsource] = maxprofit
 
 actualcrops = readtable("actualcrops.csv")
 actualcrops[:fips] = canonicalindex(actualcrops[:fips])
-actualcrops[actualcrops[:maxcrop_before] .== "COTTON", :maxcrop_before] = "cott"
-actualcrops[actualcrops[:maxcrop_before] .== "SOYBEANS", :maxcrop_before] = "soyb"
-actualcrops[actualcrops[:maxcrop_before] .== "CORN", :maxcrop_before] = "corn"
-actualcrops[actualcrops[:maxcrop_before] .== "WHEAT", :maxcrop_before] = "whea"
-actualcrops[actualcrops[:maxcrop_before] .== "RICE", :maxcrop_before] = "rice"
-actualcrops[actualcrops[:maxcrop_before] .== "BARLEY", :maxcrop_before] = "barl"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "COTTON"), :maxcrop_before] = "cott"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "SOYBEANS"), :maxcrop_before] = "soyb"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "CORN"), :maxcrop_before] = "corn"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "WHEAT"), :maxcrop_before] = "whea"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "RICE"), :maxcrop_before] = "rice"
+actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "BARLEY"), :maxcrop_before] = "barl"
 
 obscrop = repeat(["none"], outer=nrow(masterregions))
 toadd = zeros(nrow(masterregions))

@@ -79,15 +79,17 @@ function timeindex2contributingleapindexes(tt::Int64, timestep::Int64, nummonths
     end
 end
 
-
+"""Return a list of the years that finished in this timestep."""
 function timeindex2yearindexes(tt::Int64)
     timeindex2leapindexes(tt, config["timestep"], 12)
 end
 
+"""Return a list of the years that where involved in this timestep."""
 function timeindex2contributingyearindexes(tt::Int64)
     timeindex2contributingleapindexes(tt, config["timestep"], 12)
 end
 
+"""Return a list of the timesteps that finished in this year."""
 function yearindex2timeindexes(yy::Int64)
     timeindex2leapindexes(yy, config["timestep"], 12)
 end

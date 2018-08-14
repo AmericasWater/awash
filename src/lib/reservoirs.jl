@@ -26,12 +26,12 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
         DataFrame(collection="three", colid=2)
     else
         try
-            reservoirs = readtable(loadpath("reservoirs/allreservoirs.csv"), eltypes=[String, String, Float64, Float64, Float64, Float64, Float64])
+            reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Float64, Float64, Float64, Float64, Float64])
         catch
-            reservoirs = readtable(loadpath("reservoirs/allreservoirs.csv"), eltypes=[String, String, Float64, Float64, Float64, Float64, Float64, String])
+            reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Union{Float64, Missing}, Float64, Float64, Union{Float64, Missing}, Float64, String], missingstring="\"NA\"")
         end
         if get(config, "filterstate", nothing) != nothing
-            reservoirs = reservoirs[floor(reservoirs[:fips] / 1000) .== parse(Int64, config["filterstate"]), :]
+            reservoirs = reservoirs[floor(parse.(Int64, reservoirs[:fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
         end
 
         reservoirs

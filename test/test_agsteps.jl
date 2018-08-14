@@ -1,0 +1,25 @@
+using Base.Test
+using DataFrames
+
+include("../src/lib/readconfig.jl")
+config = readconfig("../configs/complete-yearly.yml")
+config["filterstate"] = "08"
+
+include("model.jl")
+run(model)
+model_yearly = model
+
+config = readconfig("../configs/complete.yml")
+config["filterstate"] = "08"
+
+include("model.jl")
+run(model)
+model_monthly = model
+
+@test dims(model_yearly[:Agriculture, :allirrigation]) != model_monthly[:Agriculture, :allirrigation]
+@test mean(model_yearly[:Agriculture, :allirrigation], 2) != mean(model_monthly[:Agriculture, :allirrigation], 2)
+
+@test sum(model_yearly[:Agriculture, :allcropareas], 3) == sum(model_monthly[:Agriculture, :allcropareas], 3)
+@test sum(model_yearly[:Agriculture, :allcropproduction], 3) == sum(model_monthly[:Agriculture, :allcropproduction], 3)
+@test sum(model_yearly[:Agriculture, :allirrigation], 2) == sum(model_monthly[:Agriculture, :allirrigation], 2)
+@test sum(model_yearly[:Agriculture, :allagarea], 2) == sum(model_monthly[:Agriculture, :allagarea], 2)

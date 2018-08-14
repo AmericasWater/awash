@@ -3,6 +3,7 @@
 # Functions for accessing external data.
 
 using NullableArrays
+using DataArrays
 
 include("inputcache.jl")
 

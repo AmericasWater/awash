@@ -47,19 +47,19 @@ function run_timestep(s::Agriculture, tt::Int)
 
     for rr in d.regions
         v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
-        v.allagarea[rr, tt] = mean(p.othercropsarea[rr, contyys])
+        v.allagarea[rr, tt] = max(p.othercropsarea[rr, contyys])
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
-                v.allcropareas[rr, cc, tt] = mean(p.irrcropareas[rr, irrcc, contyys])
+                v.allcropareas[rr, cc, tt] = max(p.irrcropareas[rr, irrcc, contyys])
                 v.allcropproduction[rr, cc, tt] = sum(p.irrcropproduction[rr, irrcc, yys])
             else
                 unicc = findfirst(unicrops, allcrops[cc])
-                v.allcropareas[rr, cc, tt] = mean(p.unicropareas[rr, unicc, contyys])
+                v.allcropareas[rr, cc, tt] = max(p.unicropareas[rr, unicc, contyys])
                 v.allcropproduction[rr, cc, tt] = sum(p.unicropproduction[rr, unicc, yys])
             end
 
-            v.allagarea[rr, tt] += mean(v.allcropareas[rr, cc, contyys])
+            v.allagarea[rr, tt] += max(v.allcropareas[rr, cc, contyys])
         end
     end
 end

@@ -17,7 +17,12 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = CSV.read(loadpath("county-info.csv"))
+if config["dataset"] == "counties"
+    regions = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
+else
+    regions = CSV.read(loadpath("county-info.csv"))
+end
+
 regions[:FIPS] = regionindex(regions, :)
 
 regions[:TotalArea_sqmi] = replacemissing(regions, :TotalArea_sqmi, 0.)

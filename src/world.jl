@@ -5,7 +5,6 @@
 
 include("world-minimal.jl")
 include("regionnet.jl")
-include("waternet.jl")
 include("lib/leapsteps.jl")
 include("initwaternet.jl")
 

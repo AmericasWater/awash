@@ -90,13 +90,13 @@ function initaquifer(m::Model)
     aquifer[:areaaquif] = dfgw[:areaaquif];
     aquifer[:lateralconductivity] = lateralconductivity;
     aquifer[:aquiferconnexion] = aquiferconnexion;
-    aquifer[:recharge] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
+    aquifer[:recharge] = recharge;#zeros(m.indices_counts[:regions],m.indices_counts[:time]);;
     aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
 
     aquifer[:deltatime] = convert(Float64, config["timestep"]);
 
     # Get elevation from county-info file
-    countyinfo = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    countyinfo = CSV.read(loadpath("county-info.csv"))
     countyinfo[:FIPS] = regionindex(countyinfo, :)
 
     aquifer[:elevation] = map(x -> ifelse(isna(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))

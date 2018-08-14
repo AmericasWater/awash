@@ -3,6 +3,10 @@
 # Install any packages that need to be installed and sets up standard
 # functions.
 
+if Pkg.installed("CSV") == nothing
+    Pkg.add("CSV")
+end
+
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
 end

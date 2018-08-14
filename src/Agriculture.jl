@@ -47,19 +47,19 @@ function run_timestep(s::Agriculture, tt::Int)
 
     for rr in d.regions
         v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
-        v.allagarea[rr, tt] = max(p.othercropsarea[rr, contyys])
+        v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
-                v.allcropareas[rr, cc, tt] = max(p.irrcropareas[rr, irrcc, contyys])
+                v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
                 v.allcropproduction[rr, cc, tt] = sum(p.irrcropproduction[rr, irrcc, yys])
             else
                 unicc = findfirst(unicrops, allcrops[cc])
-                v.allcropareas[rr, cc, tt] = max(p.unicropareas[rr, unicc, contyys])
+                v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
                 v.allcropproduction[rr, cc, tt] = sum(p.unicropproduction[rr, unicc, yys])
             end
 
-            v.allagarea[rr, tt] += max(v.allcropareas[rr, cc, contyys])
+            v.allagarea[rr, tt] += maximum(v.allcropareas[rr, cc, contyys])
         end
     end
 end
@@ -68,17 +68,19 @@ function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
     knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
-    agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numyears]) # Convert to Ha
+    othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numyears]) # Convert to Ha
+    agriculture[:othercropsarea] = othercropsarea
 
     recorded = getfilteredtable("extraction/USGS-2010.csv")
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
-    othercropirrigation[knownareas[:total] .== 0] = 0
-    agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
+    othercropsirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
+    othercropsirrigation[knownareas[:total] .== 0] = 0
+    othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])
+    agriculture[:othercropsirrigation] = othercropsirrigation
 
     for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numyears])
-        agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
-        agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
+        agriculture[:othercropsarea] = othercropsarea + areas
+        agriculture[:othercropsirrigation] = othercropsirrigation + cropirrigationrates(crop) .* areas / 100
     end
 
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numyears))

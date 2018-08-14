@@ -258,7 +258,7 @@ Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
     df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    df[:, crop] * 0.404686
+    df[:, Symbol(crop)] * 0.404686
 end
 
 """
@@ -307,13 +307,13 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
     end
 
-    result = zeros(numcounties, numsteps)
+    result = zeros(numcounties, numyears)
 
-    for ii in 1:numsteps
-        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+    for ii in 1:numyears
+        orderedyields = vec(convert(Matrix{Float64}, yields[ii + index2year(1) - 1949, regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields
-            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))
         end
         result[:, ii] = exp(orderedyields) # Exponentiate because in logs
     end

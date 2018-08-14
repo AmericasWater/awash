@@ -15,7 +15,6 @@ else
 	allowreservoirs = true
 end
 
-
 include("optimization-given.jl")
 house = optimization_given(false, allowreservoirs)
 

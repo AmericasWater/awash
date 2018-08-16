@@ -40,17 +40,19 @@ end
 Approximate irrigation calendar assuming uniform irrigation requirements across crops.
 """
 function getirrigationperdayarea(irtotal)
-    irrigareas = CSV.read(loadpath("agriculture/irrigatedareas.csv"))
-    rainyareas = CSV.read(loadpath("agriculture/rainfedareas.csv"))
-    knownareas = CSV.read(loadpath("agriculture/knownareas.csv"))
+    irrigareas = CSV.read(loadpath("agriculture/irrigatedareas.csv"), types=[Int64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
+    rainyareas = CSV.read(loadpath("agriculture/rainfedareas.csv"), types=[Int64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
+    knownareas = CSV.read(loadpath("agriculture/knownareas.csv"), types=[Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
 
     otherareas = knownareas[:total]
     totaldayareas = zeros(length(irtotal))
-    for crop in [:Alfalfa, :Otherhay, :Barley, :Barley.Winter, :Maize, :Sorghum, :Soybean, :Wheat, :Wheat.Winter]
-        otherareas -= irrigareas[, crop] + rainyareas[, crop]
-        df = cropcalendar[cropcalendar[:crop] .== String(crop),:]
+    for crop in [:Alfalfa, :Otherhay, :Barley, Symbol("Barley.Winter"), :Maize, :Sorghum, :Soybean, :Wheat, Symbol("Wheat.Winter")]
+        otherareas -= irrigareas[crop] + rainyareas[crop]
+        thiscropcalendar = cropcalendar[cropcalendar[:crop] .== String(crop), :]
+        rows = dataonmaster(thiscropcalendar[:fips], 1:nrow(thiscropcalendar))
+        df = thiscropcalendar[rows, :]
         days = (df[:harvest] - df[:plant] + 1)
-        totaldayareas += days .* irrigareas[, crop]
+        totaldayareas += days .* irrigareas[crop]
     end
 
     totaldayareas += 365 * otherareas

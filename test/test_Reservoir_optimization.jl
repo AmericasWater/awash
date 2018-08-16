@@ -4,7 +4,7 @@ using Base.Test
 include("../src/lib/readconfig.jl")
 config = readconfig("../configs/standard-1year-state.yml")
 
-include("../src/model.jl")
+include("../src/model-surfacewater.jl")
 
 @time room1 = grad_reservoir_storage_captures(model)
 

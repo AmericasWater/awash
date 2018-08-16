@@ -2,52 +2,19 @@
 #
 # Includes both water management and production management.
 
-include("model-waterdemand.jl")
+include("model-surfacewater.jl")
 
-## Check if the optimize-surface script has produced captures data
-storedcaptures = cached_fallback("extraction/captures", () -> false)
-if storedcaptures == false
-    warn("Missing saved reservoirs file.  Please run optimize-surface.jl with allowreservoirs.")
-elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != numsteps
-    warn("Reservoir file does not match current configuration.  Please remove.")
-end
+include("Market.jl");
+include("Transportation.jl");
+include("Groundwater.jl");
 
-include("ReturnFlows.jl");
-#include("Market.jl");
-#include("Transportation.jl");
-include("WaterNetwork.jl");
-#include("Groundwater.jl");
-include("Allocation.jl");
-include("Reservoir.jl");
-include("EnvironmentalDemand.jl")
-include("WaterStressIndex.jl")
-
-allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
-returnflows = initreturnflows(model, true); # dep. Allocation
-#groundwater = initaquifer(model); # Allocation or optimization-only
-waternetwork = initwaternetwork(model); # dep. ReturnFlows
-reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
-#transportation = inittransportation(model); # optimization-only
-#market = initmarket(model); # dep. Transportation, Agriculture
-environmentaldemand = initenvironmentaldemand(model); # dep. WaterNetwork
-waterstressindex = initwaterstressindex(model);
+groundwater = initaquifer(model); # Allocation or optimization-only
+transportation = inittransportation(model); # optimization-only
+market = initmarket(model); # dep. Transportation, Agriculture
 
 # Connect up the components
-allocation[:watertotaldemand] = waterdemand[:totaldemand];
-returnflows[:withdrawals] = allocation[:copy_withdrawals];
-waternetwork[:removed] = returnflows[:removed];
-waternetwork[:returned] = returnflows[:returned];
-#groundwater[:withdrawal] = allocation[:watergw];
-reservoir[:inflowsgauges] = waternetwork[:inflows];
-reservoir[:outflowsgauges] = waternetwork[:outflows];
+groundwater[:withdrawal] = allocation[:watergw];
 
-#market[:produced] = agriculture[:allcropproduction];
-#market[:regionimports] = transportation[:regionimports];
-#market[:regionexports] = transportation[:regionexports];
-
-environmentaldemand[:naturalflows] = waternetwork[:unmodifieds];
-environmentaldemand[:outflowsgauges] = waternetwork[:outflows];
-waterstressindex[:inflowgauge] = waternetwork[:inflows];
-waterstressindex[:withdrawalsw] = returnflows[:removed];
-waterstressindex[:withdrawalswregion] = allocation[:swsupply];
-waterstressindex[:withdrawalgw] = allocation[:watergw];
+market[:produced] = agriculture[:allcropproduction];
+market[:regionimports] = transportation[:regionimports];
+market[:regionexports] = transportation[:regionexports];

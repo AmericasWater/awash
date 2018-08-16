@@ -57,6 +57,17 @@ include("lib/graphing.jl")
 config = emptyconfig()
 model = nothing # The master model object for functions below
 
+function prepsimulatesurface(configfile::AbstractString)
+    global config, model
+
+    config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
+    include("../src/model-surfacewater.jl")
+end
+
 function prepsimulate(configfile::AbstractString)
     global config, model
 

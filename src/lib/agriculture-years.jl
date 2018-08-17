@@ -1,8 +1,8 @@
-using Dates
+using Base.Dates
 
 include("datastore.jl")
 
-cropcalendar = getfilteredtable("../../prepare/agriculture/countycalendars.csv", :fips)
+cropcalendar = getfilteredtable("../../prepare/agriculture/countycalendars.csv", :fips, types=[String, String, String, Float64, Float64, Union{Missing, Int64}, Union{Missing, Int64}, Union{Missing, Int64}], missingstring="NA")
 
 """
 Returns an ordered list of days over entire period

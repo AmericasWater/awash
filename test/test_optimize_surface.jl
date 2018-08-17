@@ -18,7 +18,7 @@ solver = ClpSolver()
 @time sol = houseoptimize(house, solver)
 
 # Save the results, if not available
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
+varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quarterwaterfromsupersource => :waterfromsupersource))
 
 allparams = Symbol[]
 allvalues = Float64[]

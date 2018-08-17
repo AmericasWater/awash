@@ -71,7 +71,7 @@ function initagriculture(m::Model)
     othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numyears]) # Convert to Ha
     agriculture[:othercropsarea] = othercropsarea
 
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
     othercropsirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropsirrigation[knownareas[:total] .== 0] = 0
     othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])

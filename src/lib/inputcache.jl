@@ -32,3 +32,12 @@ end
 function clearfilecache()
     empty!(inputvalues)
 end
+
+function knowndf(filenickname::AbstractString)
+    if filenickname == "exogenous-withdrawals"
+        getfilevalue(loadpath("extraction/USGS-2010.csv"), "filtered",
+                     () -> getfilteredtable("extraction/USGS-2010.csv", types=[repmat([String], 5); Union{Missing, Int64}; repmat([Float64], 25)], missingstring="NA"))
+    else
+        error("Unknown DataFrame $filenickname.")
+    end
+end

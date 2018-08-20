@@ -53,7 +53,7 @@ if isfile(outputpath)
     end
     @test length(mismatches) == 0
 else
-    writetable(outputpath, alldf)
+    CSV.write(outputpath, alldf)
 end
 
 save_optimization_given(house, sol, false, true)

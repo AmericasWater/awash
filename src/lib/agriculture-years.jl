@@ -46,15 +46,22 @@ function getirrigationperdayarea(irtotal)
 
     otherareas = knownareas[:total]
     totaldayareas = zeros(length(irtotal))
-    for crop in [:Alfalfa, :Otherhay, :Barley, Symbol("Barley.Winter"), :Maize, :Sorghum, :Soybean, :Wheat, Symbol("Wheat.Winter")]
-        otherareas -= irrigareas[crop] + rainyareas[crop]
-        thiscropcalendar = cropcalendar[cropcalendar[:crop] .== String(crop), :]
-        rows = dataonmaster(thiscropcalendar[:fips], 1:nrow(thiscropcalendar))
-        df = thiscropcalendar[rows, :]
-        days = (df[:harvest] - df[:plant] + 1)
-        totaldayareas += days .* irrigareas[crop]
+    for crop in [:Barley, Symbol("Barley.Winter"), :Maize, :Sorghum, :Soybean, :Wheat, Symbol("Wheat.Winter")]
+
+        otherareas -= collect(Missings.replace(irrigareas[crop] + rainyareas[crop], 0))
+        if crop != :Soybean
+            thiscropcalendar = cropcalendar[cropcalendar[:crop] .== String(crop), :]
+        else
+            thiscropcalendar = cropcalendar[cropcalendar[:crop] .== "Soybeans", :]
+        end
+        harvests = dataonmaster(thiscropcalendar[:fips], thiscropcalendar[:harvest])
+        plants = dataonmaster(thiscropcalendar[:fips], thiscropcalendar[:plant])
+        days = harvests - plants + 1
+        days = collect(Missings.replace(days, 0))
+        totaldayareas += days .* collect(Missings.replace(irrigareas[crop], 0.))
     end
 
+    otherareas[otherareas .< 0] = 0
     totaldayareas += 365 * otherareas
 
     return irtotal ./ totaldayareas

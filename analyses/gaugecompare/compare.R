@@ -1,8 +1,29 @@
 setwd("~/research/water/awash/analyses/gaugecompare")
 
+library(ggplot2)
+
+do.only.hcdn <- F
+
 source("../../../network4/discharges.R", chdir=T)
 df <- read.csv("optimizes.csv")
 df$observed <- NA
+
+if (do.only.hcdn) {
+    info <- read.csv("../../../scaling/conterm_basinid.txt")
+    allids <- unique(as.character(df$gauge))
+    collection <- sapply(strsplit(allids, "\\."), function(x) x[1])
+    colid <- sapply(strsplit(allids, "\\."), function(x) x[2])
+    include <- collection == "usgs"
+    for (ii in which(include)) {
+        infoii <- which(info$STAID == as.numeric(colid[ii]))
+        if (length(infoii) != 1)
+            include[ii] <- F
+        else if (info$HCDN.2009[infoii] != "yes")
+            include[ii] <- F
+    }
+
+    df <- df[df$gauge %in% allids[include],]
+}
 
 numdone <- 0
 for (gauge in unique(df$gauge)) {
@@ -26,12 +47,19 @@ for (gauge in unique(df$gauge)) {
 }
 
 df$observed <- df$observed * 60 * 60 * 24 * 365 / 1000
+if (do.only.hcdn) {
+    quantile(df$flows_nw / df$observed, probs=c(0, .1, .25, .5, .75, .9, 1), na.rm=T)
+
+    ggplot(df, aes(flows_nw / observed)) +
+        geom_density() +
+        scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
+        theme_minimal() + xlab("Ratio of simulated to observed")
+}
+
 df$modified <- df$flows_nw - df$flows_nrnr > mean(df$flows_nw - df$flows_nrnr)
 
 ava0 <- df$observed > 0 & df$flows_nw > 0 & df$flows_nrnr > 1e-3 & df$flows_rfnr > 1e-3 & df$flows_rfwr > 1e-3
 ava <- df$observed > 0 & df$flows_nw > 0 & df$flows_nrnr > 1e-3 & df$flows_rfnr > 1e-3 & df$flows_rfwr > 1e-3 & df$modified
-
-library(ggplot2)
 
 summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nw[ava]), x=log(df$observed[ava]))))
 summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nrnr[ava]), x=log(df$observed[ava]))))

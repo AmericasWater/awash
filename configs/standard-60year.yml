@@ -27,6 +27,3 @@ demandmodel: "USGS"
 
 # Environmental flow: proportion of unmodified flows that should be guaranteed in the streams to preserve the environment
 proportionnaturalflowforenvironment: 0.5
-
-# Infrastructure/Diversions
-filtercanals: "contains"

@@ -35,8 +35,13 @@ end
 
 function knowndf(filenickname::AbstractString)
     if filenickname == "exogenous-withdrawals"
-        getfilevalue(loadpath("extraction/USGS-2010.csv"), "filtered",
-                     () -> getfilteredtable("extraction/USGS-2010.csv", types=[repmat([String], 5); Union{Missing, Int64}; repmat([Float64], 25)], missingstring="NA"))
+        try
+            getfilevalue(loadpath("extraction/USGS-2010.csv"), "filtered",
+                         () -> getfilteredtable("extraction/USGS-2010.csv", types=[repmat([String], 5); Union{Missing, Int64}; repmat([Float64], 25)], missingstring="NA"))
+        catch
+            getfilevalue(loadpath("extraction/USGS-2010.csv"), "filtered",
+                         () -> getfilteredtable("extraction/USGS-2010.csv", types=[String; Union{Missing, Int64}; repmat([Float64], 25)], missingstring="NA"))
+        end
     else
         error("Unknown DataFrame $filenickname.")
     end

@@ -34,13 +34,13 @@ if isfile(outputpath)
         @test compdf[ii, :regions] == string(alldf[ii, :regions])
         @test compdf[ii, :time] == alldf[ii, :time]
         @test compdf[ii, :variable] == string(alldf[ii, :variable])
-        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value])) && compdf[ii, :value] != alldf[ii, :value]
+        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value])) && abs(compdf[ii, :value] - alldf[ii, :value]) / max(abs(compdf[ii, :value]), abs(alldf[ii, :value])) > 1e-6
             push!(mismatches, ii)
         end
     end
 
     if length(mismatches) > 0
-        println(mismatches) 
+        println(mismatches)
         println("Simulated:")
         println(alldf[mismatches, :])
         println("Recorded:")

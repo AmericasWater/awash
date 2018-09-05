@@ -5,7 +5,7 @@ include("../src/lib/readconfig.jl")
 config = readconfig("../configs/complete-yearly.yml")
 config["filterstate"] = "08"
 
-include("model.jl")
+include("../src/model.jl")
 run(model)
 model_yearly = model
 

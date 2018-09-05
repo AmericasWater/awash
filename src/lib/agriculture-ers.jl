@@ -92,7 +92,7 @@ end
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
     subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
-    result = zeros(size(masterregions, 1)) * NA
+    result = Vector{Union{Missing, Float64}}(size(masterregions, 1))
     for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
@@ -103,7 +103,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[isna.(result)] = value[1]
+        result[[!isassigned(result, ii) for ii in 1:length(result)]] = value[1]
     end
 
     result

@@ -217,10 +217,6 @@ else
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
-    if config["filterstate"] == "08"
-        agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
-        agmodels["soybeans"]=agmodel1["soybeans"]
-    end
 
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)

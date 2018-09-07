@@ -67,7 +67,7 @@ end
 function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
-    knownareas = getfilteredtable("agriculture/knownareas.csv", :fips, types=[String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    knownareas = knowndf("agriculture-knownareas")
     othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numyears]) # Convert to Ha
     agriculture[:othercropsarea] = othercropsarea
 

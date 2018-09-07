@@ -42,7 +42,7 @@ Approximate irrigation calendar assuming uniform irrigation requirements across 
 function getirrigationperdayarea(irtotal)
     irrigareas = CSV.read(loadpath("agriculture/irrigatedareas.csv"), types=[Int64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
     rainyareas = CSV.read(loadpath("agriculture/rainfedareas.csv"), types=[Int64, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
-    knownareas = CSV.read(loadpath("agriculture/knownareas.csv"), types=[Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+    knownareas = knowndf("agriculture-knownareas")
 
     otherareas = knownareas[:total]
     totaldayareas = zeros(length(irtotal))

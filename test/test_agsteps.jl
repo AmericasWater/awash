@@ -12,7 +12,7 @@ model_yearly = model
 config = readconfig("../configs/complete.yml")
 config["filterstate"] = "08"
 
-include("model.jl")
+include("../src/model.jl")
 run(model)
 model_monthly = model
 

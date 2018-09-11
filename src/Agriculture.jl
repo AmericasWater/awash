@@ -80,7 +80,11 @@ function initagriculture(m::Model)
     for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numyears])
         agriculture[:othercropsarea] = othercropsarea + areas
-        agriculture[:othercropsirrigation] = othercropsirrigation + cropirrigationrates(crop) .* areas / 100
+        savedcropirrigationrates = cropirrigationrates(crop)
+        for tt in 1:numsteps
+            yys = timeindex2yearindexes(tt)
+            agriculture[:othercropsirrigation][:, tt] = othercropsirrigation[:, tt] + savedcropirrigationrates[:, tt] .* maximum(areas[:, yys]) / 100
+        end
     end
 
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numyears))

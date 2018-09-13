@@ -81,12 +81,14 @@ function initagriculture(m::Model)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numyears])
         agriculture[:othercropsarea] = othercropsarea + areas
         savedcropirrigationrates = cropirrigationrates(crop)
+        othercropsirrigation = zeros(numregions, numsteps)
         for tt in 1:numsteps
             yys = timeindex2yearindexes(tt)
-            agriculture[:othercropsirrigation][:, tt] = othercropsirrigation[:, tt] + savedcropirrigationrates[:, tt] .* maximum(areas[:, yys]) / 100
+            othercropsirrigation[:, tt] = othercropsirrigation[:, tt] + savedcropirrigationrates[:, tt] .* maximum(areas[:, yys]) / 100
         end
     end
 
+    agriculture[:othercropsirrigation] = othercropsirrigation
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numyears))
     agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numyears))
 

@@ -84,7 +84,9 @@ function initagriculture(m::Model)
         othercropsirrigation = zeros(numregions, numsteps)
         for tt in 1:numsteps
             yys = timeindex2yearindexes(tt)
-            othercropsirrigation[:, tt] = othercropsirrigation[:, tt] + savedcropirrigationrates[:, tt] .* maximum(areas[:, yys]) / 100
+            if length(yys) > 0
+                othercropsirrigation[:, tt] = othercropsirrigation[:, tt] + savedcropirrigationrates[:, tt] .* maximum(areas[:, yys]) / 100
+            end
         end
     end
 

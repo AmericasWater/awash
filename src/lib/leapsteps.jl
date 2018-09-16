@@ -91,5 +91,6 @@ end
 
 """Return a list of the timesteps that finished in this year."""
 function yearindex2timeindexes(yy::Int64)
-    leapindex2timeindexes(yy, config["timestep"], 12)
+    tts = leapindex2timeindexes(yy, config["timestep"], 12)
+    tts[tts <= numsteps]
 end

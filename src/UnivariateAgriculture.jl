@@ -143,7 +143,7 @@ function initunivariateagriculture(m::Model)
     totalareas = getfilteredtable("agriculture/totalareas.csv")
 
     if isempty(unicrops)
-        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numsteps))
+        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numyears))
     else
         constantareas = zeros(numcounties, numunicrops)
         for cc in 1:numunicrops
@@ -155,7 +155,7 @@ function initunivariateagriculture(m::Model)
                 constantareas[isna.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end
         end
-        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
+        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numyears])
     end
 
     agriculture

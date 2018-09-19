@@ -41,7 +41,7 @@ else
     numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
-numyears = length(cat(1, timeindex2contributingyearindexes.(1:numsteps)...))
+numyears = length(unique(cat(1, timeindex2contributingyearindexes.(1:numsteps)...)))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)

@@ -1,4 +1,6 @@
-using NaNMath, DataArrays
+# Rerun 9/17
+
+using NaNMath, DataArrays, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -8,10 +10,13 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-holdcoeff = true #false
-allowtime = true #false
+for holdcoeff in [false, true]
+    for allowtime in [false, true]
+        for futureyear in [2050, 2070]
+#holdcoeff = true #false
+#allowtime = true #false
+#futureyear = 2050
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
-futureyear = 2050
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
@@ -194,4 +199,8 @@ for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])
 end
 
-writetable("max$(futureyear)$suffix.csv", result)
+CSV.write("max$(futureyear)$suffix.csv", result)
+end
+end
+end
+

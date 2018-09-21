@@ -1,6 +1,6 @@
  - actualcrops.R
  - optcrop.jl
- - futureyield.jl with holdcoeff=T x (2050, 2070)
+ - futureyield.jl
  - display.R with maxbayesian-pfixed
  - display.R with max2050-pfixed-notime-histco
  - display.R with max2070-pfixed-notime-histco

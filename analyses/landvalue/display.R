@@ -1,6 +1,7 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/awash/analyses/landvalue")
 
-basename = "constopt-currentprofits-pfixed-2070" #"constopt-all2070profits-pfixed-histco" #"maxbayesian-pfixed-2070" #"max2050-pfixed-histco"
+for (basename in c(paste0("maxbayesian-pfixed", c("", "-2050", "-2070")), "max2050-pfixed", "max2050-pfixed-histco", "max2050-pfixed-notime", "max2050-pfixed-notime-histco", "max2070-pfixed", "max2070-pfixed-histco", "max2070-pfixed-notime", "max2070-pfixed-notime-histco")) {
+    ##basename = "constopt-currentprofits-pfixed-2070" #"constopt-all2070profits-pfixed-histco" #"maxbayesian-pfixed-2070" #"max2050-pfixed-histco"
 
 if (startsWith(basename, "constopt")) {
     column <- "topcrop"
@@ -30,17 +31,35 @@ cnty2.df1 <- inner_join(cnty2, df, by="fips")
 gp <- ggplot(cnty2.df1, aes(long, lat, group = group)) +
     geom_polygon(aes(fill = crop), colour = rgb(1,1,1,0.2))  +
     coord_quickmap() + theme_minimal() + xlab("") + ylab("")
-if (basename %in% c("maxfuture-pfixed")) {
-    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Cotton', 'Rice', "Soybean"), values=c('#f8766d', '#00ba38', '#00bfc4', '#619cff'))
-} else if (basename %in% c("maxfuture-pfixed-notime-lybymc", "constopt-futureprofits-pfixed-lybymc")) {
-    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Corn', "Soybean", 'Wheat'), values=c('#f8766d', '#b79f00', '#619cff', '#f564e3'))
-} else if (basename %in% c("maxfuture-pfixed-lybymc", "maxfuture-pfixed-histco-lybymc")) {
-    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Corn', 'Cotton', "Soybean", 'Wheat'), values=c('#f8766d', '#b79f00', '#00ba38', '#619cff', '#f564e3'))
-} else if (basename %in% c("maxfuture-pfixed-notime")) {
-    gp <- gp + scale_fill_manual(breaks=c('Barley', 'Rice', "Soybean"), values=c('#f8766d', '#00bfc4', '#619cff'))
-} else {
-    ##scale_fill_manual(breaks=c('corn', 'rice', 'whea'), labels=c("Corn", "Rice", "Wheat"), values=c('#b79f00', '#00bfc4', '#f564e3'))
-    ##scale_fill_manual(breaks=c('corn', 'pean', 'rice', 'whea'), labels=c("Corn", "Peanuts", "Rice", "Wheat"), values=c('#b79f00', '#00be67', '#00bfc4', '#f564e3'))
+if (length(unique(cnty2.df1$crop)) < 6) {
+    breaks <- c()
+    values <- c()
+    if ('Barley' %in% cnty2.df1$crop) {
+        breaks <- 'Barley'
+        values <- '#f8766d'
+    }
+    if ('Cotton' %in% cnty2.df1$crop) {
+        breaks <- c(breaks, 'Cotton')
+        values <- c(values, '#00ba38')
+    }
+    if ('Corn' %in% cnty2.df1$crop) {
+        breaks <- c(breaks, 'Corn')
+        values <- c(values, '#b79f00')
+    }
+    if ('Rice' %in% cnty2.df1$crop) {
+        breaks <- c(breaks, 'Rice')
+        values <- c(values, '#00bfc4')
+    }
+    if ('Soybean' %in% cnty2.df1$crop) {
+        breaks <- c(breaks, 'Soybean')
+        values <- c(values, '#619cff')
+    }
+    if ('Wheat' %in% cnty2.df1$crop) {
+        breaks <- c(breaks, 'Wheat')
+        values <- c(values, '#f564e3')
+    }
+    gp <- gp + scale_fill_manual(breaks=breaks, values=values)
 }
 gp
 ggsave(paste0(basename, ".png"), width=8, height=4)
+}

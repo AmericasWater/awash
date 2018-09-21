@@ -57,7 +57,7 @@ for ii in 1:length(bayes_crops)
     # Load the second-level coefficients
     b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
     b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
-    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
+    ##b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
     b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
     b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
 
@@ -129,9 +129,9 @@ for ii in 1:length(bayes_crops)
         else
             # Get new coefficients for the future
             intercept_future = intercept + b0s * differences[:, kk]
-            gdds_coeff_future = gdds_coeff + b1s * differences[:, kk]
-            kdds_coeff_future = kdds_coeff + b2s * differences[:, kk]
-            time_coeff_future = time_coeff + b3s * differences[:, kk]
+            time_coeff_future = time_coeff + b1s * differences[:, kk]
+            gdds_coeff_future = gdds_coeff + b3s * differences[:, kk]
+            kdds_coeff_future = kdds_coeff + b4s * differences[:, kk]
 
             if allowtime
                 logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)

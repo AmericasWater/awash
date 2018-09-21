@@ -22,11 +22,8 @@ optimtype: "SWGW"
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"
 
-# Urban demand:
-urbandemand-path: demand/urbandemand_May11.csv
-urbandemand-column: per_capita
-urbandemand-transform: repcap
-urbandemand-index: FIPS_county
+# Demand model:
+demandmodel: "USGS"
 
 # Environmental flow: proportion of unmodified flows that should be guaranteed in the streams to preserve the environment
 proportionnaturalflowforenvironment: 0.5

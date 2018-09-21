@@ -8,10 +8,12 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-trendyear = 62 + 60
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
+
+# trendyear = 62 + 60
+for trendyear in [62, 62 + 40, 62 + 60]
 
 if profitfix
     profitfixdf = readtable("farmvalue-limited.csv")
@@ -123,4 +125,5 @@ for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])
 end
 
-writetable("maxbayesian$suffix.csv", result)
+CSV.write("maxbayesian$suffix.csv", result)
+end

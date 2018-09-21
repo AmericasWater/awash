@@ -1,4 +1,6 @@
-using NaNMath, DataArrays
+# Rerun 9/17
+
+using NaNMath, DataArrays, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -8,10 +10,13 @@ include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
 profitfix = true
-holdcoeff = true #false
-allowtime = true #false
+for holdcoeff in [false, true]
+    for allowtime in [false, true]
+        for futureyear in [2050, 2070]
+#holdcoeff = true #false
+#allowtime = true #false
+#futureyear = 2050
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
-futureyear = 2050
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
@@ -52,7 +57,7 @@ for ii in 1:length(bayes_crops)
     # Load the second-level coefficients
     b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
     b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
-    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
+    ##b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
     b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
     b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
 
@@ -124,9 +129,9 @@ for ii in 1:length(bayes_crops)
         else
             # Get new coefficients for the future
             intercept_future = intercept + b0s * differences[:, kk]
-            gdds_coeff_future = gdds_coeff + b1s * differences[:, kk]
-            kdds_coeff_future = kdds_coeff + b2s * differences[:, kk]
-            time_coeff_future = time_coeff + b3s * differences[:, kk]
+            time_coeff_future = time_coeff + b1s * differences[:, kk]
+            gdds_coeff_future = gdds_coeff + b3s * differences[:, kk]
+            kdds_coeff_future = kdds_coeff + b4s * differences[:, kk]
 
             if allowtime
                 logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)
@@ -194,4 +199,8 @@ for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])
 end
 
-writetable("max$(futureyear)$suffix.csv", result)
+CSV.write("max$(futureyear)$suffix.csv", result)
+end
+end
+end
+

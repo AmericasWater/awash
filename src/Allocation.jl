@@ -211,6 +211,3 @@ function constraintoffset_allocation_otherdemand(m::Model)
     gen(rr,tt)=other[rr,:x1]
     hallsingle(m, :Allocation, :balance, gen)
 end
-
-
-

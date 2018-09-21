@@ -1,33 +1,53 @@
 #cd("../../src")
-include("../../src/nui.jl")
-config = readconfig("../configs/standard-10year.yml");
+include("nui.jl")
+config = readconfig("../configs/standard-60year.yml");
+savingresultspath = "../analyses/waterstressindex/60years/"
 
 
-# Optimization without reservoirs
-config["rescap"] = "zero";
-# Optimization with reservoirs at their current capacities
-#config["rescap"] = "full";
+#### PART I: current withdrawals risk
+config["rescap"] = "zero"; # Optimization without reservoirs
+config["filtercanals"] = nothing;
+config["waterrightconst"] = nothing;
+flowprop = [0. 0.37 0.5];
+config["proportionnaturalflowforenvironment"] = flowprop[3];
+surfconj = "surface";
+savedem = true;
 
-include("../../src/optimize-surface.jl");
-writecsv("../analyses/waterstressindex/failure.csv", reshape(sol.sol[1:varlens[1]], numregions, numsteps));
+rm("../data/counties/extraction/withdrawals.jld")
+rm("../data/counties/extraction/waterfromgw.jld")
+rm("../data/counties/extraction/returns.jld")
+rm("../data/cache/counties/partialhouse.jld")
+rm("../data/cache/counties/partialhouse2.jld")
 
-include("../../src/simulate.jl")
-
-savedata("../analyses/waterstressindex/dem_tot.csv", :WaterDemand, :totaldemand)
-savedata("../analyses/waterstressindex/dem_ir.csv", :WaterDemand, :totalirrigation)
-savedata("../analyses/waterstressindex/dem_do.csv", :WaterDemand, :domesticuse)
-savedata("../analyses/waterstressindex/dem_in.csv", :WaterDemand, :industrialuse)
-savedata("../analyses/waterstressindex/dem_ur.csv", :WaterDemand, :urbanuse)
-savedata("../analyses/waterstressindex/dem_th.csv", :WaterDemand, :thermoelectricuse)
-savedata("../analyses/waterstressindex/dem_li.csv", :WaterDemand, :livestockuse)
+include("runoptisim.jl")
 
 
-savedata("../analyses/waterstressindex/allocation_wgw.csv", :Allocation, :watergw)
-savedata("../analyses/waterstressindex/allocation_wsw.csv", :Allocation, :swsupply)
-savedata("../analyses/waterstressindex/allocation_bal.csv", :Allocation, :balance)
+#### PART II: conjunctive strategy
+surfconj = "conj";
+savedem = false;
+config["waterrightconst"] = "SWGW";
+include("runoptisim.jl")
+config["waterrightconst"] = "GW";
+include("runoptisim.jl")
+config["waterrightconst"] = "SW";
+include("runoptisim.jl")
+config["waterrightconst"] = nothing;
+include("runoptisim.jl")
 
-savedata("../analyses/waterstressindex/wsi_indexgw.csv", :WaterStressIndex, :indexgw)
-savedata("../analyses/waterstressindex/wsi_indexsw.csv", :WaterStressIndex, :indexsw)
-savedata("../analyses/waterstressindex/wsi_indexWaSSli.csv", :WaterStressIndex, :indexWaSSli)
-savedata("../analyses/waterstressindex/wsi_indexWaSSI.csv", :WaterStressIndex, :indexWaSSI)
-#savedata("../analyses/waterstressindex/wsi_indexWSI.csv", :WaterStressIndex, :indexWSI)
+#### PART III: infra strategy
+config["rescap"] = "full"; # Optimization without reservoirs
+config["filtercanals"] = nothing;
+config["waterrightconst"] = nothing;
+surfconj = "surface";
+include("runoptisim.jl")
+
+rm("../data/counties/extraction/withdrawals.jld")
+rm("../data/counties/extraction/waterfromgw.jld")
+rm("../data/counties/extraction/returns.jld")
+rm("../data/cache/counties/partialhouse.jld")
+rm("../data/cache/counties/partialhouse2.jld")
+config["rescap"] = "zero"; # Optimization without reservoirs
+config["filtercanals"] = "contains";
+config["waterrightconst"] = nothing;
+surfconj = "surface";
+include("runoptisim.jl")

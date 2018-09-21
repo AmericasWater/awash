@@ -2,6 +2,8 @@
 #
 # Provides functions for accessing ERS data
 
+include("coding.jl")
+
 """
 Return the 4-letter crop code used by ERS
 """

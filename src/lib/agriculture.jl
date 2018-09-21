@@ -306,7 +306,7 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
     result = zeros(numcounties, numyears)
 
     for ii in 1:numyears
-        orderedyields = vec(convert(Matrix{Float64}, yields[max(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
+        orderedyields = vec(convert(Matrix{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields
             orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))

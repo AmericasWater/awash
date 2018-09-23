@@ -9,32 +9,32 @@ using Mimi
 include("lib/agriculture.jl")
 
 @defcomp UnivariateAgriculture begin
-    year = Index()
+    harvestyear = Index()
     regions = Index()
     unicrops = Index()
 
     # Optimized
     # Land area appropriated to each crop
-    totalareas = Parameter(index=[regions, unicrops, year], unit="Ha") # vs. year
+    totalareas = Parameter(index=[regions, unicrops, harvestyear], unit="Ha") # vs. harvestyear
 
     # Internal
     # Yield per hectare
-    yield = Parameter(index=[regions, unicrops, year], unit="none") # vs. year
+    yield = Parameter(index=[regions, unicrops, harvestyear], unit="none") # vs. harvestyear
 
     # Coefficient on the effects of water deficits
     irrigation_rate = Parameter(index=[regions, unicrops, time], unit="mm")
 
     # Computed
     # Total agricultural area
-    totalareas2 = Variable(index=[regions, unicrops, year], unit="Ha") # copy of totalareas, vs. year
-    allagarea = Variable(index=[regions, year], unit="Ha") # vs. year
+    totalareas2 = Variable(index=[regions, unicrops, harvestyear], unit="Ha") # copy of totalareas, vs. harvestyear
+    allagarea = Variable(index=[regions, harvestyear], unit="Ha") # vs. harvestyear
 
     # Total irrigation water (1000 m^3)
     totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
 
     # Total production: lb or bu
-    yield2 = Variable(index=[regions, unicrops, year], unit="none") # vs. year
-    production = Variable(index=[regions, unicrops, year], unit="lborbu") # vs. year
+    yield2 = Variable(index=[regions, unicrops, harvestyear], unit="none") # vs. harvestyear
+    production = Variable(index=[regions, unicrops, harvestyear], unit="lborbu") # vs. harvestyear
     #total Op cost
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
 
@@ -84,7 +84,7 @@ function initunivariateagriculture(m::Model)
     rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
 
     # Match up values by FIPS
-    yield = zeros(numcounties, numunicrops, numyears)
+    yield = zeros(numcounties, numunicrops, numharvestyears)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
 
     for cc in 1:numunicrops
@@ -106,7 +106,7 @@ function initunivariateagriculture(m::Model)
             end
             if regionid in keys(agmodels[unicrops[cc]])
                 thismodel = agmodels[unicrops[cc]][regionid]
-                for yy in 1:numyears
+                for yy in 1:numharvestyears
                     tts, weights = yearindex2timeindexes(yy)
                     year = index2year(tts[end])
                     if year >= 1949 && year <= 2009
@@ -143,7 +143,7 @@ function initunivariateagriculture(m::Model)
     totalareas = getfilteredtable("agriculture/totalareas.csv")
 
     if isempty(unicrops)
-        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numyears))
+        agriculture[:totalareas] = zeros(Float64, (nrow(totalareas), 0, numharvestyears))
     else
         constantareas = zeros(numcounties, numunicrops)
         for cc in 1:numunicrops
@@ -155,7 +155,7 @@ function initunivariateagriculture(m::Model)
                 constantareas[isna.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end
         end
-        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numyears])
+        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numharvestyears])
     end
 
     agriculture

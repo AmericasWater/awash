@@ -10,24 +10,24 @@ include("lib/agriculture.jl")
 include("lib/leapsteps.jl")
 
 @defcomp Agriculture begin
-    year = Index()
+    harvestyear = Index()
     regions = Index()
     irrcrops = Index()
     unicrops = Index()
     allcrops = Index()
 
     # Inputs
-    othercropsarea = Parameter(index=[regions, year], unit="Ha") # vs. year
+    othercropsarea = Parameter(index=[regions, harvestyear], unit="Ha") # vs. harvestyear
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # From IrrigationAgriculture
-    irrcropareas = Parameter(index=[regions, irrcrops, year], unit="Ha") # vs. year
-    irrcropproduction = Parameter(index=[regions, irrcrops, year], unit="lborbu") # vs. year
+    irrcropareas = Parameter(index=[regions, irrcrops, harvestyear], unit="Ha") # vs. harvestyear
+    irrcropproduction = Parameter(index=[regions, irrcrops, harvestyear], unit="lborbu") # vs. harvestyear
     irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # From UnivariateAgriculture
-    unicropareas = Parameter(index=[regions, unicrops, year], unit="Ha") # vs. year
-    unicropproduction = Parameter(index=[regions, unicrops, year], unit="lborbu") # vs. year
+    unicropareas = Parameter(index=[regions, unicrops, harvestyear], unit="Ha") # vs. harvestyear
+    unicropproduction = Parameter(index=[regions, unicrops, harvestyear], unit="lborbu") # vs. harvestyear
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Outputs
@@ -68,7 +68,7 @@ function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
     knownareas = knowndf("agriculture-knownareas")
-    othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numyears]) # Convert to Ha
+    othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha
     agriculture[:othercropsarea] = othercropsarea
 
     recorded = knowndf("exogenous-withdrawals")
@@ -78,7 +78,7 @@ function initagriculture(m::Model)
     agriculture[:othercropsirrigation] = othercropsirrigation
 
     for crop in Channel(missingcrops)
-        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numyears])
+        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numharvestyears])
         agriculture[:othercropsarea] = othercropsarea + areas
         savedcropirrigationrates = cropirrigationrates(crop)
         othercropsirrigation = zeros(numregions, numsteps)
@@ -91,8 +91,8 @@ function initagriculture(m::Model)
     end
 
     agriculture[:othercropsirrigation] = othercropsirrigation
-    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numyears))
-    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numyears))
+    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numharvestyears))
+    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numharvestyears))
 
     agriculture
 end
@@ -117,7 +117,7 @@ function grad_agriculture_allagarea_irrcropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate, [:year], [:year])
+    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate, [:harvestyear], [:harvestyear])
 end
 
 function grad_agriculture_allagarea_unicropareas(m::Model)
@@ -132,7 +132,7 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate, [:year], [:year])
+    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate, [:harvestyear], [:harvestyear])
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
@@ -151,7 +151,7 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:year], [:year])
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:harvestyear], [:harvestyear])
 end
 
 function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
@@ -166,5 +166,5 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:year], [:year])
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:harvestyear], [:harvestyear])
 end

@@ -41,7 +41,7 @@ else
     numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
-numyears = length(unique(cat(1, timeindex2contributingyearindexes.(1:numsteps)...)))
+numharvestyears = length(unique(cat(1, timeindex2yearindexes.(1:numsteps)...)))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)
@@ -66,7 +66,7 @@ function newmodel()
     yearnames = collect(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
     yearindexes = cat(1, timeindex2yearindexes.(1:numsteps)...)
 
-    setindex(m, :year, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
+    setindex(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
     setindex(m, :regions, collect(masterregions[:fips]))
     setindex(m, :unicrops, unicrops)
     setindex(m, :irrcrops, irrcrops)

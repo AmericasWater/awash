@@ -17,6 +17,7 @@ end
 requirepackage("CSV")
 requirepackage("YAML")
 requirepackage("Mimi")
+Pkg.pin("Mimi", v"0.4.0")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")

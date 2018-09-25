@@ -303,9 +303,9 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
     end
 
-    result = zeros(numcounties, numyears)
+    result = zeros(numcounties, numharvestyears)
 
-    for ii in 1:numyears
+    for ii in 1:numharvestyears
         orderedyields = vec(convert(Matrix{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields

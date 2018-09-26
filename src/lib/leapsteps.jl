@@ -86,7 +86,8 @@ end
 
 """Return a list of the years that where involved in this timestep."""
 function timeindex2contributingyearindexes(tt::Int64)
-    timeindex2contributingleapindexes(tt, config["timestep"], 12)
+    contyys = timeindex2contributingleapindexes(tt, config["timestep"], 12)
+    contyys[contyys .<= numharvestyears]
 end
 
 """Return a list of the timesteps that finished in this year."""

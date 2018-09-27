@@ -48,8 +48,11 @@ maxprofit = Dict{Int64, Vector{Any}}()
 allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
 allyields = zeros(6, nrow(masterregions))
 
+irrigation = CSV.read("irrigation.csv")
+
 bayes_crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
+irr_crops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
 for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
     println(crop)
@@ -57,7 +60,7 @@ for ii in 1:length(bayes_crops)
     # Load the second-level coefficients
     b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
     b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
-    ##b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
+    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
     b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
     b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
 
@@ -74,10 +77,23 @@ for ii in 1:length(bayes_crops)
         alldifferences[3, :, jj] = bios_future[:bio5_mean] - bios[:bio5_mean]
         alldifferences[4, :, jj] = bios_future[:bio12_mean] - bios[:bio12_mean]
         alldifferences[5, :, jj] = bios_future[:bio15_mean] - bios[:bio15_mean]
-        alldifferences[6, :, jj] = 0
+        alldifferences[6, :, jj] = 0 # Fill in this later (GCM-independent)
     end
 
     differences = mean(alldifferences, 3)
+
+    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+
+    wreqs = ones(nrow(df)) * maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
+    for kk in 1:nrow(irrigation)
+        rr = findfirst(df[:FIPS] .== irrigation[kk, :fips])
+        if rr > 0
+            differences[6, rr] = irrigation[kk, :irrfrac] - irrigation[kk, irr_crops[ii]]
+            if !ismissing(irrigation[kk, Symbol("wreq$(irr_crops[ii])")])
+                wreqs[rr] = irrigation[kk, Symbol("wreq$(irr_crops[ii])")]
+            end
+        end
+    end
 
     allgdds = zeros(nrow(bios), length(eddmodels))
     allkdds = zeros(nrow(bios), length(eddmodels))
@@ -103,10 +119,9 @@ for ii in 1:length(bayes_crops)
 
     bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
     bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
     bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
     bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
-
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
 
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
@@ -116,43 +131,47 @@ for ii in 1:length(bayes_crops)
         end
 
         intercept = bayes_intercept[:, rr]
+        time_coeff = bayes_time[:, rr]
+        wreq_coeff = bayes_wreq[:, rr]
         gdds_coeff = bayes_gdds[:, rr]
         kdds_coeff = bayes_kdds[:, rr]
-        time_coeff = bayes_time[:, rr]
 
         if holdcoeff
+            wreq_coeff_future = wreq_coeff + b2s[:, 6] * differences[6, rr]
+            
             if allowtime
-                logyield = intercept + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * (futureyear - 1948)
+                logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * (futureyear - 1948)
             else
-                logyield = intercept + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * 62 # eq. 2010
+                logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * 62 # eq. 2010
             end
         else
             # Get new coefficients for the future
             intercept_future = intercept + b0s * differences[:, kk]
             time_coeff_future = time_coeff + b1s * differences[:, kk]
+            wreq_coeff_future = wreq_coeff + b2s * differences[:, kk]
             gdds_coeff_future = gdds_coeff + b3s * differences[:, kk]
             kdds_coeff_future = kdds_coeff + b4s * differences[:, kk]
 
             if allowtime
-                logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)
+                logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)
             else
-                logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 62 # eq. 2010
+                logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 62 # eq. 2010
             end
         end
 
         if limityield == "lybymc"
             logyield[logyield .> log(maximum_yields[crop])] = NaN
         end
-        yield_irrigated = NaNMath.mean(exp.(logyield))
-        if limityield != "ignore" && yield_irrigated > maximum_yields[crop]
+        yield_total = NaNMath.mean(exp.(logyield))
+        if limityield != "ignore" && yield_total > maximum_yields[crop]
             if limityield == "limity"
-                yield_irrigated = maximum_yields[crop]
+                yield_total = maximum_yields[crop]
             elseif limityield == "zeroy"
-                yield_irrigated = 0
+                yield_total = 0
             end
         end
 
-        allyields[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = yield_irrigated
+        allyields[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = yield_total
 
         ersrow = findfirst(masterregions[:fips] .== canonicalindex(fips))
 
@@ -162,12 +181,12 @@ for ii in 1:length(bayes_crops)
             costs_row -= profitfixdf[ersrow, :toadd]
         end
 
-        profit = yield_irrigated * price_row - costs_row
+        profit = yield_total * price_row - costs_row
 
         allprofits[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = profit
 
         if profit > get(maxprofit, fips, [-Inf])[1]
-            maxprofit[fips] = [profit, crop, yield_irrigated, price_row, costs_row]
+            maxprofit[fips] = [profit, crop, yield_total, price_row, costs_row]
         end
     end
 end

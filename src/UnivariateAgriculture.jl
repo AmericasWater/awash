@@ -78,11 +78,6 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
 end
 
 function initunivariateagriculture(m::Model)
-    # precip loaded by weather.jl
-    # Sum precip to a yearly level
-    stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
-
     # Match up values by FIPS
     yield = zeros(numcounties, numunicrops, numharvestyears)
     irrigation_rate = zeros(numcounties, numunicrops, numsteps)
@@ -124,8 +119,8 @@ function initunivariateagriculture(m::Model)
                     end
 
                     water_demand = water_requirements[unicrops[cc]] * 1000 # mm
-                    water_deficit = sum(max.(0., water_demand - rollingsum[rr, tts])) # mm
-
+                    # precip loaded by weather.jl
+                    water_deficit = sum(max.(0., water_demand - precip[rr, tts]) .* weights)
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit # wreq: delta / m
                     yield[rr, cc, yy] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 

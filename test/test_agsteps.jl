@@ -16,13 +16,13 @@ include("../src/model.jl")
 run(model)
 model_monthly = model
 
-@test dims(model_yearly[:Agriculture, :allirrigation]) != model_monthly[:Agriculture, :allirrigation]
+@test size(model_yearly[:Agriculture, :allirrigation]) != size(model_monthly[:Agriculture, :allirrigation])
 @test mean(model_yearly[:Agriculture, :allirrigation], 2) != mean(model_monthly[:Agriculture, :allirrigation], 2)
 
-@test sum(model_yearly[:Agriculture, :allcropproduction] .== 0) / prod(dims(model_yearly[:Agriculture, :allcropproduction])) < sum(model_monthly[:Agriculture, :allcropproduction] .== 0) / prod(dims(model_monthly[:Agriculture, :allcropproduction]))
-@test sum(model_yearly[:Agriculture, :allirrigation] .== 0) / prod(dims(model_yearly[:Agriculture, :allcropproduction])) < sum(model_monthly[:Agriculture, :allcropproduction] .== 0) / prod(dims(model_monthly[:Agriculture, :allcropproduction]))
+@test sum(model_yearly[:Agriculture, :allcropproduction] .== 0) / prod(size(model_yearly[:Agriculture, :allcropproduction])) < sum(model_monthly[:Agriculture, :allcropproduction] .== 0) / prod(size(model_monthly[:Agriculture, :allcropproduction]))
+@test sum(model_yearly[:Agriculture, :allirrigation] .== 0) / prod(size(model_yearly[:Agriculture, :allcropproduction])) < sum(model_monthly[:Agriculture, :allcropproduction] .== 0) / prod(size(model_monthly[:Agriculture, :allcropproduction]))
 
-@test sum(model_yearly[:Agriculture, :allcropareas], 3) == sum(model_monthly[:Agriculture, :allcropareas], 3)
+@test sum(model_yearly[:Agriculture, :allcropareas], 3) / 61 ≈ sum(model_monthly[:Agriculture, :allcropareas], 3) / 735
 @test sum(model_yearly[:Agriculture, :allcropproduction], 3) == sum(model_monthly[:Agriculture, :allcropproduction], 3)
 @test sum(model_yearly[:Agriculture, :allirrigation], 2) == sum(model_monthly[:Agriculture, :allirrigation], 2)
 @test sum(model_yearly[:Agriculture, :allagarea], 2) == sum(model_monthly[:Agriculture, :allagarea], 2)

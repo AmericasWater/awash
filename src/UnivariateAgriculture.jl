@@ -103,7 +103,7 @@ function initunivariateagriculture(m::Model)
                 thismodel = agmodels[unicrops[cc]][regionid]
                 for yy in 1:numharvestyears
                     tts, weights = yearindex2timeindexes(yy)
-                    year = index2year(tts[end])
+                    year = index2year(tts[1]) + 1 # XXX: Always year after planting
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
                         if isna.(numgdds)
@@ -119,12 +119,15 @@ function initunivariateagriculture(m::Model)
                     end
 
                     water_demand = water_requirements[unicrops[cc]] * 1000 # mm
-                    # precip loaded by weather.jl
-                    water_deficit = sum(max.(0., water_demand - precip[rr, tts]) .* weights)
+                    # fullprecip loaded by weather.jl
+                    fulltts, fullweights = leapindex2timeindexes(yy, 1, 12)
+                    fulltts = fulltts[fulltts .<= size(fullprecip)[2]]
+                    fullweights = fullweights[fullweights .<= size(fullprecip)[2]]
+                    water_deficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights) # XXX: Assume precip over 12 months
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit # wreq: delta / m
                     yield[rr, cc, yy] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tts] = unicrop_irrigationrate[unicrops[cc]] + water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000
+                    irrigation_rate[rr, cc, tts] = unicrop_irrigationrate[unicrops[cc]] + (water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000) / sum(weights)
                 end
             end
         end

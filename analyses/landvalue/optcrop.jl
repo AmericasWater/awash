@@ -101,7 +101,7 @@ for ii in 1:length(bayes_crops)
                 costs_row -= profitfixdf[weatherrow, :toadd]
             end
 
-            logyield = intercept .+ wreq_coeff * wreq_row + gdds_coeff * gdds_row + kdds_coeff * kdds_row .+ time_coeff * time_row
+            logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
             if limityield == "lybymc"
                 logyield = vec(logyield)
                 logyield[logyield .> log(maximum_yields[crop])] = NaN

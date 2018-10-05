@@ -93,6 +93,8 @@ function initunivariateagriculture(m::Model)
         gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
+        cropirrigationrate, waterdeficits = getunivariateirrigationrates(unicrops[cc])
+
         for rr in 1:numcounties
             if config["dataset"] == "counties"
                 regionid = masterregions[rr, :fips]
@@ -118,16 +120,10 @@ function initunivariateagriculture(m::Model)
                         numgdds = numkdds = 0
                     end
 
-                    water_demand = water_requirements[unicrops[cc]] * 1000 # mm
-                    # fullprecip loaded by weather.jl
-                    fulltts, fullweights = leapindex2timeindexes(yy, 1, 12)
-                    fulltts = fulltts[fulltts .<= size(fullprecip)[2]]
-                    fullweights = fullweights[fullweights .<= size(fullprecip)[2]]
-                    water_deficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights) # XXX: Assume precip over 12 months
-                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * water_deficit # wreq: delta / m
+                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * waterdeficits[rr, yy] # wreq: delta / m
                     yield[rr, cc, yy] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tts] = unicrop_irrigationrate[unicrops[cc]] + (water_deficit * unicrop_irrigationstress[unicrops[cc]] / 1000) / sum(weights)
+                    irrigation_rate[rr, cc, tts] = cropirrigationrates[rr, tts]
                 end
             end
         end
@@ -163,16 +159,24 @@ end
 Get the irrigation rate per timestep for each crop
 """
 function getunivariateirrigationrates(crop::AbstractString)
-    # Sum precip to a yearly level
-    stepsperyear = floor(Int64, 12 / config["timestep"])
-    rollingsum = cumsum(precip, 2) - cumsum([zeros(numcounties, stepsperyear) precip[:, 1:size(precip)[2] - stepsperyear]],2)
-
     water_demand = water_requirements[crop] * 1000 # mm
-    water_deficit = max(0., water_demand - rollingsum) # mm
 
-    cc = findfirst(unicrops .== crop)
+    irrigationrate = zeros(numcounties, numsteps)
+    waterdeficits = zeros(numcounties, numharvestyears)
+    for yy in 1:numharvestyears
+        tts, weights = yearindex2timeindexes(yy)
+        # fullprecip loaded by weather.jl
+        fulltts, fullweights = leapindex2timeindexes(yy, 1, 12)
+        fulltts = fulltts[fulltts .<= size(fullprecip)[2]]
+        fullweights = fullweights[fullweights .<= size(fullprecip)[2]]
+        for rr in 1:numregions
+            waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
+            waterdeficits[rr, yy] = waterdeficit
+            irrigationrate[rr, tts] = (unicrop_irrigationrate[crop] + water_deficit * unicrop_irrigationstress[crop] / 1000) * weights / sum(weights)
+        end
+    end
 
-    unicrop_irrigationrate[crop] + water_deficit * unicrop_irrigationstress[crop] / 1000
+    irrigationrate, waterdeficits
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)

@@ -261,8 +261,8 @@ end
 Return the current irrigation for the given crop, in mm
 """
 function cropirrigationrates(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    getunivariateirrigationrates(crop)
+    irrigationrate, waterdeficits = getunivariateirrigationrates(crop)
+    irrigationrate
 end
 
 """

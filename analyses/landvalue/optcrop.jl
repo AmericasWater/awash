@@ -16,8 +16,11 @@ irrigation = CSV.read("irrigation.csv")
 
 # trendyear = 62 + 60
 for trendyear in [62, 62 + 40, 62 + 60]
-for changeirr in [false, true]
-
+for changeirr in ["skip"] #, false, true] XXX
+if changeirr == "skip" && trendyear != 62
+    continue
+end
+    
 if profitfix
     profitfixdf = readtable("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
@@ -56,7 +59,7 @@ for ii in 1:length(bayes_crops)
     bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
     bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
 
-    if changeirr
+    if changeirr == true
         b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
         b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
         b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
@@ -72,7 +75,7 @@ for ii in 1:length(bayes_crops)
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
         
         try # fails if weatherrow == 0 or NAs in gdds or kdds
-            if changeirr
+            if changeirr == true
                 intercept = bayes_intercept[:, rr] + b0s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
                 time_coeff = bayes_time[:, rr] + b1s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
                 wreq_coeff = bayes_wreq[:, rr] + b2s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
@@ -101,7 +104,11 @@ for ii in 1:length(bayes_crops)
                 costs_row -= profitfixdf[weatherrow, :toadd]
             end
 
-            logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
+            if changeirr == "skip"
+                logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
+            else
+                logyield = intercept .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
+            end
             if limityield == "lybymc"
                 logyield = vec(logyield)
                 logyield[logyield .> log(maximum_yields[crop])] = NaN
@@ -138,8 +145,10 @@ end
 if limityield != "ignore"
     push!(suffixes, limityield)
 end
-if changeirr
+if changeirr == true
     push!(suffixes, "chirr")
+elseif changeirr == "skip"
+    push!(suffixes, "allir")
 end
 if length(suffixes) > 0
     suffixes = [""; suffixes]

@@ -1,6 +1,9 @@
 setwd("~/research/awash/analyses/landvalue")
 
-for (filename in list.files(".", "max.+\\.csv")) {
+for (filename in list.files("results", "(max|constopt).+\\.csv")) {
+    if (filename == "constopt-byprice.csv")
+        next
+    filename <- file.path("results", filename)
     basename <- substr(filename, 1, nchar(filename) - 4)
     if (file.exists(paste0(basename, ".png"))) {
         datachanged <- file.info(filename)$mtime
@@ -12,10 +15,8 @@ for (filename in list.files(".", "max.+\\.csv")) {
     
     ##basename = "constopt-currentprofits-pfixed-2070" #"constopt-all2070profits-pfixed-histco" #"maxbayesian-pfixed-2070" #"max2050-pfixed-histco"
 
-if (startsWith(basename, "constopt")) {
+if (length(grep("constopt", basename)) == 1) {
     column <- "topcrop"
-} else if (startsWith(basename, "maybayesian") || startsWith(basename, "maxfuture")) {
-    column <- "crop"
 } else {
     column = "crop" #"profitsource"
 }

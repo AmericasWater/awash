@@ -123,7 +123,7 @@ function initunivariateagriculture(m::Model)
                     logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * waterdeficits[rr, yy] # wreq: delta / m
                     yield[rr, cc, yy] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tts] = cropirrigationrates[rr, tts]
+                    irrigation_rate[rr, cc, tts] = cropirrigationrate[rr, tts]
                 end
             end
         end

@@ -87,8 +87,8 @@ function prepoptimizesurface(configfile::AbstractString)
     # Download any files we will need
     predownload()
 
-    include("optimization-given.jl")
-    house = optimization_given(false)
+    include(joinpath(dirname(@__FILE__), "optimization-given.jl"))
+    house = Base.invokelatest(optimization_given, false)
     model = house
 end
 
@@ -165,6 +165,6 @@ function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
     usmap(df, centered=nothing)
 end
 
-open("../docs/intro.txt") do fp
+open(joinpath(dirname(@__FILE__), "../docs/intro.txt")) do fp
     println(readstring(fp))
 end

@@ -3,6 +3,7 @@
 # Functions for accessing external data.
 
 using NullableArrays
+using DataArrays
 
 include("inputcache.jl")
 
@@ -76,7 +77,10 @@ end
 Retrieve only the part of a file within filterstate, if one is set.
 """
 function getfilteredtable(filepath, fipscol=:FIPS)
-    recorded = readtable(loadpath(filepath))
+    if filepath[1] != '/'
+        filepath = loadpath(filepath)
+    end
+    recorded = readtable(filepath)
     if get(config, "filterstate", nothing) != nothing
         recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
     end
@@ -187,7 +191,7 @@ end
 
 """Return the index for each region key."""
 function getregionindices(fipses, tomaster=true)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
         masterfips = map(x -> parse(Int64, x), masterregions[:fips])
     else
         masterfips = masterregions[:fips]

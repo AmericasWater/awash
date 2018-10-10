@@ -88,6 +88,7 @@ function prepoptimizesurface(configfile::AbstractString)
     predownload()
 
     include(joinpath(dirname(@__FILE__), "optimization-given.jl"))
+    global redogwwo = true
     house = Base.invokelatest(optimization_given, false)
     model = house
 end

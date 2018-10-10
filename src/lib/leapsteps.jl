@@ -32,7 +32,7 @@ function leapindex2timeindexes(yy::Int64, timestep::Int64, nummonths::Int64)
         firststepbegin = div(lastmonth, timestep) * timestep + 1
         laststepend = div(thismonth + 1, timestep) * timestep
         firstscale = 1.0 - (lastmonth + 1 - firststepbegin) / timestep
-        lastscale = 1.0 - (laststepend - thismonth) / timestep
+        lastscale = 1.0 - (laststepend - thismonth - 1) / timestep
 
         timeindexes = collect((div(lastmonth, timestep) + 1):div(thismonth, timestep))
         timescaling = [firstscale; ones(length(timeindexes)-2); lastscale]

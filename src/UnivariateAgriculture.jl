@@ -85,7 +85,7 @@ function initunivariateagriculture(m::Model)
     for cc in 1:numunicrops
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
             yield[:,cc,:] = read_nareshyields(unicrops[cc])
-            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]]
+            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]] * config["timestep"] / 12
             continue
         end
 

@@ -24,5 +24,5 @@ model_monthly = model
 
 @test sum(model_yearly[:Agriculture, :allcropareas], 3) / 61 ≈ sum(model_monthly[:Agriculture, :allcropareas], 3) / 735
 @test sum(model_yearly[:Agriculture, :allcropproduction], 3) == sum(model_monthly[:Agriculture, :allcropproduction], 3)
-@test sum(model_yearly[:Agriculture, :allirrigation], 2) == sum(model_monthly[:Agriculture, :allirrigation], 2)
-@test sum(model_yearly[:Agriculture, :allagarea], 2) == sum(model_monthly[:Agriculture, :allagarea], 2)
+@test sum(model_yearly[:Agriculture, :allirrigation], 2) ≈ sum(model_monthly[:Agriculture, :allirrigation][:, 1:end-3], 2)
+@test mean(model_yearly[:Agriculture, :allagarea], 2) ≈ mean(model_monthly[:Agriculture, :allagarea], 2)

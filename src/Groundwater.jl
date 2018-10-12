@@ -96,7 +96,11 @@ function initaquifer(m::Model)
     aquifer[:deltatime] = convert(Float64, config["timestep"]);
 
     # Get elevation from county-info file
-    countyinfo = CSV.read(loadpath("county-info.csv"))
+    if config["dataset"] == "counties"
+        countyinfo = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
+    else
+        countyinfo = CSV.read(loadpath("county-info.csv"))
+    end
     countyinfo[:FIPS] = regionindex(countyinfo, :)
 
     aquifer[:elevation] = map(x -> ifelse(isna(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))

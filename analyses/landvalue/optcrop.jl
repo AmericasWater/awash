@@ -8,18 +8,18 @@ include("../../src/lib/agriculture-ers.jl")
 include("curryield.jl")
 
 includeus = true
-profitfix = true
 limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 bayesdir = "posterior_distributions_variance"
 
 # trendyear = 62 + 60
+for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
-for changeirr in ["skip"] #, false, true] XXX
-if changeirr == "skip" && trendyear != 62
+for changeirr in ["skip", false, true]
+if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
     
-if profitfix
+if profitfix != false
     profitfixdf = readtable("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
@@ -49,14 +49,20 @@ for ii in 1:length(bayes_crops)
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
         
         try # fails if weatherrow == 0 or NAs in gdds or kdds
-            total_yield = getyield(rr, weatherrow, changeirr, trendyear, prepdata)
+            total_yield = getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
             
             allyields[ii, weatherrow] = yield_total
 
             price_row = price[weatherrow]
             costs_row = costs[weatherrow]
-            if profitfix && profitfixdf[weatherrow, :obscrop] == crop
-                costs_row -= profitfixdf[weatherrow, :toadd]
+            if profitfix != false && profitfixdf[weatherrow, :obscrop] == crop
+                if profitfix == true
+                    costs_row -= profitfixdf[weatherrow, :toadd]
+                elseif !changeirr
+                    costs_row -= profitfixdf[weatherrow, :esttoadd]
+                else
+                    costs_row -= profitfixdf[weatherrow, :esttoadd_changeirr]
+                end
             end
 
             profit = yield_total * price_row - costs_row
@@ -74,8 +80,10 @@ suffixes = []
 if !includeus
     push!(suffixes, "erslimited")
 end
-if profitfix
+if profitfix == true
     push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
 end
 if limityield != "ignore"
     push!(suffixes, limityield)
@@ -103,5 +111,6 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("maxbayesian$suffix.csv", result)
+end
 end
 end

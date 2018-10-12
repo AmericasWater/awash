@@ -1,4 +1,4 @@
-using CSV
+using CSV, NaNMath
 
 irrigation = CSV.read("irrigation.csv")
 
@@ -36,11 +36,11 @@ function preparecrop(crop, changeirr)
 
     wreq_max = maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
     
-    return gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max
+    return ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max
 end
 
-function getyield(rr, weatherrow, changeirr, trendyear, prepdata)
-    gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
+function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
+    ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
     
     if changeirr == true
         intercept = bayes_intercept[:, rr] + b0s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])

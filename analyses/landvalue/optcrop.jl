@@ -49,7 +49,7 @@ for ii in 1:length(bayes_crops)
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
         
         try # fails if weatherrow == 0 or NAs in gdds or kdds
-            total_yield = getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
+            yield_total = getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
             
             allyields[ii, weatherrow] = yield_total
 

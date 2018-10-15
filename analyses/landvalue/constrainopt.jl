@@ -2,8 +2,7 @@ using MathProgBase
 using DataFrames
 using OptiMimi
 using Gurobi
-
-filepath = "currentprofits-pfixed-2070.csv" #"all2070profits-pfixed-histco.csv" #"currentprofits-pfixed.csv"
+using CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -12,6 +11,14 @@ include("../../src/world-minimal.jl")
 include("../../src/lib/datastore.jl")
 
 crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
+
+for filename in readdir("results")
+    if !contains(filename, "profits") || filename[end-3:end] != ".csv" || contains(filename, "constopt")
+        continue
+    end
+    println(filename)
+    
+filepath = "results/$filename"
 
 mat = readcsv(filepath)' # Transpose to crop x county
 
@@ -60,4 +67,5 @@ for cc in 1:length(crops)
     df[Symbol(crops[cc])] = optareas[cc, :]
 end
 
-writetable("constopt-$filepath", df)
+CSV.write("results/constopt-$filename", df)
+end

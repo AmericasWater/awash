@@ -13,7 +13,7 @@ if config["dataset"] == "counties"
 else
     populations = CSV.read(loadpath("county-pops.csv"));
 end
-    
+
 function getpopulation(fips, year)
     if typeof(fips) <: Int
         pop = populations[(populations[:FIPS] .== fips) .& (populations[:year] .== year), :population]

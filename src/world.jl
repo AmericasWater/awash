@@ -5,6 +5,7 @@
 
 include("world-minimal.jl")
 include("regionnet.jl")
+include("lib/leapsteps.jl")
 include("initwaternet.jl")
 
 # Prepare the model
@@ -40,6 +41,7 @@ else
     numsteps = floor.(Int64, getmaxsteps() / config["timestep"])
 end
 
+numharvestyears = length(unique(cat(1, timeindex2yearindexes.(1:numsteps)...)))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)
@@ -60,6 +62,11 @@ function newmodel()
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
+
+    yearnames = collect(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
+    yearindexes = cat(1, timeindex2yearindexes.(1:numsteps)...)
+
+    setindex(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
     setindex(m, :regions, collect(masterregions[:fips]))
     setindex(m, :unicrops, unicrops)
     setindex(m, :irrcrops, irrcrops)

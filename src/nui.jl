@@ -40,6 +40,10 @@ if Pkg.installed("RData") == nothing
     Pkg.add("RData")
 end
 
+if Pkg.installed("NullableArrays") == nothing
+    Pkg.add("NullableArrays")
+end
+
 if !is_windows() && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end

@@ -59,7 +59,7 @@ function initwaterright(m::Model)
     waterright = addcomponent(m, WaterRight);
 
     # Water rights defined as USGS extraction values to start
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
     waterright[:swrighttimestep] = repeat(convert(Vector, recorded[:,:TO_SW]) * config["timestep"] * 1383./12., outer=[1, numsteps]);
     waterright[:gwrighttimestep] = repeat(convert(Vector, recorded[:,:TO_GW]) * config["timestep"] * 1383./12., outer=[1, numsteps]);
     waterright[:swrighttotal] = convert(Vector, recorded[:,:TO_SW]) * numsteps * 1383./12. * config["timestep"];

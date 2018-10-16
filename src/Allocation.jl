@@ -94,7 +94,7 @@ function initallocation(m::Model)
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
     else
-        recorded = getfilteredtable("extraction/USGS-2010.csv")
+        recorded = knowndf("exogenous-withdrawals")
 
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
 	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1,numsteps])) #zeros(m.indices_counts[:regions], m.indices_counts[:time]));
@@ -173,7 +173,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 	end
 	hallsingle(m, :Allocation, :balance, genuu)
     else
-        recorded = getfilteredtable("extraction/USGS-2010.csv")
+        recorded = knowndf("exogenous-withdrawals")
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
 	gen(rr, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
 	hallsingle(m, :Allocation, :balance, gen)

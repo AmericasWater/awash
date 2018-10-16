@@ -217,10 +217,6 @@ else
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
-    if config["filterstate"] == "08"
-        agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
-        agmodels["soybeans"]=agmodel1["soybeans"]
-    end
 
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
@@ -228,7 +224,7 @@ else
 end
 
 alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
-uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize", "corn.co.rainfed", "corn.co.irrigated"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter", "wheat.co.rainfed", "wheat.co.irrigated"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn", "corn.co.rainfed", "corn.co.irrigated"], "maize" => ["Maize", "corn", "corn.co.rainfed", "corn.co.irrigated"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat", "wheat.co.rainfed", "wheat.co.irrigated"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
 
 """
 Determine which crops are not represented
@@ -258,15 +254,15 @@ Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
     df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    df[:, crop] * 0.404686
+    df[:, Symbol(crop)] * 0.404686
 end
 
 """
 Return the current irrigation for the given crop, in mm
 """
 function cropirrigationrates(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    getunivariateirrigationrates(crop)
+    irrigationrate, waterdeficits = getunivariateirrigationrates(crop)
+    irrigationrate
 end
 
 """
@@ -307,13 +303,13 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
     end
 
-    result = zeros(numcounties, numsteps)
+    result = zeros(numcounties, numharvestyears)
 
-    for ii in 1:numsteps
-        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+    for ii in 1:numharvestyears
+        orderedyields = vec(convert(Matrix{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields
-            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))
         end
         result[:, ii] = exp(orderedyields) # Exponentiate because in logs
     end

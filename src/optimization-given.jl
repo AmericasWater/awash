@@ -140,7 +140,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # -
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw != false, demandmodel)) # -
 
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
     setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, vec(repeat((config["timestep"] * convert(Vector, recorded[:, :TO_SW]) * 1383. / 12) / 4, outer=[1, numsteps]))))
 
     if allowreservoirs

@@ -15,12 +15,9 @@ for(i in 2:dim(draws)[1]){
   if(ref == draws$fips[i]){
     version2 = rbind(version2,draws[i,])
   }else{
-    if(ref %in% misscanals$V1){
-      posi = which(ref==misscanals$V1)
-      #print(paste(ref,"is in the list of missing canal"))
-      for(j in 2:10){
-        if(misscanals[posi,j]!=0){
-          othersource = misscanals[posi,j]
+    if(sum(ref == misscanals[,-1]) > 0){
+      for (j in which(rowSums(ref == misscanals[,-1]) > 0)) {
+          othersource = misscanals[j,1]
           #print(paste(othersource %in%draws$fips,"it has a source"))
           if(othersource %in% draws$fips){
             rowsource = which(othersource==draws$fips)
@@ -32,7 +29,7 @@ for(i in 2:dim(draws)[1]){
             toadd[,5] = 0
             toadd[,1] = ref
             version2 = rbind(version2,toadd)
-    }}}}}
+    }}}}
     # pass to the next one
     version2 = rbind(version2,draws[i,])
     ref = draws$fips[i]

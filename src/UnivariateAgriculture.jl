@@ -6,12 +6,14 @@
 using DataFrames
 using Mimi
 
+include("lib/coding.jl")
 include("lib/agriculture.jl")
 
 @defcomp UnivariateAgriculture begin
     harvestyear = Index()
     regions = Index()
     unicrops = Index()
+    scenarios = Index()
 
     # Optimized
     # Land area appropriated to each crop
@@ -19,10 +21,10 @@ include("lib/agriculture.jl")
 
     # Internal
     # Yield per hectare
-    yield = Parameter(index=[regions, unicrops, harvestyear], unit="none") # vs. harvestyear
+    yield = Parameter(index=[regions, unicrops, scenarios, harvestyear], unit="none") # vs. harvestyear
 
     # Coefficient on the effects of water deficits
-    irrigation_rate = Parameter(index=[regions, unicrops, time], unit="mm")
+    irrigation_rate = Parameter(index=[regions, unicrops, scenarios, time], unit="mm")
 
     # Computed
     # Total agricultural area
@@ -30,16 +32,19 @@ include("lib/agriculture.jl")
     allagarea = Variable(index=[regions, harvestyear], unit="Ha") # vs. harvestyear
 
     # Total irrigation water (1000 m^3)
-    totalirrigation = Variable(index=[regions, time], unit="1000 m^3")
+    totalirrigation = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
     # Total production: lb or bu
-    yield2 = Variable(index=[regions, unicrops, harvestyear], unit="none") # vs. harvestyear
-    production = Variable(index=[regions, unicrops, harvestyear], unit="lborbu") # vs. harvestyear
+    yield2 = Variable(index=[regions, unicrops, scenarios, harvestyear], unit="none") # vs. harvestyear
+    production = Variable(index=[regions, unicrops, scenarios, harvestyear], unit="lborbu") # vs. harvestyear
     #total Op cost
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
 
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
+
+    production_sumregion = Variable(index=[unicrops, scenarios, time], unit="lborbu")
+    area_sumregion = Variable(index=[unicrops, time], unit="lborbu")
 end
 
 function run_timestep(s::UnivariateAgriculture, tt::Int)
@@ -51,7 +56,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
     contyys = timeindex2contributingyearindexes(tt)
 
     for rr in d.regions
-        totalirrigation = 0.
+        totalirrigation = zeros(numscenarios)
         allagarea = 0.
 
         for cc in d.unicrops
@@ -59,11 +64,11 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             allagarea += maximum(p.totalareas[rr, cc, contyys])
 
             # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
-            totalirrigation += maximum(p.totalareas[rr, cc, contyys]) * p.irrigation_rate[rr, cc, tt] / 100
+            totalirrigation += maximum(p.totalareas[rr, cc, contyys]) * p.irrigation_rate[rr, cc, :, tt] / 100
 
             # Calculate total production
-            v.yield2[rr, cc, yys] = p.yield[rr, cc, yys]
-            v.production[rr, cc, yys] = p.yield[rr, cc, yys] * minimum(p.totalareas[rr, cc, contyys]) * 2.47105 # convert acres to Ha
+            v.yield2[rr, cc, :, yys] = p.yield[rr, cc, :, yys]
+            v.production[rr, cc, :, yys] = p.yield[rr, cc, :, yys] * minimum(p.totalareas[rr, cc, contyys]) * 2.47105 # convert acres to Ha
 
             # Calculate cultivation costs
             v.unicultivationcost[rr, cc, tt] = mean(p.totalareas[rr, cc, contyys]) * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
@@ -72,20 +77,23 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
             v.opcost[rr,cc,tt] = mean(p.totalareas[rr, cc, contyys]) * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
         end
 
-        v.totalirrigation[rr, tt] = totalirrigation
+        v.totalirrigation[rr, :, tt] = totalirrigation
         v.allagarea[rr, contyys] = allagarea
     end
+
+    v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
+    v.area_sumregion[:, tt] = sum(p.totalareas[:, :, tt], 1)
 end
 
 function initunivariateagriculture(m::Model)
     # Match up values by FIPS
-    yield = zeros(numcounties, numunicrops, numharvestyears)
-    irrigation_rate = zeros(numcounties, numunicrops, numsteps)
+    yield = zeros(numcounties, numunicrops, numscenarios, numharvestyears)
+    irrigation_rate = zeros(numcounties, numunicrops, numscenarios, numsteps)
 
     for cc in 1:numunicrops
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
-            yield[:,cc,:] = read_nareshyields(unicrops[cc])
-            irrigation_rate[:,cc,:] = known_irrigationrate[unicrops[cc]] * config["timestep"] / 12
+            yield[:, cc, :, :] = read_nareshyields(unicrops[cc])
+            irrigation_rate[:,cc,:,:] = known_irrigationrate[unicrops[cc]] * config["timestep"] / 12
             continue
         end
 
@@ -96,7 +104,7 @@ function initunivariateagriculture(m::Model)
         cropirrigationrate, waterdeficits = getunivariateirrigationrates(unicrops[cc])
 
         for rr in 1:numcounties
-            if config["dataset"] == "counties"
+            if configdescends(config, "counties")
                 regionid = masterregions[rr, :fips]
             else
                 regionid = masterregions[rr, :state]
@@ -120,10 +128,10 @@ function initunivariateagriculture(m::Model)
                         numgdds = numkdds = 0
                     end
 
-                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * waterdeficits[rr, yy] # wreq: delta / m
-                    yield[rr, cc, yy] = min(exp(logmodelyield), maximum_yields[unicrops[cc]])
+                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * waterdeficits[rr, :, yy] # wreq: delta / m
+                    yield[rr, cc, :, yy] = min.(exp.(logmodelyield), maximum_yields[unicrops[cc]])
 
-                    irrigation_rate[rr, cc, tts] = cropirrigationrate[rr, tts]
+                    irrigation_rate[rr, cc, :, tts] = cropirrigationrate[rr, :, tts]
                 end
             end
         end
@@ -180,14 +188,21 @@ function getunivariateirrigationrates(crop::AbstractString)
 end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
-    roomdiagonal(m, :UnivariateAgriculture, :production, :totalareas, (rr, cc, tt) -> m.external_parameters[:yield].values[rr, cc, tt] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    ## Common rr, cc, tt
+    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (ss1) -> m.external_parameters[:yield].values[:, :, ss1, :] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+end
+
+function grad_univariateagriculture_areasumregion_totalareas(m::Model)
+    roomdiagonal(m, :UnivariateAgriculture, :area_sumregion, :totalareas, (cc, tt) -> 1, [:regions])
 end
 
 function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
     function generate(A, tt)
-        for rr in 1:numcounties
-            for cc in 1:numunicrops
-                A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, tt] / 100
+        for ss in 1:numscenarios
+            for rr in 1:numcounties
+                for cc in 1:numunicrops
+                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc], [numcounties, numunicrops])] = m.external_parameters[:irrigation_rate].values[rr, cc, ss, tt] / 100
+                end
             end
         end
 
@@ -232,3 +247,15 @@ function grad_univariateagriculture_allagarea_totalareas(m::Model)
 
     roomintersect(m, :UnivariateAgriculture, :allagarea, :totalareas, generate, [:time], [:time])
 end
+
+function constraintoffset_univariateagriculture_productionsumregion(m::Model)
+    productions = currentcropproduction.(unicrops)
+    gen(cc) = productions[cc]
+    hallsingle(m, :UnivariateAgriculture, :production_sumregion, gen, [:scenarios, :time])
+end
+
+function constraintoffset_univariateagriculture_areasumregion(m::Model)
+    areas = sum.(currentcroparea.(unicrops))
+    hallsingle(m, :UnivariateAgriculture, :area_sumregion, (cc) -> areas[cc], [:time])
+end
+

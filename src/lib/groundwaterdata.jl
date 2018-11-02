@@ -18,7 +18,7 @@ elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity$suffix.csv")));
     aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
-elseif config["dataset"] == "counties" || config["parent-dataset"] == "counties"
+elseif configdescends(config, "counties")
     dfgw = readtable(loadpath("gwmodel/dfgw.csv"));
     lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity.csv")));
     aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion.csv")));

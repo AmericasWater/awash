@@ -14,13 +14,14 @@ include("../src/model.jl")
 println("Running model...")
 @time run(model)
 
+include("../src/lib/coding.jl")
 df1 = getdataframe(model, :Agriculture, :allirrigation)
 rename!(df1, :allirrigation, :value)
 df1[:variable] = :allirrigation
 # df2 = getdataframe(model, :ReturnFlows, :returned)
 # df2 = DataFrame(regions=["global"], time=[2000], value=[sum(df2[:returned])], variable=[:returned])
 df3available = vec(mapslices(NaNMath.sum, model[:Market, :available], 2))
-df3 = DataFrame(regions=repeat(masterregions[:state], outer=[2]), time=repeat([minimum(df1[:time]), maximum(df1[:time])], inner=[nrow(masterregions)]), value=df3available, variable=:available)
+df3 = DataFrame(regions=repeat(masterregions[:state], outer=[2]), time=repeat([minimum(df1[:time]), maximum(df1[:time])], inner=[nrow(masterregions)]), scenarios=1, value=df3available, variable=:available)
 
 # alldf = vcat(df1, df2, df3)
 alldf = vcat(df1, df3)
@@ -34,8 +35,14 @@ if isfile(outputpath)
         @test compdf[ii, :regions] == string(alldf[ii, :regions])
         @test compdf[ii, :time] == alldf[ii, :time]
         @test compdf[ii, :variable] == string(alldf[ii, :variable])
-        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value])) && abs(compdf[ii, :value] - alldf[ii, :value]) / max(abs(compdf[ii, :value]), abs(alldf[ii, :value])) > 1e-6
-            push!(mismatches, ii)
+        if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value]))
+            compfrac = compdf[ii, :value] ./ max(abs.(compdf[compdf[:variable] .== compdf[ii, :variable], :value]))
+            allfrac = alldf[ii, :value] ./ max(abs.(alldf[alldf[:variable] .== alldf[ii, :variable], :value]))
+            if abs(compdf[ii, :value] - alldf[ii, :value]) > 1e-6
+                push!(mismatches, ii)
+                println(abs.(compdf[ii, :value] - alldf[ii, :value]))
+                println(max(abs.(compdf[ii, :value] - alldf[ii, :value])))
+            end
         end
     end
 

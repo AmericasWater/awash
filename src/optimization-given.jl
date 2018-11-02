@@ -128,7 +128,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     if get(config, "proportionnaturalflowforenvironment", 0.) > 0.
         setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m) - constraintoffset_environmentalflows(m)) # +
     else
-        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m))
+        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m)) # +
     end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
@@ -203,16 +203,16 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
+    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
 
     if allowgw == true
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps))
     elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
         rm(datapath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+(allowgw == true)])+1:end], numreservoirs, numsteps))
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+(allowgw == true)])+1:end], numreservoirs, numscenarios, numsteps))
     elseif isfile(datapath("extraction/captures$suffix.jld"))
         rm(datapath("extraction/captures$suffix.jld"))
     end

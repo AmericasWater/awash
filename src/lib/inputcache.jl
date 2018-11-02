@@ -2,8 +2,6 @@
 #
 # Provides a cache for files that only need to be loaded once.
 
-using CSV
-
 if !isdefined(:inputvalues)
     # Store previously opened CSVs
     const inputvalues = Dict{String, Any}()
@@ -22,7 +20,7 @@ function getfilevalue(fullpath::AbstractString, name::AbstractString, process::F
 end
 
 function cachereadtable(fullpath::AbstractString; kwargs...)
-    getfilevalue(fullpath, "*", () -> CSV.read(fullpath; kwargs...))
+    getfilevalue(fullpath, "*", () -> readtable(fullpath; kwargs...))
 end
 
 function cachereadrda(fullpath::AbstractString)

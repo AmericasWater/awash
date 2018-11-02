@@ -38,7 +38,7 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    if config["dataset"] == "counties"
+    if configdescends(config, "counties")
         counties = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
     else
         counties = CSV.read(loadpath("county-info.csv"))

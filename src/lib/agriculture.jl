@@ -74,6 +74,18 @@ crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
                    "Wheat" => 5.1675, # wheat
                    "Wheat.Winter" => 171.50 * .0272155) # wheat.winter
 
+crop_interest = Dict("alfalfa" => 1., "hay" => 1, # .2 pounds meat (alfalfa / 10) per day
+                     "otherhay" => 1., # .2 pounds meat (otherhay / 10) per day
+                     "Barley" => .005, "barley" => .005, # bushels Barley per day
+                     "Barley.Winter" => .005, # bushels Barley.Winter per day
+                     "Maize" => .05, "corn" => .05, # bushels Maize per day
+                     "corn.co.rainfed" => .05, "corn.co.irrigated" => .05, # bushels Maize per day
+                     "Sorghum" => .01, "sorghum" => .01, # pounds Sorghum per day
+                     "Soybeans" => .02, "soybeans" => .02, # bushels Soybeans per day
+                     "Wheat" => .05, "wheat" => .05, # bushels Wheat per day
+                     "wheat.co.rainfed" => .05, "wheat.co.irrigated" => .05, # bushels Wheat per day
+                     "Wheat.Winter" => .05) # bushels Wheat.Winter per day
+
 quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonirrigated-planted.csv",
                           "corn.co.irrigated" => "agriculture/allyears/maize-irrigated-planted.csv",
                           "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
@@ -253,8 +265,39 @@ end
 Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    df[:, Symbol(crop)] * 0.404686
+    df = getfilteredtable("agriculture/totalareas.csv")
+    if Symbol(crop) in names(df)
+        return df[:, Symbol(crop)] * 0.404686
+    end
+    
+    cropnames = uniquemapping[crop]
+    for cropname in cropnames
+        if Symbol(cropname) in names(df)
+            return df[:, Symbol(cropname)] * 0.404686
+        end
+    end
+end
+
+"""
+Return the observed production for a given crop, in lb in bu
+"""
+function currentcropproduction(crop::AbstractString)
+    cropnames = uniquemapping[crop]
+    if "barley" in cropnames
+        sum(getfilteredtable("agriculture/allyears/barley_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "corn" in cropnames
+        sum(getfilteredtable("agriculture/allyears/maize_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "sorghum" in cropnames
+        sum(getfilteredtable("agriculture/allyears/sorghum_production_in_lb.csv")[:PRODUCTION_2010])
+    elseif "soybeans" in cropnames
+        sum(getfilteredtable("agriculture/allyears/soybeans_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "wheat" in cropnames
+        sum(getfilteredtable("agriculture/allyears/wheat_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "hay" in cropnames
+        sum(getfilteredtable("agriculture/allyears/hay_production_in_lb.csv")[:PRODUCTION_2010])
+    else
+        return 0
+    end
 end
 
 """

@@ -8,7 +8,7 @@ include("../src/model-surfacewater.jl")
 
 @time room1 = grad_reservoir_storage_captures(model)
 
-indices = Dict{Symbol, Any}(:time => collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])), :reservoirs => collect(1:numreservoirs), :gauges => collect(1:numgauges))
+indices = Dict{Symbol, Any}(:time => collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])), :reservoirs => collect(1:numreservoirs), :gauges => collect(1:numgauges), :scenarios => [1])
 @time room2 = grad_component(indices, initreservoir, :storage, :captures)
 
 @test room1.A == room2.A

@@ -36,17 +36,17 @@ actualcrops$observed[actualcrops$observed == "RICE"] <- "Rice"
 actualcrops$observed[actualcrops$observed == "SOYBEANS"] <- "Soybean"
 actualcrops$observed[actualcrops$observed == "WHEAT"] <- "Wheat"
 
-baseline <- read.csv("maxbayesian-pfixed.csv")
+baseline <- read.csv("results/maxbayesian-pfixed.csv")
 baseline$maxnow <- baseline$crop
-current <- read.csv("constopt-currentprofits-pfixed.csv")
+current <- read.csv("results/constopt-currentprofits-pfixed.csv")
 current$topnow <- current$topcrop
-lo2050 <- read.csv("max2050-pfixed-notime-histco.csv")
+lo2050 <- read.csv("results/max2050-pfixed-notime-histco.csv")
 lo2050$max2050 <- lo2050$crop
-in2050 <- read.csv("constopt-all2050profits-pfixed-notime-histco.csv")
+in2050 <- read.csv("results/constopt-all2050profits-pfixed-notime-histco.csv")
 in2050$top2050 <- in2050$topcrop
-lo2070 <- read.csv("max2070-pfixed-notime-histco.csv")
+lo2070 <- read.csv("results/max2070-pfixed-notime-histco.csv")
 lo2070$max2070 <- lo2070$crop
-in2070 <- read.csv("constopt-all2070profits-pfixed-notime-histco.csv")
+in2070 <- read.csv("results/constopt-all2070profits-pfixed-notime-histco.csv")
 in2070$top2070 <- in2070$topcrop
 
 library(dplyr)

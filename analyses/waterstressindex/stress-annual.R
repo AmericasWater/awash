@@ -1,10 +1,10 @@
-setwd("~/research/water/awash/analyses/waterstressindex")
+setwd("~/research/awash/analyses/waterstressindex")
 
 source("vsenv-lib.R")
 
 demanddf <- read.csv("../../data/counties/extraction/USGS-2010.csv")
 
-srcname <- "annual-worst" #"annual"
+srcname <- "annual" #"annual-worst"
 
 get.terms <- function(filename, demand) {
     df <- read.csv(paste0("results/", filename))
@@ -30,6 +30,9 @@ plot.failavail(terms0$fips, terms0$failfrac, terms0$failfrac.worst, terms0$natfl
 save.demand <- demanddf$TO_To * 1383 + .001
 terms1 <- get.terms(paste0("stress-", srcname, "-alldemand-nores.csv"), save.demand)
 plot.failavail(terms1$fips, terms1$failfrac, terms1$failfrac.worst, terms1$natflowa, terms1$natflowa.worst, paste0(srcname, "-alldemand-nores"))
+
+sum(terms1$failfrac > 0, na.rm=T) / length(terms1$fips)
+sum(terms1$failfrac * save.demand, na.rm=T) / sum(save.demand, na.rm=T)
 
 terms1$natflowa[terms1$natflowa == .34] <- 0
 terms1$natflowa.worst[terms1$natflowa.worst == .34] <- 0

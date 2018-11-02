@@ -18,7 +18,7 @@ for (ii in 1:nrow(df)) {
     if (length(ncii) == 0)
         next
     ## mm * mi2 * k km2 / mi2 * (1000 m / km)^2 * m / 1000 mm = m^3
-    flow <- ncflow[, ncii] * df$TotalArea.sqmi[ii] * 2.58999 # 1000 m^3
+    flow <- ncflow[, ncii] * df$TotalArea_sqmi[ii] * 2.58999 # 1000 m^3
     for (tt in 1:61) {
         totalflow[tt, ii] <- sum(flow[(tt-1)*12 + (1:12)], na.rm=T)
         worstflow[tt, ii] <- min(flow[(tt-1)*12 + (1:12)], na.rm=T)
@@ -85,6 +85,9 @@ plot.failavail(df0$FIPS, df0$failurefrac, df0$failurefrac.worst, df0$natflowav, 
 
 df1 <- get.terms(df, totalflow, df$demand)
 plot.failavail(df1$FIPS, df1$failurefrac, df1$failurefrac.worst, df1$natflowav, df1$natflowav.worst, "annual-alldemand-local")
+
+sum(df1$failurefrac > 0, na.rm=T) / nrow(df2)
+sum(df1$failurefrac * df1$demand, na.rm=T) / sum(df1$demand, na.rm=T)
 
 df2 <- df1
 df2$failurefrac <- (df$demand * df1$failurefrac - df$swdemand * df0$failurefrac) / df$demand

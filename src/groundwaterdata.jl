@@ -4,6 +4,7 @@
 
 using DataFrames
 using RData
+using CSV
 
 if config["dataset"] == "states"
     warn("State level groundwater model for US is inexistant")
@@ -32,9 +33,9 @@ elseif config["dataset"] == "counties" || config["parent-dataset"] == "counties"
   	aquiferconnexion = aquiferconnexion[subfips,subfips];
 
         # Save state specific groundwater model
-        writetable(datapath("gwmodel/dfgw$suffix.csv"), dfgw)
-        writetable(datapath("gwmodel/lateralconductivity$suffix.csv"), convert(DataFrame, lateralconductivity))
-        writetable(datapath("gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
+        CSV.write(datapath("gwmodel/dfgw$suffix.csv"), dfgw)
+        CSV.write(datapath("gwmodel/lateralconductivity$suffix.csv"), convert(DataFrame, lateralconductivity))
+        CSV.write(datapath("gwmodel/aquiferconnexion$suffix.csv"), convert(DataFrame, aquiferconnexion))
 
     end
 elseif config["dataset"] == "three"

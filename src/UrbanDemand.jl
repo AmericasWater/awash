@@ -38,7 +38,7 @@ function initurbandemand(m::Model)
     urbandemand = addcomponent(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
 
     urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numsteps])
     urbandemand[:commercialdemand] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);

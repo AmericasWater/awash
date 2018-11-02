@@ -58,6 +58,16 @@ function parsemonth(mmyyyy)
     (parse(UInt16, parts[2]) - 1) * 12 + parse(UInt8, parts[1])
 end
 
+function parseyear(mmyyyy)
+    parts = split(mmyyyy, '/')
+    parse(UInt16, parts[2])
+end
+
+function index2time(tt::Int64)
+    times = parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])
+    times[tt]
+end
+
 # Consider reworking this using index2yearindex and similar
 function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
@@ -68,8 +78,6 @@ function index2year(tt::Int64)
     years = startyear:endyear
 
     years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
-
-
 end
 
 if !isdefined(:configtransforms)

@@ -7,25 +7,27 @@ using DataFrames
 using Mimi
 
 include("lib/agriculture.jl")
+include("lib/leapsteps.jl")
 
 @defcomp Agriculture begin
+    harvestyear = Index()
     regions = Index()
     irrcrops = Index()
     unicrops = Index()
     allcrops = Index()
 
     # Inputs
-    othercropsarea = Parameter(index=[regions, time], unit="Ha")
+    othercropsarea = Parameter(index=[regions, harvestyear], unit="Ha") # vs. harvestyear
     othercropsirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # From IrrigationAgriculture
-    irrcropareas = Parameter(index=[regions, irrcrops, time], unit="Ha")
-    irrcropproduction = Parameter(index=[regions, irrcrops, time], unit="lborbu")
+    irrcropareas = Parameter(index=[regions, irrcrops, harvestyear], unit="Ha") # vs. harvestyear
+    irrcropproduction = Parameter(index=[regions, irrcrops, harvestyear], unit="lborbu") # vs. harvestyear
     irrirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # From UnivariateAgriculture
-    unicropareas = Parameter(index=[regions, unicrops, time], unit="Ha")
-    unicropproduction = Parameter(index=[regions, unicrops, time], unit="lborbu")
+    unicropareas = Parameter(index=[regions, unicrops, harvestyear], unit="Ha") # vs. harvestyear
+    unicropproduction = Parameter(index=[regions, unicrops, harvestyear], unit="lborbu") # vs. harvestyear
     uniirrigation = Parameter(index=[regions, time], unit="1000 m^3")
 
     # Outputs
@@ -40,21 +42,24 @@ function run_timestep(s::Agriculture, tt::Int)
     p = s.Parameters
     d = s.Dimensions
 
+    yys = timeindex2yearindexes(tt)
+    contyys = timeindex2contributingyearindexes(tt)
+
     for rr in d.regions
         v.allirrigation[rr, tt] = p.othercropsirrigation[rr, tt] + p.uniirrigation[rr, tt] + p.irrirrigation[rr, tt]
-        v.allagarea[rr, tt] = p.othercropsarea[rr, tt]
+        v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
-                v.allcropareas[rr, cc, tt] = p.irrcropareas[rr, irrcc, tt]
-                v.allcropproduction[rr, cc, tt] = p.irrcropproduction[rr, irrcc, tt]
+                v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
+                v.allcropproduction[rr, cc, tt] = sum(p.irrcropproduction[rr, irrcc, yys])
             else
                 unicc = findfirst(unicrops, allcrops[cc])
-                v.allcropareas[rr, cc, tt] = p.unicropareas[rr, unicc, tt]
-                v.allcropproduction[rr, cc, tt] = p.unicropproduction[rr, unicc, tt]
+                v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
+                v.allcropproduction[rr, cc, tt] = sum(p.unicropproduction[rr, unicc, yys])
             end
 
-            v.allagarea[rr, tt] += v.allcropareas[rr, cc, tt]
+            v.allagarea[rr, tt] += maximum(v.allcropareas[rr, cc, contyys])
         end
     end
 end
@@ -62,22 +67,32 @@ end
 function initagriculture(m::Model)
     agriculture = addcomponent(m, Agriculture)
 
-    knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
-    agriculture[:othercropsarea] = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numsteps]) # Convert to Ha
+    knownareas = knowndf("agriculture-knownareas")
+    othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha
+    agriculture[:othercropsarea] = othercropsarea
 
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    othercropirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
-    othercropirrigation[knownareas[:total] .== 0] = 0
-    agriculture[:othercropsirrigation] = repeat(convert(Vector, othercropirrigation), outer=[1, numsteps])
+    recorded = knowndf("exogenous-withdrawals")
+    othercropsirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
+    othercropsirrigation[knownareas[:total] .== 0] = 0
+    othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])
+    agriculture[:othercropsirrigation] = othercropsirrigation
 
     for crop in Channel(missingcrops)
-        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numsteps])
-        agriculture[:othercropsarea] = agriculture[:othercropsarea] + areas
-        agriculture[:othercropsirrigation] = agriculture[:othercropsirrigation] + repeat(convert(Vector, cropirrigationrates(crop)), outer=[1, numsteps]) .* areas / 100
+        areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numharvestyears])
+        agriculture[:othercropsarea] = othercropsarea + areas
+        savedcropirrigationrates = cropirrigationrates(crop)
+        othercropsirrigation = zeros(numregions, numsteps)
+        for yy in 1:numharvestyears
+            tts, weights = yearindex2timeindexes(yy)
+            if length(tts) > 0
+                othercropsirrigation[:, tts] = othercropsirrigation[:, tts] + savedcropirrigationrates[:, tts] .* areas[:, yy] / 100
+            end
+        end
     end
 
-    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numsteps))
-    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numsteps))
+    agriculture[:othercropsirrigation] = othercropsirrigation
+    agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numharvestyears))
+    agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numharvestyears))
 
     agriculture
 end
@@ -102,7 +117,7 @@ function grad_agriculture_allagarea_irrcropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate, [:time], [:time])
+    roomintersect(m, :Agriculture, :allagarea, :irrcropareas, generate, [:harvestyear], [:harvestyear])
 end
 
 function grad_agriculture_allagarea_unicropareas(m::Model)
@@ -117,11 +132,11 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
         return A
     end
 
-    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate, [:time], [:time])
+    roomintersect(m, :Agriculture, :allagarea, :unicropareas, generate, [:harvestyear], [:harvestyear])
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, tt) -> max(countylandareas[rr] - m.external_parameters[:othercropsarea].values[rr, tt], 0))
+    hallsingle(m, :Agriculture, :allagarea, (rr, yy) -> max(countylandareas[rr] - m.external_parameters[:othercropsarea].values[rr, yy], 0))
 end
 
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)
@@ -136,7 +151,7 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:time], [:time])
+    roomintersect(m, :Agriculture, :allcropproduction, :unicropproduction, gen, [:harvestyear], [:harvestyear])
 end
 
 function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
@@ -151,13 +166,5 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
             end
         end
     end
-    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:time], [:time])
-end
-
-
-function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
-    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
-    sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
-    gen(rr,tt)=sorghum[rr,tt]
-    hallsingle(m, :Agriculture, :sorghumarea,gen)
+    roomintersect(m, :Agriculture, :allcropproduction, :irrcropproduction, gen, [:harvestyear], [:harvestyear])
 end

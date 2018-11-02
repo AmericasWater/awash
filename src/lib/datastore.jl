@@ -76,13 +76,17 @@ end
 """
 Retrieve only the part of a file within filterstate, if one is set.
 """
-function getfilteredtable(filepath, fipscol=:FIPS)
+function getfilteredtable(filepath, fipscol=:FIPS; kwargs...)
     if filepath[1] != '/'
         filepath = loadpath(filepath)
     end
-    recorded = readtable(filepath)
+    recorded = CSV.read(filepath; kwargs...)
     if get(config, "filterstate", nothing) != nothing
-        recorded = recorded[find(floor(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+        if typeof(recorded[fipscol]) <: Vector{String}
+            recorded = recorded[find([value[1:2] for value in recorded[fipscol]] .== config["filterstate"]), :]
+	else
+            recorded = recorded[find(floor.(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+	end
     end
     recorded
 end
@@ -296,16 +300,19 @@ Reorder values to match the master region indexes.
 Value is NA if a given region isn't in fipses.
 """
 function dataonmaster(fipses, values)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64}
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
         masterfips = map(x -> parse(Int64, x), masterregions[:fips])
     else
         masterfips = masterregions[:fips]
+    end
+    if typeof(fipses) <: Vector{Union{Missing, Int64}} || typeof(fipses) <: Vector{Union{Missing, String}}
+        fipses = collect(Missings.replace(fipses, 0))
     end
 
     function valueonmaster(fips)
         index = findfirst(fipses, fips)
         if index == 0
-            NA
+            missing
         else
             values[index]
         end

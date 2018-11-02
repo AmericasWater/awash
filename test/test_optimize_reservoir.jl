@@ -20,7 +20,7 @@ solver = ClpSolver()
 save_optimization_given(house, sol, false, true)
 
 # Run the model
-include("../src/model.jl")
+include("../src/model-surfacewater.jl")
 println("Running model...")
 run(model)
 

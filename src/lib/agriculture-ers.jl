@@ -2,6 +2,8 @@
 #
 # Provides functions for accessing ERS data
 
+include("coding.jl")
+
 """
 Return the 4-letter crop code used by ERS
 """
@@ -14,7 +16,7 @@ function ers_crop(crop::AbstractString)
         return "soyb"
     end
 
-    if crop in ["whea", "wheat", "Wheat", "Wheat.Winter", "wheat.co.rainfed"  , "wheat.co.irrigated"]
+    if crop in ["whea", "wheat", "Wheat", "Wheat.Winter", "wheat.co.rainfed", "wheat.co.irrigated"]
         return "whea"
     end
 
@@ -50,9 +52,9 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = readtable(loadpath("global/ers.csv"))
+    df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
 
-    reglink = readtable(loadpath("agriculture/ers/reglink.csv"))
+    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), allowmissing=:none)
     fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
@@ -92,7 +94,7 @@ end
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
     subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
-    result = zeros(size(masterregions, 1)) * NA
+    result = Vector{Union{Missing, Float64}}(size(masterregions, 1))
     for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
@@ -103,7 +105,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[isna.(result)] = value[1]
+        result[[!isassigned(result, ii) for ii in 1:length(result)]] = value[1]
     end
 
     result
@@ -113,7 +115,7 @@ end
 List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
-    df = readtable(loadpath("global/ers.csv"))
+    df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 

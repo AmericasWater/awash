@@ -37,7 +37,7 @@ Add a Thermoelectric component to the model.
 function initthermoelectric(m::Model)
     thermoelectric = addcomponent(m, Thermoelectric)
 
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
     thermoelectric[:thermodemand] = repeat(convert(Vector, recorded[:, :PT_To]) * 1383./12. * config["timestep"], outer=[1, numscenarios, numsteps])
 
     thermoelectric

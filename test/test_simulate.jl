@@ -4,6 +4,7 @@ using Base.Test
 using DataArrays
 using DataFrames
 using OptiMimi
+using NaNMath
 
 include("../src/lib/readconfig.jl")
 config = readconfig("../configs/standard-1year-state.yml")
@@ -19,7 +20,7 @@ rename!(df1, :allirrigation, :value)
 df1[:variable] = :allirrigation
 # df2 = getdataframe(model, :ReturnFlows, :returned)
 # df2 = DataFrame(regions=["global"], time=[2000], value=[sum(df2[:returned])], variable=[:returned])
-df3available = vec(sum(model[:Market, :available], 2))
+df3available = vec(mapslices(NaNMath.sum, model[:Market, :available], 2))
 df3 = DataFrame(regions=repeat(masterregions[:state], outer=[2]), time=repeat([minimum(df1[:time]), maximum(df1[:time])], inner=[nrow(masterregions)]), scenarios=1, value=df3available, variable=:available)
 
 # alldf = vcat(df1, df2, df3)
@@ -35,9 +36,9 @@ if isfile(outputpath)
         @test compdf[ii, :time] == alldf[ii, :time]
         @test compdf[ii, :variable] == string(alldf[ii, :variable])
         if (!isnan(compdf[ii, :value]) || !isnan(alldf[ii, :value]))
-            compfrac = compdf[ii, :value] ./ sum(abs.(compdf[compdf[:variable] .== compdf[ii, :variable], :value]))
-            allfrac = alldf[ii, :value] ./ sum(abs.(alldf[alldf[:variable] .== alldf[ii, :variable], :value]))
-            if compdf[ii, :value] != alldf[ii, :value]
+            compfrac = compdf[ii, :value] ./ max(abs.(compdf[compdf[:variable] .== compdf[ii, :variable], :value]))
+            allfrac = alldf[ii, :value] ./ max(abs.(alldf[alldf[:variable] .== alldf[ii, :variable], :value]))
+            if abs(compdf[ii, :value] - alldf[ii, :value]) > 1e-6
                 push!(mismatches, ii)
                 println(abs.(compdf[ii, :value] - alldf[ii, :value]))
                 println(max(abs.(compdf[ii, :value] - alldf[ii, :value])))
@@ -54,5 +55,5 @@ if isfile(outputpath)
     end
     @test length(mismatches) == 0
 else
-    writetable(outputpath, alldf)
+    CSV.write(outputpath, alldf)
 end

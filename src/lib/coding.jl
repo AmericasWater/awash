@@ -7,11 +7,11 @@
 Read a CSV file, with some type management.
 nullallow has the same number of elements as types.
   nullallow[ii] may be nothing, in which case nulls produce an error
-  nullallow[ii] may be NA, in which case nulls are allowed
+  nullallow[ii] may be missing, in which case nulls are allowed
   nullallow[ii] may be a value, in which case nulls are replaced with the value.
 """
 function robustcsvread(filepath::String, types::Vector{DataType}, null::String, nullallow::Vector{Any})
-    df = readtable(filepath, eltypes=types, nastrings=[null])
+    df = CSV.read(filepath, types=types, missingstring=null)
     for ii in 1:length(types)
         try
             if nullallow[ii] == nothing
@@ -28,9 +28,7 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
 end
 
 function replacemissing{T}(df::DataFrame, column::Symbol, replace::T)
-    entries = df[column]
-    entries[isna.(entries)] = replace
-    convert(Vector{T}, entries)
+    collect(Missings.replace(df[column], replace))
 end
 
 function dropmissing(df::DataFrame, column::Symbol)

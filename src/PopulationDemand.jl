@@ -8,7 +8,11 @@ using DataFrames
 include("lib/readconfig.jl")
 include("lib/datastore.jl")
 
-populations = readtable(loadpath("county-pops.csv"), eltypes=[Int64, String, String, Int64, Float64]);
+if config["dataset"] == "counties"
+    populations = CSV.read(loadpath("county-pops.csv"), missingstring="NA")
+else
+    populations = CSV.read(loadpath("county-pops.csv"));
+end
 
 function getpopulation(fips, year)
     if typeof(fips) <: Int

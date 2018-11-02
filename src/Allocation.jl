@@ -38,6 +38,7 @@ include("lib/watercostdata.jl")
 
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    totaluse=Parameter(index=[time],unit="1000m^3")
     # Amount available from all sources
     waterallocated = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
@@ -88,12 +89,14 @@ function initallocation(m::Model)
     allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
     allocation[:unitswcost] = repeat(canalextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
     allocation[:unitsupercost] = 1e6
+    totaluse=ones(m.indices_counts[:time])
+    allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
 	allocation[:withdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
     	allocation[:waterfromgw] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
     	allocation[:waterfromsupersource] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
     else
-        recorded = getfilteredtable("extraction/USGS-2010.csv")
+        recorded = knowndf("exogenous-withdrawals")
 
 	allocation[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
 	allocation[:waterfromgw] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
@@ -170,18 +173,39 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 	end
 	hallsingle(m, :Allocation, :balance, genuu)
     else
-        recorded = getfilteredtable("extraction/USGS-2010.csv")
+        recorded = knowndf("exogenous-withdrawals")
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
 	gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
 	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 
+    
+function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
+    function generate(A,tt)
+        A[:] = 1
+    end
+    roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
+end
+
+
+function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT
+    function generate(A,tt)
+        A[:] = 1
+    end
+    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
+end
+
+
+function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT
+    gen(tt)=(7.820581169848508e6)*2
+    hallsingle(m, :Allocation, :totaluse, gen)
+end
+
+
+
 function constraintoffset_allocation_otherdemand(m::Model)
     other = readtable(datapath("other.csv"))
     gen(rr, ss, tt)=other[rr,:x1]
     hallsingle(m, :Allocation, :balance, gen)
 end
-
-
-

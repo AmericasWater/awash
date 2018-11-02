@@ -7,7 +7,7 @@ using DataFrames
 include("lib/datastore.jl")
 
 # Load consumptive use data
-consumption = readtable(loadpath("returnflows/consumption.csv"))
+consumption = CSV.read(loadpath("returnflows/consumption.csv"), allowmissing=:none)
 returnpart = Dict([consumption[ii, :sector] => (1 - consumption[ii, :consumption]) * consumption[ii, :usablesw] for ii = 1:nrow(consumption)])
 
 @defcomp WaterDemand begin
@@ -59,14 +59,14 @@ Add a WaterDemand component to the model.
 function initwaterdemand(m::Model)
     waterdemand = addcomponent(m, WaterDemand);
 
-    # Set optimized parameters to 0
-    waterdemand[:totalirrigation] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
-    waterdemand[:industrialuse] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
-    waterdemand[:urbanuse] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);;
-    waterdemand[:livestockuse] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
-    waterdemand[:thermoelectricuse] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
+    # Initialized at USGS values, replaced by model-waterdemand
+    recorded = knowndf("exogenous-withdrawals")
+    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
 
     waterdemand
 end
@@ -168,63 +168,63 @@ function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandm
 end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen, [:scenarios, :time])
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundindustrial(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
-    gen(rr) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
+    recorded = knowndf("exogenous-withdrawals")
+    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen, [:scenarios, :time])
 end
 
@@ -243,4 +243,3 @@ end
 function values_waterdemand_recordedlivestock(m::Model)
     values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)
 end
-

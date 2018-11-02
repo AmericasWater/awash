@@ -36,7 +36,7 @@ Add a Livestock component to the model.
 function initlivestock(m::Model)
     livestock = addcomponent(m, Livestock)
 
-    recorded = getfilteredtable("extraction/USGS-2010.csv")
+    recorded = knowndf("exogenous-withdrawals")
     livestock[:livestockdemand] = repeat(convert(Vector,recorded[:,:LI_To])*1383./12*config["timestep"], outer=[1, numscenarios, numsteps])
 
     livestock

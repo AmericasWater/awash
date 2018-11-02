@@ -8,8 +8,11 @@ using DataFrames
     gauges = Index()
 
     flowrequirementfactor = Parameter(unit="")
-    naturalflow = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
-    minenvironmentalflow = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
+    naturalflows = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
+    minenvironmentalflows = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
+    outflowsgauges = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
+    balanceenvironmentalflows = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
+    environmentaldemand = Variable(index=[regions, scenarios, time],unit="1000 m^3")
 end
 
 """
@@ -21,14 +24,35 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
     d = c.Dimensions
 
     for gg in d.gauges
-        v.minenvironmentalflow[gg, :, tt] = p.flowrequirementfactor * p.naturalflow[gg, :, tt];
+        v.minenvironmentalflows[gg, :, tt] = p.flowrequirementfactor * p.naturalflows[gg, :, tt];
+        v.balanceenvironmentalflows[gg, :, tt] = p.outflowsgauges[gg, :, tt] - v.minenvironmentalflows[gg, :, tt];
+    end
+
+    if config["dataset"] == "counties"
+        for pp in 1:nrow(draws)
+            if draws[:justif][pp] == "contains"
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr > 0
+                    v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
+                end
+            end
+        end
+    elseif config["dataset"] == "states"
+        for pp in 1:nrow(draws)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
+            if rr > 0
+                v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
+            end
+        end
     end
 end
 
 """
 Add an urban component to the model.
 """
-function initenvrionmentaldemand(m::Model)
+function initenvironmentaldemand(m::Model)
     environmentaldemand = addcomponent(m, EnvironmentalDemand);
     # set according to config file
     environmentaldemand[:flowrequirementfactor] = get(config, "proportionnaturalflowforenvironment", 0.)

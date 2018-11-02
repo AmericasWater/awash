@@ -3,6 +3,10 @@
 # Install any packages that need to be installed and sets up standard
 # functions.
 
+if Pkg.installed("CSV") == nothing
+    Pkg.add("CSV")
+end
+
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
 end
@@ -36,6 +40,10 @@ if Pkg.installed("RData") == nothing
     Pkg.add("RData")
 end
 
+if Pkg.installed("NullableArrays") == nothing
+    Pkg.add("NullableArrays")
+end
+
 if !is_windows() && Pkg.installed("NetCDF") == nothing
     Pkg.add("NetCDF")
 end
@@ -52,6 +60,17 @@ include("lib/graphing.jl")
 
 config = emptyconfig()
 model = nothing # The master model object for functions below
+
+function prepsimulatesurface(configfile::AbstractString)
+    global config, model
+
+    config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
+    include("../src/model-surfacewater.jl")
+end
 
 function prepsimulate(configfile::AbstractString)
     global config, model
@@ -72,8 +91,9 @@ function prepoptimizesurface(configfile::AbstractString)
     # Download any files we will need
     predownload()
 
-    include("optimization-given.jl")
-    house = optimization_given(false)
+    include(joinpath(dirname(@__FILE__), "optimization-given.jl"))
+    global redogwwo = true
+    house = Base.invokelatest(optimization_given, false)
     model = house
 end
 
@@ -150,6 +170,6 @@ function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
     usmap(df, centered=nothing)
 end
 
-open("../docs/intro.txt") do fp
+open(joinpath(dirname(@__FILE__), "../docs/intro.txt")) do fp
     println(readstring(fp))
 end

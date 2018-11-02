@@ -120,12 +120,12 @@ function initunivariateagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
-                        if isna(numgdds)
+                        if ismissing(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, Symbol("x$year")]
-                        if isna(numkdds)
+                        if ismissing(numkdds)
                             numkdds = 0
                         end
                     else

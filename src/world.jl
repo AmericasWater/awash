@@ -5,13 +5,14 @@
 
 include("world-minimal.jl")
 include("regionnet.jl")
+include("lib/leapsteps.jl")
 include("initwaternet.jl")
 
 # Prepare the model
 
 if config["filterstate"] == "08"
     unicrops = ["barley", "corn.co.rainfed", "corn.co.irrigated", "sorghum", "soybeans", "wheat.co.rainfed", "wheat.co.irrigated", "hay"] # "corn", "wheat" # UnivariateAgriculture component crops
-    irrcrops = String[] # UnivariateAgriculture component crops
+    irrcrops = String[] # Full Agriculture component, with rainfed/irrigated choice
 else
     unicrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"] # UnivariateAgriculture component crops
     irrcrops = String[] # Full Agriculture component, with rainfed/irrigated choice
@@ -43,7 +44,7 @@ else
 end
 
 numscenarios = length(get(config, "scenarios", [1]))
-
+numharvestyears = length(unique(cat(1, timeindex2yearindexes.(1:numsteps)...)))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)
@@ -66,6 +67,11 @@ function newmodel()
     else
         setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
+
+    yearnames = collect(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
+    yearindexes = cat(1, timeindex2yearindexes.(1:numsteps)...)
+
+    setindex(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
     setindex(m, :regions, collect(masterregions[:fips]))
     setindex(m, :unicrops, unicrops)
     setindex(m, :irrcrops, irrcrops)

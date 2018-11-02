@@ -1,0 +1,22 @@
+# Only include counties within this state (give as 2 digit FIPS)
+# "10" for Delaware (3 counties), "08" for Colorado (64 counties)
+filterstate: null
+
+# Current options: counties (full-country), dummy (5-counties)
+dataset: counties
+
+# First and last month of the simulation
+startmonth: 10/2000
+endmonth: 9/2001
+
+# First entry in VIC_WB to include
+startweather: 1
+
+# Months per time step
+timestep: 1
+
+# Demand model:
+demandmodel: "USGS"
+
+# Environmental flow: proportion of unmodified flows that should be guaranteed in the streams to preserve the environment
+proportionnaturalflowforenvironment: 0.5

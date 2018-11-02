@@ -9,6 +9,7 @@
 # simulation.
 
 using Mimi
+using OptiMimi
 
 @defcomp ReturnFlows begin
     canals = Index()

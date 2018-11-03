@@ -36,7 +36,7 @@ if get(config, "dataset", "counties") == "paleo"
     precip = zeros(nrow(masterregions), numscenarios, numsteps)
     recharge = zeros(nrow(masterregions), numscenarios, numsteps)
 else
-    fullprecip = reorderfips(dncload("weather", "precip", [config["ncregion"], "month"])[get(config, "startweather", 1):end, :], indicies, masterregions[:fips]); # mm / month
+    fullprecip = reorderfips(scenarioextract(dncload("weather", "precip", [config["ncregion"], "month"])[get(config, "startweather", 1):end, :]), indicies, masterregions[:fips]); # mm / month
     precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
     recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numscenarios, numsteps])*100; # 1000m3 / timestep
     fullprecip[isnan.(fullprecip)] = 0

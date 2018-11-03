@@ -169,8 +169,8 @@ Get the irrigation rate per timestep for each crop
 function getunivariateirrigationrates(crop::AbstractString)
     water_demand = water_requirements[crop] * 1000 # mm
 
-    irrigationrate = zeros(numcounties, numsteps)
-    waterdeficits = zeros(numcounties, numharvestyears)
+    irrigationrate = zeros(numcounties, numscenarios, numsteps)
+    waterdeficits = zeros(numcounties, numscenarios, numharvestyears)
     for yy in 1:numharvestyears
         tts, weights = yearindex2timeindexes(yy)
         # fullprecip loaded by weather.jl
@@ -178,9 +178,11 @@ function getunivariateirrigationrates(crop::AbstractString)
         fulltts = fulltts[fulltts .<= size(fullprecip)[2]]
         fullweights = fullweights[fullweights .<= size(fullprecip)[2]]
         for rr in 1:numregions
-            waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
-            waterdeficits[rr, yy] = waterdeficit
-            irrigationrate[rr, tts] = (unicrop_irrigationrate[crop] + waterdeficit * unicrop_irrigationstress[crop] / 1000) * weights / sum(weights)
+            for ss in 1:numscenarios
+                waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
+                waterdeficits[rr, ss, yy] = waterdeficit
+                irrigationrate[rr, ss, tts] = (unicrop_irrigationrate[crop] + waterdeficit * unicrop_irrigationstress[crop] / 1000) * weights / sum(weights)
+            end
         end
     end
 

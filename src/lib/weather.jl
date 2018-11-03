@@ -31,21 +31,38 @@ function reorderfips(weather::Union{DataArrays.DataArray{Float64, 3}, Array{Floa
 end
 
 """
+Takes N x T and returns N x S x T for scenario spans.
+"""
+function scenarioextract(weather)
+    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    scenarios = get(config, "scenarios", [1])
+
+    bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+    for ss in 1:length(scenarios)
+        if config["timestep"] == 1
+            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
+        end
+    end
+
+    bytimestep
+end
+
+"""
 Sum values within each timestep, and reorder dimensions, returning a N x S x T matrix.
 
 Assumes that `config` is defined globally
 """
 function sum2timestep(weather)
+    if config["timestep"] == 1
+        return scenarioextract(weather)
+    end
+
     weatherfromstart = weather[get(config, "startweather", 1):end, :]
     scenarios = get(config, "scenarios", [1])
 
     bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
 
     for ss in 1:length(scenarios)
-        if config["timestep"] == 1
-            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
-        end
-
         for timestep in 1:numsteps
             allcounties = zeros(size(weather, 2))
             for month in 1:config["timestep"]

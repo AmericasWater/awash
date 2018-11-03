@@ -169,62 +169,62 @@ end
 
 function values_waterdemand_recordedsurfacedomestic(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
+    gen(rr) = config["timestep"] * (recorded[rr, :PS_SW] + recorded[rr, :DO_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfaceindustrial(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
+    gen(rr) = config["timestep"] * (recorded[rr, :IN_SW] + recorded[rr, :MI_SW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfaceirrigation(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :IR_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfacelivestock(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :LI_SW] * 13883. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedsurfacethermoelectric(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :PT_SW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen, [:scenarios, :time])
 end
 
 
 function values_waterdemand_recordedgrounddomestic(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
+    gen(rr) = config["timestep"] * (recorded[rr, :PS_GW] + recorded[rr, :DO_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :domesticuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundindustrial(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
+    gen(rr) = config["timestep"] * (recorded[rr, :IN_GW] + recorded[rr, :MI_GW]) * 1383. / 12.
     shaftsingle(m, :WaterDemand, :industrialuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundirrigation(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :IR_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :totalirrigation, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundlivestock(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :LI_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :livestockuse, gen, [:scenarios, :time])
 end
 
 function values_waterdemand_recordedgroundthermoelectric(m::Model)
     recorded = knowndf("exogenous-withdrawals")
-    gen(rr, tt) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
+    gen(rr) = config["timestep"] * recorded[rr, :PT_GW] * 1383. / 12.
     shaftsingle(m, :WaterDemand, :thermoelectricuse, gen, [:scenarios, :time])
 end
 

@@ -2,7 +2,7 @@
 #
 # Loads basic information all files need to run model functions.
 
-using DataFrames
+using DataFrames, CSV
 include("lib/datastore.jl")
 
 suffix = getsuffix()

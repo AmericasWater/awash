@@ -54,11 +54,15 @@ function run_timestep(s::Agriculture, tt::Int)
             irrcc = findfirst(irrcrops, allcrops[cc])
             if irrcc > 0
                 v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
-                v.allcropproduction[rr, cc, :, tt] = p.irrcropproduction[rr, irrcc, :, yys]
+                if (length(yys) > 0)
+                    v.allcropproduction[rr, cc, :, tt] = sum(p.irrcropproduction[rr, irrcc, :, yys], 1)
+                end
             else
                 unicc = findfirst(unicrops, allcrops[cc])
                 v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
-                v.allcropproduction[rr, cc, :, tt] = p.unicropproduction[rr, unicc, :, yys]
+                if (length(yys) > 0)
+                    v.allcropproduction[rr, cc, :, tt] = sum(p.unicropproduction[rr, unicc, :, yys], 1)
+                end
             end
 
             v.allagarea[rr, tt] += maximum(v.allcropareas[rr, cc, contyys])

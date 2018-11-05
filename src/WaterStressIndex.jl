@@ -8,24 +8,24 @@ using DataFrames
     regions = Index()
     gauges = Index()
 
-    rechargegw = Parameter(index=[regions, time], unit="1000 m^3")
-    inflowgauge = Parameter(index=[gauges, time], unit="1000 m^3")
-    runoffgauge = Parameter(index=[gauges, time], unit="1000 m^3")
+    rechargegw = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
+    inflowgauge = Parameter(index=[gauges, scenarios, time], unit="1000 m^3")
+    runoffgauge = Parameter(index=[gauges, scenarios, time], unit="1000 m^3")
     environmentalfactor = Parameter(unit="none")
-    withdrawalgw = Parameter(index=[regions, time], unit="1000 m^3")
-    withdrawalsw = Parameter(index=[gauges, time], unit="1000 m^3")
-    withdrawalswregion = Parameter(index=[regions, time], unit="1000 m^3")
+    withdrawalgw = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
+    withdrawalsw = Parameter(index=[gauges, scenarios, time], unit="1000 m^3")
+    withdrawalswregion = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
-    availabilityrunoffall = Variable(index=[regions, time], unit="1000 m^3")
-    availabilityrunofflocal = Variable(index=[regions, time], unit="1000 m^3")
-    availabilityinflowlocal = Variable(index=[regions, time], unit="1000 m^3")
+    availabilityrunoffall = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    availabilityrunofflocal = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    availabilityinflowlocal = Variable(index=[regions, scenarios, time], unit="1000 m^3")
 
-    indexgw = Variable(index=[regions, time], unit="1000 m^3")
-    indexsw = Variable(index=[gauges, time], unit="1000 m^3")
+    indexgw = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    indexsw = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
 
-    indexWaSSli = Variable(index=[regions, time], unit="1000 m^3")
-    indexWaSSI = Variable(index=[regions, time], unit="1000 m^3")
-    indexWSI = Variable(index=[regions, time], unit="1000 m^3")
+    indexWaSSli = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    indexWaSSI = Variable(index=[regions, scenarios, time], unit="1000 m^3")
+    # indexWSI = Variable(index=[regions, time], unit="1000 m^3")
 end
 
 """
@@ -37,17 +37,17 @@ function run_timestep(c::WaterStressIndex, tt::Int)
     d = c.Dimensions
 
     for rr in d.regions
-        v.indexgw[rr, tt] = p.withdrawalgw[rr, tt]/p.rechargegw[rr, tt]
+        v.indexgw[rr, :, tt] = p.withdrawalgw[rr, :, tt]./p.rechargegw[rr, :, tt]
     end
 
     for gg in d.gauges
-        v.indexsw[gg, tt] = p.withdrawalsw[gg, tt]/(p.inflowgauge[gg, tt]+p.runoffgauge[gg, tt])
+        v.indexsw[gg, :, tt] = p.withdrawalsw[gg, :, tt]./(p.inflowgauge[gg, :, tt]+p.runoffgauge[gg, :, tt])
     end
 
 
-    v.availabilityrunoffall[:,tt] = zeros(numcounties)
-    v.availabilityrunofflocal[:,tt] = zeros(numcounties)
-    v.availabilityinflowlocal[:,tt] = zeros(numcounties)
+    v.availabilityrunoffall[:,:,tt] = zeros(numcounties, numscenarios)
+    v.availabilityrunofflocal[:,:,tt] = zeros(numcounties, numscenarios)
+    v.availabilityinflowlocal[:,:,tt] = zeros(numcounties, numscenarios)
 
     if config["dataset"] == "counties"
         for pp in 1:nrow(draws)
@@ -58,9 +58,9 @@ function run_timestep(c::WaterStressIndex, tt::Int)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
                 if rr > 0
-                    v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
+                    v.availabilityrunoffall[rr, :, tt] += p.runoffgauge[gg, :, tt]
                     if draws[pp, :justif] == "contains"
-                        v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
+                        v.availabilityrunofflocal[rr, :, tt] += p.runoffgauge[gg, :, tt]
 
                         # Checking if the gauge is the last one
                         gauge = downstreamorder[gg].label
@@ -68,7 +68,7 @@ function run_timestep(c::WaterStressIndex, tt::Int)
                             for ii in find(draws[:gaugeid] .== upstream.label)
                                 if draws[:justif][ii] == "contains"
                                     if draws[:fips][ii] != draws[:fips][pp]
-                                        v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+                                        v.availabilityinflowlocal[rr, :, tt] += p.inflowgauge[gg, :, tt]
                                     end
                                 end
                             end
@@ -86,15 +86,15 @@ function run_timestep(c::WaterStressIndex, tt::Int)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
                 if rr > 0
-                    v.availabilityrunoffall[rr, tt] += p.runoffgauge[gg, tt]
-                    v.availabilityrunofflocal[rr, tt] += p.runoffgauge[gg, tt]
+                    v.availabilityrunoffall[rr, :, tt] += p.runoffgauge[gg, :, tt]
+                    v.availabilityrunofflocal[rr, :, tt] += p.runoffgauge[gg, :, tt]
 
                     # Checking if the gauge is the last one
                     gauge = downstreamorder[gg].label
                     for upstream in out_neighbors(wateridverts[gauge], waternet)
                         for ii in find(draws[:gaugeid] .== upstream.label)
                             if draws[:state][ii] != draws[:state][pp]
-                                v.availabilityinflowlocal[rr, tt] += p.inflowgauge[gg, tt]
+                                v.availabilityinflowlocal[rr, :, tt] += p.inflowgauge[gg, :, tt]
                             end
                         end
                     end
@@ -116,7 +116,7 @@ Add a WaterStressIndex component to the model.
 function initwaterstressindex(m::Model)
     waterstressindex = addcomponent(m, WaterStressIndex);
 
-    waterstressindex[:runoffgauge] = addeds[:, 1:numsteps]
+    waterstressindex[:runoffgauge] = addeds[:, :, 1:numsteps]
     waterstressindex[:rechargegw] = recharge;
     waterstressindex[:environmentalfactor] = 0.37; #conservative estimate: 37% annual flow, 50% annual flow. source: doi:10.1088/1748-9326/aa51dc
 

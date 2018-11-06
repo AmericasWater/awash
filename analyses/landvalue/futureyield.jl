@@ -9,14 +9,17 @@ include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
-profitfix = true
-for holdcoeff in [false, true]
-    for allowtime in [false, true]
-        for futureyear in [2050, 2070]
+#profitfix = true
+for profitfix in [true, "modeled"]
+    for holdcoeff in [false, true]
+        for allowtime in [false, true]
+            for futureyear in [2050, 2070]
+                for limityield in ["ignore", "lybymc"]
+                    
 #holdcoeff = true #false
 #allowtime = true #false
 #futureyear = 2050
-limityield = "ignore" #"lybymc" #"zeroy" # "limity"
+#limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
@@ -27,7 +30,7 @@ biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "hd", "he", "hg", "in", "ip", "mc",
              "mg", "mi", "mp", "mr" , "no"]
 
-if profitfix
+if profitfix != false
     profitfixdf = readtable("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
@@ -177,8 +180,12 @@ for ii in 1:length(bayes_crops)
 
         price_row = price[ersrow]
         costs_row = costs[ersrow]
-        if profitfix && profitfixdf[ersrow, :obscrop] == crop
-            costs_row -= profitfixdf[ersrow, :toadd]
+        if profitfix != false && profitfixdf[ersrow, :obscrop] == crop
+            if profitfix == true
+                costs_row -= profitfixdf[ersrow, :toadd]
+            else
+                costs_row -= profitfixdf[ersrow, :esttoadd_changeirr] + .01
+            end
         end
 
         profit = yield_total * price_row - costs_row
@@ -192,8 +199,10 @@ for ii in 1:length(bayes_crops)
 end
 
 suffixes = []
-if profitfix
+if profitfix == true
     push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
 end
 if !allowtime
     push!(suffixes, "notime")
@@ -222,4 +231,5 @@ CSV.write("max$(futureyear)$suffix.csv", result)
 end
 end
 end
-
+end
+end

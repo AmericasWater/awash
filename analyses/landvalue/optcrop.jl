@@ -18,7 +18,7 @@ for changeirr in ["skip", false, true]
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
-    
+
 if profitfix != false
     profitfixdf = readtable("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
@@ -59,9 +59,9 @@ for ii in 1:length(bayes_crops)
                 if profitfix == true
                     costs_row -= profitfixdf[weatherrow, :toadd]
                 elseif !changeirr
-                    costs_row -= profitfixdf[weatherrow, :esttoadd]
+                    costs_row -= profitfixdf[weatherrow, :esttoadd] + .01
                 else
-                    costs_row -= profitfixdf[weatherrow, :esttoadd_changeirr]
+                    costs_row -= profitfixdf[weatherrow, :esttoadd_changeirr] + .01
                 end
             end
 

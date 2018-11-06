@@ -56,8 +56,8 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
         time_coeff = bayes_time[:, rr]
     end
 
-    gdds_row = convert(Matrix{Float64}, gdds[weatherrow, end-9:end]) #2:end])
-    kdds_row = convert(Matrix{Float64}, kdds[weatherrow, end-9:end]) #2:end])
+    gdds_row = collect(Missings.replace(convert(Matrix{Union{Missing, Float64}}, gdds[weatherrow, end-9:end]), NaN)) #2:end])
+    kdds_row = collect(Missings.replace(convert(Matrix{Union{Missing, Float64}}, kdds[weatherrow, end-9:end]), NaN)) #2:end])
     time_row = trendyear # Give all yields as 2010; otherwise collect(1:61)
     if ismissing(irrigation[weatherrow, Symbol("wreq$(irr_crops[ii])")])
         wreq_row = wreq_max

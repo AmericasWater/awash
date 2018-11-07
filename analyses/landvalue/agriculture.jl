@@ -7,10 +7,10 @@ include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 include("curryield.jl")
 
-masterregions[:soy_revenue] = ers_information("soyb", "revenue", 2010; includeus=false)
-masterregions[:soy_opcost] = ers_information("soyb", "opcost", 2010; includeus=false)
-masterregions[:soy_opcost_full] = ers_information("soyb", "opcost", 2010; includeus=true)
-writetable("soydata.csv", masterregions)
+# masterregions[:soy_revenue] = ers_information("soyb", "revenue", 2010; includeus=false)
+# masterregions[:soy_opcost] = ers_information("soyb", "opcost", 2010; includeus=false)
+# masterregions[:soy_opcost_full] = ers_information("soyb", "opcost", 2010; includeus=true)
+# writetable("soydata.csv", masterregions)
 
 do_cropdrop = true
 

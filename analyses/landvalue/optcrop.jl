@@ -8,10 +8,11 @@ include("../../src/lib/agriculture-ers.jl")
 include("curryield.jl")
 
 includeus = true
-limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 bayesdir = "posterior_distributions_variance"
 
+#limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 # trendyear = 62 + 60
+for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
@@ -111,6 +112,7 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("maxbayesian$suffix.csv", result)
+end
 end
 end
 end

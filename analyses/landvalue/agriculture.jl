@@ -26,12 +26,12 @@ end
 
 actualcrops = readtable("actualcrops.csv")
 actualcrops[:fips] = canonicalindex(actualcrops[:fips])
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "COTTON"), :maxcrop_before] = "cott"
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "SOYBEANS"), :maxcrop_before] = "soyb"
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "CORN"), :maxcrop_before] = "corn"
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "WHEAT"), :maxcrop_before] = "whea"
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "RICE"), :maxcrop_before] = "rice"
-actualcrops[!ismissing.(actualcrops[:maxcrop_before]) .& (actualcrops[:maxcrop_before] .== "BARLEY"), :maxcrop_before] = "barl"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "WHEAT"), :maxcrop] = "whea"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "RICE"), :maxcrop] = "rice"
+actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "BARLEY"), :maxcrop] = "barl"
 
 # Collect observed crop
 obscrop = repeat(["none"], outer=nrow(masterregions))
@@ -39,7 +39,7 @@ for ii in 1:nrow(masterregions)
     fips = masterregions[ii, :fips]
     obsrow = actualcrops[actualcrops[:fips] .== fips, :]
     if nrow(obsrow) == 1
-        observed = obsrow[1, :maxcrop_before]
+        observed = obsrow[1, :maxcrop]
         if !isna(observed)
             obscrop[ii] = observed
         end
@@ -121,7 +121,7 @@ for ii in 1:nrow(masterregions)
     fips = masterregions[ii, :fips]
     obsrow = actualcrops[actualcrops[:fips] .== fips, :]
     if nrow(obsrow) == 1
-        observed = obsrow[1, :maxcrop_before]
+        observed = obsrow[1, :maxcrop]
         if !isna(observed)
             obscrop[ii] = observed
             data = ers_information(observed, "revenue", 2010; includeus=false) - ers_information(observed, "cost", 2010; includeus=false)

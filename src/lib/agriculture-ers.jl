@@ -52,7 +52,7 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
+    df = CSV.read(loadpath("global/ers.csv"), types=[String, String, String, Float64, Float64])
 
     reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), allowmissing=:none)
     fips = regionindex(reglink, :)
@@ -94,7 +94,7 @@ end
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
     subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
-    result = Vector{Union{Missing, Float64}}(size(masterregions, 1))
+    result = zeros(size(masterregions, 1)) * missing
     for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
@@ -105,7 +105,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[[!isassigned(result, ii) for ii in 1:length(result)]] = value[1]
+        result[[ismissing(result[ii]) for ii in 1:length(result)]] = value[1]
     end
 
     result

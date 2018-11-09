@@ -183,7 +183,7 @@ function getunivariateirrigationrates(crop::AbstractString)
         fullweights = fullweights[fullweights .<= size(fullprecip)[2]]
         for rr in 1:numregions
             for ss in 1:numscenarios
-                waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
+                waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, ss, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
                 waterdeficits[rr, ss, yy] = waterdeficit
                 irrigationrate[rr, ss, tts] = (unicrop_irrigationrate[crop] + waterdeficit * unicrop_irrigationstress[crop] / 1000) * weights / sum(weights)
             end

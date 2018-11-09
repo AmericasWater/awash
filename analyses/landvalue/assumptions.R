@@ -36,21 +36,31 @@ gg.usmap(opt$dmaxarea, opt$fips)
 basevalue <- sum(baseline$Barley * profits$barl + baseline$Corn * profits$corn +
                   baseline$Cotton * profits$cott + baseline$Rice * profits$rice +
                   baseline$Soybean * profits$soyb + baseline$Wheat * profits$whea)
-df <- data.frame(period=2010, assumptions='Baseline', totalvalue=basevalue, deltavalue=0, deltaarea=0, deltamaxarea=0)
+df <- data.frame(period=2010, assumptions='Baseline', nooptvalue=NA, totalvalue=basevalue, deltavalue=0, deltaarea=0, deltamaxarea=0)
 
 for (prefix in c('maxbayesian', 'max2050', 'max2070')) {
     for (filename in list.files("results", paste0(prefix, "-.+\\.csv"))) {
         assumptions <- substring(filename, nchar(prefix)+2, nchar(filename)-4)
         if (substring(assumptions, nchar(assumptions)-3, nchar(assumptions)) %in% c('2050', '2070'))
             next
-        
-        opt <- read.csv(file.path("results", filename))
+
+        if (prefix == "maxbayesian")
+            profits <- read.csv(file.path("results", paste0("currentprofits-", assumptions, ".csv")), header=F)
+        else if (prefix == "max2050")
+            profits <- read.csv(file.path("results", paste0("all2050profits-", assumptions, ".csv")), header=F)
+        else if (prefix == "max2070")
+            profits <- read.csv(file.path("results", paste0("all2070profits-", assumptions, ".csv")), header=F)
+        nooptvalue <- sum(profits[,1] * baseline$Barley + profits[,2] * baseline$Corn + profits[,3] * baseline$Cotton +
+                          profits[,4] * baseline$Rice + profits[,5] * baseline$Soybean + profits[,6] * baseline$Wheat, na.rm=T)
+
+        opt <- read.csv(file.path("results", filename))            
         opt <- opt %>% left_join(baseline, by="fips")
+        
         totalvalue <- sum(opt$profit * opt$mytotal)
         deltavalue <- totalvalue / basevalue - 1
         deltaarea <- sum(opt$mytotal - sapply(1:nrow(opt), function(ii) opt[ii, as.character(opt$crop[ii])])) / sum(opt$mytotal)
         deltamaxarea <- sum(sapply(1:nrow(opt), function(ii) ifelse(opt$crop[ii] == opt$maxcrop[ii], 0, opt$maxarea[ii]))) / sum(opt$maxarea)
-        df <- rbind(df, data.frame(period=periods[[prefix]], assumptions, totalvalue, deltavalue, deltaarea, deltamaxarea))
+        df <- rbind(df, data.frame(period=periods[[prefix]], assumptions, nooptvalue, totalvalue, deltavalue, deltaarea, deltamaxarea))
     }
 }
 

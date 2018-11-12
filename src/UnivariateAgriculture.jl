@@ -179,8 +179,8 @@ function getunivariateirrigationrates(crop::AbstractString)
         tts, weights = yearindex2timeindexes(yy)
         # fullprecip loaded by weather.jl
         fulltts, fullweights = leapindex2timeindexes(yy, 1, 12)
+        fullweights = fullweights[fulltts .<= size(fullprecip)[3]]
         fulltts = fulltts[fulltts .<= size(fullprecip)[3]]
-        fullweights = fullweights[fullweights .<= size(fullprecip)[3]]
         for rr in 1:numregions
             for ss in 1:numscenarios
                 waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, ss, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months

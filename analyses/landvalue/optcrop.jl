@@ -12,10 +12,10 @@ bayesdir = "posterior_distributions_variance"
 
 #limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 # trendyear = 62 + 60
-for limityield in ["ignore", "lybymc"]
-for profitfix in ["modeled", true]
+for limityield in ["ignore", "lybymc"] #["lybymc"]
+for profitfix in ["modeled", true] #[false]
 for trendyear in [62, 62 + 40, 62 + 60]
-for changeirr in ["skip", false, true]
+for changeirr in ["skip", false, true] #[true]
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end

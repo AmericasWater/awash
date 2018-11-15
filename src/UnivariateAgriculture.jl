@@ -86,7 +86,7 @@ function run_timestep(s::UnivariateAgriculture, tt::Int)
     else
         v.production_sumregion[:, :, tt] = 0.
     end
-    v.area_sumregion[:, tt] = sum(max(p.totalareas[:, :, contyys], 3), 1)
+    v.area_sumregion[:, tt] = sum(maximum(p.totalareas[:, :, contyys], 3), 1)
 end
 
 function initunivariateagriculture(m::Model)

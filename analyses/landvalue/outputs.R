@@ -1,17 +1,17 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/awash/analyses/landvalue")
 
 do.notime <- F
 
 if (do.notime) {
     periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2050", "Optimal\n2050", "Unadapted\n2070", "Optimal\n2070")
     prefixes <- c("observed", "current", "unadapted-histco", "all2050", "unadapted-histco", "all2070")
-    ## lowersuffixes <- c("pfixed-zeroy", NA, "pfixed-notime-zeroy")
-    ## uppersuffixes <- c("pfixed-limity", NA, "pfixed-notime-limity")
-    suffixes <- c(NA, "pfixed", NA, "pfixed-notime-histco", NA, "pfixed-notime-histco")
+    ## lowersuffixes <- c("pfixmo-zeroy", NA, "pfixmo-notime-zeroy")
+    ## uppersuffixes <- c("pfixmo-limity", NA, "pfixmo-notime-limity")
+    suffixes <- c(NA, "pfixmo-chirr", NA, "pfixmo-notime-histco", NA, "pfixmo-notime-histco")
 } else {
     periods <- c("No C.C.\n2050", "With C.C.\n2050", "No C.C.\n2070", "With C.C.\n2070")
-    prefixes <- c("pfixed-2050", "all2050", "pfixed-2070", "all2070")
-    suffixes <- c(NA, "pfixed-histco", NA, "pfixed-histco")
+    prefixes <- c("pfixmo-2050", "all2050", "pfixmo-2070", "all2070")
+    suffixes <- c(NA, "pfixmo-histco", NA, "pfixmo-histco")
 }
 
 df <- data.frame(period=c(), crop=c(), productionlo=c(), productionhi=c(), profitlo=c(), profithi=c())
@@ -55,8 +55,8 @@ for (ii in 1:length(periods)) {
 
     if (prefixes[ii] == "observed") {
         allocation.file <- "../../prepare/agriculture/all2010.csv"
-        yields.file <- "currentyields-pfixed.csv"
-        profits.file <- "currentprofits-pfixed.csv"
+        yields.file <- "currentyields-pfixmo-chirr.csv"
+        profits.file <- "currentprofits-pfixmo-chirr.csv"
     } else if (is.na(suffixes[ii])) {
         if (do.notime) {
             allocation.file <- paste0("constopt-currentprofits-", suffixes[2], ".csv")
@@ -80,7 +80,7 @@ for (ii in 1:length(periods)) {
         obsdf$fips <- obsdf$State.ANSI * 1000 + obsdf$County.ANSI
         obsdf$fips[is.na(obsdf$fips)] <- obsdf$State.ANSI[is.na(obsdf$fips)] * 1000
 
-        allocation <- read.csv("constopt-currentprofits-pfixed.csv")
+        allocation <- read.csv("results/constopt-currentprofits-pfixmo-chirr.csv")
         for (jj in 1:nrow(allocation)) {
             subdf <- subset(obsdf, fips == allocation$fips[jj])
             rows <- grep("ACRES", subdf$Data.Item)
@@ -92,10 +92,10 @@ for (ii in 1:length(periods)) {
             allocation$Wheat[jj] <- max(0, subdf$value[rows][subdf$Commodity[rows] == "WHEAT"] * 0.404686)
         }
     } else {
-        allocation <- read.csv(allocation.file)
+        allocation <- read.csv(file.path("results", allocation.file))
     }
-    yields <- read.csv(yields.file, header=F)
-    profits <- read.csv(profits.file, header=F)
+    yields <- read.csv(file.path("results", yields.file), header=F)
+    profits <- read.csv(file.path("results", profits.file), header=F)
 
     allocation[, 3:8][profits == -Inf] <- 0 # Just affects observed
 
@@ -123,10 +123,10 @@ if (do.notime) {
     df$optimized[df$period %in% c("Optimal\nCurrent", "Optimal\n2050", "Optimal\n2070")] <- "Optimized"
 
     df$period <- as.character(df$period)
-    df$period[df$period %in% c("Observed", "Optimal\nCurrent")] <- "Current"
+    df$period[df$period %in% c("Observed", "Optimal\nCurrent")] <- "2010"
     df$period[df$period %in% c("Unadapted\n2050", "Optimal\n2050")] <- "2050"
     df$period[df$period %in% c("Unadapted\n2070", "Optimal\n2070")] <- "2070"
-    df$period <- factor(df$period, levels=c("Current", "2050", "2070"))
+    df$period <- factor(df$period, levels=c("2010", "2050", "2070"))
 
     ggplot(df, aes(period, production, fill=optimized)) +
         facet_wrap(~ crop, scales="free") +
@@ -137,6 +137,7 @@ if (do.notime) {
     df$prode9 <- df$production / 1e9
 
     printdf <- dcast(df, crop ~ period + optimized, value.var='prode9')
+    printdf$crop <- c("Barley (Bbu.)", "Corn (Bbu.)", "Cotton (Blb)", "Rice (Blb)", "Soybeans (Bbu.)", "Wheat (Bbu.)")
     print(xtable(printdf), digits=3, include.rownames=F)
 
     printdf <- cbind(data.frame(crop=printdf$crop),
@@ -146,6 +147,7 @@ if (do.notime) {
                        100 * printdf[4, 2:7] / printdf[4, 2],
                        100 * printdf[5, 2:7] / printdf[5, 2],
                        100 * printdf[6, 2:7] / printdf[6, 2]))
+    printdf$crop <- c("Barley (\\%)", "Corn (\\%)", "Cotton (\\%)", "Rice (\\%)", "Soybeans (\\%)", "Wheat (\\%)")
     print(xtable(printdf, digits=0), include.rownames=F)
 
     ggplot(df, aes(optimized, profit, fill=crop)) +
@@ -157,6 +159,7 @@ if (do.notime) {
     df$prode9 <- df$production / 1e9
 
     printdf <- dcast(df, crop ~ period, value.var='prode9')
+    printdf$crop <- c("Barley (Bbu.)", "Corn (Bbu.)", "Cotton (Blb)", "Rice (Blb)", "Soybeans (Bbu.)", "Wheat (Bbu.)")
     print(xtable(printdf), digits=3, include.rownames=F)
 
     printdf <- cbind(data.frame(crop=printdf$crop),
@@ -166,6 +169,7 @@ if (do.notime) {
                            100 * printdf[4, 2:5] / c(printdf[4, 2], printdf[4, 2], printdf[4, 4], printdf[4, 4]),
                            100 * printdf[5, 2:5] / c(printdf[5, 2], printdf[5, 2], printdf[5, 4], printdf[5, 4]),
                            100 * printdf[6, 2:5] / c(printdf[6, 2], printdf[6, 2], printdf[6, 4], printdf[6, 4])))
+    printdf$crop <- c("Barley (\\%)", "Corn (\\%)", "Cotton (\\%)", "Rice (\\%)", "Soybeans (\\%)", "Wheat (\\%)")
     print(xtable(printdf, digits=0), include.rownames=F)
 
     ggplot(df, aes(period, profit, fill=crop)) +

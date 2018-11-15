@@ -30,3 +30,13 @@ for (year in c(2010, 2050, 2070)) {
     print(max(df$switchfrac[df$year == year]))
     print(df$costs[df$switchfrac == max(df$switchfrac[df$year == year])])
 }
+
+## Find where get half of benefits
+for (year in c(2010, 2050, 2070)) {
+    opto <- df$exclcosts[df$choice == "optimal" & df$costs == 0 & df$year == year]
+    obso <- df$exclcosts[df$choice == "observed" & df$year == year]
+    print(opto / obso)
+    half <- (opto + obso) / 2
+    subdf <- df[df$year == year,]
+    print(subdf$costs[which.min(abs(subdf$exclcosts - half))])
+}

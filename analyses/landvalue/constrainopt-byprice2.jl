@@ -2,7 +2,7 @@ using MathProgBase
 using DataFrames
 using OptiMimi
 using Gurobi
-using NaNMath
+using NaNMath, CSV
 
 filepaths = ["currentprofits-pfixed-lybymc.csv", "all2050profits-pfixed-notime-histco-lybymc.csv", "all2070profits-pfixed-notime-histco-lybymc.csv"]
 
@@ -30,7 +30,7 @@ results = DataFrame(filepath=String[], choice=String[], costs=Float64[], objecti
 
 for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 1000))); Inf]
     for filepath in filepaths
-        mat = readcsv(filepath)' # Transpose to crop x county
+        mat = readcsv("results/$filepath")' # Transpose to crop x county
         numcrops = size(mat)[1]
         numcounties = size(mat)[2]
 
@@ -93,4 +93,4 @@ for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 1000))); Inf]
     end
 end
 
-writetable("constopt-byprice.csv", results)
+CSV.write("constopt-byprice.csv", results)

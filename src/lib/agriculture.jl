@@ -210,6 +210,7 @@ else
                 continue
             end
             counties = readtable(croppath)
+            counties[:fips] = regionindex(counties, :, tostr=true)
             combiner = gaussianpool
         end
 
@@ -219,7 +220,7 @@ else
                 continue
             end
 
-            county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
+            county = StatisticalAgricultureModel(counties, :fips, regionid)
 
             # Construct a pooled or fallback combination
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
@@ -269,7 +270,7 @@ function currentcroparea(crop::AbstractString)
     if Symbol(crop) in names(df)
         return df[:, Symbol(crop)] * 0.404686
     end
-    
+
     cropnames = uniquemapping[crop]
     for cropname in cropnames
         if Symbol(cropname) in names(df)

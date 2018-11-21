@@ -1,22 +1,22 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/awash/analyses/landvalue")
 
 library(dplyr)
 
-comparefiles <- c("constopt-currentprofits-pfixed.csv", "constopt-all2050profits-pfixed-notime-histco.csv", "constopt-all2070profits-pfixed-notime-histco.csv") #"maxbayesian-pfixed.csv"
+comparefiles <- c("constopt-currentprofits-pfixmo-chirr.csv", "constopt-all2050profits-pfixmo-notime-histco.csv", "constopt-all2070profits-pfixmo-notime-histco.csv") #"maxbayesian-pfixed.csv"
 comparecols <- rep("topcrop", 3) #"crop"
 titles <- c("Optimized", "2050", "2070")
 
 ## Compare to optimal current crops
 
 results2 <- read.csv("actualcrops.csv")
-results3 <- subset(results2, !is.na(maxcrop.before))
+results3 <- subset(results2, !is.na(maxcrop))
 
 areas <- read.csv("../../data/counties/agriculture/knownareas.csv")
 areas$mytotal <- areas$BARLEY + areas$CORN + areas$COTTON + areas$RICE + areas$SOYBEANS + areas$WHEAT
 results3 <- results3 %>% left_join(areas, by="fips")
 
 for (ff in 1:length(comparefiles)) {
-    optcrops <- read.csv(comparefiles[ff])
+    optcrops <- read.csv(file.path("results", comparefiles[ff]))
     newcol <- paste0("crop", ff)
     optcrops[, newcol] <- as.character(optcrops[, comparecols[ff]])
     results3 <- results3 %>% left_join(optcrops, by="fips")
@@ -30,7 +30,7 @@ for (ff in 1:length(comparefiles)) {
     results3[, newcol][is.na(results3[, newcol])] <- "NONE"
 }
 
-allcols <- c("maxcrop.before", paste0("crop", 1:length(comparefiles)))
+allcols <- c("maxcrop", paste0("crop", 1:length(comparefiles)))
 width <- 1.25 * length(comparefiles)
 
 croplist2 <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT", "NONE")

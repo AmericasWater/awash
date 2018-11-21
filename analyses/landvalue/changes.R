@@ -27,14 +27,12 @@ do.cornsoy.combo <- F
 ## C5 y  1
 ## C7 y  y  1
 
-actualcrops <- read.csv("actualcrops.csv")
-actualcrops$observed <- as.character(actualcrops$maxcrop)
-actualcrops$observed[actualcrops$observed == "BARLEY"] <- "Barley"
-actualcrops$observed[actualcrops$observed == "CORN"] <- "Corn"
-actualcrops$observed[actualcrops$observed == "COTTON"] <- "Cotton"
-actualcrops$observed[actualcrops$observed == "RICE"] <- "Rice"
-actualcrops$observed[actualcrops$observed == "SOYBEANS"] <- "Soybean"
-actualcrops$observed[actualcrops$observed == "WHEAT"] <- "Wheat"
+actualcrops <- read.csv("../../data/counties/agriculture/knownareas.csv")
+names(actualcrops) <- c(names(actualcrops)[1:3], "Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat")
+actualcrops$observed <- sapply(1:nrow(actualcrops), function(ii) names(actualcrops)[4:9][which.max(actualcrops[ii, 4:9])])
+actualcrops$mytotal <- actualcrops$Barley + actualcrops$Corn + actualcrops$Cotton +
+    actualcrops$Rice + actualcrops$Soybean + actualcrops$Wheat
+actualcrops$observed[actualcrops$mytotal == 0] <- NA
 
 baseline <- read.csv("results/maxbayesian-pfixmo-chirr.csv")
 baseline$maxnow <- baseline$crop

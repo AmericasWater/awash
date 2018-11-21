@@ -31,15 +31,20 @@ function reorderfips(weather::Union{DataArrays.DataArray{Float64, 3}, Array{Floa
 end
 
 """
-Takes N x T and returns N x S x T for scenario spans.
+Takes T x N and returns N x S x T for scenario spans.
 """
-function scenarioextract(weather)
+function scenarioextract(weather, eachstep)
     weatherfromstart = weather[get(config, "startweather", 1):end, :]
     scenarios = get(config, "scenarios", [1])
 
-    bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
-    for ss in 1:length(scenarios)
-        if config["timestep"] == 1
+    if eachstep
+        bytimestep = zeros(size(weather, 2), numscenarios, numsteps * config["timestep"])
+        for ss in 1:length(scenarios)
+            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps*config["timestep"]-1, :]'
+        end
+    else
+        bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+        for ss in 1:length(scenarios)
             bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
         end
     end

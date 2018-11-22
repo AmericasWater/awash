@@ -28,7 +28,7 @@ alldf = vcat(df1, df3)
 
 outputpath = joinpath(dirname(@__FILE__), "../results/simulate-test.csv")
 if isfile(outputpath)
-    compdf = readtable(outputpath)
+    compdf = CSV.read(outputpath)
     @test nrow(compdf) == nrow(alldf)
     mismatches = Int64[]
     for ii in 1:nrow(alldf)

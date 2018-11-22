@@ -59,7 +59,7 @@ Assumes that `config` is defined globally
 """
 function sum2timestep(weather)
     if config["timestep"] == 1
-        return scenarioextract(weather)
+        return scenarioextract(weather, true)
     end
 
     weatherfromstart = weather[get(config, "startweather", 1):end, :]

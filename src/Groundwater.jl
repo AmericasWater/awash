@@ -104,6 +104,6 @@ function initaquifer(m::Model)
     end
     countyinfo[:FIPS] = regionindex(countyinfo, :)
 
-    aquifer[:elevation] = map(x -> ifelse(isna(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))
+    aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))
     aquifer
 end

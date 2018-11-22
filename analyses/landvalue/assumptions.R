@@ -30,6 +30,19 @@ opt$dmaxarea <- sapply(1:nrow(opt), function(ii) ifelse(opt$crop[ii] == opt$maxc
 
 gg.usmap(opt$dmaxarea, opt$fips)
 
+## Which crops get largest changes under local opt?
+localdf <- data.frame(crop=c(), baseline=c(), increases=c(), decreases=c())
+for (crop in c("Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat")) {
+    baseline <- sum(opt[, crop])
+    increases <- sum(opt$darea[opt$crop == crop])
+    decreases <- sum(opt[opt$crop != crop, crop])
+    localdf <- rbind(localdf, data.frame(crop, baseline, increases, decreases))
+}
+localdf$incfrac <- localdf$increases / localdf$baseline
+localdf$decfrac <- localdf$decreases / localdf$baseline
+localdf$chngfrac <- localdf$incfrac - localdf$decfrac
+localdf$change <- localdf$increases - localdf$decreases
+
 ## Local optimum
 
 ## profits <- read.csv("actualprofit.csv")

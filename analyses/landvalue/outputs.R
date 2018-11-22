@@ -1,6 +1,6 @@
 setwd("~/research/awash/analyses/landvalue")
 
-do.notime <- F
+do.notime <- T
 
 if (do.notime) {
     periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2050", "Optimal\n2050", "Unadapted\n2070", "Optimal\n2070")
@@ -155,6 +155,13 @@ if (do.notime) {
         geom_bar(stat="identity") +
         scale_fill_discrete(name="") +
         theme_bw() + xlab(NULL) + ylab("Profit (USD)")
+
+    sum(df$profit[df$period == 2010 & df$optimized == 'Observed']) / 1e9
+    sum(df$profit[df$period == 2010 & df$optimized == 'Optimized']) / 1e9
+    sum(df$profit[df$period == 2050 & df$optimized == 'Observed']) / 1e9
+    sum(df$profit[df$period == 2050 & df$optimized == 'Optimized']) / 1e9
+    sum(df$profit[df$period == 2070 & df$optimized == 'Observed']) / 1e9
+    sum(df$profit[df$period == 2070 & df$optimized == 'Optimized']) / 1e9
 } else {
     df$prode9 <- df$production / 1e9
 

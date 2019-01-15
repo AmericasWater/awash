@@ -3,6 +3,8 @@
 # Produces a linear programming model where demands are determined by
 # the optimization.
 
+using OptiMimi
+
 redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
 redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 

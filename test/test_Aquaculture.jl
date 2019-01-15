@@ -1,4 +1,5 @@
 using Base.Test
+using CSV
 
 # Load the component
 include("../src/lib/readconfig.jl")
@@ -7,7 +8,7 @@ config = readconfig("../configs/single-state.yml")
 include("../src/Aquaculture.jl")
 
 # Set up the model
-regions = regionindex(readtable(datapath("aquaculture/usgsextract.csv")), :)
+regions = regionindex(CSV.read(datapath("aquaculture/usgsextract.csv")), :)
 
 numsteps = 1
 numcounties = length(regions)

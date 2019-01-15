@@ -10,7 +10,7 @@ startmonth: 1/2006
 endmonth: 12/2010
 
 # First entry in VIC_WB to include
-startweather: 1
+startweather: 663
 
 # Months per time step
 timestep: 1

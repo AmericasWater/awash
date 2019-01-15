@@ -120,7 +120,7 @@ for filename in readdir("../../../data/counties/agriculture/edds")
 end
 
 function translate(column, values)
-    if column == :FIPS
+    if column == :FIPS || column == :fips
         :targetid
     else
         sum(dropna(values))

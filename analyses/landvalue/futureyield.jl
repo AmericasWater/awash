@@ -1,4 +1,6 @@
-using NaNMath
+# Rerun 9/17
+
+using NaNMath, DataArrays, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -7,11 +9,19 @@ include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
 includeus = true
-profitfix = true
-allowtime = false
-holdcoeff = false
-limityield = "lybymc" #"zeroy" # "ignore" "limity"
-futureyear = 2070
+#profitfix = true
+for profitfix in [true, "modeled"]
+    for holdcoeff in [false, true]
+        for allowtime in [false, true]
+            for futureyear in [2050, 2070]
+                for limityield in ["ignore", "lybymc"]
+                    
+#holdcoeff = true #false
+#allowtime = true #false
+#futureyear = 2050
+#limityield = "ignore" #"lybymc" #"zeroy" # "limity"
+bayesdir = "posterior_distributions_variance"
+cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
 eddmodels = ["access1-0", "bcc-csm1-1", "ccsm4", "cnrm-cm5", "gfdl-cm3", "giss-e2-r",
              "hadgem2-ao", "hadgem2-es", "hadgem2-cc", "inmcm4", "ipsl-cm5b-lr", "miroc5",
@@ -20,7 +30,7 @@ biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "hd", "he", "hg", "in", "ip", "mc",
              "mg", "mi", "mp", "mr" , "no"]
 
-if profitfix
+if profitfix != false
     profitfixdf = readtable("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
@@ -41,27 +51,26 @@ maxprofit = Dict{Int64, Vector{Any}}()
 allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
 allyields = zeros(6, nrow(masterregions))
 
+irrigation = CSV.read("irrigation.csv")
+
 bayes_crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
+irr_crops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
 for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
     println(crop)
 
     # Load the second-level coefficients
-    b0s = convert(DataMatrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_b0.txt"), separator=' ', header=false))
-    b1s = convert(DataMatrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_b1.txt"), separator=' ', header=false))
-    b2s = convert(DataMatrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_b2.txt"), separator=' ', header=false))
-    b3s = convert(DataMatrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_b3.txt"), separator=' ', header=false))
-    b4s = convert(DataMatrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_b4.txt"), separator=' ', header=false))
+    b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
+    b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
+    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
+    b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
+    b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
 
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus)
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus)
 
-    if crop == "Corn"
-        alldifferences = zeros(5, nrow(bios), length(biomodels))
-    else
-        alldifferences = zeros(6, nrow(bios), length(biomodels))
-    end
+    alldifferences = zeros(6, nrow(bios), length(biomodels))
     for jj in 1:length(biomodels)
         # Load future bioclim data
         bios_future = readtable(expanduser("~/Dropbox/Agriculture Weather/bioclims-$futureyear/$(biomodels[jj])85bi$(futureyear % 100).csv"))
@@ -71,12 +80,23 @@ for ii in 1:length(bayes_crops)
         alldifferences[3, :, jj] = bios_future[:bio5_mean] - bios[:bio5_mean]
         alldifferences[4, :, jj] = bios_future[:bio12_mean] - bios[:bio12_mean]
         alldifferences[5, :, jj] = bios_future[:bio15_mean] - bios[:bio15_mean]
-        if crop != "Corn"
-            alldifferences[6, :, jj] = 0
-        end
+        alldifferences[6, :, jj] = 0 # Fill in this later (GCM-independent)
     end
 
     differences = mean(alldifferences, 3)
+
+    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+
+    wreqs = ones(nrow(df)) * maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
+    for kk in 1:nrow(irrigation)
+        rr = findfirst(df[:FIPS] .== irrigation[kk, :fips])
+        if rr > 0
+            differences[6, rr] = irrigation[kk, :irrfrac] - irrigation[kk, irr_crops[ii]]
+            if !ismissing(irrigation[kk, Symbol("wreq$(irr_crops[ii])")])
+                wreqs[rr] = irrigation[kk, Symbol("wreq$(irr_crops[ii])")]
+            end
+        end
+    end
 
     allgdds = zeros(nrow(bios), length(eddmodels))
     allkdds = zeros(nrow(bios), length(eddmodels))
@@ -84,7 +104,7 @@ for ii in 1:length(bayes_crops)
 
     for jj in 1:length(eddmodels)
         # Load degree day data
-        weather = readtable(joinpath(datapath("agriculture/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
+        weather = readtable(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
         all2050s = weather[:year] .== futureyear
         fips2050s = weather[all2050s, :fips]
         rows2050s = find(all2050s)
@@ -100,12 +120,11 @@ for ii in 1:length(bayes_crops)
     gdds = sum(allgdds, 2) ./ sum(.!allinvalids, 2)
     kdds = sum(allkdds, 2) ./ sum(.!allinvalids, 2)
 
-    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/$crop/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
-
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
 
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
@@ -115,65 +134,75 @@ for ii in 1:length(bayes_crops)
         end
 
         intercept = bayes_intercept[:, rr]
+        time_coeff = bayes_time[:, rr]
+        wreq_coeff = bayes_wreq[:, rr]
         gdds_coeff = bayes_gdds[:, rr]
         kdds_coeff = bayes_kdds[:, rr]
-        time_coeff = bayes_time[:, rr]
 
         if holdcoeff
+            wreq_coeff_future = wreq_coeff + b2s[:, 6] * differences[6, rr]
+            
             if allowtime
-                logyield = intercept + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * futureyear
+                logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * (futureyear - 1948)
             else
-                logyield = intercept + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * 2010
+                logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * 62 # eq. 2010
             end
         else
             # Get new coefficients for the future
             intercept_future = intercept + b0s * differences[:, kk]
-            gdds_coeff_future = gdds_coeff + b1s * differences[:, kk]
-            kdds_coeff_future = kdds_coeff + b2s * differences[:, kk]
-            time_coeff_future = time_coeff + b3s * differences[:, kk]
+            time_coeff_future = time_coeff + b1s * differences[:, kk]
+            wreq_coeff_future = wreq_coeff + b2s * differences[:, kk]
+            gdds_coeff_future = gdds_coeff + b3s * differences[:, kk]
+            kdds_coeff_future = kdds_coeff + b4s * differences[:, kk]
 
             if allowtime
-                logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * futureyear
+                logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)
             else
-                logyield = intercept_future + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 2010
+                logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 62 # eq. 2010
             end
         end
 
         if limityield == "lybymc"
             logyield[logyield .> log(maximum_yields[crop])] = NaN
         end
-        yield_irrigated = NaNMath.mean(exp.(logyield))
-        if limityield != "ignore" && yield_irrigated > maximum_yields[crop]
+        yield_total = NaNMath.mean(exp.(logyield))
+        if limityield != "ignore" && yield_total > maximum_yields[crop]
             if limityield == "limity"
-                yield_irrigated = maximum_yields[crop]
+                yield_total = maximum_yields[crop]
             elseif limityield == "zeroy"
-                yield_irrigated = 0
+                yield_total = 0
             end
         end
 
-        allyields[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = yield_irrigated
+        allyields[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = yield_total
 
         ersrow = findfirst(masterregions[:fips] .== canonicalindex(fips))
 
         price_row = price[ersrow]
         costs_row = costs[ersrow]
-        if profitfix && profitfixdf[ersrow, :obscrop] == crop
-            costs_row -= profitfixdf[ersrow, :toadd]
+        if profitfix != false && profitfixdf[ersrow, :obscrop] == crop
+            if profitfix == true
+                costs_row -= profitfixdf[ersrow, :toadd]
+            else
+                costs_row -= profitfixdf[ersrow, :esttoadd_changeirr] + .01
+            end
         end
 
-        profit = yield_irrigated * price_row - costs_row
+        profit = yield_total * price_row - costs_row
 
         allprofits[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = profit
 
         if profit > get(maxprofit, fips, [-Inf])[1]
-            maxprofit[fips] = [profit, crop, yield_irrigated, price_row, costs_row]
+            maxprofit[fips] = [profit, crop, yield_total, price_row, costs_row]
         end
     end
 end
 
 suffixes = []
-if profitfix
+if profitfix == true
     push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
 end
 if !allowtime
     push!(suffixes, "notime")
@@ -198,4 +227,9 @@ for fips in keys(maxprofit)
     push!(result, [fips; maxprofit[fips]])
 end
 
-writetable("max$(futureyear)$suffix.csv", result)
+CSV.write("max$(futureyear)$suffix.csv", result)
+end
+end
+end
+end
+end

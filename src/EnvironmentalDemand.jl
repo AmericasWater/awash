@@ -8,13 +8,11 @@ using DataFrames
     gauges = Index()
 
     flowrequirementfactor = Parameter(unit="")
-    naturalflows = Parameter(index=[gauges, time],unit="1000 m^3")
-    outflowsgauges = Parameter(index=[gauges, time],unit="1000 m^3")
-    minenvironmentalflows = Variable(index=[gauges, time],unit="1000 m^3")
-    balanceenvironmentalflows = Variable(index=[gauges, time],unit="1000 m^3")
-    environmentaldemand = Variable(index=[regions, time],unit="1000 m^3")
-
-
+    naturalflows = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
+    minenvironmentalflows = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
+    outflowsgauges = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
+    balanceenvironmentalflows = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
+    environmentaldemand = Variable(index=[regions, scenarios, time],unit="1000 m^3")
 end
 
 """
@@ -25,10 +23,9 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    v.environmentaldemand[:, tt] = zeros(numregions);
     for gg in d.gauges
-        v.minenvironmentalflows[gg, tt] = p.flowrequirementfactor * p.naturalflows[gg, tt];
-        v.balanceenvironmentalflows[gg, tt] = p.outflowsgauges[gg, tt] - v.minenvironmentalflows[gg, tt];
+        v.minenvironmentalflows[gg, :, tt] = p.flowrequirementfactor * p.naturalflows[gg, :, tt];
+        v.balanceenvironmentalflows[gg, :, tt] = p.outflowsgauges[gg, :, tt] - v.minenvironmentalflows[gg, :, tt];
     end
 
     if config["dataset"] == "counties"
@@ -37,7 +34,7 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
                 if rr > 0
-                    v.environmentaldemand[rr, tt] += p.flowrequirementfactor * p.naturalflows[pp, tt];
+                    v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
                 end
             end
         end
@@ -46,7 +43,7 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
             if rr > 0
-                v.environmentaldemand[rr, tt] += p.flowrequirementfactor * p.naturalflows[pp, tt];
+                v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
             end
         end
     end
@@ -71,12 +68,12 @@ function constraintoffset_environmentalflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :]
+            b[gg, :, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :, :]
         end
     end
 
-    function generate(gg, tt)
-        (config["proportionnaturalflowforenvironment"])*b[gg, tt]
+    function generate(gg, ss, tt)
+        (config["proportionnaturalflowforenvironment"])*b[gg, ss, tt]
     end
 
     hallsingle(m, :WaterNetwork, :outflows, generate)

@@ -6,7 +6,8 @@
 
 include("lib/readconfig.jl")
 if !isdefined(:config)
-    config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    ##config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    config = readconfig("../configs/paleo-4scen.yml")
 end
 
 if "rescap" in keys(config) && config["rescap"] == "zero"
@@ -32,7 +33,7 @@ summarizeparameters(house, sol.sol)
 #constdf = constraining(house, sol.sol)
 
 # Save the results
-save_optimization_given(house, sol, allowgw=false, allowreservoirs=true)
+save_optimization_given(house, sol, allowgw=false, allowreservoirs=allowreservoirs)
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)

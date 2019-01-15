@@ -17,26 +17,38 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-regions = readtable(loadpath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
+if config["dataset"] == "counties"
+    regions = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
+else
+    regions = CSV.read(loadpath("county-info.csv"))
+end
+
 regions[:FIPS] = regionindex(regions, :)
 
-regions[isna.(regions[:, :TotalArea_sqmi]), :TotalArea_sqmi] = 0
+regions[:TotalArea_sqmi] = replacemissing(regions, :TotalArea_sqmi, 0.)
 countyareas = reorderfips(regions[:, :TotalArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
-regions[isna.(regions[:, :LandArea_sqmi]), :LandArea_sqmi] = 0
+regions[:LandArea_sqmi] = replacemissing(regions, :LandArea_sqmi, 0.)
 countylandareas = reorderfips(regions[:, :LandArea_sqmi] * 258.999, regions[:FIPS], masterregions[:fips]) # Ha
 
 # Load precipitation from the county-aggregated weather
 if get(config, "dataset", "counties") == "paleo"
-    precip = zeros(nrow(masterregions), numsteps)
-    recharge = zeros(nrow(masterregions), numsteps)
+    fullprecip = zeros(nrow(masterregions), numscenarios, numsteps * config["timestep"])
+    precip = zeros(nrow(masterregions), numscenarios, numsteps)
+    recharge = zeros(nrow(masterregions), numscenarios, numsteps)
 else
+    fullprecip = reorderfips(scenarioextract(dncload("weather", "precip", [config["ncregion"], "month"]), true), indicies, masterregions[:fips]); # mm / month
     precip = reorderfips(sum2timestep(dncload("weather", "precip", [config["ncregion"], "month"])), indicies, masterregions[:fips]); # mm / timestep
-    recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numsteps])*100; # 1000m3 / timestep
-    precip[find(masterregions[:fips] .== "25019"),:] = zeros(numsteps) # set to 0 for Nantucket, MA
-    recharge[find(masterregions[:fips] .== "25019"),:] = zeros(numsteps)
-    precip[find(masterregions[:fips] .== "53055"),:] = zeros(numsteps) # set to 0 for San Juan, WA
-    recharge[find(masterregions[:fips] .== "53055"),:] = zeros(numsteps)
+    recharge = reorderfips(sum2timestep(dncload("weather", "recharge", [config["ncregion"], "month"])), indicies, masterregions[:fips]).*repeat(countyareas, outer = [1, numscenarios, numsteps])*100; # 1000m3 / timestep
+    fullprecip[isnan.(fullprecip)] = 0
+    precip[isnan.(precip)] = 0
+    recharge[isnan.(recharge)] = 0
 
+    fullprecip[find(masterregions[:fips] .== "25019"),:,:] = 0 # set to 0 for Nantucket, MA
+    precip[find(masterregions[:fips] .== "25019"),:,:] = 0
+    recharge[find(masterregions[:fips] .== "25019"),:,:] = 0
+    fullprecip[find(masterregions[:fips] .== "53055"),:] = 0 # set to 0 for San Juan, WA
+    precip[find(masterregions[:fips] .== "53055"),:] = 0
+    recharge[find(masterregions[:fips] .== "53055"),:] = 0
 end
 
 # Load data from the water budget
@@ -60,4 +72,4 @@ else
     end
 end
 
-addeds = sum2timestep(getadded(waternetwork2))' # transpose, so N x T.
+addeds = sum2timestep(getadded(waternetwork2))

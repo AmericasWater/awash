@@ -74,6 +74,18 @@ crop_prices = Dict("alfalfa" => 102.51 / 2204.62, # alfalfa
                    "Wheat" => 5.1675, # wheat
                    "Wheat.Winter" => 171.50 * .0272155) # wheat.winter
 
+crop_interest = Dict("alfalfa" => 1., "hay" => 1, # .2 pounds meat (alfalfa / 10) per day
+                     "otherhay" => 1., # .2 pounds meat (otherhay / 10) per day
+                     "Barley" => .005, "barley" => .005, # bushels Barley per day
+                     "Barley.Winter" => .005, # bushels Barley.Winter per day
+                     "Maize" => .05, "corn" => .05, # bushels Maize per day
+                     "corn.co.rainfed" => .05, "corn.co.irrigated" => .05, # bushels Maize per day
+                     "Sorghum" => .01, "sorghum" => .01, # pounds Sorghum per day
+                     "Soybeans" => .02, "soybeans" => .02, # bushels Soybeans per day
+                     "Wheat" => .05, "wheat" => .05, # bushels Wheat per day
+                     "wheat.co.rainfed" => .05, "wheat.co.irrigated" => .05, # bushels Wheat per day
+                     "Wheat.Winter" => .05) # bushels Wheat.Winter per day
+
 quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonirrigated-planted.csv",
                           "corn.co.irrigated" => "agriculture/allyears/maize-irrigated-planted.csv",
                           "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
@@ -198,6 +210,7 @@ else
                 continue
             end
             counties = readtable(croppath)
+            counties[:fips] = regionindex(counties, :, tostr=true)
             combiner = gaussianpool
         end
 
@@ -207,7 +220,7 @@ else
                 continue
             end
 
-            county = StatisticalAgricultureModel(counties, lastindexcol, regionid)
+            county = StatisticalAgricultureModel(counties, :fips, regionid)
 
             # Construct a pooled or fallback combination
             gdds, gddsse = combiner(national.gdds, national.gddsse, county.gdds, county.gddsse)
@@ -217,10 +230,6 @@ else
             agmodels[crop][canonicalindex(regionid)] = agmodel
         end
     end
-    if config["filterstate"] == "08"
-        agmodel1=deserialize(open(cachepath("1agmodels.jld"),"r"))
-        agmodels["soybeans"]=agmodel1["soybeans"]
-    end
 
     fp = open(cachepath("agmodels.jld"), "w")
     serialize(fp, agmodels)
@@ -228,7 +237,7 @@ else
 end
 
 alluniquecrops = ["barley", "corn", "sorghum", "soybeans", "wheat", "hay"]
-uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn"], "maize" => ["Maize", "corn"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
+uniquemapping = Dict{AbstractString, Vector{AbstractString}}("barley" => ["Barley", "Barley.Winter"], "corn" => ["Maize", "maize", "corn.co.rainfed", "corn.co.irrigated"], "sorghum" => ["Sorghum"], "soybeans" => ["Soybeans"], "wheat" => ["Wheat", "Wheat.Winter", "wheat.co.rainfed", "wheat.co.irrigated"], "hay" => ["alfalfa", "otherhay"], "Barley" => ["barley"], "Barley.Winter" => ["barley"], "Maize" => ["maize", "corn", "corn.co.rainfed", "corn.co.irrigated"], "maize" => ["Maize", "corn", "corn.co.rainfed", "corn.co.irrigated"], "Sorghum" => ["sorghum"], "Soybeans" => ["soybeans"], "Wheat" => ["wheat", "wheat.co.rainfed", "wheat.co.irrigated"], "alfalfa" => ["hay"], "otherhay" => ["hay"])
 
 """
 Determine which crops are not represented
@@ -257,16 +266,47 @@ end
 Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    df[:, crop] * 0.404686
+    df = getfilteredtable("agriculture/totalareas.csv")
+    if Symbol(crop) in names(df)
+        return df[:, Symbol(crop)] * 0.404686
+    end
+
+    cropnames = uniquemapping[crop]
+    for cropname in cropnames
+        if Symbol(cropname) in names(df)
+            return df[:, Symbol(cropname)] * 0.404686
+        end
+    end
+end
+
+"""
+Return the observed production for a given crop, in lb in bu
+"""
+function currentcropproduction(crop::AbstractString)
+    cropnames = uniquemapping[crop]
+    if "barley" in cropnames
+        sum(getfilteredtable("agriculture/allyears/barley_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "corn" in cropnames
+        sum(getfilteredtable("agriculture/allyears/maize_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "sorghum" in cropnames
+        sum(getfilteredtable("agriculture/allyears/sorghum_production_in_lb.csv")[:PRODUCTION_2010])
+    elseif "soybeans" in cropnames
+        sum(getfilteredtable("agriculture/allyears/soybeans_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "wheat" in cropnames
+        sum(getfilteredtable("agriculture/allyears/wheat_production_in_bu.csv")[:PRODUCTION_2010])
+    elseif "hay" in cropnames
+        sum(getfilteredtable("agriculture/allyears/hay_production_in_lb.csv")[:PRODUCTION_2010])
+    else
+        return 0
+    end
 end
 
 """
 Return the current irrigation for the given crop, in mm
 """
 function cropirrigationrates(crop::AbstractString)
-    df = getfilteredtable(loadpath("agriculture/totalareas.csv"))
-    getunivariateirrigationrates(crop)
+    irrigationrate, waterdeficits = getunivariateirrigationrates(crop)
+    irrigationrate
 end
 
 """
@@ -307,13 +347,13 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
         regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
     end
 
-    result = zeros(numcounties, numsteps)
+    result = zeros(numcounties, numharvestyears)
 
-    for ii in 1:numsteps
-        orderedyields = vec(convert(Matrix{Float64}, yields[index2year(ii) - 1949, regionindices_yield]))
+    for ii in 1:numharvestyears
+        orderedyields = vec(convert(Matrix{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields
-            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - index2year(ii))
+            orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))
         end
         result[:, ii] = exp(orderedyields) # Exponentiate because in logs
     end

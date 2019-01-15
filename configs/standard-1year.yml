@@ -11,11 +11,11 @@ startmonth: 10/2009
 endmonth: 9/2010
 
 # First entry in VIC_WB to include
-startweather: 721
-  
+startweather: 612
+
 # Months per time step
-timestep: 1
-  
+timestep: 6
+
 # Type of optimization: "SW" for only surface water, "SWGW" for the conjunctive use of both resources
 optimtype: "SWGW"
 

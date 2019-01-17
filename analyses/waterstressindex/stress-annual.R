@@ -4,7 +4,7 @@ source("vsenv-lib.R")
 
 demanddf <- read.csv("../../data/counties/extraction/USGS-2010.csv")
 
-srcname <- "annual" #"annual-worst"
+srcname <- "annual-worst" #"annual"
 
 get.terms <- function(filename, demand) {
     df <- read.csv(paste0("results/", filename))
@@ -33,6 +33,13 @@ plot.failavail(terms1$fips, terms1$failfrac, terms1$failfrac.worst, terms1$natfl
 
 sum(terms1$failfrac > 0, na.rm=T) / length(terms1$fips)
 sum(terms1$failfrac * save.demand, na.rm=T) / sum(save.demand, na.rm=T)
+
+sum(terms1$failfrac.worst > 0, na.rm=T) / length(terms1$fips)
+
+terms1.withres <- get.terms(paste0("stress-", srcname, "-alldemand-withres.csv"), save.demand)
+sum(terms1.withres$failfrac > 0, na.rm=T) / length(terms1$fips)
+sum(terms1.withres$failfrac.worst > 0, na.rm=T) / length(terms1$fips)
+
 
 terms1$natflowa[terms1$natflowa == .34] <- 0
 terms1$natflowa.worst[terms1$natflowa.worst == .34] <- 0

@@ -1,3 +1,8 @@
+## Perform Optimization with known demands
+#
+# Optimize a model from `optimization-given` with both surface and
+# groundwater.
+
 #### Determine the gauge-level SW/GW extractions that satisfy demands at minimum cost
 
 include("lib/readconfig.jl")
@@ -5,14 +10,24 @@ if !isdefined(:config)
     config = readconfig("../configs/standard-1year.yml") # Just use 1 year for optimization
 end
 
+if "rescap" in keys(config) && config["rescap"] == "zero"
+	withreservoirs = false
+else
+	withreservoirs = true
+end
+
+
 # Run the water demand simulation to determine values
-include("model-waterdemand.jl")
-
-println("Running model...")
-@time run(model)
-
-include("optimization-given.jl")
-house = optimization_given(true, true, model)
+if get(config, "demandmodel", nothing) == "USGS"
+    include("optimization-given.jl")
+    house = optimization_given(true, withreservoirs, nothing, get(config, "waterrightconst", nothing))
+else
+    include("model-waterdemand.jl")
+    println("Running demand model...")
+    @time run(model)
+    include("optimization-given.jl")
+    house = optimization_given(true, withreservoirs, model)
+end
 
 using MathProgBase
 using Gurobi
@@ -33,9 +48,16 @@ summarizeparameters(house, sol.sol)
 #constraining(house, sol.sol)
 
 # Save the results
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
+save_optimization_given(house, sol, allowgw=true, allowreservoirs=withreservoirs)
 
-serialize(open("../data/extraction/withdrawals$suffix.jld", "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open("../data/extraction/returns$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-serialize(open("../data/extraction/waterfromgw$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numsteps))
-serialize(open("../data/extraction/captures$suffix.jld", "w"), reshape(sol.sol[sum(varlens[1:4])+1:end], numreservoirs, numsteps))
+analysis = nothing
+
+if analysis == :shadowcost
+    varlens = varlengths(m, house.constcomps, house.constraints)
+    lambdas = sol.attrs[:lambda][sum(varlens[1])+1:sum(varlens[1:2])]
+    lambdas = reshape(lambdas, (3109, 2))
+    df = convert(DataFrame, lambdas)
+    df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
+    writetable("../results/shadowprice-alloc.csv", df)
+    usmap(DataFrame(fips=df[:fips], value=df[:x1]))
+end

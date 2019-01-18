@@ -1,0 +1,3086 @@
+"fips","polyname","maxcrop"
+1001,"alabama,autauga","COTTON"
+1003,"alabama,baldwin","SOYBEANS"
+1005,"alabama,barbour","CORN"
+1007,"alabama,bibb",NA
+1009,"alabama,blount","SOYBEANS"
+1011,"alabama,bullock",NA
+1013,"alabama,butler","CORN"
+1015,"alabama,calhoun","SOYBEANS"
+1017,"alabama,chambers",NA
+1019,"alabama,cherokee","SOYBEANS"
+1021,"alabama,chilton",NA
+1023,"alabama,choctaw",NA
+1025,"alabama,clarke",NA
+1027,"alabama,clay",NA
+1029,"alabama,cleburne",NA
+1031,"alabama,coffee","COTTON"
+1033,"alabama,colbert","CORN"
+1035,"alabama,conecuh","COTTON"
+1037,"alabama,coosa",NA
+1039,"alabama,covington","COTTON"
+1041,"alabama,crenshaw","CORN"
+1043,"alabama,cullman","SOYBEANS"
+1045,"alabama,dale","COTTON"
+1047,"alabama,dallas","COTTON"
+1049,"alabama,de kalb","SOYBEANS"
+1051,"alabama,elmore","COTTON"
+1053,"alabama,escambia","COTTON"
+1055,"alabama,etowah",NA
+1057,"alabama,fayette","SOYBEANS"
+1059,"alabama,franklin","SOYBEANS"
+1061,"alabama,geneva","COTTON"
+1063,"alabama,greene",NA
+1065,"alabama,hale",NA
+1067,"alabama,henry","COTTON"
+1069,"alabama,houston","COTTON"
+1071,"alabama,jackson","SOYBEANS"
+1073,"alabama,jefferson",NA
+1075,"alabama,lamar",NA
+1077,"alabama,lauderdale","CORN"
+1079,"alabama,lawrence","CORN"
+1081,"alabama,lee",NA
+1083,"alabama,limestone","SOYBEANS"
+1085,"alabama,lowndes",NA
+1087,"alabama,macon","SOYBEANS"
+1089,"alabama,madison","SOYBEANS"
+1091,"alabama,marengo","SOYBEANS"
+1093,"alabama,marion",NA
+1095,"alabama,marshall","SOYBEANS"
+1097,"alabama,mobile","COTTON"
+1099,"alabama,monroe","COTTON"
+1101,"alabama,montgomery",NA
+1103,"alabama,morgan","SOYBEANS"
+1105,"alabama,perry","CORN"
+1107,"alabama,pickens","CORN"
+1109,"alabama,pike","COTTON"
+1111,"alabama,randolph",NA
+1113,"alabama,russell","CORN"
+1115,"alabama,st clair",NA
+1117,"alabama,shelby","COTTON"
+1119,"alabama,sumter",NA
+1121,"alabama,talladega","CORN"
+1123,"alabama,tallapoosa",NA
+1125,"alabama,tuscaloosa","SOYBEANS"
+1127,"alabama,walker",NA
+1129,"alabama,washington","CORN"
+1131,"alabama,wilcox",NA
+1133,"alabama,winston",NA
+4001,"arizona,apache",NA
+4003,"arizona,cochise",NA
+4005,"arizona,coconino",NA
+4007,"arizona,gila",NA
+4009,"arizona,graham","COTTON"
+4011,"arizona,greenlee",NA
+4012,"arizona,la paz","COTTON"
+4013,"arizona,maricopa","COTTON"
+4015,"arizona,mohave",NA
+4017,"arizona,navajo",NA
+4019,"arizona,pima","COTTON"
+4021,"arizona,pinal","COTTON"
+4023,"arizona,santa cruz",NA
+4025,"arizona,yavapai",NA
+4027,"arizona,yuma","WHEAT"
+5001,"arkansas,arkansas","SOYBEANS"
+5003,"arkansas,ashley","SOYBEANS"
+5005,"arkansas,baxter",NA
+5007,"arkansas,benton",NA
+5009,"arkansas,boone",NA
+5011,"arkansas,bradley",NA
+5013,"arkansas,calhoun",NA
+5015,"arkansas,carroll",NA
+5017,"arkansas,chicot","SOYBEANS"
+5019,"arkansas,clark",NA
+5021,"arkansas,clay","SOYBEANS"
+5023,"arkansas,cleburne",NA
+5025,"arkansas,cleveland",NA
+5027,"arkansas,columbia",NA
+5029,"arkansas,conway","SOYBEANS"
+5031,"arkansas,craighead","SOYBEANS"
+5033,"arkansas,crawford","SOYBEANS"
+5035,"arkansas,crittenden","SOYBEANS"
+5037,"arkansas,cross","SOYBEANS"
+5039,"arkansas,dallas",NA
+5041,"arkansas,desha","SOYBEANS"
+5043,"arkansas,drew","SOYBEANS"
+5045,"arkansas,faulkner","RICE"
+5047,"arkansas,franklin",NA
+5049,"arkansas,fulton",NA
+5051,"arkansas,garland",NA
+5053,"arkansas,grant",NA
+5055,"arkansas,greene","RICE"
+5057,"arkansas,hempstead",NA
+5059,"arkansas,hot spring",NA
+5061,"arkansas,howard",NA
+5063,"arkansas,independence","SOYBEANS"
+5065,"arkansas,izard",NA
+5067,"arkansas,jackson","SOYBEANS"
+5069,"arkansas,jefferson","SOYBEANS"
+5071,"arkansas,johnson","CORN"
+5073,"arkansas,lafayette","CORN"
+5075,"arkansas,lawrence","RICE"
+5077,"arkansas,lee","SOYBEANS"
+5079,"arkansas,lincoln","SOYBEANS"
+5081,"arkansas,little river","SOYBEANS"
+5083,"arkansas,logan","SOYBEANS"
+5085,"arkansas,lonoke","SOYBEANS"
+5087,"arkansas,madison",NA
+5089,"arkansas,marion",NA
+5091,"arkansas,miller","CORN"
+5093,"arkansas,mississippi","SOYBEANS"
+5095,"arkansas,monroe","SOYBEANS"
+5097,"arkansas,montgomery",NA
+5099,"arkansas,nevada",NA
+5101,"arkansas,newton",NA
+5103,"arkansas,ouachita",NA
+5105,"arkansas,perry","SOYBEANS"
+5107,"arkansas,phillips","SOYBEANS"
+5109,"arkansas,pike",NA
+5111,"arkansas,poinsett","SOYBEANS"
+5113,"arkansas,polk",NA
+5115,"arkansas,pope","SOYBEANS"
+5117,"arkansas,prairie","SOYBEANS"
+5119,"arkansas,pulaski","SOYBEANS"
+5121,"arkansas,randolph","RICE"
+5123,"arkansas,st francis","SOYBEANS"
+5125,"arkansas,saline",NA
+5127,"arkansas,scott",NA
+5129,"arkansas,searcy",NA
+5131,"arkansas,sebastian","SOYBEANS"
+5133,"arkansas,sevier",NA
+5135,"arkansas,sharp",NA
+5137,"arkansas,stone",NA
+5139,"arkansas,union",NA
+5141,"arkansas,van buren",NA
+5143,"arkansas,washington",NA
+5145,"arkansas,white","SOYBEANS"
+5147,"arkansas,woodruff","SOYBEANS"
+5149,"arkansas,yell",NA
+6001,"california,alameda",NA
+6003,"california,alpine",NA
+6005,"california,amador",NA
+6007,"california,butte","RICE"
+6009,"california,calaveras",NA
+6011,"california,colusa","RICE"
+6013,"california,contra costa",NA
+6015,"california,del norte",NA
+6017,"california,el dorado",NA
+6019,"california,fresno","WHEAT"
+6021,"california,glenn","RICE"
+6023,"california,humboldt",NA
+6025,"california,imperial","WHEAT"
+6027,"california,inyo",NA
+6029,"california,kern","WHEAT"
+6031,"california,kings","WHEAT"
+6033,"california,lake",NA
+6035,"california,lassen",NA
+6037,"california,los angeles",NA
+6039,"california,madera","WHEAT"
+6041,"california,marin",NA
+6043,"california,mariposa",NA
+6045,"california,mendocino",NA
+6047,"california,merced","COTTON"
+6049,"california,modoc",NA
+6051,"california,mono",NA
+6053,"california,monterey",NA
+6055,"california,napa",NA
+6057,"california,nevada",NA
+6059,"california,orange",NA
+6061,"california,placer","RICE"
+6063,"california,plumas",NA
+6065,"california,riverside","WHEAT"
+6067,"california,sacramento","CORN"
+6069,"california,san benito",NA
+6071,"california,san bernardino",NA
+6073,"california,san diego",NA
+6075,"california,san francisco",NA
+6077,"california,san joaquin","CORN"
+6079,"california,san luis obispo","BARLEY"
+6081,"california,san mateo",NA
+6083,"california,santa barbara",NA
+6085,"california,santa clara",NA
+6087,"california,santa cruz",NA
+6089,"california,shasta","WHEAT"
+6091,"california,sierra",NA
+6093,"california,siskiyou","WHEAT"
+6095,"california,solano","WHEAT"
+6097,"california,sonoma",NA
+6099,"california,stanislaus","WHEAT"
+6101,"california,sutter","RICE"
+6103,"california,tehama","CORN"
+6105,"california,trinity",NA
+6107,"california,tulare","WHEAT"
+6109,"california,tuolumne",NA
+6111,"california,ventura",NA
+6113,"california,yolo","RICE"
+6115,"california,yuba","RICE"
+8001,"colorado,adams","WHEAT"
+8003,"colorado,alamosa","BARLEY"
+8005,"colorado,arapahoe","WHEAT"
+8007,"colorado,archuleta",NA
+8009,"colorado,baca","WHEAT"
+8011,"colorado,bent","CORN"
+8013,"colorado,boulder","WHEAT"
+8014,"colorado,broomfield",NA
+8015,"colorado,chaffee",NA
+8017,"colorado,cheyenne","WHEAT"
+8019,"colorado,clear creek",NA
+8021,"colorado,conejos",NA
+8023,"colorado,costilla",NA
+8025,"colorado,crowley",NA
+8027,"colorado,custer",NA
+8029,"colorado,delta",NA
+8031,"colorado,denver",NA
+8033,"colorado,dolores","WHEAT"
+8035,"colorado,douglas","WHEAT"
+8037,"colorado,eagle",NA
+8039,"colorado,elbert","CORN"
+8041,"colorado,el paso",NA
+8043,"colorado,fremont",NA
+8045,"colorado,garfield",NA
+8047,"colorado,gilpin",NA
+8049,"colorado,grand",NA
+8051,"colorado,gunnison",NA
+8053,"colorado,hinsdale",NA
+8055,"colorado,huerfano",NA
+8057,"colorado,jackson",NA
+8059,"colorado,jefferson",NA
+8061,"colorado,kiowa","WHEAT"
+8063,"colorado,kit carson","WHEAT"
+8065,"colorado,lake",NA
+8067,"colorado,la plata",NA
+8069,"colorado,larimer","CORN"
+8071,"colorado,las animas",NA
+8073,"colorado,lincoln","WHEAT"
+8075,"colorado,logan","WHEAT"
+8077,"colorado,mesa","WHEAT"
+8079,"colorado,mineral",NA
+8081,"colorado,moffat",NA
+8083,"colorado,montezuma","WHEAT"
+8085,"colorado,montrose",NA
+8087,"colorado,morgan","WHEAT"
+8089,"colorado,otero","CORN"
+8091,"colorado,ouray",NA
+8093,"colorado,park",NA
+8095,"colorado,phillips","CORN"
+8097,"colorado,pitkin",NA
+8099,"colorado,prowers","WHEAT"
+8101,"colorado,pueblo","CORN"
+8103,"colorado,rio blanco",NA
+8105,"colorado,rio grande","BARLEY"
+8107,"colorado,routt","WHEAT"
+8109,"colorado,saguache","BARLEY"
+8111,"colorado,san juan",NA
+8113,"colorado,san miguel",NA
+8115,"colorado,sedgwick","WHEAT"
+8117,"colorado,summit",NA
+8119,"colorado,teller",NA
+8121,"colorado,washington","WHEAT"
+8123,"colorado,weld","WHEAT"
+8125,"colorado,yuma","CORN"
+9001,"connecticut,fairfield",NA
+9003,"connecticut,hartford",NA
+9005,"connecticut,litchfield",NA
+9007,"connecticut,middlesex",NA
+9009,"connecticut,new haven",NA
+9011,"connecticut,new london",NA
+9013,"connecticut,tolland",NA
+9015,"connecticut,windham",NA
+10001,"delaware,kent","SOYBEANS"
+10003,"delaware,new castle","SOYBEANS"
+10005,"delaware,sussex","CORN"
+11001,"district of columbia,washington",NA
+12001,"florida,alachua",NA
+12003,"florida,baker",NA
+12005,"florida,bay",NA
+12007,"florida,bradford",NA
+12009,"florida,brevard",NA
+12011,"florida,broward",NA
+12013,"florida,calhoun",NA
+12015,"florida,charlotte",NA
+12017,"florida,citrus",NA
+12019,"florida,clay",NA
+12021,"florida,collier",NA
+12023,"florida,columbia",NA
+12086,"florida,miami-dade",NA
+12027,"florida,de soto",NA
+12029,"florida,dixie",NA
+12031,"florida,duval",NA
+12033,"florida,escambia",NA
+12035,"florida,flagler",NA
+12037,"florida,franklin",NA
+12039,"florida,gadsden",NA
+12041,"florida,gilchrist",NA
+12043,"florida,glades",NA
+12045,"florida,gulf",NA
+12047,"florida,hamilton",NA
+12049,"florida,hardee",NA
+12051,"florida,hendry",NA
+12053,"florida,hernando",NA
+12055,"florida,highlands",NA
+12057,"florida,hillsborough",NA
+12059,"florida,holmes",NA
+12061,"florida,indian river",NA
+12063,"florida,jackson",NA
+12065,"florida,jefferson",NA
+12067,"florida,lafayette",NA
+12069,"florida,lake",NA
+12071,"florida,lee",NA
+12073,"florida,leon",NA
+12075,"florida,levy",NA
+12077,"florida,liberty",NA
+12079,"florida,madison",NA
+12081,"florida,manatee",NA
+12083,"florida,marion",NA
+12085,"florida,martin",NA
+12087,"florida,monroe",NA
+12089,"florida,nassau",NA
+12091,"florida,okaloosa:main",NA
+12091,"florida,okaloosa:spit",NA
+12093,"florida,okeechobee",NA
+12095,"florida,orange",NA
+12097,"florida,osceola",NA
+12099,"florida,palm beach",NA
+12101,"florida,pasco",NA
+12103,"florida,pinellas",NA
+12105,"florida,polk",NA
+12107,"florida,putnam",NA
+12109,"florida,st johns",NA
+12111,"florida,st lucie",NA
+12113,"florida,santa rosa",NA
+12115,"florida,sarasota",NA
+12117,"florida,seminole",NA
+12119,"florida,sumter",NA
+12121,"florida,suwannee",NA
+12123,"florida,taylor",NA
+12125,"florida,union",NA
+12127,"florida,volusia",NA
+12129,"florida,wakulla",NA
+12131,"florida,walton",NA
+12133,"florida,washington",NA
+13001,"georgia,appling","COTTON"
+13003,"georgia,atkinson","COTTON"
+13005,"georgia,bacon","COTTON"
+13007,"georgia,baker","COTTON"
+13009,"georgia,baldwin",NA
+13011,"georgia,banks",NA
+13013,"georgia,barrow",NA
+13015,"georgia,bartow","SOYBEANS"
+13017,"georgia,ben hill","COTTON"
+13019,"georgia,berrien","COTTON"
+13021,"georgia,bibb",NA
+13023,"georgia,bleckley","COTTON"
+13025,"georgia,brantley",NA
+13027,"georgia,brooks","COTTON"
+13029,"georgia,bryan",NA
+13031,"georgia,bulloch","COTTON"
+13033,"georgia,burke","COTTON"
+13035,"georgia,butts",NA
+13037,"georgia,calhoun","COTTON"
+13039,"georgia,camden",NA
+13043,"georgia,candler","CORN"
+13045,"georgia,carroll",NA
+13047,"georgia,catoosa",NA
+13049,"georgia,charlton",NA
+13051,"georgia,chatham",NA
+13053,"georgia,chattahoochee",NA
+13055,"georgia,chattooga","CORN"
+13057,"georgia,cherokee",NA
+13059,"georgia,clarke",NA
+13061,"georgia,clay","COTTON"
+13063,"georgia,clayton",NA
+13065,"georgia,clinch",NA
+13067,"georgia,cobb",NA
+13069,"georgia,coffee","COTTON"
+13071,"georgia,colquitt","COTTON"
+13073,"georgia,columbia",NA
+13075,"georgia,cook","COTTON"
+13077,"georgia,coweta","WHEAT"
+13079,"georgia,crawford",NA
+13081,"georgia,crisp","COTTON"
+13083,"georgia,dade",NA
+13085,"georgia,dawson",NA
+13087,"georgia,decatur","COTTON"
+13089,"georgia,de kalb",NA
+13091,"georgia,dodge","COTTON"
+13093,"georgia,dooly","COTTON"
+13095,"georgia,dougherty","COTTON"
+13097,"georgia,douglas",NA
+13099,"georgia,early","COTTON"
+13101,"georgia,echols","CORN"
+13103,"georgia,effingham","SOYBEANS"
+13105,"georgia,elbert",NA
+13107,"georgia,emanuel","COTTON"
+13109,"georgia,evans","COTTON"
+13111,"georgia,fannin",NA
+13113,"georgia,fayette",NA
+13115,"georgia,floyd","SOYBEANS"
+13117,"georgia,forsyth",NA
+13119,"georgia,franklin",NA
+13121,"georgia,fulton",NA
+13123,"georgia,gilmer",NA
+13125,"georgia,glascock",NA
+13127,"georgia,glynn",NA
+13129,"georgia,gordon","SOYBEANS"
+13131,"georgia,grady","COTTON"
+13133,"georgia,greene",NA
+13135,"georgia,gwinnett",NA
+13137,"georgia,habersham",NA
+13139,"georgia,hall","CORN"
+13141,"georgia,hancock",NA
+13143,"georgia,haralson",NA
+13145,"georgia,harris",NA
+13147,"georgia,hart","WHEAT"
+13149,"georgia,heard",NA
+13151,"georgia,henry",NA
+13153,"georgia,houston","SOYBEANS"
+13155,"georgia,irwin","COTTON"
+13157,"georgia,jackson",NA
+13159,"georgia,jasper",NA
+13161,"georgia,jeff davis","COTTON"
+13163,"georgia,jefferson","COTTON"
+13165,"georgia,jenkins","COTTON"
+13167,"georgia,johnson","COTTON"
+13169,"georgia,jones",NA
+13171,"georgia,lamar","WHEAT"
+13173,"georgia,lanier","COTTON"
+13175,"georgia,laurens","SOYBEANS"
+13177,"georgia,lee","COTTON"
+13179,"georgia,liberty",NA
+13181,"georgia,lincoln",NA
+13183,"georgia,long",NA
+13185,"georgia,lowndes","CORN"
+13187,"georgia,lumpkin",NA
+13189,"georgia,mcduffie",NA
+13191,"georgia,mcintosh",NA
+13193,"georgia,macon","COTTON"
+13195,"georgia,madison",NA
+13197,"georgia,marion","SOYBEANS"
+13199,"georgia,meriwether",NA
+13201,"georgia,miller","COTTON"
+13205,"georgia,mitchell","COTTON"
+13207,"georgia,monroe",NA
+13209,"georgia,montgomery","COTTON"
+13211,"georgia,morgan","WHEAT"
+13213,"georgia,murray",NA
+13215,"georgia,muscogee",NA
+13217,"georgia,newton",NA
+13219,"georgia,oconee","WHEAT"
+13221,"georgia,oglethorpe",NA
+13223,"georgia,paulding",NA
+13225,"georgia,peach",NA
+13227,"georgia,pickens",NA
+13229,"georgia,pierce","COTTON"
+13231,"georgia,pike",NA
+13233,"georgia,polk",NA
+13235,"georgia,pulaski","COTTON"
+13237,"georgia,putnam",NA
+13239,"georgia,quitman",NA
+13241,"georgia,rabun",NA
+13243,"georgia,randolph","COTTON"
+13245,"georgia,richmond",NA
+13247,"georgia,rockdale",NA
+13249,"georgia,schley",NA
+13251,"georgia,screven","COTTON"
+13253,"georgia,seminole","COTTON"
+13255,"georgia,spalding",NA
+13257,"georgia,stephens",NA
+13259,"georgia,stewart",NA
+13261,"georgia,sumter","COTTON"
+13263,"georgia,talbot",NA
+13265,"georgia,taliaferro",NA
+13267,"georgia,tattnall","COTTON"
+13269,"georgia,taylor","SOYBEANS"
+13271,"georgia,telfair","COTTON"
+13273,"georgia,terrell","COTTON"
+13275,"georgia,thomas","COTTON"
+13277,"georgia,tift","COTTON"
+13279,"georgia,toombs","COTTON"
+13281,"georgia,towns",NA
+13283,"georgia,treutlen","COTTON"
+13285,"georgia,troup",NA
+13287,"georgia,turner","COTTON"
+13289,"georgia,twiggs",NA
+13291,"georgia,union",NA
+13293,"georgia,upson",NA
+13295,"georgia,walker","CORN"
+13297,"georgia,walton",NA
+13299,"georgia,ware","CORN"
+13301,"georgia,warren",NA
+13303,"georgia,washington","SOYBEANS"
+13305,"georgia,wayne","COTTON"
+13307,"georgia,webster","COTTON"
+13309,"georgia,wheeler","COTTON"
+13311,"georgia,white","CORN"
+13313,"georgia,whitfield","CORN"
+13315,"georgia,wilcox","COTTON"
+13317,"georgia,wilkes",NA
+13319,"georgia,wilkinson",NA
+13321,"georgia,worth","COTTON"
+16001,"idaho,ada","WHEAT"
+16003,"idaho,adams",NA
+16005,"idaho,bannock","WHEAT"
+16007,"idaho,bear lake",NA
+16009,"idaho,benewah","WHEAT"
+16011,"idaho,bingham","WHEAT"
+16013,"idaho,blaine","BARLEY"
+16015,"idaho,boise",NA
+16017,"idaho,bonner",NA
+16019,"idaho,bonneville","WHEAT"
+16021,"idaho,boundary","WHEAT"
+16023,"idaho,butte","BARLEY"
+16025,"idaho,camas","BARLEY"
+16027,"idaho,canyon","WHEAT"
+16029,"idaho,caribou","BARLEY"
+16031,"idaho,cassia","WHEAT"
+16033,"idaho,clark",NA
+16035,"idaho,clearwater","WHEAT"
+16037,"idaho,custer",NA
+16039,"idaho,elmore","WHEAT"
+16041,"idaho,franklin","WHEAT"
+16043,"idaho,fremont","BARLEY"
+16045,"idaho,gem","WHEAT"
+16047,"idaho,gooding","WHEAT"
+16049,"idaho,idaho","WHEAT"
+16051,"idaho,jefferson","WHEAT"
+16053,"idaho,jerome","BARLEY"
+16055,"idaho,kootenai",NA
+16057,"idaho,latah","WHEAT"
+16059,"idaho,lemhi",NA
+16061,"idaho,lewis","WHEAT"
+16063,"idaho,lincoln","WHEAT"
+16065,"idaho,madison","WHEAT"
+16067,"idaho,minidoka","WHEAT"
+16069,"idaho,nez perce","WHEAT"
+16071,"idaho,oneida","WHEAT"
+16073,"idaho,owyhee","WHEAT"
+16075,"idaho,payette","WHEAT"
+16077,"idaho,power","WHEAT"
+16079,"idaho,shoshone",NA
+16081,"idaho,teton","BARLEY"
+16083,"idaho,twin falls","BARLEY"
+16085,"idaho,valley",NA
+16087,"idaho,washington","WHEAT"
+17001,"illinois,adams","CORN"
+17003,"illinois,alexander","SOYBEANS"
+17005,"illinois,bond","SOYBEANS"
+17007,"illinois,boone","CORN"
+17009,"illinois,brown","CORN"
+17011,"illinois,bureau","CORN"
+17013,"illinois,calhoun","CORN"
+17015,"illinois,carroll","CORN"
+17017,"illinois,cass","CORN"
+17019,"illinois,champaign","CORN"
+17021,"illinois,christian","CORN"
+17023,"illinois,clark","CORN"
+17025,"illinois,clay","SOYBEANS"
+17027,"illinois,clinton","CORN"
+17029,"illinois,coles","CORN"
+17031,"illinois,cook","CORN"
+17033,"illinois,crawford","CORN"
+17035,"illinois,cumberland","CORN"
+17037,"illinois,de kalb","CORN"
+17039,"illinois,de witt","CORN"
+17041,"illinois,douglas","CORN"
+17043,"illinois,du page",NA
+17045,"illinois,edgar","CORN"
+17047,"illinois,edwards","CORN"
+17049,"illinois,effingham",NA
+17051,"illinois,fayette","CORN"
+17053,"illinois,ford","CORN"
+17055,"illinois,franklin","SOYBEANS"
+17057,"illinois,fulton","CORN"
+17059,"illinois,gallatin","CORN"
+17061,"illinois,greene","CORN"
+17063,"illinois,grundy","CORN"
+17065,"illinois,hamilton","SOYBEANS"
+17067,"illinois,hancock","CORN"
+17069,"illinois,hardin","SOYBEANS"
+17071,"illinois,henderson","CORN"
+17073,"illinois,henry","CORN"
+17075,"illinois,iroquois","CORN"
+17077,"illinois,jackson","SOYBEANS"
+17079,"illinois,jasper","SOYBEANS"
+17081,"illinois,jefferson","SOYBEANS"
+17083,"illinois,jersey","CORN"
+17085,"illinois,jo daviess","CORN"
+17087,"illinois,johnson","SOYBEANS"
+17089,"illinois,kane","CORN"
+17091,"illinois,kankakee","CORN"
+17093,"illinois,kendall","CORN"
+17095,"illinois,knox","CORN"
+17097,"illinois,lake","SOYBEANS"
+17099,"illinois,la salle","CORN"
+17101,"illinois,lawrence","CORN"
+17103,"illinois,lee","CORN"
+17105,"illinois,livingston","CORN"
+17107,"illinois,logan","CORN"
+17109,"illinois,mcdonough","CORN"
+17111,"illinois,mchenry","CORN"
+17113,"illinois,mclean","CORN"
+17115,"illinois,macon","CORN"
+17117,"illinois,macoupin","CORN"
+17119,"illinois,madison","CORN"
+17121,"illinois,marion","SOYBEANS"
+17123,"illinois,marshall","CORN"
+17125,"illinois,mason","CORN"
+17127,"illinois,massac","SOYBEANS"
+17129,"illinois,menard","CORN"
+17131,"illinois,mercer","CORN"
+17133,"illinois,monroe","SOYBEANS"
+17135,"illinois,montgomery","CORN"
+17137,"illinois,morgan","CORN"
+17139,"illinois,moultrie","CORN"
+17141,"illinois,ogle","CORN"
+17143,"illinois,peoria","CORN"
+17145,"illinois,perry","SOYBEANS"
+17147,"illinois,piatt","CORN"
+17149,"illinois,pike","CORN"
+17151,"illinois,pope","SOYBEANS"
+17153,"illinois,pulaski","SOYBEANS"
+17155,"illinois,putnam","CORN"
+17157,"illinois,randolph","SOYBEANS"
+17159,"illinois,richland","CORN"
+17161,"illinois,rock island","CORN"
+17163,"illinois,st clair","SOYBEANS"
+17165,"illinois,saline","SOYBEANS"
+17167,"illinois,sangamon","CORN"
+17169,"illinois,schuyler","CORN"
+17171,"illinois,scott","CORN"
+17173,"illinois,shelby","CORN"
+17175,"illinois,stark","CORN"
+17177,"illinois,stephenson","CORN"
+17179,"illinois,tazewell","CORN"
+17181,"illinois,union","SOYBEANS"
+17183,"illinois,vermilion","CORN"
+17185,"illinois,wabash","CORN"
+17187,"illinois,warren","CORN"
+17189,"illinois,washington","SOYBEANS"
+17191,"illinois,wayne","SOYBEANS"
+17193,"illinois,white","SOYBEANS"
+17195,"illinois,whiteside","CORN"
+17197,"illinois,will","CORN"
+17199,"illinois,williamson","SOYBEANS"
+17201,"illinois,winnebago","CORN"
+17203,"illinois,woodford","CORN"
+18001,"indiana,adams","SOYBEANS"
+18003,"indiana,allen","SOYBEANS"
+18005,"indiana,bartholomew","SOYBEANS"
+18007,"indiana,benton","CORN"
+18009,"indiana,blackford","SOYBEANS"
+18011,"indiana,boone","CORN"
+18013,"indiana,brown","CORN"
+18015,"indiana,carroll","CORN"
+18017,"indiana,cass","CORN"
+18019,"indiana,clark","SOYBEANS"
+18021,"indiana,clay",NA
+18023,"indiana,clinton","CORN"
+18025,"indiana,crawford","CORN"
+18027,"indiana,daviess","CORN"
+18029,"indiana,dearborn","SOYBEANS"
+18031,"indiana,decatur","CORN"
+18033,"indiana,de kalb","SOYBEANS"
+18035,"indiana,delaware","SOYBEANS"
+18037,"indiana,dubois","CORN"
+18039,"indiana,elkhart","CORN"
+18041,"indiana,fayette","CORN"
+18043,"indiana,floyd","CORN"
+18045,"indiana,fountain","CORN"
+18047,"indiana,franklin","CORN"
+18049,"indiana,fulton","CORN"
+18051,"indiana,gibson","CORN"
+18053,"indiana,grant","SOYBEANS"
+18055,"indiana,greene","SOYBEANS"
+18057,"indiana,hamilton","SOYBEANS"
+18059,"indiana,hancock","SOYBEANS"
+18061,"indiana,harrison","SOYBEANS"
+18063,"indiana,hendricks","CORN"
+18065,"indiana,henry","SOYBEANS"
+18067,"indiana,howard","SOYBEANS"
+18069,"indiana,huntington","SOYBEANS"
+18071,"indiana,jackson","SOYBEANS"
+18073,"indiana,jasper","CORN"
+18075,"indiana,jay","SOYBEANS"
+18077,"indiana,jefferson","SOYBEANS"
+18079,"indiana,jennings","SOYBEANS"
+18081,"indiana,johnson","CORN"
+18083,"indiana,knox","CORN"
+18085,"indiana,kosciusko","CORN"
+18087,"indiana,lagrange","CORN"
+18089,"indiana,lake","CORN"
+18091,"indiana,la porte","CORN"
+18093,"indiana,lawrence","SOYBEANS"
+18095,"indiana,madison","SOYBEANS"
+18097,"indiana,marion","SOYBEANS"
+18099,"indiana,marshall","CORN"
+18101,"indiana,martin","CORN"
+18103,"indiana,miami","SOYBEANS"
+18105,"indiana,monroe","SOYBEANS"
+18107,"indiana,montgomery","CORN"
+18109,"indiana,morgan","CORN"
+18111,"indiana,newton","CORN"
+18113,"indiana,noble","CORN"
+18115,"indiana,ohio","SOYBEANS"
+18117,"indiana,orange","CORN"
+18119,"indiana,owen","SOYBEANS"
+18121,"indiana,parke","CORN"
+18123,"indiana,perry","SOYBEANS"
+18125,"indiana,pike","SOYBEANS"
+18127,"indiana,porter","CORN"
+18129,"indiana,posey","CORN"
+18131,"indiana,pulaski","CORN"
+18133,"indiana,putnam","CORN"
+18135,"indiana,randolph","SOYBEANS"
+18137,"indiana,ripley","SOYBEANS"
+18139,"indiana,rush","CORN"
+18141,"indiana,st joseph","CORN"
+18143,"indiana,scott","SOYBEANS"
+18145,"indiana,shelby","CORN"
+18147,"indiana,spencer","CORN"
+18149,"indiana,starke","CORN"
+18151,"indiana,steuben","CORN"
+18153,"indiana,sullivan","CORN"
+18155,"indiana,switzerland","CORN"
+18157,"indiana,tippecanoe","CORN"
+18159,"indiana,tipton","CORN"
+18161,"indiana,union","CORN"
+18163,"indiana,vanderburgh","CORN"
+18165,"indiana,vermillion","CORN"
+18167,"indiana,vigo","CORN"
+18169,"indiana,wabash","SOYBEANS"
+18171,"indiana,warren","CORN"
+18173,"indiana,warrick","CORN"
+18175,"indiana,washington","CORN"
+18177,"indiana,wayne","CORN"
+18179,"indiana,wells","SOYBEANS"
+18181,"indiana,white","CORN"
+18183,"indiana,whitley","SOYBEANS"
+19001,"iowa,adair","CORN"
+19003,"iowa,adams","CORN"
+19005,"iowa,allamakee","CORN"
+19007,"iowa,appanoose","SOYBEANS"
+19009,"iowa,audubon","CORN"
+19011,"iowa,benton","CORN"
+19013,"iowa,black hawk","CORN"
+19015,"iowa,boone","CORN"
+19017,"iowa,bremer","CORN"
+19019,"iowa,buchanan","CORN"
+19021,"iowa,buena vista","CORN"
+19023,"iowa,butler","CORN"
+19025,"iowa,calhoun","CORN"
+19027,"iowa,carroll","CORN"
+19029,"iowa,cass","CORN"
+19031,"iowa,cedar","CORN"
+19033,"iowa,cerro gordo","CORN"
+19035,"iowa,cherokee","CORN"
+19037,"iowa,chickasaw","CORN"
+19039,"iowa,clarke","SOYBEANS"
+19041,"iowa,clay","CORN"
+19043,"iowa,clayton","CORN"
+19045,"iowa,clinton","CORN"
+19047,"iowa,crawford","CORN"
+19049,"iowa,dallas","CORN"
+19051,"iowa,davis","SOYBEANS"
+19053,"iowa,decatur","SOYBEANS"
+19055,"iowa,delaware","CORN"
+19057,"iowa,des moines","CORN"
+19059,"iowa,dickinson","CORN"
+19061,"iowa,dubuque","CORN"
+19063,"iowa,emmet","CORN"
+19065,"iowa,fayette","CORN"
+19067,"iowa,floyd","CORN"
+19069,"iowa,franklin","CORN"
+19071,"iowa,fremont","SOYBEANS"
+19073,"iowa,greene","CORN"
+19075,"iowa,grundy","CORN"
+19077,"iowa,guthrie","CORN"
+19079,"iowa,hamilton","CORN"
+19081,"iowa,hancock","CORN"
+19083,"iowa,hardin","CORN"
+19085,"iowa,harrison","CORN"
+19087,"iowa,henry","CORN"
+19089,"iowa,howard","CORN"
+19091,"iowa,humboldt","CORN"
+19093,"iowa,ida","CORN"
+19095,"iowa,iowa","CORN"
+19097,"iowa,jackson","CORN"
+19099,"iowa,jasper","CORN"
+19101,"iowa,jefferson","CORN"
+19103,"iowa,johnson","CORN"
+19105,"iowa,jones","CORN"
+19107,"iowa,keokuk","CORN"
+19109,"iowa,kossuth","CORN"
+19111,"iowa,lee","CORN"
+19113,"iowa,linn","CORN"
+19115,"iowa,louisa","CORN"
+19117,"iowa,lucas","SOYBEANS"
+19119,"iowa,lyon","CORN"
+19121,"iowa,madison","SOYBEANS"
+19123,"iowa,mahaska","CORN"
+19125,"iowa,marion","CORN"
+19127,"iowa,marshall","CORN"
+19129,"iowa,mills","CORN"
+19131,"iowa,mitchell","CORN"
+19133,"iowa,monona","CORN"
+19135,"iowa,monroe","SOYBEANS"
+19137,"iowa,montgomery","CORN"
+19139,"iowa,muscatine","CORN"
+19141,"iowa,obrien","CORN"
+19143,"iowa,osceola","CORN"
+19145,"iowa,page","CORN"
+19147,"iowa,palo alto","CORN"
+19149,"iowa,plymouth","CORN"
+19151,"iowa,pocahontas","CORN"
+19153,"iowa,polk","CORN"
+19155,"iowa,pottawattamie","CORN"
+19157,"iowa,poweshiek","CORN"
+19159,"iowa,ringgold","SOYBEANS"
+19161,"iowa,sac","CORN"
+19163,"iowa,scott","CORN"
+19165,"iowa,shelby","CORN"
+19167,"iowa,sioux","CORN"
+19169,"iowa,story","CORN"
+19171,"iowa,tama","CORN"
+19173,"iowa,taylor","SOYBEANS"
+19175,"iowa,union","SOYBEANS"
+19177,"iowa,van buren","CORN"
+19179,"iowa,wapello","CORN"
+19181,"iowa,warren","CORN"
+19183,"iowa,washington","CORN"
+19185,"iowa,wayne","SOYBEANS"
+19187,"iowa,webster","CORN"
+19189,"iowa,winnebago","CORN"
+19191,"iowa,winneshiek","CORN"
+19193,"iowa,woodbury","CORN"
+19195,"iowa,worth","CORN"
+19197,"iowa,wright","CORN"
+20001,"kansas,allen","SOYBEANS"
+20003,"kansas,anderson","SOYBEANS"
+20005,"kansas,atchison","SOYBEANS"
+20007,"kansas,barber","WHEAT"
+20009,"kansas,barton","WHEAT"
+20011,"kansas,bourbon","SOYBEANS"
+20013,"kansas,brown","CORN"
+20015,"kansas,butler","SOYBEANS"
+20017,"kansas,chase","SOYBEANS"
+20019,"kansas,chautauqua","SOYBEANS"
+20021,"kansas,cherokee","SOYBEANS"
+20023,"kansas,cheyenne","WHEAT"
+20025,"kansas,clark","WHEAT"
+20027,"kansas,clay","SOYBEANS"
+20029,"kansas,cloud","WHEAT"
+20031,"kansas,coffey","SOYBEANS"
+20033,"kansas,comanche","WHEAT"
+20035,"kansas,cowley","SOYBEANS"
+20037,"kansas,crawford","SOYBEANS"
+20039,"kansas,decatur","CORN"
+20041,"kansas,dickinson","WHEAT"
+20043,"kansas,doniphan","CORN"
+20045,"kansas,douglas","SOYBEANS"
+20047,"kansas,edwards","WHEAT"
+20049,"kansas,elk","SOYBEANS"
+20051,"kansas,ellis","WHEAT"
+20053,"kansas,ellsworth","WHEAT"
+20055,"kansas,finney","WHEAT"
+20057,"kansas,ford","WHEAT"
+20059,"kansas,franklin","SOYBEANS"
+20061,"kansas,geary","SOYBEANS"
+20063,"kansas,gove","WHEAT"
+20065,"kansas,graham","WHEAT"
+20067,"kansas,grant","WHEAT"
+20069,"kansas,gray","WHEAT"
+20071,"kansas,greeley","WHEAT"
+20073,"kansas,greenwood","SOYBEANS"
+20075,"kansas,hamilton","WHEAT"
+20077,"kansas,harper","WHEAT"
+20079,"kansas,harvey","SOYBEANS"
+20081,"kansas,haskell","CORN"
+20083,"kansas,hodgeman","WHEAT"
+20085,"kansas,jackson","SOYBEANS"
+20087,"kansas,jefferson","SOYBEANS"
+20089,"kansas,jewell","WHEAT"
+20091,"kansas,johnson","SOYBEANS"
+20093,"kansas,kearny","WHEAT"
+20095,"kansas,kingman","WHEAT"
+20097,"kansas,kiowa","WHEAT"
+20099,"kansas,labette","SOYBEANS"
+20101,"kansas,lane","WHEAT"
+20103,"kansas,leavenworth","SOYBEANS"
+20105,"kansas,lincoln","WHEAT"
+20107,"kansas,linn","SOYBEANS"
+20109,"kansas,logan","WHEAT"
+20111,"kansas,lyon","SOYBEANS"
+20113,"kansas,mcpherson","WHEAT"
+20115,"kansas,marion","WHEAT"
+20117,"kansas,marshall","SOYBEANS"
+20119,"kansas,meade","WHEAT"
+20121,"kansas,miami","SOYBEANS"
+20123,"kansas,mitchell","WHEAT"
+20125,"kansas,montgomery","SOYBEANS"
+20127,"kansas,morris","SOYBEANS"
+20129,"kansas,morton","WHEAT"
+20131,"kansas,nemaha","SOYBEANS"
+20133,"kansas,neosho","SOYBEANS"
+20135,"kansas,ness","WHEAT"
+20137,"kansas,norton","CORN"
+20139,"kansas,osage","SOYBEANS"
+20141,"kansas,osborne","WHEAT"
+20143,"kansas,ottawa","WHEAT"
+20145,"kansas,pawnee","WHEAT"
+20147,"kansas,phillips","WHEAT"
+20149,"kansas,pottawatomie","SOYBEANS"
+20151,"kansas,pratt","WHEAT"
+20153,"kansas,rawlins","WHEAT"
+20155,"kansas,reno","WHEAT"
+20157,"kansas,republic","SOYBEANS"
+20159,"kansas,rice","WHEAT"
+20161,"kansas,riley","SOYBEANS"
+20163,"kansas,rooks","WHEAT"
+20165,"kansas,rush","WHEAT"
+20167,"kansas,russell","WHEAT"
+20169,"kansas,saline","WHEAT"
+20171,"kansas,scott","WHEAT"
+20173,"kansas,sedgwick","WHEAT"
+20175,"kansas,seward","CORN"
+20177,"kansas,shawnee","SOYBEANS"
+20179,"kansas,sheridan","CORN"
+20181,"kansas,sherman","WHEAT"
+20183,"kansas,smith","WHEAT"
+20185,"kansas,stafford","WHEAT"
+20187,"kansas,stanton","WHEAT"
+20189,"kansas,stevens","CORN"
+20191,"kansas,sumner","WHEAT"
+20193,"kansas,thomas","CORN"
+20195,"kansas,trego","WHEAT"
+20197,"kansas,wabaunsee","SOYBEANS"
+20199,"kansas,wallace","WHEAT"
+20201,"kansas,washington","SOYBEANS"
+20203,"kansas,wichita","WHEAT"
+20205,"kansas,wilson","SOYBEANS"
+20207,"kansas,woodson","SOYBEANS"
+20209,"kansas,wyandotte","SOYBEANS"
+21001,"kentucky,adair","CORN"
+21003,"kentucky,allen","CORN"
+21005,"kentucky,anderson",NA
+21007,"kentucky,ballard","SOYBEANS"
+21009,"kentucky,barren","CORN"
+21011,"kentucky,bath","SOYBEANS"
+21013,"kentucky,bell",NA
+21015,"kentucky,boone","CORN"
+21017,"kentucky,bourbon","SOYBEANS"
+21019,"kentucky,boyd",NA
+21021,"kentucky,boyle","CORN"
+21023,"kentucky,bracken",NA
+21025,"kentucky,breathitt",NA
+21027,"kentucky,breckinridge","SOYBEANS"
+21029,"kentucky,bullitt","SOYBEANS"
+21031,"kentucky,butler","SOYBEANS"
+21033,"kentucky,caldwell","SOYBEANS"
+21035,"kentucky,calloway","SOYBEANS"
+21037,"kentucky,campbell",NA
+21039,"kentucky,carlisle","SOYBEANS"
+21041,"kentucky,carroll","SOYBEANS"
+21043,"kentucky,carter","CORN"
+21045,"kentucky,casey","CORN"
+21047,"kentucky,christian","CORN"
+21049,"kentucky,clark",NA
+21051,"kentucky,clay","CORN"
+21053,"kentucky,clinton",NA
+21055,"kentucky,crittenden","CORN"
+21057,"kentucky,cumberland",NA
+21059,"kentucky,daviess","SOYBEANS"
+21061,"kentucky,edmonson","SOYBEANS"
+21063,"kentucky,elliott",NA
+21065,"kentucky,estill","SOYBEANS"
+21067,"kentucky,fayette","SOYBEANS"
+21069,"kentucky,fleming","SOYBEANS"
+21071,"kentucky,floyd",NA
+21073,"kentucky,franklin","SOYBEANS"
+21075,"kentucky,fulton","SOYBEANS"
+21077,"kentucky,gallatin",NA
+21079,"kentucky,garrard","CORN"
+21081,"kentucky,grant",NA
+21083,"kentucky,graves","CORN"
+21085,"kentucky,grayson","SOYBEANS"
+21087,"kentucky,green","CORN"
+21089,"kentucky,greenup","CORN"
+21091,"kentucky,hancock","SOYBEANS"
+21093,"kentucky,hardin","SOYBEANS"
+21095,"kentucky,harlan",NA
+21097,"kentucky,harrison","CORN"
+21099,"kentucky,hart",NA
+21101,"kentucky,henderson","CORN"
+21103,"kentucky,henry","SOYBEANS"
+21105,"kentucky,hickman","SOYBEANS"
+21107,"kentucky,hopkins","SOYBEANS"
+21109,"kentucky,jackson",NA
+21111,"kentucky,jefferson",NA
+21113,"kentucky,jessamine","CORN"
+21115,"kentucky,johnson",NA
+21117,"kentucky,kenton",NA
+21119,"kentucky,knott",NA
+21121,"kentucky,knox","CORN"
+21123,"kentucky,larue","SOYBEANS"
+21125,"kentucky,laurel","CORN"
+21127,"kentucky,lawrence",NA
+21129,"kentucky,lee",NA
+21131,"kentucky,leslie",NA
+21133,"kentucky,letcher",NA
+21135,"kentucky,lewis","SOYBEANS"
+21137,"kentucky,lincoln","CORN"
+21139,"kentucky,livingston","SOYBEANS"
+21141,"kentucky,logan","SOYBEANS"
+21143,"kentucky,lyon","CORN"
+21145,"kentucky,mccracken","SOYBEANS"
+21147,"kentucky,mccreary",NA
+21149,"kentucky,mclean","SOYBEANS"
+21151,"kentucky,madison","CORN"
+21153,"kentucky,magoffin",NA
+21155,"kentucky,marion","CORN"
+21157,"kentucky,marshall","SOYBEANS"
+21159,"kentucky,martin",NA
+21161,"kentucky,mason","CORN"
+21163,"kentucky,meade","SOYBEANS"
+21165,"kentucky,menifee",NA
+21167,"kentucky,mercer","CORN"
+21169,"kentucky,metcalfe","CORN"
+21171,"kentucky,monroe","CORN"
+21173,"kentucky,montgomery","CORN"
+21175,"kentucky,morgan",NA
+21177,"kentucky,muhlenberg","SOYBEANS"
+21179,"kentucky,nelson","SOYBEANS"
+21181,"kentucky,nicholas","CORN"
+21183,"kentucky,ohio","SOYBEANS"
+21185,"kentucky,oldham","SOYBEANS"
+21187,"kentucky,owen","CORN"
+21189,"kentucky,owsley",NA
+21191,"kentucky,pendleton","CORN"
+21193,"kentucky,perry",NA
+21195,"kentucky,pike",NA
+21197,"kentucky,powell","SOYBEANS"
+21199,"kentucky,pulaski","CORN"
+21201,"kentucky,robertson",NA
+21203,"kentucky,rockcastle","CORN"
+21205,"kentucky,rowan","CORN"
+21207,"kentucky,russell","SOYBEANS"
+21209,"kentucky,scott",NA
+21211,"kentucky,shelby","SOYBEANS"
+21213,"kentucky,simpson","SOYBEANS"
+21215,"kentucky,spencer",NA
+21217,"kentucky,taylor","CORN"
+21219,"kentucky,todd","SOYBEANS"
+21221,"kentucky,trigg","SOYBEANS"
+21223,"kentucky,trimble","SOYBEANS"
+21225,"kentucky,union","CORN"
+21227,"kentucky,warren","CORN"
+21229,"kentucky,washington","CORN"
+21231,"kentucky,wayne","SOYBEANS"
+21233,"kentucky,webster","CORN"
+21235,"kentucky,whitley",NA
+21237,"kentucky,wolfe",NA
+21239,"kentucky,woodford","SOYBEANS"
+22001,"louisiana,acadia","RICE"
+22003,"louisiana,allen",NA
+22005,"louisiana,ascension",NA
+22007,"louisiana,assumption",NA
+22009,"louisiana,avoyelles","SOYBEANS"
+22011,"louisiana,beauregard","RICE"
+22013,"louisiana,bienville",NA
+22015,"louisiana,bossier","SOYBEANS"
+22017,"louisiana,caddo","COTTON"
+22019,"louisiana,calcasieu","SOYBEANS"
+22021,"louisiana,caldwell","COTTON"
+22023,"louisiana,cameron","RICE"
+22025,"louisiana,catahoula","SOYBEANS"
+22027,"louisiana,claiborne",NA
+22029,"louisiana,concordia","SOYBEANS"
+22031,"louisiana,de soto",NA
+22033,"louisiana,east baton rouge",NA
+22035,"louisiana,east carroll","SOYBEANS"
+22037,"louisiana,east feliciana",NA
+22039,"louisiana,evangeline","RICE"
+22041,"louisiana,franklin","CORN"
+22043,"louisiana,grant",NA
+22045,"louisiana,iberia","SOYBEANS"
+22047,"louisiana,iberville","SOYBEANS"
+22049,"louisiana,jackson",NA
+22051,"louisiana,jefferson",NA
+22053,"louisiana,jefferson davis","RICE"
+22055,"louisiana,lafayette","SOYBEANS"
+22057,"louisiana,lafourche",NA
+22059,"louisiana,la salle",NA
+22061,"louisiana,lincoln",NA
+22063,"louisiana,livingston",NA
+22065,"louisiana,madison","SOYBEANS"
+22067,"louisiana,morehouse","CORN"
+22069,"louisiana,natchitoches","SOYBEANS"
+22071,"louisiana,orleans",NA
+22073,"louisiana,ouachita","SOYBEANS"
+22075,"louisiana,plaquemines",NA
+22077,"louisiana,pointe coupee","SOYBEANS"
+22079,"louisiana,rapides","SOYBEANS"
+22081,"louisiana,red river",NA
+22083,"louisiana,richland","CORN"
+22085,"louisiana,sabine",NA
+22087,"louisiana,st bernard",NA
+22089,"louisiana,st charles",NA
+22091,"louisiana,st helena",NA
+22093,"louisiana,st james",NA
+22095,"louisiana,st john the baptist",NA
+22097,"louisiana,st landry","SOYBEANS"
+22099,"louisiana,st martin:north","SOYBEANS"
+22099,"louisiana,st martin:south","SOYBEANS"
+22101,"louisiana,st mary",NA
+22103,"louisiana,st tammany",NA
+22105,"louisiana,tangipahoa",NA
+22107,"louisiana,tensas","COTTON"
+22109,"louisiana,terrebonne",NA
+22111,"louisiana,union",NA
+22113,"louisiana,vermilion","RICE"
+22115,"louisiana,vernon",NA
+22117,"louisiana,washington",NA
+22119,"louisiana,webster",NA
+22121,"louisiana,west baton rouge","SOYBEANS"
+22123,"louisiana,west carroll","SOYBEANS"
+22125,"louisiana,west feliciana",NA
+22127,"louisiana,winn",NA
+23001,"maine,androscoggin",NA
+23003,"maine,aroostook",NA
+23005,"maine,cumberland",NA
+23007,"maine,franklin",NA
+23009,"maine,hancock",NA
+23011,"maine,kennebec",NA
+23013,"maine,knox",NA
+23015,"maine,lincoln",NA
+23017,"maine,oxford",NA
+23019,"maine,penobscot",NA
+23021,"maine,piscataquis",NA
+23023,"maine,sagadahoc",NA
+23025,"maine,somerset",NA
+23027,"maine,waldo",NA
+23029,"maine,washington",NA
+23031,"maine,york",NA
+24001,"maryland,allegany","CORN"
+24003,"maryland,anne arundel","CORN"
+24005,"maryland,baltimore","CORN"
+24009,"maryland,calvert","CORN"
+24011,"maryland,caroline","SOYBEANS"
+24013,"maryland,carroll","CORN"
+24015,"maryland,cecil","CORN"
+24017,"maryland,charles","SOYBEANS"
+24019,"maryland,dorchester","SOYBEANS"
+24021,"maryland,frederick","CORN"
+24023,"maryland,garrett","CORN"
+24025,"maryland,harford","CORN"
+24027,"maryland,howard","CORN"
+24029,"maryland,kent","CORN"
+24031,"maryland,montgomery","SOYBEANS"
+24033,"maryland,prince georges","CORN"
+24035,"maryland,queen annes","CORN"
+24037,"maryland,st marys","SOYBEANS"
+24039,"maryland,somerset","CORN"
+24041,"maryland,talbot","SOYBEANS"
+24043,"maryland,washington","CORN"
+24045,"maryland,wicomico","CORN"
+24047,"maryland,worcester","CORN"
+24510,"maryland,baltimore city",NA
+25001,"massachusetts,barnstable",NA
+25003,"massachusetts,berkshire",NA
+25005,"massachusetts,bristol",NA
+25007,"massachusetts,dukes",NA
+25009,"massachusetts,essex",NA
+25011,"massachusetts,franklin",NA
+25013,"massachusetts,hampden",NA
+25015,"massachusetts,hampshire",NA
+25017,"massachusetts,middlesex",NA
+25019,"massachusetts,nantucket",NA
+25021,"massachusetts,norfolk",NA
+25023,"massachusetts,plymouth",NA
+25025,"massachusetts,suffolk",NA
+25027,"massachusetts,worcester",NA
+26001,"michigan,alcona","WHEAT"
+26003,"michigan,alger",NA
+26005,"michigan,allegan","CORN"
+26007,"michigan,alpena","SOYBEANS"
+26009,"michigan,antrim","CORN"
+26011,"michigan,arenac",NA
+26013,"michigan,baraga",NA
+26015,"michigan,barry","CORN"
+26017,"michigan,bay","CORN"
+26019,"michigan,benzie","CORN"
+26021,"michigan,berrien","CORN"
+26023,"michigan,branch","CORN"
+26025,"michigan,calhoun","CORN"
+26027,"michigan,cass","CORN"
+26029,"michigan,charlevoix","CORN"
+26031,"michigan,cheboygan","WHEAT"
+26033,"michigan,chippewa",NA
+26035,"michigan,clare","CORN"
+26037,"michigan,clinton","CORN"
+26039,"michigan,crawford",NA
+26041,"michigan,delta","CORN"
+26043,"michigan,dickinson",NA
+26045,"michigan,eaton","SOYBEANS"
+26047,"michigan,emmet",NA
+26049,"michigan,genesee","SOYBEANS"
+26051,"michigan,gladwin","CORN"
+26053,"michigan,gogebic",NA
+26055,"michigan,grand traverse","CORN"
+26057,"michigan,gratiot","CORN"
+26059,"michigan,hillsdale","SOYBEANS"
+26061,"michigan,houghton",NA
+26063,"michigan,huron","CORN"
+26065,"michigan,ingham","SOYBEANS"
+26067,"michigan,ionia","CORN"
+26069,"michigan,iosco","CORN"
+26071,"michigan,iron",NA
+26073,"michigan,isabella","SOYBEANS"
+26075,"michigan,jackson","CORN"
+26077,"michigan,kalamazoo","CORN"
+26079,"michigan,kalkaska",NA
+26081,"michigan,kent","CORN"
+26083,"michigan,keweenaw",NA
+26085,"michigan,lake","CORN"
+26087,"michigan,lapeer","SOYBEANS"
+26089,"michigan,leelanau","CORN"
+26091,"michigan,lenawee","SOYBEANS"
+26093,"michigan,livingston","CORN"
+26095,"michigan,luce",NA
+26097,"michigan,mackinac",NA
+26099,"michigan,macomb","SOYBEANS"
+26101,"michigan,manistee","CORN"
+26103,"michigan,marquette",NA
+26105,"michigan,mason","CORN"
+26107,"michigan,mecosta","CORN"
+26109,"michigan,menominee","CORN"
+26111,"michigan,midland","SOYBEANS"
+26113,"michigan,missaukee","CORN"
+26115,"michigan,monroe","SOYBEANS"
+26117,"michigan,montcalm","CORN"
+26119,"michigan,montmorency","SOYBEANS"
+26121,"michigan,muskegon","CORN"
+26123,"michigan,newaygo","CORN"
+26125,"michigan,oakland","SOYBEANS"
+26127,"michigan,oceana","CORN"
+26129,"michigan,ogemaw","CORN"
+26131,"michigan,ontonagon",NA
+26133,"michigan,osceola","CORN"
+26135,"michigan,oscoda","CORN"
+26137,"michigan,otsego",NA
+26139,"michigan,ottawa","CORN"
+26141,"michigan,presque isle","SOYBEANS"
+26143,"michigan,roscommon",NA
+26145,"michigan,saginaw","SOYBEANS"
+26147,"michigan,st clair","SOYBEANS"
+26149,"michigan,st joseph","CORN"
+26151,"michigan,sanilac","SOYBEANS"
+26153,"michigan,schoolcraft",NA
+26155,"michigan,shiawassee","SOYBEANS"
+26157,"michigan,tuscola","CORN"
+26159,"michigan,van buren","CORN"
+26161,"michigan,washtenaw","SOYBEANS"
+26163,"michigan,wayne","SOYBEANS"
+26165,"michigan,wexford","CORN"
+27001,"minnesota,aitkin","SOYBEANS"
+27003,"minnesota,anoka","CORN"
+27005,"minnesota,becker","SOYBEANS"
+27007,"minnesota,beltrami","BARLEY"
+27009,"minnesota,benton","CORN"
+27011,"minnesota,big stone","SOYBEANS"
+27013,"minnesota,blue earth","CORN"
+27015,"minnesota,brown","CORN"
+27017,"minnesota,carlton","CORN"
+27019,"minnesota,carver","CORN"
+27021,"minnesota,cass",NA
+27023,"minnesota,chippewa","CORN"
+27025,"minnesota,chisago","CORN"
+27027,"minnesota,clay","SOYBEANS"
+27029,"minnesota,clearwater","SOYBEANS"
+27031,"minnesota,cook",NA
+27033,"minnesota,cottonwood","CORN"
+27035,"minnesota,crow wing","CORN"
+27037,"minnesota,dakota","CORN"
+27039,"minnesota,dodge","CORN"
+27041,"minnesota,douglas","SOYBEANS"
+27043,"minnesota,faribault","CORN"
+27045,"minnesota,fillmore","CORN"
+27047,"minnesota,freeborn","CORN"
+27049,"minnesota,goodhue","CORN"
+27051,"minnesota,grant","SOYBEANS"
+27053,"minnesota,hennepin","CORN"
+27055,"minnesota,houston","CORN"
+27057,"minnesota,hubbard","WHEAT"
+27059,"minnesota,isanti","CORN"
+27061,"minnesota,itasca",NA
+27063,"minnesota,jackson","CORN"
+27065,"minnesota,kanabec","SOYBEANS"
+27067,"minnesota,kandiyohi","CORN"
+27069,"minnesota,kittson","WHEAT"
+27071,"minnesota,koochiching","WHEAT"
+27073,"minnesota,lac qui parle","SOYBEANS"
+27075,"minnesota,lake",NA
+27077,"minnesota,lake of the woods","WHEAT"
+27079,"minnesota,le sueur","CORN"
+27081,"minnesota,lincoln","CORN"
+27083,"minnesota,lyon","CORN"
+27085,"minnesota,mcleod","CORN"
+27087,"minnesota,mahnomen","SOYBEANS"
+27089,"minnesota,marshall","WHEAT"
+27091,"minnesota,martin","CORN"
+27093,"minnesota,meeker","CORN"
+27095,"minnesota,mille lacs","CORN"
+27097,"minnesota,morrison","CORN"
+27099,"minnesota,mower","CORN"
+27101,"minnesota,murray","CORN"
+27103,"minnesota,nicollet","CORN"
+27105,"minnesota,nobles","CORN"
+27107,"minnesota,norman","SOYBEANS"
+27109,"minnesota,olmsted","CORN"
+27111,"minnesota,otter tail","SOYBEANS"
+27113,"minnesota,pennington","SOYBEANS"
+27115,"minnesota,pine","CORN"
+27117,"minnesota,pipestone","CORN"
+27119,"minnesota,polk","WHEAT"
+27121,"minnesota,pope","CORN"
+27123,"minnesota,ramsey",NA
+27125,"minnesota,red lake","SOYBEANS"
+27127,"minnesota,redwood","CORN"
+27129,"minnesota,renville","CORN"
+27131,"minnesota,rice","CORN"
+27133,"minnesota,rock","CORN"
+27135,"minnesota,roseau","WHEAT"
+27137,"minnesota,st louis",NA
+27139,"minnesota,scott","CORN"
+27141,"minnesota,sherburne","CORN"
+27143,"minnesota,sibley","CORN"
+27145,"minnesota,stearns","CORN"
+27147,"minnesota,steele","CORN"
+27149,"minnesota,stevens","CORN"
+27151,"minnesota,swift","CORN"
+27153,"minnesota,todd","CORN"
+27155,"minnesota,traverse","SOYBEANS"
+27157,"minnesota,wabasha","CORN"
+27159,"minnesota,wadena","CORN"
+27161,"minnesota,waseca","CORN"
+27163,"minnesota,washington","CORN"
+27165,"minnesota,watonwan","CORN"
+27167,"minnesota,wilkin","SOYBEANS"
+27169,"minnesota,winona","CORN"
+27171,"minnesota,wright","SOYBEANS"
+27173,"minnesota,yellow medicine","CORN"
+28001,"mississippi,adams","SOYBEANS"
+28003,"mississippi,alcorn","SOYBEANS"
+28005,"mississippi,amite",NA
+28007,"mississippi,attala",NA
+28009,"mississippi,benton","SOYBEANS"
+28011,"mississippi,bolivar","SOYBEANS"
+28013,"mississippi,calhoun","SOYBEANS"
+28015,"mississippi,carroll","SOYBEANS"
+28017,"mississippi,chickasaw","SOYBEANS"
+28019,"mississippi,choctaw",NA
+28021,"mississippi,claiborne","CORN"
+28023,"mississippi,clarke",NA
+28025,"mississippi,clay",NA
+28027,"mississippi,coahoma","SOYBEANS"
+28029,"mississippi,copiah",NA
+28031,"mississippi,covington","SOYBEANS"
+28033,"mississippi,de soto","SOYBEANS"
+28035,"mississippi,forrest",NA
+28037,"mississippi,franklin",NA
+28039,"mississippi,george","CORN"
+28041,"mississippi,greene","CORN"
+28043,"mississippi,grenada","CORN"
+28045,"mississippi,hancock",NA
+28047,"mississippi,harrison",NA
+28049,"mississippi,hinds","CORN"
+28051,"mississippi,holmes","SOYBEANS"
+28053,"mississippi,humphreys","SOYBEANS"
+28055,"mississippi,issaquena","SOYBEANS"
+28057,"mississippi,itawamba","SOYBEANS"
+28059,"mississippi,jackson",NA
+28061,"mississippi,jasper",NA
+28063,"mississippi,jefferson","SOYBEANS"
+28065,"mississippi,jefferson davis","CORN"
+28067,"mississippi,jones",NA
+28069,"mississippi,kemper",NA
+28071,"mississippi,lafayette","SOYBEANS"
+28073,"mississippi,lamar",NA
+28075,"mississippi,lauderdale",NA
+28077,"mississippi,lawrence",NA
+28079,"mississippi,leake",NA
+28081,"mississippi,lee","SOYBEANS"
+28083,"mississippi,leflore","SOYBEANS"
+28085,"mississippi,lincoln",NA
+28087,"mississippi,lowndes","SOYBEANS"
+28089,"mississippi,madison","CORN"
+28091,"mississippi,marion",NA
+28093,"mississippi,marshall","SOYBEANS"
+28095,"mississippi,monroe","SOYBEANS"
+28097,"mississippi,montgomery","COTTON"
+28099,"mississippi,neshoba",NA
+28101,"mississippi,newton",NA
+28103,"mississippi,noxubee","CORN"
+28105,"mississippi,oktibbeha",NA
+28107,"mississippi,panola","SOYBEANS"
+28109,"mississippi,pearl river",NA
+28111,"mississippi,perry",NA
+28113,"mississippi,pike",NA
+28115,"mississippi,pontotoc","SOYBEANS"
+28117,"mississippi,prentiss","SOYBEANS"
+28119,"mississippi,quitman","SOYBEANS"
+28121,"mississippi,rankin","SOYBEANS"
+28123,"mississippi,scott","SOYBEANS"
+28125,"mississippi,sharkey","SOYBEANS"
+28127,"mississippi,simpson",NA
+28129,"mississippi,smith",NA
+28131,"mississippi,stone",NA
+28133,"mississippi,sunflower","SOYBEANS"
+28135,"mississippi,tallahatchie","SOYBEANS"
+28137,"mississippi,tate","SOYBEANS"
+28139,"mississippi,tippah","SOYBEANS"
+28141,"mississippi,tishomingo","SOYBEANS"
+28143,"mississippi,tunica","SOYBEANS"
+28145,"mississippi,union","SOYBEANS"
+28147,"mississippi,walthall","SOYBEANS"
+28149,"mississippi,warren","SOYBEANS"
+28151,"mississippi,washington","SOYBEANS"
+28153,"mississippi,wayne",NA
+28155,"mississippi,webster","COTTON"
+28157,"mississippi,wilkinson",NA
+28159,"mississippi,winston",NA
+28161,"mississippi,yalobusha","COTTON"
+28163,"mississippi,yazoo","CORN"
+29001,"missouri,adair","SOYBEANS"
+29003,"missouri,andrew","SOYBEANS"
+29005,"missouri,atchison","CORN"
+29007,"missouri,audrain","SOYBEANS"
+29009,"missouri,barry","CORN"
+29011,"missouri,barton","SOYBEANS"
+29013,"missouri,bates","SOYBEANS"
+29015,"missouri,benton","SOYBEANS"
+29017,"missouri,bollinger","SOYBEANS"
+29019,"missouri,boone","SOYBEANS"
+29021,"missouri,buchanan","SOYBEANS"
+29023,"missouri,butler","SOYBEANS"
+29025,"missouri,caldwell","SOYBEANS"
+29027,"missouri,callaway","SOYBEANS"
+29029,"missouri,camden",NA
+29031,"missouri,cape girardeau","SOYBEANS"
+29033,"missouri,carroll","SOYBEANS"
+29035,"missouri,carter",NA
+29037,"missouri,cass","SOYBEANS"
+29039,"missouri,cedar","SOYBEANS"
+29041,"missouri,chariton","SOYBEANS"
+29043,"missouri,christian","CORN"
+29045,"missouri,clark","CORN"
+29047,"missouri,clay","SOYBEANS"
+29049,"missouri,clinton","SOYBEANS"
+29051,"missouri,cole","SOYBEANS"
+29053,"missouri,cooper","SOYBEANS"
+29055,"missouri,crawford","CORN"
+29057,"missouri,dade","SOYBEANS"
+29059,"missouri,dallas","SOYBEANS"
+29061,"missouri,daviess","SOYBEANS"
+29063,"missouri,de kalb","SOYBEANS"
+29065,"missouri,dent",NA
+29067,"missouri,douglas",NA
+29069,"missouri,dunklin","COTTON"
+29071,"missouri,franklin","SOYBEANS"
+29073,"missouri,gasconade","SOYBEANS"
+29075,"missouri,gentry","SOYBEANS"
+29077,"missouri,greene","SOYBEANS"
+29079,"missouri,grundy","SOYBEANS"
+29081,"missouri,harrison","SOYBEANS"
+29083,"missouri,henry","SOYBEANS"
+29085,"missouri,hickory",NA
+29087,"missouri,holt","CORN"
+29089,"missouri,howard","SOYBEANS"
+29091,"missouri,howell","CORN"
+29093,"missouri,iron",NA
+29095,"missouri,jackson","SOYBEANS"
+29097,"missouri,jasper","SOYBEANS"
+29099,"missouri,jefferson","SOYBEANS"
+29101,"missouri,johnson","SOYBEANS"
+29103,"missouri,knox","SOYBEANS"
+29105,"missouri,laclede","CORN"
+29107,"missouri,lafayette","SOYBEANS"
+29109,"missouri,lawrence",NA
+29111,"missouri,lewis","SOYBEANS"
+29113,"missouri,lincoln","SOYBEANS"
+29115,"missouri,linn","SOYBEANS"
+29117,"missouri,livingston","SOYBEANS"
+29119,"missouri,mcdonald",NA
+29121,"missouri,macon","SOYBEANS"
+29123,"missouri,madison","SOYBEANS"
+29125,"missouri,maries","SOYBEANS"
+29127,"missouri,marion","SOYBEANS"
+29129,"missouri,mercer","SOYBEANS"
+29131,"missouri,miller","SOYBEANS"
+29133,"missouri,mississippi","SOYBEANS"
+29135,"missouri,moniteau","SOYBEANS"
+29137,"missouri,monroe","SOYBEANS"
+29139,"missouri,montgomery","SOYBEANS"
+29141,"missouri,morgan","SOYBEANS"
+29143,"missouri,new madrid","SOYBEANS"
+29145,"missouri,newton","SOYBEANS"
+29147,"missouri,nodaway","SOYBEANS"
+29149,"missouri,oregon",NA
+29151,"missouri,osage","SOYBEANS"
+29153,"missouri,ozark",NA
+29155,"missouri,pemiscot","SOYBEANS"
+29157,"missouri,perry","SOYBEANS"
+29159,"missouri,pettis","SOYBEANS"
+29161,"missouri,phelps",NA
+29163,"missouri,pike","SOYBEANS"
+29165,"missouri,platte","SOYBEANS"
+29167,"missouri,polk","SOYBEANS"
+29169,"missouri,pulaski",NA
+29171,"missouri,putnam","SOYBEANS"
+29173,"missouri,ralls","SOYBEANS"
+29175,"missouri,randolph","SOYBEANS"
+29177,"missouri,ray","SOYBEANS"
+29179,"missouri,reynolds",NA
+29181,"missouri,ripley","RICE"
+29183,"missouri,st charles","SOYBEANS"
+29185,"missouri,st clair","SOYBEANS"
+29187,"missouri,st francois","SOYBEANS"
+29189,"missouri,st louis","SOYBEANS"
+29510,"missouri,st louis city",NA
+29186,"missouri,ste genevieve","SOYBEANS"
+29195,"missouri,saline","SOYBEANS"
+29197,"missouri,schuyler","SOYBEANS"
+29199,"missouri,scotland","SOYBEANS"
+29201,"missouri,scott","SOYBEANS"
+29203,"missouri,shannon",NA
+29205,"missouri,shelby","SOYBEANS"
+29207,"missouri,stoddard","SOYBEANS"
+29209,"missouri,stone","CORN"
+29211,"missouri,sullivan","SOYBEANS"
+29213,"missouri,taney",NA
+29215,"missouri,texas",NA
+29217,"missouri,vernon","SOYBEANS"
+29219,"missouri,warren","SOYBEANS"
+29221,"missouri,washington",NA
+29223,"missouri,wayne","CORN"
+29225,"missouri,webster","CORN"
+29227,"missouri,worth","SOYBEANS"
+29229,"missouri,wright",NA
+30001,"montana,beaverhead","WHEAT"
+30003,"montana,big horn","WHEAT"
+30005,"montana,blaine","WHEAT"
+30007,"montana,broadwater","WHEAT"
+30009,"montana,carbon","WHEAT"
+30011,"montana,carter","WHEAT"
+30013,"montana,cascade","WHEAT"
+30015,"montana,chouteau","WHEAT"
+30017,"montana,custer","WHEAT"
+30019,"montana,daniels","WHEAT"
+30021,"montana,dawson","WHEAT"
+30023,"montana,deer lodge",NA
+30025,"montana,fallon","WHEAT"
+30027,"montana,fergus","WHEAT"
+30029,"montana,flathead","WHEAT"
+30031,"montana,gallatin","WHEAT"
+30033,"montana,garfield","WHEAT"
+30035,"montana,glacier","WHEAT"
+30037,"montana,golden valley","WHEAT"
+30039,"montana,granite","WHEAT"
+30041,"montana,hill","WHEAT"
+30043,"montana,jefferson",NA
+30045,"montana,judith basin","WHEAT"
+30047,"montana,lake","WHEAT"
+30049,"montana,lewis and clark","WHEAT"
+30051,"montana,liberty","WHEAT"
+30053,"montana,lincoln",NA
+30055,"montana,mccone","WHEAT"
+30057,"montana,madison",NA
+30059,"montana,meagher","BARLEY"
+30061,"montana,mineral",NA
+30063,"montana,missoula","WHEAT"
+30065,"montana,musselshell","WHEAT"
+30067,"montana,park","WHEAT"
+30069,"montana,petroleum","WHEAT"
+30071,"montana,phillips","WHEAT"
+30073,"montana,pondera","WHEAT"
+30075,"montana,powder river","WHEAT"
+30077,"montana,powell",NA
+30079,"montana,prairie","WHEAT"
+30081,"montana,ravalli","WHEAT"
+30083,"montana,richland","WHEAT"
+30085,"montana,roosevelt","WHEAT"
+30087,"montana,rosebud","WHEAT"
+30089,"montana,sanders",NA
+30091,"montana,sheridan","WHEAT"
+30093,"montana,silver bow",NA
+30095,"montana,stillwater","WHEAT"
+30097,"montana,sweet grass","WHEAT"
+30099,"montana,teton","WHEAT"
+30101,"montana,toole","WHEAT"
+30103,"montana,treasure","WHEAT"
+30105,"montana,valley","WHEAT"
+30107,"montana,wheatland","WHEAT"
+30109,"montana,wibaux","WHEAT"
+30111,"montana,yellowstone","WHEAT"
+30067,"montana,yellowstone national","WHEAT"
+31001,"nebraska,adams","CORN"
+31003,"nebraska,antelope","CORN"
+31005,"nebraska,arthur",NA
+31007,"nebraska,banner","WHEAT"
+31009,"nebraska,blaine",NA
+31011,"nebraska,boone","CORN"
+31013,"nebraska,box butte","WHEAT"
+31015,"nebraska,boyd","CORN"
+31017,"nebraska,brown","CORN"
+31019,"nebraska,buffalo","CORN"
+31021,"nebraska,burt","CORN"
+31023,"nebraska,butler","CORN"
+31025,"nebraska,cass","SOYBEANS"
+31027,"nebraska,cedar","CORN"
+31029,"nebraska,chase","CORN"
+31031,"nebraska,cherry","CORN"
+31033,"nebraska,cheyenne","WHEAT"
+31035,"nebraska,clay","CORN"
+31037,"nebraska,colfax","CORN"
+31039,"nebraska,cuming","CORN"
+31041,"nebraska,custer","CORN"
+31043,"nebraska,dakota","CORN"
+31045,"nebraska,dawes","WHEAT"
+31047,"nebraska,dawson","CORN"
+31049,"nebraska,deuel","WHEAT"
+31051,"nebraska,dixon","CORN"
+31053,"nebraska,dodge","CORN"
+31055,"nebraska,douglas","SOYBEANS"
+31057,"nebraska,dundy","CORN"
+31059,"nebraska,fillmore","CORN"
+31061,"nebraska,franklin","CORN"
+31063,"nebraska,frontier","CORN"
+31065,"nebraska,furnas","CORN"
+31067,"nebraska,gage","CORN"
+31069,"nebraska,garden","WHEAT"
+31071,"nebraska,garfield","CORN"
+31073,"nebraska,gosper","CORN"
+31075,"nebraska,grant",NA
+31077,"nebraska,greeley","CORN"
+31079,"nebraska,hall","CORN"
+31081,"nebraska,hamilton","CORN"
+31083,"nebraska,harlan","CORN"
+31085,"nebraska,hayes","CORN"
+31087,"nebraska,hitchcock","WHEAT"
+31089,"nebraska,holt","CORN"
+31091,"nebraska,hooker",NA
+31093,"nebraska,howard","CORN"
+31095,"nebraska,jefferson","CORN"
+31097,"nebraska,johnson","SOYBEANS"
+31099,"nebraska,kearney","CORN"
+31101,"nebraska,keith","CORN"
+31103,"nebraska,keya paha","CORN"
+31105,"nebraska,kimball","WHEAT"
+31107,"nebraska,knox","CORN"
+31109,"nebraska,lancaster","SOYBEANS"
+31111,"nebraska,lincoln","CORN"
+31113,"nebraska,logan","CORN"
+31115,"nebraska,loup","CORN"
+31117,"nebraska,mcpherson",NA
+31119,"nebraska,madison","CORN"
+31121,"nebraska,merrick","CORN"
+31123,"nebraska,morrill","CORN"
+31125,"nebraska,nance","CORN"
+31127,"nebraska,nemaha","SOYBEANS"
+31129,"nebraska,nuckolls","CORN"
+31131,"nebraska,otoe","SOYBEANS"
+31133,"nebraska,pawnee","SOYBEANS"
+31135,"nebraska,perkins","CORN"
+31137,"nebraska,phelps","CORN"
+31139,"nebraska,pierce","CORN"
+31141,"nebraska,platte","CORN"
+31143,"nebraska,polk","CORN"
+31145,"nebraska,red willow","CORN"
+31147,"nebraska,richardson","SOYBEANS"
+31149,"nebraska,rock","CORN"
+31151,"nebraska,saline","CORN"
+31153,"nebraska,sarpy","SOYBEANS"
+31155,"nebraska,saunders","CORN"
+31157,"nebraska,scotts bluff","CORN"
+31159,"nebraska,seward","CORN"
+31161,"nebraska,sheridan","WHEAT"
+31163,"nebraska,sherman","CORN"
+31165,"nebraska,sioux","CORN"
+31167,"nebraska,stanton","CORN"
+31169,"nebraska,thayer","CORN"
+31171,"nebraska,thomas",NA
+31173,"nebraska,thurston","CORN"
+31175,"nebraska,valley","CORN"
+31177,"nebraska,washington","SOYBEANS"
+31179,"nebraska,wayne","CORN"
+31181,"nebraska,webster","CORN"
+31183,"nebraska,wheeler","CORN"
+31185,"nebraska,york","CORN"
+32510,"nevada,carson city",NA
+32001,"nevada,churchill",NA
+32003,"nevada,clark",NA
+32005,"nevada,douglas",NA
+32007,"nevada,elko",NA
+32009,"nevada,esmeralda",NA
+32011,"nevada,eureka",NA
+32013,"nevada,humboldt",NA
+32015,"nevada,lander",NA
+32017,"nevada,lincoln",NA
+32019,"nevada,lyon",NA
+32021,"nevada,mineral",NA
+32023,"nevada,nye",NA
+32027,"nevada,pershing",NA
+32029,"nevada,storey",NA
+32031,"nevada,washoe",NA
+32033,"nevada,white pine",NA
+33001,"new hampshire,belknap",NA
+33003,"new hampshire,carroll",NA
+33005,"new hampshire,cheshire",NA
+33007,"new hampshire,coos",NA
+33009,"new hampshire,grafton",NA
+33011,"new hampshire,hillsborough",NA
+33013,"new hampshire,merrimack",NA
+33015,"new hampshire,rockingham",NA
+33017,"new hampshire,strafford",NA
+33019,"new hampshire,sullivan",NA
+34001,"new jersey,atlantic",NA
+34003,"new jersey,bergen",NA
+34005,"new jersey,burlington","SOYBEANS"
+34007,"new jersey,camden",NA
+34009,"new jersey,cape may",NA
+34011,"new jersey,cumberland","SOYBEANS"
+34013,"new jersey,essex",NA
+34015,"new jersey,gloucester","CORN"
+34017,"new jersey,hudson",NA
+34019,"new jersey,hunterdon","CORN"
+34021,"new jersey,mercer","SOYBEANS"
+34023,"new jersey,middlesex","CORN"
+34025,"new jersey,monmouth","SOYBEANS"
+34027,"new jersey,morris",NA
+34029,"new jersey,ocean",NA
+34031,"new jersey,passaic",NA
+34033,"new jersey,salem","SOYBEANS"
+34035,"new jersey,somerset","WHEAT"
+34037,"new jersey,sussex","CORN"
+34039,"new jersey,union",NA
+34041,"new jersey,warren","CORN"
+35001,"new mexico,bernalillo",NA
+35003,"new mexico,catron",NA
+35005,"new mexico,chaves","COTTON"
+35006,"new mexico,cibola",NA
+35007,"new mexico,colfax",NA
+35009,"new mexico,curry","WHEAT"
+35011,"new mexico,de baca",NA
+35013,"new mexico,dona ana","COTTON"
+35015,"new mexico,eddy","COTTON"
+35017,"new mexico,grant",NA
+35019,"new mexico,guadalupe",NA
+35021,"new mexico,harding",NA
+35023,"new mexico,hidalgo",NA
+35025,"new mexico,lea","COTTON"
+35027,"new mexico,lincoln",NA
+35028,"new mexico,los alamos",NA
+35029,"new mexico,luna",NA
+35031,"new mexico,mckinley",NA
+35033,"new mexico,mora",NA
+35035,"new mexico,otero",NA
+35037,"new mexico,quay","WHEAT"
+35039,"new mexico,rio arriba",NA
+35041,"new mexico,roosevelt","WHEAT"
+35043,"new mexico,sandoval",NA
+35045,"new mexico,san juan",NA
+35047,"new mexico,san miguel",NA
+35049,"new mexico,santa fe",NA
+35051,"new mexico,sierra",NA
+35053,"new mexico,socorro",NA
+35055,"new mexico,taos",NA
+35057,"new mexico,torrance",NA
+35059,"new mexico,union","WHEAT"
+35061,"new mexico,valencia",NA
+36001,"new york,albany","CORN"
+36003,"new york,allegany","CORN"
+36005,"new york,bronx",NA
+36007,"new york,broome","CORN"
+36009,"new york,cattaraugus","CORN"
+36011,"new york,cayuga","CORN"
+36013,"new york,chautauqua","CORN"
+36015,"new york,chemung","CORN"
+36017,"new york,chenango","CORN"
+36019,"new york,clinton","CORN"
+36021,"new york,columbia","CORN"
+36023,"new york,cortland","CORN"
+36025,"new york,delaware","CORN"
+36027,"new york,dutchess","CORN"
+36029,"new york,erie","CORN"
+36031,"new york,essex",NA
+36033,"new york,franklin",NA
+36035,"new york,fulton","CORN"
+36037,"new york,genesee","CORN"
+36039,"new york,greene",NA
+36041,"new york,hamilton",NA
+36043,"new york,herkimer","CORN"
+36045,"new york,jefferson","CORN"
+36047,"new york,kings",NA
+36049,"new york,lewis","CORN"
+36051,"new york,livingston","CORN"
+36053,"new york,madison","CORN"
+36055,"new york,monroe","CORN"
+36057,"new york,montgomery","CORN"
+36059,"new york,nassau",NA
+36061,"new york,new york",NA
+36063,"new york,niagara","CORN"
+36065,"new york,oneida","CORN"
+36067,"new york,onondaga","CORN"
+36069,"new york,ontario","CORN"
+36071,"new york,orange","CORN"
+36073,"new york,orleans","CORN"
+36075,"new york,oswego","CORN"
+36077,"new york,otsego","CORN"
+36079,"new york,putnam",NA
+36081,"new york,queens",NA
+36083,"new york,rensselaer","CORN"
+36085,"new york,richmond",NA
+36087,"new york,rockland",NA
+36089,"new york,st lawrence","CORN"
+36091,"new york,saratoga","CORN"
+36093,"new york,schenectady","CORN"
+36095,"new york,schoharie","CORN"
+36097,"new york,schuyler","CORN"
+36099,"new york,seneca","CORN"
+36101,"new york,steuben","CORN"
+36103,"new york,suffolk","CORN"
+36105,"new york,sullivan","CORN"
+36107,"new york,tioga","CORN"
+36109,"new york,tompkins","CORN"
+36111,"new york,ulster","CORN"
+36113,"new york,warren",NA
+36115,"new york,washington","CORN"
+36117,"new york,wayne","CORN"
+36119,"new york,westchester",NA
+36121,"new york,wyoming","CORN"
+36123,"new york,yates","CORN"
+37001,"north carolina,alamance","CORN"
+37003,"north carolina,alexander","CORN"
+37005,"north carolina,alleghany",NA
+37007,"north carolina,anson","SOYBEANS"
+37009,"north carolina,ashe",NA
+37011,"north carolina,avery",NA
+37013,"north carolina,beaufort","SOYBEANS"
+37015,"north carolina,bertie","COTTON"
+37017,"north carolina,bladen","CORN"
+37019,"north carolina,brunswick","CORN"
+37021,"north carolina,buncombe",NA
+37023,"north carolina,burke","CORN"
+37025,"north carolina,cabarrus","SOYBEANS"
+37027,"north carolina,caldwell",NA
+37029,"north carolina,camden","SOYBEANS"
+37031,"north carolina,carteret","SOYBEANS"
+37033,"north carolina,caswell","SOYBEANS"
+37035,"north carolina,catawba","SOYBEANS"
+37037,"north carolina,chatham","CORN"
+37039,"north carolina,cherokee","CORN"
+37041,"north carolina,chowan","COTTON"
+37043,"north carolina,clay",NA
+37045,"north carolina,cleveland","SOYBEANS"
+37047,"north carolina,columbus","SOYBEANS"
+37049,"north carolina,craven","SOYBEANS"
+37051,"north carolina,cumberland","SOYBEANS"
+37053,"north carolina,currituck:knotts","SOYBEANS"
+37053,"north carolina,currituck:main","SOYBEANS"
+37053,"north carolina,currituck:spit","SOYBEANS"
+37055,"north carolina,dare",NA
+37057,"north carolina,davidson","SOYBEANS"
+37059,"north carolina,davie","CORN"
+37061,"north carolina,duplin","SOYBEANS"
+37063,"north carolina,durham",NA
+37065,"north carolina,edgecombe","SOYBEANS"
+37067,"north carolina,forsyth","SOYBEANS"
+37069,"north carolina,franklin","SOYBEANS"
+37071,"north carolina,gaston","SOYBEANS"
+37073,"north carolina,gates","SOYBEANS"
+37075,"north carolina,graham",NA
+37077,"north carolina,granville","SOYBEANS"
+37079,"north carolina,greene","SOYBEANS"
+37081,"north carolina,guilford","SOYBEANS"
+37083,"north carolina,halifax","COTTON"
+37085,"north carolina,harnett","SOYBEANS"
+37087,"north carolina,haywood","CORN"
+37089,"north carolina,henderson","CORN"
+37091,"north carolina,hertford","COTTON"
+37093,"north carolina,hoke","SOYBEANS"
+37095,"north carolina,hyde","CORN"
+37097,"north carolina,iredell","CORN"
+37099,"north carolina,jackson",NA
+37101,"north carolina,johnston","SOYBEANS"
+37103,"north carolina,jones","SOYBEANS"
+37105,"north carolina,lee","SOYBEANS"
+37107,"north carolina,lenoir","SOYBEANS"
+37109,"north carolina,lincoln","SOYBEANS"
+37111,"north carolina,mcdowell",NA
+37113,"north carolina,macon",NA
+37115,"north carolina,madison",NA
+37117,"north carolina,martin","COTTON"
+37119,"north carolina,mecklenburg","SOYBEANS"
+37121,"north carolina,mitchell",NA
+37123,"north carolina,montgomery",NA
+37125,"north carolina,moore","SOYBEANS"
+37127,"north carolina,nash","SOYBEANS"
+37129,"north carolina,new hanover",NA
+37131,"north carolina,northampton","COTTON"
+37133,"north carolina,onslow","SOYBEANS"
+37135,"north carolina,orange","SOYBEANS"
+37137,"north carolina,pamlico","SOYBEANS"
+37139,"north carolina,pasquotank","SOYBEANS"
+37141,"north carolina,pender","CORN"
+37143,"north carolina,perquimans","SOYBEANS"
+37145,"north carolina,person","SOYBEANS"
+37147,"north carolina,pitt","SOYBEANS"
+37149,"north carolina,polk",NA
+37151,"north carolina,randolph","SOYBEANS"
+37153,"north carolina,richmond",NA
+37155,"north carolina,robeson","SOYBEANS"
+37157,"north carolina,rockingham","SOYBEANS"
+37159,"north carolina,rowan","SOYBEANS"
+37161,"north carolina,rutherford","SOYBEANS"
+37163,"north carolina,sampson","SOYBEANS"
+37165,"north carolina,scotland","SOYBEANS"
+37167,"north carolina,stanly","SOYBEANS"
+37169,"north carolina,stokes","SOYBEANS"
+37171,"north carolina,surry","SOYBEANS"
+37173,"north carolina,swain",NA
+37175,"north carolina,transylvania","CORN"
+37177,"north carolina,tyrrell","SOYBEANS"
+37179,"north carolina,union","SOYBEANS"
+37181,"north carolina,vance","SOYBEANS"
+37183,"north carolina,wake","SOYBEANS"
+37185,"north carolina,warren","SOYBEANS"
+37187,"north carolina,washington","SOYBEANS"
+37189,"north carolina,watauga",NA
+37191,"north carolina,wayne","SOYBEANS"
+37193,"north carolina,wilkes","CORN"
+37195,"north carolina,wilson","SOYBEANS"
+37197,"north carolina,yadkin","SOYBEANS"
+37199,"north carolina,yancey",NA
+38001,"north dakota,adams","WHEAT"
+38003,"north dakota,barnes","SOYBEANS"
+38005,"north dakota,benson","WHEAT"
+38007,"north dakota,billings","WHEAT"
+38009,"north dakota,bottineau","WHEAT"
+38011,"north dakota,bowman","WHEAT"
+38013,"north dakota,burke","WHEAT"
+38015,"north dakota,burleigh","CORN"
+38017,"north dakota,cass","SOYBEANS"
+38019,"north dakota,cavalier","WHEAT"
+38021,"north dakota,dickey","SOYBEANS"
+38023,"north dakota,divide","WHEAT"
+38025,"north dakota,dunn","WHEAT"
+38027,"north dakota,eddy","SOYBEANS"
+38029,"north dakota,emmons","WHEAT"
+38031,"north dakota,foster","SOYBEANS"
+38033,"north dakota,golden valley","WHEAT"
+38035,"north dakota,grand forks","WHEAT"
+38037,"north dakota,grant","WHEAT"
+38039,"north dakota,griggs","SOYBEANS"
+38041,"north dakota,hettinger","WHEAT"
+38043,"north dakota,kidder","WHEAT"
+38045,"north dakota,la moure","SOYBEANS"
+38047,"north dakota,logan","WHEAT"
+38049,"north dakota,mchenry","WHEAT"
+38051,"north dakota,mcintosh","WHEAT"
+38053,"north dakota,mckenzie","WHEAT"
+38055,"north dakota,mclean","WHEAT"
+38057,"north dakota,mercer","WHEAT"
+38059,"north dakota,morton","WHEAT"
+38061,"north dakota,mountrail","WHEAT"
+38063,"north dakota,nelson","WHEAT"
+38065,"north dakota,oliver","WHEAT"
+38067,"north dakota,pembina","WHEAT"
+38069,"north dakota,pierce","WHEAT"
+38071,"north dakota,ramsey","WHEAT"
+38073,"north dakota,ransom","SOYBEANS"
+38075,"north dakota,renville","WHEAT"
+38077,"north dakota,richland","SOYBEANS"
+38079,"north dakota,rolette","WHEAT"
+38081,"north dakota,sargent","SOYBEANS"
+38083,"north dakota,sheridan","WHEAT"
+38085,"north dakota,sioux","CORN"
+38087,"north dakota,slope","WHEAT"
+38089,"north dakota,stark","WHEAT"
+38091,"north dakota,steele","SOYBEANS"
+38093,"north dakota,stutsman","SOYBEANS"
+38095,"north dakota,towner","WHEAT"
+38097,"north dakota,traill","SOYBEANS"
+38099,"north dakota,walsh","WHEAT"
+38101,"north dakota,ward","WHEAT"
+38103,"north dakota,wells","WHEAT"
+38105,"north dakota,williams","WHEAT"
+39001,"ohio,adams","SOYBEANS"
+39003,"ohio,allen","SOYBEANS"
+39005,"ohio,ashland","SOYBEANS"
+39007,"ohio,ashtabula","SOYBEANS"
+39009,"ohio,athens",NA
+39011,"ohio,auglaize","SOYBEANS"
+39013,"ohio,belmont",NA
+39015,"ohio,brown","SOYBEANS"
+39017,"ohio,butler","SOYBEANS"
+39019,"ohio,carroll","CORN"
+39021,"ohio,champaign","SOYBEANS"
+39023,"ohio,clark","SOYBEANS"
+39025,"ohio,clermont","SOYBEANS"
+39027,"ohio,clinton","SOYBEANS"
+39029,"ohio,columbiana","CORN"
+39031,"ohio,coshocton","CORN"
+39033,"ohio,crawford","SOYBEANS"
+39035,"ohio,cuyahoga",NA
+39037,"ohio,darke","SOYBEANS"
+39039,"ohio,defiance","SOYBEANS"
+39041,"ohio,delaware","SOYBEANS"
+39043,"ohio,erie","SOYBEANS"
+39045,"ohio,fairfield","SOYBEANS"
+39047,"ohio,fayette","SOYBEANS"
+39049,"ohio,franklin","SOYBEANS"
+39051,"ohio,fulton","SOYBEANS"
+39053,"ohio,gallia","CORN"
+39055,"ohio,geauga","CORN"
+39057,"ohio,greene","SOYBEANS"
+39059,"ohio,guernsey","CORN"
+39061,"ohio,hamilton","CORN"
+39063,"ohio,hancock","SOYBEANS"
+39065,"ohio,hardin","SOYBEANS"
+39067,"ohio,harrison","SOYBEANS"
+39069,"ohio,henry","SOYBEANS"
+39071,"ohio,highland","SOYBEANS"
+39073,"ohio,hocking","SOYBEANS"
+39075,"ohio,holmes","CORN"
+39077,"ohio,huron","SOYBEANS"
+39079,"ohio,jackson","SOYBEANS"
+39081,"ohio,jefferson","CORN"
+39083,"ohio,knox","CORN"
+39085,"ohio,lake",NA
+39087,"ohio,lawrence","SOYBEANS"
+39089,"ohio,licking","SOYBEANS"
+39091,"ohio,logan","SOYBEANS"
+39093,"ohio,lorain","SOYBEANS"
+39095,"ohio,lucas","SOYBEANS"
+39097,"ohio,madison","SOYBEANS"
+39099,"ohio,mahoning","CORN"
+39101,"ohio,marion","SOYBEANS"
+39103,"ohio,medina","SOYBEANS"
+39105,"ohio,meigs",NA
+39107,"ohio,mercer","CORN"
+39109,"ohio,miami","SOYBEANS"
+39111,"ohio,monroe",NA
+39113,"ohio,montgomery","SOYBEANS"
+39115,"ohio,morgan","CORN"
+39117,"ohio,morrow","SOYBEANS"
+39119,"ohio,muskingum","CORN"
+39121,"ohio,noble",NA
+39123,"ohio,ottawa","SOYBEANS"
+39125,"ohio,paulding","SOYBEANS"
+39127,"ohio,perry","CORN"
+39129,"ohio,pickaway","SOYBEANS"
+39131,"ohio,pike","SOYBEANS"
+39133,"ohio,portage","SOYBEANS"
+39135,"ohio,preble","SOYBEANS"
+39137,"ohio,putnam","SOYBEANS"
+39139,"ohio,richland","SOYBEANS"
+39141,"ohio,ross","SOYBEANS"
+39143,"ohio,sandusky","SOYBEANS"
+39145,"ohio,scioto","SOYBEANS"
+39147,"ohio,seneca","SOYBEANS"
+39149,"ohio,shelby","SOYBEANS"
+39151,"ohio,stark","CORN"
+39153,"ohio,summit",NA
+39155,"ohio,trumbull","SOYBEANS"
+39157,"ohio,tuscarawas","CORN"
+39159,"ohio,union","SOYBEANS"
+39161,"ohio,van wert","SOYBEANS"
+39163,"ohio,vinton","CORN"
+39165,"ohio,warren","SOYBEANS"
+39167,"ohio,washington","CORN"
+39169,"ohio,wayne","CORN"
+39171,"ohio,williams","SOYBEANS"
+39173,"ohio,wood","SOYBEANS"
+39175,"ohio,wyandot","SOYBEANS"
+40001,"oklahoma,adair",NA
+40003,"oklahoma,alfalfa","WHEAT"
+40005,"oklahoma,atoka",NA
+40007,"oklahoma,beaver","WHEAT"
+40009,"oklahoma,beckham","WHEAT"
+40011,"oklahoma,blaine","WHEAT"
+40013,"oklahoma,bryan",NA
+40015,"oklahoma,caddo","WHEAT"
+40017,"oklahoma,canadian","WHEAT"
+40019,"oklahoma,carter",NA
+40021,"oklahoma,cherokee",NA
+40023,"oklahoma,choctaw",NA
+40025,"oklahoma,cimarron","WHEAT"
+40027,"oklahoma,cleveland","WHEAT"
+40029,"oklahoma,coal","SOYBEANS"
+40031,"oklahoma,comanche","WHEAT"
+40033,"oklahoma,cotton","WHEAT"
+40035,"oklahoma,craig","SOYBEANS"
+40037,"oklahoma,creek",NA
+40039,"oklahoma,custer","WHEAT"
+40041,"oklahoma,delaware","SOYBEANS"
+40043,"oklahoma,dewey","WHEAT"
+40045,"oklahoma,ellis","WHEAT"
+40047,"oklahoma,garfield","WHEAT"
+40049,"oklahoma,garvin","WHEAT"
+40051,"oklahoma,grady","WHEAT"
+40053,"oklahoma,grant","WHEAT"
+40055,"oklahoma,greer","WHEAT"
+40057,"oklahoma,harmon","WHEAT"
+40059,"oklahoma,harper","WHEAT"
+40061,"oklahoma,haskell",NA
+40063,"oklahoma,hughes",NA
+40065,"oklahoma,jackson","WHEAT"
+40067,"oklahoma,jefferson",NA
+40069,"oklahoma,johnston",NA
+40071,"oklahoma,kay","WHEAT"
+40073,"oklahoma,kingfisher","WHEAT"
+40075,"oklahoma,kiowa","WHEAT"
+40077,"oklahoma,latimer",NA
+40079,"oklahoma,le flore",NA
+40081,"oklahoma,lincoln","WHEAT"
+40083,"oklahoma,logan","WHEAT"
+40085,"oklahoma,love",NA
+40087,"oklahoma,mcclain","WHEAT"
+40089,"oklahoma,mccurtain",NA
+40091,"oklahoma,mcintosh",NA
+40093,"oklahoma,major","WHEAT"
+40095,"oklahoma,marshall","WHEAT"
+40097,"oklahoma,mayes","SOYBEANS"
+40099,"oklahoma,murray",NA
+40101,"oklahoma,muskogee","SOYBEANS"
+40103,"oklahoma,noble","WHEAT"
+40105,"oklahoma,nowata","WHEAT"
+40107,"oklahoma,okfuskee","SOYBEANS"
+40109,"oklahoma,oklahoma","WHEAT"
+40111,"oklahoma,okmulgee","SOYBEANS"
+40113,"oklahoma,osage","WHEAT"
+40115,"oklahoma,ottawa","SOYBEANS"
+40117,"oklahoma,pawnee","WHEAT"
+40119,"oklahoma,payne","WHEAT"
+40121,"oklahoma,pittsburg",NA
+40123,"oklahoma,pontotoc",NA
+40125,"oklahoma,pottawatomie","WHEAT"
+40127,"oklahoma,pushmataha",NA
+40129,"oklahoma,roger mills","WHEAT"
+40131,"oklahoma,rogers","SOYBEANS"
+40133,"oklahoma,seminole",NA
+40135,"oklahoma,sequoyah","SOYBEANS"
+40137,"oklahoma,stephens","WHEAT"
+40139,"oklahoma,texas","WHEAT"
+40141,"oklahoma,tillman","WHEAT"
+40143,"oklahoma,tulsa",NA
+40145,"oklahoma,wagoner","SOYBEANS"
+40147,"oklahoma,washington","SOYBEANS"
+40149,"oklahoma,washita","WHEAT"
+40151,"oklahoma,woods","WHEAT"
+40153,"oklahoma,woodward","WHEAT"
+41001,"oregon,baker","WHEAT"
+41003,"oregon,benton",NA
+41005,"oregon,clackamas","WHEAT"
+41007,"oregon,clatsop",NA
+41009,"oregon,columbia",NA
+41011,"oregon,coos",NA
+41013,"oregon,crook",NA
+41015,"oregon,curry",NA
+41017,"oregon,deschutes",NA
+41019,"oregon,douglas",NA
+41021,"oregon,gilliam","WHEAT"
+41023,"oregon,grant",NA
+41025,"oregon,harney",NA
+41027,"oregon,hood river",NA
+41029,"oregon,jackson",NA
+41031,"oregon,jefferson","BARLEY"
+41033,"oregon,josephine",NA
+41035,"oregon,klamath","BARLEY"
+41037,"oregon,lake",NA
+41039,"oregon,lane","WHEAT"
+41041,"oregon,lincoln",NA
+41043,"oregon,linn","WHEAT"
+41045,"oregon,malheur","WHEAT"
+41047,"oregon,marion","WHEAT"
+41049,"oregon,morrow","WHEAT"
+41051,"oregon,multnomah","WHEAT"
+41053,"oregon,polk","WHEAT"
+41055,"oregon,sherman","WHEAT"
+41057,"oregon,tillamook",NA
+41059,"oregon,umatilla","WHEAT"
+41061,"oregon,union","WHEAT"
+41063,"oregon,wallowa","WHEAT"
+41065,"oregon,wasco","WHEAT"
+41067,"oregon,washington","WHEAT"
+41069,"oregon,wheeler",NA
+41071,"oregon,yamhill","WHEAT"
+42001,"pennsylvania,adams","CORN"
+42003,"pennsylvania,allegheny","CORN"
+42005,"pennsylvania,armstrong","CORN"
+42007,"pennsylvania,beaver","CORN"
+42009,"pennsylvania,bedford","CORN"
+42011,"pennsylvania,berks","SOYBEANS"
+42013,"pennsylvania,blair","CORN"
+42015,"pennsylvania,bradford","CORN"
+42017,"pennsylvania,bucks","CORN"
+42019,"pennsylvania,butler","CORN"
+42021,"pennsylvania,cambria","CORN"
+42023,"pennsylvania,cameron",NA
+42025,"pennsylvania,carbon",NA
+42027,"pennsylvania,centre","CORN"
+42029,"pennsylvania,chester","CORN"
+42031,"pennsylvania,clarion","CORN"
+42033,"pennsylvania,clearfield","CORN"
+42035,"pennsylvania,clinton","CORN"
+42037,"pennsylvania,columbia","CORN"
+42039,"pennsylvania,crawford","CORN"
+42041,"pennsylvania,cumberland","CORN"
+42043,"pennsylvania,dauphin","CORN"
+42045,"pennsylvania,delaware",NA
+42047,"pennsylvania,elk","CORN"
+42049,"pennsylvania,erie","CORN"
+42051,"pennsylvania,fayette","CORN"
+42053,"pennsylvania,forest","CORN"
+42055,"pennsylvania,franklin","CORN"
+42057,"pennsylvania,fulton","CORN"
+42059,"pennsylvania,greene","CORN"
+42061,"pennsylvania,huntingdon","CORN"
+42063,"pennsylvania,indiana","CORN"
+42065,"pennsylvania,jefferson","CORN"
+42067,"pennsylvania,juniata","CORN"
+42069,"pennsylvania,lackawanna","CORN"
+42071,"pennsylvania,lancaster","CORN"
+42073,"pennsylvania,lawrence","CORN"
+42075,"pennsylvania,lebanon","CORN"
+42077,"pennsylvania,lehigh","CORN"
+42079,"pennsylvania,luzerne","CORN"
+42081,"pennsylvania,lycoming","CORN"
+42083,"pennsylvania,mckean",NA
+42085,"pennsylvania,mercer","CORN"
+42087,"pennsylvania,mifflin","CORN"
+42089,"pennsylvania,monroe",NA
+42091,"pennsylvania,montgomery",NA
+42093,"pennsylvania,montour","CORN"
+42095,"pennsylvania,northampton","CORN"
+42097,"pennsylvania,northumberland","CORN"
+42099,"pennsylvania,perry","CORN"
+42101,"pennsylvania,philadelphia",NA
+42103,"pennsylvania,pike",NA
+42105,"pennsylvania,potter","CORN"
+42107,"pennsylvania,schuylkill","CORN"
+42109,"pennsylvania,snyder","CORN"
+42111,"pennsylvania,somerset","CORN"
+42113,"pennsylvania,sullivan","CORN"
+42115,"pennsylvania,susquehanna",NA
+42117,"pennsylvania,tioga","CORN"
+42119,"pennsylvania,union","CORN"
+42121,"pennsylvania,venango","CORN"
+42123,"pennsylvania,warren","CORN"
+42125,"pennsylvania,washington","CORN"
+42127,"pennsylvania,wayne","CORN"
+42129,"pennsylvania,westmoreland","CORN"
+42131,"pennsylvania,wyoming",NA
+42133,"pennsylvania,york","CORN"
+44001,"rhode island,bristol",NA
+44003,"rhode island,kent",NA
+44005,"rhode island,newport",NA
+44007,"rhode island,providence",NA
+44009,"rhode island,washington",NA
+45001,"south carolina,abbeville",NA
+45003,"south carolina,aiken","SOYBEANS"
+45005,"south carolina,allendale","CORN"
+45007,"south carolina,anderson","SOYBEANS"
+45009,"south carolina,bamberg","COTTON"
+45011,"south carolina,barnwell","SOYBEANS"
+45013,"south carolina,beaufort",NA
+45015,"south carolina,berkeley","CORN"
+45017,"south carolina,calhoun","COTTON"
+45019,"south carolina,charleston",NA
+45021,"south carolina,cherokee","SOYBEANS"
+45023,"south carolina,chester","WHEAT"
+45025,"south carolina,chesterfield","SOYBEANS"
+45027,"south carolina,clarendon","SOYBEANS"
+45029,"south carolina,colleton","CORN"
+45031,"south carolina,darlington","SOYBEANS"
+45033,"south carolina,dillon","SOYBEANS"
+45035,"south carolina,dorchester","CORN"
+45037,"south carolina,edgefield",NA
+45039,"south carolina,fairfield",NA
+45041,"south carolina,florence","SOYBEANS"
+45043,"south carolina,georgetown","SOYBEANS"
+45045,"south carolina,greenville","WHEAT"
+45047,"south carolina,greenwood",NA
+45049,"south carolina,hampton","COTTON"
+45051,"south carolina,horry","SOYBEANS"
+45053,"south carolina,jasper","CORN"
+45055,"south carolina,kershaw","SOYBEANS"
+45057,"south carolina,lancaster","SOYBEANS"
+45059,"south carolina,laurens",NA
+45061,"south carolina,lee","SOYBEANS"
+45063,"south carolina,lexington","CORN"
+45065,"south carolina,mccormick",NA
+45067,"south carolina,marion","SOYBEANS"
+45069,"south carolina,marlboro","SOYBEANS"
+45071,"south carolina,newberry","CORN"
+45073,"south carolina,oconee",NA
+45075,"south carolina,orangeburg","CORN"
+45077,"south carolina,pickens",NA
+45079,"south carolina,richland","CORN"
+45081,"south carolina,saluda","WHEAT"
+45083,"south carolina,spartanburg",NA
+45085,"south carolina,sumter","CORN"
+45087,"south carolina,union",NA
+45089,"south carolina,williamsburg","SOYBEANS"
+45091,"south carolina,york","WHEAT"
+46003,"south dakota,aurora","CORN"
+46005,"south dakota,beadle","CORN"
+46007,"south dakota,bennett","CORN"
+46009,"south dakota,bon homme","CORN"
+46011,"south dakota,brookings","CORN"
+46013,"south dakota,brown","SOYBEANS"
+46015,"south dakota,brule","CORN"
+46017,"south dakota,buffalo","SOYBEANS"
+46019,"south dakota,butte","WHEAT"
+46021,"south dakota,campbell","WHEAT"
+46023,"south dakota,charles mix","SOYBEANS"
+46025,"south dakota,clark","SOYBEANS"
+46027,"south dakota,clay","CORN"
+46029,"south dakota,codington","SOYBEANS"
+46031,"south dakota,corson","WHEAT"
+46033,"south dakota,custer","WHEAT"
+46035,"south dakota,davison","SOYBEANS"
+46037,"south dakota,day","SOYBEANS"
+46039,"south dakota,deuel","SOYBEANS"
+46041,"south dakota,dewey","WHEAT"
+46043,"south dakota,douglas","SOYBEANS"
+46045,"south dakota,edmunds","SOYBEANS"
+46047,"south dakota,fall river","WHEAT"
+46049,"south dakota,faulk","SOYBEANS"
+46051,"south dakota,grant","SOYBEANS"
+46053,"south dakota,gregory","CORN"
+46055,"south dakota,haakon","WHEAT"
+46057,"south dakota,hamlin","CORN"
+46059,"south dakota,hand","WHEAT"
+46061,"south dakota,hanson","CORN"
+46063,"south dakota,harding","WHEAT"
+46065,"south dakota,hughes","WHEAT"
+46067,"south dakota,hutchinson","CORN"
+46069,"south dakota,hyde","CORN"
+46071,"south dakota,jackson",NA
+46073,"south dakota,jerauld","CORN"
+46075,"south dakota,jones","WHEAT"
+46077,"south dakota,kingsbury","CORN"
+46079,"south dakota,lake","CORN"
+46081,"south dakota,lawrence",NA
+46083,"south dakota,lincoln","CORN"
+46085,"south dakota,lyman","WHEAT"
+46087,"south dakota,mccook","CORN"
+46089,"south dakota,mcpherson","SOYBEANS"
+46091,"south dakota,marshall","SOYBEANS"
+46093,"south dakota,meade","WHEAT"
+46095,"south dakota,mellette","WHEAT"
+46097,"south dakota,miner","SOYBEANS"
+46099,"south dakota,minnehaha","CORN"
+46101,"south dakota,moody","CORN"
+46103,"south dakota,pennington","WHEAT"
+46105,"south dakota,perkins","WHEAT"
+46107,"south dakota,potter","WHEAT"
+46109,"south dakota,roberts","SOYBEANS"
+46111,"south dakota,sanborn","CORN"
+46113,"south dakota,shannon",NA
+46115,"south dakota,spink","SOYBEANS"
+46117,"south dakota,stanley","CORN"
+46119,"south dakota,sully","WHEAT"
+46121,"south dakota,todd","CORN"
+46123,"south dakota,tripp","CORN"
+46125,"south dakota,turner","CORN"
+46127,"south dakota,union","CORN"
+46129,"south dakota,walworth","WHEAT"
+46135,"south dakota,yankton","CORN"
+46137,"south dakota,ziebach","WHEAT"
+47001,"tennessee,anderson",NA
+47003,"tennessee,bedford","SOYBEANS"
+47005,"tennessee,benton","SOYBEANS"
+47007,"tennessee,bledsoe","WHEAT"
+47009,"tennessee,blount","SOYBEANS"
+47011,"tennessee,bradley","CORN"
+47013,"tennessee,campbell",NA
+47015,"tennessee,cannon","SOYBEANS"
+47017,"tennessee,carroll","SOYBEANS"
+47019,"tennessee,carter",NA
+47021,"tennessee,cheatham","SOYBEANS"
+47023,"tennessee,chester","SOYBEANS"
+47025,"tennessee,claiborne","CORN"
+47027,"tennessee,clay","CORN"
+47029,"tennessee,cocke","SOYBEANS"
+47031,"tennessee,coffee","SOYBEANS"
+47033,"tennessee,crockett","COTTON"
+47035,"tennessee,cumberland","CORN"
+47037,"tennessee,davidson",NA
+47039,"tennessee,decatur","SOYBEANS"
+47041,"tennessee,de kalb","SOYBEANS"
+47043,"tennessee,dickson",NA
+47045,"tennessee,dyer","SOYBEANS"
+47047,"tennessee,fayette","SOYBEANS"
+47049,"tennessee,fentress",NA
+47051,"tennessee,franklin","SOYBEANS"
+47053,"tennessee,gibson","SOYBEANS"
+47055,"tennessee,giles","SOYBEANS"
+47057,"tennessee,grainger","WHEAT"
+47059,"tennessee,greene","CORN"
+47061,"tennessee,grundy","SOYBEANS"
+47063,"tennessee,hamblen","CORN"
+47065,"tennessee,hamilton",NA
+47067,"tennessee,hancock",NA
+47069,"tennessee,hardeman","SOYBEANS"
+47071,"tennessee,hardin","SOYBEANS"
+47073,"tennessee,hawkins","CORN"
+47075,"tennessee,haywood","COTTON"
+47077,"tennessee,henderson","SOYBEANS"
+47079,"tennessee,henry","SOYBEANS"
+47081,"tennessee,hickman","SOYBEANS"
+47083,"tennessee,houston",NA
+47085,"tennessee,humphreys","SOYBEANS"
+47087,"tennessee,jackson",NA
+47089,"tennessee,jefferson","SOYBEANS"
+47091,"tennessee,johnson",NA
+47093,"tennessee,knox",NA
+47095,"tennessee,lake","SOYBEANS"
+47097,"tennessee,lauderdale","SOYBEANS"
+47099,"tennessee,lawrence","SOYBEANS"
+47101,"tennessee,lewis",NA
+47103,"tennessee,lincoln",NA
+47105,"tennessee,loudon","SOYBEANS"
+47107,"tennessee,mcminn","SOYBEANS"
+47109,"tennessee,mcnairy","SOYBEANS"
+47111,"tennessee,macon","CORN"
+47113,"tennessee,madison","SOYBEANS"
+47115,"tennessee,marion","SOYBEANS"
+47117,"tennessee,marshall","CORN"
+47119,"tennessee,maury","SOYBEANS"
+47121,"tennessee,meigs","CORN"
+47123,"tennessee,monroe","SOYBEANS"
+47125,"tennessee,montgomery","SOYBEANS"
+47127,"tennessee,moore",NA
+47129,"tennessee,morgan",NA
+47131,"tennessee,obion","SOYBEANS"
+47133,"tennessee,overton","CORN"
+47135,"tennessee,perry","SOYBEANS"
+47137,"tennessee,pickett",NA
+47139,"tennessee,polk","SOYBEANS"
+47141,"tennessee,putnam",NA
+47143,"tennessee,rhea",NA
+47145,"tennessee,roane",NA
+47147,"tennessee,robertson","SOYBEANS"
+47149,"tennessee,rutherford","SOYBEANS"
+47151,"tennessee,scott",NA
+47153,"tennessee,sequatchie","CORN"
+47155,"tennessee,sevier","CORN"
+47157,"tennessee,shelby","SOYBEANS"
+47159,"tennessee,smith","SOYBEANS"
+47161,"tennessee,stewart","SOYBEANS"
+47163,"tennessee,sullivan",NA
+47165,"tennessee,sumner","SOYBEANS"
+47167,"tennessee,tipton","SOYBEANS"
+47169,"tennessee,trousdale",NA
+47171,"tennessee,unicoi",NA
+47173,"tennessee,union",NA
+47175,"tennessee,van buren","CORN"
+47177,"tennessee,warren","SOYBEANS"
+47179,"tennessee,washington",NA
+47181,"tennessee,wayne",NA
+47183,"tennessee,weakley","SOYBEANS"
+47185,"tennessee,white","SOYBEANS"
+47187,"tennessee,williamson","SOYBEANS"
+47189,"tennessee,wilson","CORN"
+48001,"texas,anderson",NA
+48003,"texas,andrews","COTTON"
+48005,"texas,angelina",NA
+48007,"texas,aransas",NA
+48009,"texas,archer","WHEAT"
+48011,"texas,armstrong","WHEAT"
+48013,"texas,atascosa","WHEAT"
+48015,"texas,austin","CORN"
+48017,"texas,bailey","COTTON"
+48019,"texas,bandera",NA
+48021,"texas,bastrop",NA
+48023,"texas,baylor","WHEAT"
+48025,"texas,bee","CORN"
+48027,"texas,bell","CORN"
+48029,"texas,bexar","CORN"
+48031,"texas,blanco",NA
+48033,"texas,borden","COTTON"
+48035,"texas,bosque","WHEAT"
+48037,"texas,bowie",NA
+48039,"texas,brazoria","RICE"
+48041,"texas,brazos","COTTON"
+48043,"texas,brewster",NA
+48045,"texas,briscoe","WHEAT"
+48047,"texas,brooks",NA
+48049,"texas,brown","WHEAT"
+48051,"texas,burleson","CORN"
+48053,"texas,burnet",NA
+48055,"texas,caldwell","CORN"
+48057,"texas,calhoun","CORN"
+48059,"texas,callahan","WHEAT"
+48061,"texas,cameron","COTTON"
+48063,"texas,camp",NA
+48065,"texas,carson","WHEAT"
+48067,"texas,cass",NA
+48069,"texas,castro","WHEAT"
+48071,"texas,chambers","RICE"
+48073,"texas,cherokee",NA
+48075,"texas,childress","WHEAT"
+48077,"texas,clay","WHEAT"
+48079,"texas,cochran","COTTON"
+48081,"texas,coke","WHEAT"
+48083,"texas,coleman","WHEAT"
+48085,"texas,collin","CORN"
+48087,"texas,collingsworth","COTTON"
+48089,"texas,colorado","CORN"
+48091,"texas,comal",NA
+48093,"texas,comanche","WHEAT"
+48095,"texas,concho","WHEAT"
+48097,"texas,cooke","WHEAT"
+48099,"texas,coryell","WHEAT"
+48101,"texas,cottle","WHEAT"
+48103,"texas,crane",NA
+48105,"texas,crockett",NA
+48107,"texas,crosby","COTTON"
+48109,"texas,culberson",NA
+48111,"texas,dallam","WHEAT"
+48113,"texas,dallas",NA
+48115,"texas,dawson","COTTON"
+48117,"texas,deaf smith","WHEAT"
+48119,"texas,delta","SOYBEANS"
+48121,"texas,denton","WHEAT"
+48123,"texas,de witt","CORN"
+48125,"texas,dickens","COTTON"
+48127,"texas,dimmit",NA
+48129,"texas,donley","WHEAT"
+48131,"texas,duval",NA
+48133,"texas,eastland","WHEAT"
+48135,"texas,ector",NA
+48137,"texas,edwards",NA
+48139,"texas,ellis","CORN"
+48141,"texas,el paso","COTTON"
+48143,"texas,erath",NA
+48145,"texas,falls","CORN"
+48147,"texas,fannin","SOYBEANS"
+48149,"texas,fayette","CORN"
+48151,"texas,fisher","COTTON"
+48153,"texas,floyd","COTTON"
+48155,"texas,foard","WHEAT"
+48157,"texas,fort bend","COTTON"
+48159,"texas,franklin",NA
+48161,"texas,freestone",NA
+48163,"texas,frio","WHEAT"
+48165,"texas,gaines","COTTON"
+48167,"texas,galveston:main",NA
+48167,"texas,galveston:spit",NA
+48169,"texas,garza","COTTON"
+48171,"texas,gillespie","WHEAT"
+48173,"texas,glasscock","COTTON"
+48175,"texas,goliad","CORN"
+48177,"texas,gonzales","CORN"
+48179,"texas,gray","WHEAT"
+48181,"texas,grayson","WHEAT"
+48183,"texas,gregg",NA
+48185,"texas,grimes",NA
+48187,"texas,guadalupe","CORN"
+48189,"texas,hale","COTTON"
+48191,"texas,hall","COTTON"
+48193,"texas,hamilton","WHEAT"
+48195,"texas,hansford","WHEAT"
+48197,"texas,hardeman","WHEAT"
+48199,"texas,hardin",NA
+48201,"texas,harris",NA
+48203,"texas,harrison",NA
+48205,"texas,hartley","CORN"
+48207,"texas,haskell","WHEAT"
+48209,"texas,hays","WHEAT"
+48211,"texas,hemphill","WHEAT"
+48213,"texas,henderson",NA
+48215,"texas,hidalgo","CORN"
+48217,"texas,hill","CORN"
+48219,"texas,hockley","COTTON"
+48221,"texas,hood",NA
+48223,"texas,hopkins",NA
+48225,"texas,houston",NA
+48227,"texas,howard","COTTON"
+48229,"texas,hudspeth","COTTON"
+48231,"texas,hunt","WHEAT"
+48233,"texas,hutchinson","WHEAT"
+48235,"texas,irion",NA
+48237,"texas,jack","WHEAT"
+48239,"texas,jackson","CORN"
+48241,"texas,jasper",NA
+48243,"texas,jeff davis",NA
+48245,"texas,jefferson","RICE"
+48247,"texas,jim hogg",NA
+48249,"texas,jim wells","CORN"
+48251,"texas,johnson","WHEAT"
+48253,"texas,jones","WHEAT"
+48255,"texas,karnes","CORN"
+48257,"texas,kaufman","WHEAT"
+48259,"texas,kendall",NA
+48261,"texas,kenedy",NA
+48263,"texas,kent",NA
+48265,"texas,kerr",NA
+48267,"texas,kimble",NA
+48269,"texas,king","WHEAT"
+48271,"texas,kinney",NA
+48273,"texas,kleberg",NA
+48275,"texas,knox","WHEAT"
+48277,"texas,lamar","SOYBEANS"
+48279,"texas,lamb","COTTON"
+48281,"texas,lampasas","WHEAT"
+48283,"texas,la salle",NA
+48285,"texas,lavaca","CORN"
+48287,"texas,lee",NA
+48289,"texas,leon",NA
+48291,"texas,liberty","SOYBEANS"
+48293,"texas,limestone","CORN"
+48295,"texas,lipscomb","WHEAT"
+48297,"texas,live oak","CORN"
+48299,"texas,llano",NA
+48301,"texas,loving",NA
+48303,"texas,lubbock","COTTON"
+48305,"texas,lynn","COTTON"
+48307,"texas,mcculloch","WHEAT"
+48309,"texas,mclennan","CORN"
+48311,"texas,mcmullen",NA
+48313,"texas,madison",NA
+48315,"texas,marion",NA
+48317,"texas,martin","COTTON"
+48319,"texas,mason",NA
+48321,"texas,matagorda","RICE"
+48323,"texas,maverick",NA
+48325,"texas,medina","CORN"
+48327,"texas,menard",NA
+48329,"texas,midland","COTTON"
+48331,"texas,milam","CORN"
+48333,"texas,mills","WHEAT"
+48335,"texas,mitchell","COTTON"
+48337,"texas,montague","WHEAT"
+48339,"texas,montgomery",NA
+48341,"texas,moore","WHEAT"
+48343,"texas,morris",NA
+48345,"texas,motley","COTTON"
+48347,"texas,nacogdoches",NA
+48349,"texas,navarro","COTTON"
+48351,"texas,newton",NA
+48353,"texas,nolan","COTTON"
+48355,"texas,nueces","COTTON"
+48357,"texas,ochiltree","WHEAT"
+48359,"texas,oldham","WHEAT"
+48361,"texas,orange",NA
+48363,"texas,palo pinto",NA
+48365,"texas,panola",NA
+48367,"texas,parker",NA
+48369,"texas,parmer","WHEAT"
+48371,"texas,pecos","COTTON"
+48373,"texas,polk",NA
+48375,"texas,potter","WHEAT"
+48377,"texas,presidio",NA
+48379,"texas,rains",NA
+48381,"texas,randall","WHEAT"
+48383,"texas,reagan","COTTON"
+48385,"texas,real",NA
+48387,"texas,red river",NA
+48389,"texas,reeves","WHEAT"
+48391,"texas,refugio","COTTON"
+48393,"texas,roberts","WHEAT"
+48395,"texas,robertson",NA
+48397,"texas,rockwall",NA
+48399,"texas,runnels","WHEAT"
+48401,"texas,rusk",NA
+48403,"texas,sabine",NA
+48405,"texas,san augustine",NA
+48407,"texas,san jacinto",NA
+48409,"texas,san patricio","COTTON"
+48411,"texas,san saba","WHEAT"
+48413,"texas,schleicher","COTTON"
+48415,"texas,scurry","COTTON"
+48417,"texas,shackelford","WHEAT"
+48419,"texas,shelby",NA
+48421,"texas,sherman","WHEAT"
+48423,"texas,smith",NA
+48425,"texas,somervell",NA
+48427,"texas,starr",NA
+48429,"texas,stephens",NA
+48431,"texas,sterling",NA
+48433,"texas,stonewall","WHEAT"
+48435,"texas,sutton",NA
+48437,"texas,swisher","WHEAT"
+48439,"texas,tarrant",NA
+48441,"texas,taylor","WHEAT"
+48443,"texas,terrell",NA
+48445,"texas,terry","COTTON"
+48447,"texas,throckmorton","WHEAT"
+48449,"texas,titus",NA
+48451,"texas,tom green","COTTON"
+48453,"texas,travis","CORN"
+48455,"texas,trinity",NA
+48457,"texas,tyler",NA
+48459,"texas,upshur",NA
+48461,"texas,upton","COTTON"
+48463,"texas,uvalde","CORN"
+48465,"texas,val verde",NA
+48467,"texas,van zandt",NA
+48469,"texas,victoria","CORN"
+48471,"texas,walker",NA
+48473,"texas,waller","CORN"
+48475,"texas,ward",NA
+48477,"texas,washington",NA
+48479,"texas,webb",NA
+48481,"texas,wharton","CORN"
+48483,"texas,wheeler","WHEAT"
+48485,"texas,wichita","WHEAT"
+48487,"texas,wilbarger","WHEAT"
+48489,"texas,willacy","COTTON"
+48491,"texas,williamson","CORN"
+48493,"texas,wilson","CORN"
+48495,"texas,winkler",NA
+48497,"texas,wise","WHEAT"
+48499,"texas,wood",NA
+48501,"texas,yoakum","COTTON"
+48503,"texas,young","WHEAT"
+48505,"texas,zapata",NA
+48507,"texas,zavala","WHEAT"
+49001,"utah,beaver",NA
+49003,"utah,box elder","BARLEY"
+49005,"utah,cache","BARLEY"
+49007,"utah,carbon",NA
+49009,"utah,daggett",NA
+49011,"utah,davis",NA
+49013,"utah,duchesne",NA
+49015,"utah,emery",NA
+49017,"utah,garfield",NA
+49019,"utah,grand",NA
+49021,"utah,iron",NA
+49023,"utah,juab","BARLEY"
+49025,"utah,kane",NA
+49027,"utah,millard","BARLEY"
+49029,"utah,morgan",NA
+49031,"utah,piute",NA
+49033,"utah,rich","BARLEY"
+49035,"utah,salt lake",NA
+49037,"utah,san juan",NA
+49039,"utah,sanpete","BARLEY"
+49041,"utah,sevier","BARLEY"
+49043,"utah,summit",NA
+49045,"utah,tooele",NA
+49047,"utah,uintah","BARLEY"
+49049,"utah,utah","BARLEY"
+49051,"utah,wasatch",NA
+49053,"utah,washington",NA
+49055,"utah,wayne",NA
+49057,"utah,weber","BARLEY"
+50001,"vermont,addison",NA
+50003,"vermont,bennington",NA
+50005,"vermont,caledonia",NA
+50007,"vermont,chittenden",NA
+50009,"vermont,essex",NA
+50011,"vermont,franklin",NA
+50013,"vermont,grand isle",NA
+50015,"vermont,lamoille",NA
+50017,"vermont,orange",NA
+50019,"vermont,orleans",NA
+50021,"vermont,rutland",NA
+50023,"vermont,washington",NA
+50025,"vermont,windham",NA
+50027,"vermont,windsor",NA
+51001,"virginia,accomack:main","SOYBEANS"
+51001,"virginia,accomack:chincoteague","SOYBEANS"
+51003,"virginia,albemarle","CORN"
+51005,"virginia,alleghany",NA
+51007,"virginia,amelia","CORN"
+51009,"virginia,amherst",NA
+51011,"virginia,appomattox","SOYBEANS"
+51013,"virginia,arlington",NA
+51015,"virginia,augusta","CORN"
+51017,"virginia,bath",NA
+51019,"virginia,bedford","CORN"
+51021,"virginia,bland",NA
+51023,"virginia,botetourt","CORN"
+51025,"virginia,brunswick","WHEAT"
+51027,"virginia,buchanan",NA
+51029,"virginia,buckingham","CORN"
+51031,"virginia,campbell","SOYBEANS"
+51033,"virginia,caroline","SOYBEANS"
+51035,"virginia,carroll",NA
+51036,"virginia,charles city","CORN"
+51037,"virginia,charlotte","SOYBEANS"
+51041,"virginia,chesterfield","CORN"
+51043,"virginia,clarke","CORN"
+51045,"virginia,craig",NA
+51047,"virginia,culpeper","CORN"
+51049,"virginia,cumberland",NA
+51051,"virginia,dickenson",NA
+51053,"virginia,dinwiddie","SOYBEANS"
+51057,"virginia,essex","CORN"
+51059,"virginia,fairfax",NA
+51061,"virginia,fauquier","CORN"
+51063,"virginia,floyd",NA
+51065,"virginia,fluvanna",NA
+51067,"virginia,franklin","CORN"
+51069,"virginia,frederick","CORN"
+51071,"virginia,giles",NA
+51073,"virginia,gloucester","SOYBEANS"
+51075,"virginia,goochland","CORN"
+51077,"virginia,grayson",NA
+51079,"virginia,greene","CORN"
+51081,"virginia,greensville","SOYBEANS"
+51083,"virginia,halifax","SOYBEANS"
+51085,"virginia,hanover","SOYBEANS"
+51087,"virginia,henrico",NA
+51089,"virginia,henry",NA
+51091,"virginia,highland",NA
+51093,"virginia,isle of wight","SOYBEANS"
+51095,"virginia,james city",NA
+51097,"virginia,king and queen","SOYBEANS"
+51099,"virginia,king george","BARLEY"
+51101,"virginia,king william","SOYBEANS"
+51103,"virginia,lancaster",NA
+51105,"virginia,lee","CORN"
+51107,"virginia,loudoun","CORN"
+51109,"virginia,louisa","CORN"
+51111,"virginia,lunenburg","SOYBEANS"
+51113,"virginia,madison","CORN"
+51115,"virginia,mathews","SOYBEANS"
+51117,"virginia,mecklenburg","SOYBEANS"
+51119,"virginia,middlesex","SOYBEANS"
+51121,"virginia,montgomery",NA
+51800,"virginia,suffolk","SOYBEANS"
+51125,"virginia,nelson",NA
+51127,"virginia,new kent","SOYBEANS"
+51131,"virginia,northampton","SOYBEANS"
+51133,"virginia,northumberland","CORN"
+51135,"virginia,nottoway","CORN"
+51137,"virginia,orange","CORN"
+51139,"virginia,page","CORN"
+51141,"virginia,patrick","CORN"
+51143,"virginia,pittsylvania","CORN"
+51145,"virginia,powhatan","SOYBEANS"
+51147,"virginia,prince edward",NA
+51149,"virginia,prince george","SOYBEANS"
+51153,"virginia,prince william","CORN"
+51155,"virginia,pulaski",NA
+51157,"virginia,rappahannock",NA
+51159,"virginia,richmond","SOYBEANS"
+51161,"virginia,roanoke",NA
+51163,"virginia,rockbridge","CORN"
+51165,"virginia,rockingham","CORN"
+51167,"virginia,russell",NA
+51169,"virginia,scott",NA
+51171,"virginia,shenandoah","CORN"
+51173,"virginia,smyth",NA
+51175,"virginia,southampton","SOYBEANS"
+51177,"virginia,spotsylvania","CORN"
+51179,"virginia,stafford","CORN"
+51181,"virginia,surry","SOYBEANS"
+51183,"virginia,sussex","SOYBEANS"
+51185,"virginia,tazewell","CORN"
+51187,"virginia,warren",NA
+51191,"virginia,washington","CORN"
+51193,"virginia,westmoreland","SOYBEANS"
+51195,"virginia,wise",NA
+51197,"virginia,wythe","CORN"
+51199,"virginia,york",NA
+51650,"virginia,hampton",NA
+51700,"virginia,newport news",NA
+51710,"virginia,norfolk",NA
+51810,"virginia,virginia beach","CORN"
+53001,"washington,adams","WHEAT"
+53003,"washington,asotin","WHEAT"
+53005,"washington,benton","WHEAT"
+53007,"washington,chelan",NA
+53009,"washington,clallam","BARLEY"
+53011,"washington,clark",NA
+53013,"washington,columbia","WHEAT"
+53015,"washington,cowlitz",NA
+53017,"washington,douglas","WHEAT"
+53019,"washington,ferry",NA
+53021,"washington,franklin","WHEAT"
+53023,"washington,garfield","WHEAT"
+53025,"washington,grant","WHEAT"
+53027,"washington,grays harbor",NA
+53029,"washington,island","BARLEY"
+53031,"washington,jefferson",NA
+53033,"washington,king",NA
+53035,"washington,kitsap",NA
+53037,"washington,kittitas","WHEAT"
+53039,"washington,klickitat","WHEAT"
+53041,"washington,lewis",NA
+53043,"washington,lincoln","WHEAT"
+53045,"washington,mason",NA
+53047,"washington,okanogan","WHEAT"
+53049,"washington,pacific",NA
+53051,"washington,pend oreille",NA
+53053,"washington,pierce:main",NA
+53053,"washington,pierce:penrose",NA
+53055,"washington,san juan:lopez island",NA
+53055,"washington,san juan:orcas island",NA
+53055,"washington,san juan:san juan island",NA
+53057,"washington,skagit","WHEAT"
+53059,"washington,skamania",NA
+53061,"washington,snohomish","WHEAT"
+53063,"washington,spokane","WHEAT"
+53065,"washington,stevens","WHEAT"
+53067,"washington,thurston",NA
+53069,"washington,wahkiakum",NA
+53071,"washington,walla walla","WHEAT"
+53073,"washington,whatcom",NA
+53075,"washington,whitman","WHEAT"
+53077,"washington,yakima","CORN"
+54001,"west virginia,barbour",NA
+54003,"west virginia,berkeley","CORN"
+54005,"west virginia,boone",NA
+54007,"west virginia,braxton",NA
+54009,"west virginia,brooke",NA
+54011,"west virginia,cabell",NA
+54013,"west virginia,calhoun",NA
+54015,"west virginia,clay",NA
+54017,"west virginia,doddridge",NA
+54019,"west virginia,fayette",NA
+54021,"west virginia,gilmer",NA
+54023,"west virginia,grant",NA
+54025,"west virginia,greenbrier",NA
+54027,"west virginia,hampshire","CORN"
+54029,"west virginia,hancock",NA
+54031,"west virginia,hardy","CORN"
+54033,"west virginia,harrison",NA
+54035,"west virginia,jackson",NA
+54037,"west virginia,jefferson","CORN"
+54039,"west virginia,kanawha",NA
+54041,"west virginia,lewis",NA
+54043,"west virginia,lincoln",NA
+54045,"west virginia,logan",NA
+54047,"west virginia,mcdowell",NA
+54049,"west virginia,marion",NA
+54051,"west virginia,marshall",NA
+54053,"west virginia,mason","SOYBEANS"
+54055,"west virginia,mercer",NA
+54057,"west virginia,mineral","CORN"
+54059,"west virginia,mingo",NA
+54061,"west virginia,monongalia",NA
+54063,"west virginia,monroe","CORN"
+54065,"west virginia,morgan","CORN"
+54067,"west virginia,nicholas",NA
+54069,"west virginia,ohio",NA
+54071,"west virginia,pendleton","CORN"
+54073,"west virginia,pleasants",NA
+54075,"west virginia,pocahontas","CORN"
+54077,"west virginia,preston","CORN"
+54079,"west virginia,putnam",NA
+54081,"west virginia,raleigh",NA
+54083,"west virginia,randolph","CORN"
+54085,"west virginia,ritchie",NA
+54087,"west virginia,roane",NA
+54089,"west virginia,summers",NA
+54091,"west virginia,taylor",NA
+54093,"west virginia,tucker",NA
+54095,"west virginia,tyler",NA
+54097,"west virginia,upshur",NA
+54099,"west virginia,wayne",NA
+54101,"west virginia,webster",NA
+54103,"west virginia,wetzel",NA
+54105,"west virginia,wirt",NA
+54107,"west virginia,wood","CORN"
+54109,"west virginia,wyoming",NA
+55001,"wisconsin,adams","CORN"
+55003,"wisconsin,ashland",NA
+55005,"wisconsin,barron","CORN"
+55007,"wisconsin,bayfield","SOYBEANS"
+55009,"wisconsin,brown","CORN"
+55011,"wisconsin,buffalo","CORN"
+55013,"wisconsin,burnett","CORN"
+55015,"wisconsin,calumet","CORN"
+55017,"wisconsin,chippewa","CORN"
+55019,"wisconsin,clark","CORN"
+55021,"wisconsin,columbia","CORN"
+55023,"wisconsin,crawford","CORN"
+55025,"wisconsin,dane","CORN"
+55027,"wisconsin,dodge","CORN"
+55029,"wisconsin,door","CORN"
+55031,"wisconsin,douglas",NA
+55033,"wisconsin,dunn","CORN"
+55035,"wisconsin,eau claire","CORN"
+55037,"wisconsin,florence",NA
+55039,"wisconsin,fond du lac","CORN"
+55041,"wisconsin,forest",NA
+55043,"wisconsin,grant","CORN"
+55045,"wisconsin,green","CORN"
+55047,"wisconsin,green lake","CORN"
+55049,"wisconsin,iowa","CORN"
+55051,"wisconsin,iron",NA
+55053,"wisconsin,jackson","CORN"
+55055,"wisconsin,jefferson","CORN"
+55057,"wisconsin,juneau","CORN"
+55059,"wisconsin,kenosha","CORN"
+55061,"wisconsin,kewaunee","CORN"
+55063,"wisconsin,la crosse","CORN"
+55065,"wisconsin,lafayette","CORN"
+55067,"wisconsin,langlade","WHEAT"
+55069,"wisconsin,lincoln","CORN"
+55071,"wisconsin,manitowoc","CORN"
+55073,"wisconsin,marathon","CORN"
+55075,"wisconsin,marinette","CORN"
+55077,"wisconsin,marquette","CORN"
+55078,"wisconsin,menominee",NA
+55079,"wisconsin,milwaukee","SOYBEANS"
+55081,"wisconsin,monroe","CORN"
+55083,"wisconsin,oconto","CORN"
+55085,"wisconsin,oneida",NA
+55087,"wisconsin,outagamie","CORN"
+55089,"wisconsin,ozaukee","CORN"
+55091,"wisconsin,pepin","CORN"
+55093,"wisconsin,pierce","CORN"
+55095,"wisconsin,polk","CORN"
+55097,"wisconsin,portage","CORN"
+55099,"wisconsin,price","CORN"
+55101,"wisconsin,racine","CORN"
+55103,"wisconsin,richland","CORN"
+55105,"wisconsin,rock","CORN"
+55107,"wisconsin,rusk","CORN"
+55109,"wisconsin,st croix","CORN"
+55111,"wisconsin,sauk","CORN"
+55113,"wisconsin,sawyer","CORN"
+55115,"wisconsin,shawano","CORN"
+55117,"wisconsin,sheboygan","CORN"
+55119,"wisconsin,taylor","CORN"
+55121,"wisconsin,trempealeau","CORN"
+55123,"wisconsin,vernon","CORN"
+55125,"wisconsin,vilas",NA
+55127,"wisconsin,walworth","CORN"
+55129,"wisconsin,washburn","CORN"
+55131,"wisconsin,washington","CORN"
+55133,"wisconsin,waukesha","CORN"
+55135,"wisconsin,waupaca","CORN"
+55137,"wisconsin,waushara","CORN"
+55139,"wisconsin,winnebago","CORN"
+55141,"wisconsin,wood","CORN"
+56001,"wyoming,albany",NA
+56003,"wyoming,big horn","BARLEY"
+56005,"wyoming,campbell","WHEAT"
+56007,"wyoming,carbon",NA
+56009,"wyoming,converse",NA
+56011,"wyoming,crook","WHEAT"
+56013,"wyoming,fremont","BARLEY"
+56015,"wyoming,goshen","CORN"
+56017,"wyoming,hot springs","BARLEY"
+56019,"wyoming,johnson",NA
+56021,"wyoming,laramie","WHEAT"
+56023,"wyoming,lincoln","BARLEY"
+56025,"wyoming,natrona",NA
+56027,"wyoming,niobrara",NA
+56029,"wyoming,park","BARLEY"
+56031,"wyoming,platte","WHEAT"
+56033,"wyoming,sheridan","BARLEY"
+56035,"wyoming,sublette",NA
+56037,"wyoming,sweetwater",NA
+56039,"wyoming,teton",NA
+56041,"wyoming,uinta",NA
+56043,"wyoming,washakie","BARLEY"
+56045,"wyoming,weston",NA

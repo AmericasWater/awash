@@ -1,3 +1,8 @@
+## Known Demand Optimization Model construction
+#
+# Provides `optimization_given`, which produces a linear programming
+# model where demands are exogenous.
+
 using Mimi
 using OptiMimi
 
@@ -8,7 +13,7 @@ else
     include("weather.jl")
 end
 
-redogwwo = !isfile(joinpath(todata, "partialhouse2$suffix.jld"))
+redogwwo = !isfile(cachepath("partialhouse-gwwo$suffix.jld"))
 
 include("WaterDemand.jl")
 include("WaterNetwork.jl")
@@ -17,8 +22,13 @@ include("ReturnFlows.jl")
 include("Reservoir.jl")
 include("Groundwater.jl")
 include("WaterCost.jl")
+include("EnvironmentalDemand.jl")
+include("WaterRight.jl")
 
-function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing)
+"""
+allowgw: can be false (only surface optimization), true (conjunctive use), or "demandonly" (water stress test)
+"""
+function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing; nocache=redogwwo)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -26,20 +36,25 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
     allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
     watercost = initwatercost(m);
-    reservoir = initreservoir(m); # Allocation or optimization-only
-    returnflows = initreturnflows(m); # dep. Allocation
+    if allowreservoirs
+        reservoir = initreservoir(m); # Allocation or optimization-only
+    end
+    returnflows = initreturnflows(m, allowreservoirs, demandmodel); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
     aquifer = initaquifer(m);
+    environmentaldemand = initenvironmentaldemand(m); # dep. WaterNetwork
+    waterright = initwaterright(m); # dep. Allocation
+
 
     # Only include variables needed in constraints and parameters needed in optimization
 
     paramcomps = [:Allocation, :Allocation, :Allocation]
-    parameters = [:supersourcesupply, :swwithdrawals, :returns]
+    parameters = [:quarterwaterfromsupersource, :waterfromsupersource, :withdrawals]
 
-    constcomps = [:WaterNetwork, :Allocation, :Allocation]
-    constraints = [:outflows, :balance, :returnbalance]
+    constcomps = [:WaterNetwork, :Allocation]
+    constraints = [:outflows, :balance]
 
-    if allowgw
+    if allowgw == true
         # Include groundwater
         paramcomps = [paramcomps; :Allocation]
         parameters = [parameters; :gwextraction]
@@ -54,66 +69,81 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         constraints = [constraints; :storagemin; :storagemax]
     end
 
+    if waterrightconst == "SW"
+        constcomps = [constcomps; :WaterRight]
+        constraints = [constraints; :swtotal]
+    elseif waterrightconst == "GW"
+        constcomps = [constcomps; :WaterRight]
+        constraints = [constraints; :gwtotal]
+    elseif waterrightconst == "SWGW"
+        constcomps = [constcomps; :WaterRight; :WaterRight]
+        constraints = [constraints; :swtotal; :gwtotal]
+    end
+
     ## Constraint definitions:
     # outflows is the water in the stream
     # swbalance is the demand minus supply
     # Reservoir storage cannot be <min or >max
 
-    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:storagemin => :storage, :storagemax => :storage));
+    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quarterwaterfromsupersource => :waterfromsupersource, :storagemin => :storage, :storagemax => :storage));
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
-    if allowgw
-	    setobjective!(house, hall_relabel(-varsum(grad_watercost_costgw(m)),:gwextraction,:Allocation,:gwextraction)) 
+    if allowgw == true
+        setobjective!(house, -hall_relabel(varsum(grad_watercost_costgw(m)), :gwextraction,:Allocation, :gwextraction))
     end
-    setobjective!(house, hall_relabel(-varsum(grad_watercost_costswwithdrawals(m)),:swwithdrawals,:Allocation,:swwithdrawals))
-    setobjective!(house, hall_relabel(-varsum(grad_watercost_costsupersource(m)),:supersourcesupply,:Allocation,:supersourcesupply))
+    setobjective!(house, -hall_relabel(varsum(grad_watercost_costswwithdrawals(m)), :swwithdrawals, :Allocation, :swwithdrawals))
+    setobjective!(house, -.5 * hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quarterwaterfromsupersource))
+    setobjective!(house, -hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quarterwaterfromsupersource))
+    if allowreservoirs
+        setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
+    end
 
-    # Constrain that the water in the stream is non-negative:
-    # That is, outflows + runoff > 0, or -outflows < runoff
-    if redogwwo
+    # Constrain that the water in the stream is non-negative, or superior to environmental requirement
+    # That is, outflows + runoff > envrequirement, or -outflows < runoff - envrequirement
+    if nocache
         gwwo = grad_waternetwork_outflows_withdrawals(m);
-        serialize(open(joinpath(todata, "partialhouse$suffix.jld"), "w"), gwwo);
-        cwro = constraintoffset_waternetwork_outflows(m);
-        serialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "w"), cwro);
-        gror = grad_reservoir_outflows_captures(m);
-        serialize(open(joinpath(todata, "partialhouse-gror$suffix.jld"), "w"), gror);
+        serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
+        grwo = grad_returnflows_outflows_withdrawals(m, allowgw != false, demandmodel);
+        serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
+        if allowreservoirs
+            gror = grad_reservoir_outflows_captures(m);
+            serialize(open(cachepath("partialhouse-gror$suffix.jld"), "w"), gror);
+        end
     else
-        gwwo = deserialize(open(joinpath(todata, "partialhouse$suffix.jld"), "r"));
-        cwro = deserialize(open(joinpath(todata, "partialhouse2$suffix.jld"), "r"));
-        gror = deserialize(open(joinpath(todata, "partialhouse-gror$suffix.jld"), "r"));
+        gwwo = deserialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "r"));
+        grwo = deserialize(open(cachepath("partialhouse-grwo$suffix.jld"), "r"));
+        if allowreservoirs
+            if isfile(cachepath("partialhouse-gror$suffix.jld"))
+                gror = deserialize(open(cachepath("partialhouse-gror$suffix.jld"), "r"));
+            else
+                gror = grad_reservoir_outflows_captures(m);
+            end
+        end
     end
 
-    # Specify the components affecting outflow: withdrawals, returns, captures
-    setconstraint!(house, -room_relabel_parameter(gwwo, :swwithdrawals, :Allocation, :swwithdrawals)) # +
-    setconstraint!(house, room_relabel_parameter(gwwo, :swwithdrawals, :Allocation, :returns)) # -
+    # Specify the components affecting outflow: withdrawals - returns + captures < runoff
+    setconstraint!(house, -gwwo + grwo) # + -
     if allowreservoirs
         setconstraint!(house, -gror) # +
     end
     # Specify that these can at most equal the cummulative runoff
-    setconstraintoffset!(house, cwro) # +
+    if get(config, "proportionnaturalflowforenvironment", 0.) > 0.
+        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m) - constraintoffset_environmentalflows(m)) # +
+    else
+        setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m)) # +
+    end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
+    setconstraint!(house, -room_relabel_parameter(grad_allocation_balance_waterfromsupersource(m), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource)) # -
     setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
-    if allowgw
+    if allowgw == true
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     end
     setconstraint!(house, -grad_allocation_balance_swwithdrawals(m)) # -
-    setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw, demandmodel)) # -
+    setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw != false, demandmodel)) # -
 
-    # Constraint returnbalance < 0, or returns - waterreturn < 0, or returns < waterreturn
-    # `waterreturn` is by region, and is then distributed into canals as `returns`
-    # `returns` must be less than `waterreturn`, so that additional water doesn't appear in streams
-    setconstraint!(house, grad_allocation_returnbalance_returns(m)) # +
-    if config["dataset"] == "three"
-        setconstraintoffset!(house, LinearProgrammingHall(:Allocation, :returnbalance, [0., 0., 0., 0., 0., 0., 0., 0., 0.]))
-    else
-        setconstraintoffset!(house,-hall_relabel(grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, allowgw, demandmodel) +
-                                                 grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m, allowgw, demandmodel) +
-			                                     grad_waterdemand_totalreturn_industrialuse(m) * values_waterdemand_recordedindustrial(m, allowgw, demandmodel) +
-                                                 grad_waterdemand_totalreturn_thermoelectricuse(m) * values_waterdemand_recordedthermoelectric(m, allowgw, demandmodel) +
-        grad_waterdemand_totalreturn_livestockuse(m) *values_waterdemand_recordedlivestock(m, allowgw, demandmodel),
-        :totalreturn, :Allocation, :returnbalance)) # +
-    end
+    recorded = knowndf("exogenous-withdrawals")
+    setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, vec(repeat((config["timestep"] * convert(Vector, recorded[:, :TO_SW]) * 1383. / 12) / 4, outer=[1, numsteps]))))
 
     if allowreservoirs
         # Reservoir constraints:
@@ -132,22 +162,61 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         setlower!(house, LinearProgrammingHall(:Reservoir, :captures, ones(numreservoirs * numsteps) * -Inf))
     end
 
+    # Water rights constraints: swwithdrawals < swwaterights | gwwithdrawals < gwwaterrights
+    if waterrightconst == "SW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_swtotal_withdrawals(m), :swtimestep, :Allocation, :withdrawals)) # +
+        setconstraintoffset!(house, constraintoffset_waterright_swrighttotal(m)) # +
+    elseif waterrightconst == "GW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_gwtotal_waterfromgw(m), :gwtimestep, :Allocation, :waterfromgw))
+        setconstraintoffset!(house, constraintoffset_waterright_gwrighttotal(m)) # +
+    elseif waterrightconst == "SWGW"
+        setconstraint!(house, room_relabel_parameter(grad_waterright_swtotal_withdrawals(m), :swtimestep, :Allocation, :withdrawals)) # +
+        setconstraintoffset!(house, constraintoffset_waterright_swrighttotal(m)) # +
+        setconstraint!(house, room_relabel_parameter(grad_waterright_gwtotal_waterfromgw(m), :gwtimestep, :Allocation, :waterfromgw))
+        setconstraintoffset!(house, constraintoffset_waterright_gwrighttotal(m)) # +
+    end
+
     # Clean up
 
-    house.b[isnan(house.b)] = 0
+    house.b[isnan.(house.b)] = 0
     house.b[house.b .== Inf] = 1e9
     house.b[house.b .== -Inf] = -1e9
-    house.f[isnan(house.f)] = 0
+    house.f[isnan.(house.f)] = 0
     house.f[house.f .== Inf] = 1e9
     house.f[house.f .== -Inf] = -1e9
 
     ri, ci, vv = findnz(house.A)
-    for ii in find(isnan(vv))
+    for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite(vv))
+    for ii in find(.!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 
     house
+end
+
+"""
+Save the results for simulation runs
+"""
+function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=false, allowreservoirs=true)
+    # The size of each optimized parameter
+    varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quarterwaterfromsupersource => :waterfromsupersource))
+    varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
+
+    # Save into serialized files
+    serialize(open(datapath("extraction/supersource$suffix.jld"), "w"), reshape(sol.sol[1:varlens[1]], numcanals, numscenarios, numsteps) + reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
+    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
+
+    if allowgw == true
+        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps))
+    elseif isfile(datapath("extraction/waterfromgw$suffix.jld"))
+        rm(datapath("extraction/waterfromgw$suffix.jld"))
+    end
+
+    if allowreservoirs
+        serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+(allowgw == true)])+1:end], numreservoirs, numscenarios, numsteps))
+    elseif isfile(datapath("extraction/captures$suffix.jld"))
+        rm(datapath("extraction/captures$suffix.jld"))
+    end
 end

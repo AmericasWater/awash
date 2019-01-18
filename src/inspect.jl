@@ -1,8 +1,10 @@
+## Inspection tool
+#
 # List every parameter and its options for being set
-## Possible options:
-## initialized constant (later: possible sources)
-## default connection (later: possible connections)
-## optimization constraint (later: possible optimizations)
+# Possible options:
+#   initialized constant (later: possible sources)
+#   default connection (later: possible connections)
+#   optimization constraint (later: possible optimizations)
 
 include("lib/readconfig.jl")
 config = readconfig("../configs/standard.yml")
@@ -13,8 +15,8 @@ using DataFrames
 using StatsBase
 import Mimi: CertainScalarParameter, UncertainScalarParameter
 
-paramcomps = [:Allocation, :Allocation, :Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
-parameters = [:waterfromsupersource, :waterfromgw, :withdrawals, :returns, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+paramcomps = [:Allocation, :Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
+parameters = [:waterfromsupersource, :waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 ## Constraint definitions:
@@ -43,7 +45,7 @@ for component in model.components
                 continue
             end
 
-            p = model.parameters[parameter]
+            p = model.external_parameters[parameter]
             if isa(p, CertainScalarParameter) || isa(p, UncertainScalarParameter)
                 continue
             end
@@ -52,8 +54,8 @@ for component in model.components
                 connected = allvariablescomponents[findfirst(allvariables, getfield(component[2].Parameters, parameter))][1]
             else
                 # Check autocorrelation to see if identical or random
-                ac = StatsBase.autocor(vec(model.parameters[parameter].values), [1])
-                if (isnan(ac[1]))
+                ac = StatsBase.autocor(vec(model.external_parameters[parameter].values), [1])
+                if (isnan.(ac[1]))
                     initialized = "nan"
                 elseif (ac[1] == 1)
                     initialized = "constant"
@@ -67,7 +69,7 @@ for component in model.components
 
         if in(component[1], paramcomps)
             for index in find(paramcomps .== component[1])
-                if parameters[index] == symbol(parameter)
+                if parameters[index] == Symbol(parameter)
                     optimized = "yup"
                     break
                 end

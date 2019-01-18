@@ -1,15 +1,15 @@
-include("../../src/lib/readconfig.jl")
+include("../../../src/lib/readconfig.jl")
 suffix = ""
 config = emptyconfig()
 
-include("../../src/lib/datastore.jl")
-include("../../src/lib/reservoirs.jl")
-include("../../src/waternet.jl")
+include("../../../src/lib/datastore.jl")
+include("../../../src/lib/reservoirs.jl")
+include("../../../src/initwaternet.jl")
 
 include("mergelib.jl")
 include("statelib.jl")
 
-mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[UTF8String, UTF8String, UTF8String])
+mastercounties = readtable(datapath("global/counties$suffix.csv"), eltypes=[String, String, String])
 
 allregions() = unique(map(fips -> fips[1:2], mastercounties[:fips]))
 
@@ -28,13 +28,20 @@ end
 
 map(ii -> "$(getregion(result[ii, :node])) -> $(getregion(result[ii, :outnode]))", 100:200)
 
-serialize(open(datapath("cache/newwaternet.jld"), "w"), newwaternet)
-serialize(open(datapath("cache/newwateridverts.jld"), "w"), newwateridverts)
+serialize(open("../../../data/states/waternet/waternet.jld", "w"), newwaternet)
+serialize(open("../../../data/states/waternet/wateridverts.jld", "w"), newwateridverts)
 
 writetable("newnetwork.csv", result)
 
-newdraws = DataFrame(region=UTF8String[], gaugeid=UTF8String[])
+stateindexes = readtable("../../../data/global/states.csv")
+
+newdraws = DataFrame(state=String[], gaugeid=String[])
 for node in values(newwateridverts)
-    push!(newdraws, [getregion(node.label), node.label])
+    if getregion(node.label) == "missing"
+        state = "missing"
+    else
+        state = stateindexes[stateindexes[:fips] .== parse(Int64, getregion(node.label)), :state][1]
+    end
+    push!(newdraws, [state, node.label])
 end
-serialize(open(datapath("cache/newwaterdraws.jld"), "w"), newdraws)
+serialize(open("../../../data/states/waternet/waterdraws.jld", "w"), newdraws)

@@ -8,29 +8,30 @@ include("watercostdata.jl")
     regions = Index()
     canals = Index()
     aquifers = Index()
+    scenarios = Index()
 
     # UNIT COST
     # extraction COST
-    unitgwextractioncost = Parameter(index=[aquifers, time], unit="\$/1000 m^3")
-    unitswextractioncost = Parameter(index=[canals, time], unit="\$/1000 m^3")
+    unitgwextractioncost = Parameter(index=[aquifers, scenarios, time], unit="\$/1000 m^3")
+    unitswextractioncost = Parameter(index=[canals, scenarios, time], unit="\$/1000 m^3")
     # treatment cost
-    unitgwtreatmentcost = Parameter(index=[regions, time], unit="\$/1000 m^3")
-    unitswtreatmentcost = Parameter(index=[regions, time], unit="\$/1000 m^3")
+    unitgwtreatmentcost = Parameter(index=[regions, scenarios, time], unit="\$/1000 m^3")
+    unitswtreatmentcost = Parameter(index=[regions, scenarios, time], unit="\$/1000 m^3")
     # distribution cost
-    unitdistributioncost = Parameter(index=[regions, time], unit="\$/1000 m^3")
+    unitdistributioncost = Parameter(index=[regions, scenarios, time], unit="\$/1000 m^3")
     
     # Supersource
-    unitsupersourcecost = Parameter(index=[regions, time], unit="\$/1000 m^3")
+    unitsupersourcecost = Parameter(index=[regions, scenarios, time], unit="\$/1000 m^3")
 
     # VOLUMES 
-    swwithdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    gwextraction = Parameter(index=[aquifers, time], unit="1000 m^3")
-    supersourcesupply = Parameter(index=[regions, time], unit="1000 m^3")
+    swwithdrawals = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
+    gwextraction = Parameter(index=[aquifers, scenarios, time], unit="1000 m^3")
+    supersourcesupply = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
     # COST
-    gwcost = Variable(index=[regions, time], unit="\$/1000 m^3")
-    swcost = Variable(index=[regions, time], unit="\$/1000 m^3")
-    supersourcecost = Variable(index=[regions, time], unit="\$/1000 m^3")
-    totalcost = Variable(index=[regions, time], unit="\$/1000 m^3")
+    gwcost = Variable(index=[regions, scenarios, time], unit="\$/1000 m^3")
+    swcost = Variable(index=[regions, scenarios, time], unit="\$/1000 m^3")
+    supersourcecost = Variable(index=[regions, scenarios, time], unit="\$/1000 m^3")
+    totalcost = Variable(index=[regions, scenarios, time], unit="\$/1000 m^3")
     
 end
 

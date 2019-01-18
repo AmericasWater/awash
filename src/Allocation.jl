@@ -1,49 +1,45 @@
+## Water Allocation Component
+#
+# Determines how aggregate water demands per region can be satisfied
+# by available surface, ground, and purchased water resources.
+# 
 # The allocation module takes as parameters the withdrawals from each gauge and the volumes extracted in each aquifer. For each county and at each timestep, the component computes the amount of water allocated per source type and in total. The component also describes the return flows (the water used by the different sectors and returned to the surface network. 
 
 using Mimi
 using Distributions
 
 include("lib/datastore.jl")
+include("lib/watercostdata.jl")
 
 @defcomp Allocation begin
     regions = Index()
     aquifers = Index()
     canals = Index()
+    scenarios = Index()
 
-    # WATER DEMAND aggregated accross all sectors per region
-    watertotaldemand = Parameter(index=[regions, time], unit="1000 m^3")
+    # Water demand aggregated accross all sectors per region
+    watertotaldemand = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
 
     # SUPPLY
     # How much to send from each gauge to each county - set by optimization
-    swwithdrawals = Parameter(index=[canals, time], unit="1000 m^3")
-    copy_swwithdrawals = Variable(index=[canals, time], unit="1000 m^3")
+    swwithdrawals = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
+    copy_swwithdrawals = Variable(index=[canals, scenarios, time], unit="1000 m^3")
     # Combination across all canals supplying the counties
-    swsupply = Variable(index=[regions, time], unit="1000 m^3")
-    
+    swsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Groundwater extracted from each aquifer 
-    gwextraction = Parameter(index=[aquifers, time], unit="1000 m^3")
-    copy_gwextraction = Variable(index=[aquifers, time], unit="1000 m^3")
+    gwextraction = Parameter(index=[aquifers, scenarios, time], unit="1000 m^3")
+    copy_gwextraction = Variable(index=[aquifers, scenarios, time], unit="1000 m^3")
     # Groundwater supplied per region
-    gwsupply = Variable(index=[regions, time], unit="1000 m^3")
+    gwsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     
     # Supersource supplied per region
-    supersourcesupply = Parameter(index=[regions,time], unit="1000 m^3")
-    copy_supersourcesupply = Variable(index=[regions,time], unit="1000 m^3")
+    supersourcesupply = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
+    copy_supersourcesupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     
     # Total supply per region
-    totalsupply = Variable(index=[regions, time], unit="1000 m^3")
+    totalsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Difference between totalsupply and watertotaldemand
-    balance = Variable(index=[regions, time], unit="1000 m^3")
-    
-    # RETURN FLOWS
-    # How much is returned to each withdrawal source - set by optimization
-    returns = Parameter(index=[canals, time], unit="1000 m^3")
-    copy_returns = Variable(index=[canals, time], unit="1000 m^3")
-    # Combination across all canals routing return flow from the counties
-    waterreturn = Parameter(index=[regions, time], unit="1000 m^3")
-    swreturn = Variable(index=[regions, time], unit="1000 m^3")
-    # Difference between swreturn and waterreturn: should be <= 0
-    returnbalance = Variable(index=[regions, time], unit="1000 m^3")
+    balance = Variable(index=[regions, scenarios , time], unit="1000 m^3")
 end
 
 """
@@ -54,30 +50,26 @@ function run_timestep(c::Allocation, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    # Surface water calculations
-    v.swsupply[:, tt] = zeros(numcounties)
-    v.swreturn[:, tt] = zeros(numcounties)
-    for pp in 1:nrow(draws)
-        fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
-        rr = findfirst(mastercounties[:fips] .== fips)
-        if rr > 0
-            v.swsupply[rr, tt] += p.swwithdrawals[pp, tt]
-        
-	    v.swreturn[rr, tt] += p.returns[pp, tt]
+    for ss in d.scenarios
+        # Surface water calculations
+        v.swsupply[:, ss, tt] = zeros(numcounties)
+        for pp in 1:nrow(draws)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
+            if rr > 0
+                v.swsupply[rr, ss, tt] += p.withdrawals[pp, ss, tt]
+            end
+            v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
         end
-        v.copy_swwithdrawals[pp, tt] = p.swwithdrawals[pp, tt]
-        v.copy_returns[pp, tt] = p.returns[pp, tt]
-    end
 
-    for rr in d.regions
-        aa = rr
-	v.copy_gwextraction[aa,tt] = p.gwextraction[aa,tt]
-	v.gwsupply[rr,tt] = p.gwextraction[aa,tt]
-	v.copy_supersourcesupply[rr,tt] = p.supersourcesupply[rr,tt]
-	v.totalsupply[rr,tt] = v.swsupply[rr,tt] + v.gwsupply[rr,tt] + v.copy_supersourcesupply[rr,tt]
-
-        v.balance[rr, tt] = v.totalsupply[rr, tt] - p.watertotaldemand[rr, tt]
-        v.returnbalance[rr, tt] = v.swreturn[rr, tt] - p.waterreturn[rr, tt]
+        for rr in d.regions
+            aa = rr
+            v.copy_gwextraction[aa, ss, tt] = p.gwextraction[aa, ss, tt]
+            v.gwsupply[rr, ss, tt] = p.gwextraction[aa, ss, tt]
+            v.copy_supersourcesupply[rr, ss, tt] = p.supersourcesupply[rr, ss, tt]
+            v.totalsupply[rr, ss, tt] = v.swsupply[rr, ss, tt] + v.gwsupply[rr, ss, tt] + v.copy_supersourcesupply[rr, ss, tt]
+            v.balance[rr, ss, tt] = v.totalsupply[rr, ss, tt] - p.watertotaldemand[rr, ss, tt]
+        end
     end
 end
 
@@ -86,19 +78,25 @@ Add a demand component to the model.
 """
 function initallocation(m::Model)
     allocation = addcomponent(m, Allocation);
+    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
 
-    # Check if there are saved withdrawals and return flows (from optimize-surface)
+    # Check if there are saved withdrawals (from optimize-surface)
+
+    allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
+    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
+    allocation[:unitsupercost] = 1e6
+    totaluse=ones(m.indices_counts[:time])
+    allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
-    	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
-    	allocation[:returns] = zeros(m.indices_counts[:canals], m.indices_counts[:time]);
-    	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-    	allocation[:supersourcesupply] = zeros(m.indices_counts[:regions], m.indices_counts[:time]);
-
+	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
+    	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
+    	allocation[:supersourcesupply] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
     else
-	    allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:returns] = cached_fallback("extraction/returns", () -> zeros(m.indices_counts[:canals], m.indices_counts[:time]))
-	    allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> zeros(m.indices_counts[:aquifers], m.indices_counts[:time]));
-	    allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:time]));
+        recorded = knowndf("exogenous-withdrawals")
+
+	allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
+	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
+    	allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]));
     end
 
     allocation
@@ -115,41 +113,25 @@ function makeconstraintdemandmet(aa, tt)
 end
 
 function grad_allocation_balance_waterfromgw(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :gwextraction, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :gwextraction, 1.)
 end
 
 function grad_allocation_balance_waterfromsupersource(m::Model)
-    roomdiagonal(m, :Allocation, :balance, :supersourcesupply, (rr, tt) -> 1.)
+    roomdiagonal(m, :Allocation, :balance, :supersourcesupply, 1.)
 end
 
 function grad_allocation_balance_swwithdrawals(m::Model)
-    function generate(A, tt)
+    function generate(A)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
+            rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr > 0
                 A[rr, pp] = 1.
             end
         end
     end
 
-    roomintersect(m, :Allocation, :balance, :swwithdrawals, generate)
-end
-
-function grad_allocation_returnbalance_returns(m::Model)
-    function generate(A, tt)
-        # Fill in COUNTIES x CANALS matrix
-        for pp in 1:nrow(draws)
-            fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-            rr = findfirst(mastercounties[:fips] .== fips)
-            if rr > 0
-                A[rr, pp] = 1.
-            end
-        end
-    end
-
-    roomintersect(m, :Allocation, :returnbalance, :returns, generate)
+    roomintersect(m, :Allocation, :balance, :swwithdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
@@ -162,24 +144,46 @@ end
 
 function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     if config["dataset"] == "three"
-		if optimtype == false
-			gen(rr, tt) = 1. * (rr > 1)
-		elseif optimtype == true
-			gen(rr, tt) = 2. * (rr > 1)
-		end
-	        hallsingle(m, :Allocation, :balance, gen)
+	if optimtype == false
+	    genuu(rr, ss, tt) = 1. * (rr > 1)
+	else
+	    genuu(rr, ss, tt) = 2. * (rr > 1)
+	end
+	hallsingle(m, :Allocation, :balance, genuu)
     else
-          recorded = getfilteredtable("extraction/USGS-2010.csv")
-		# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-		if optimtype == false
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_SW] * 1383. / 12
-		elseif optimtype == true
-			gen(rr, tt) = config["timestep"] * recorded[rr, :TO_To] * 1383. / 12
-		end
-		hallsingle(m, :Allocation, :balance, gen)
+        recorded = knowndf("exogenous-withdrawals")
+	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
+	gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 
-function grad_allocation_returnbalance_waterreturn(m::Model)
-    roomdiagonal(m, :Allocation, :returnbalance, :waterreturn, (rr, tt) -> 1.)
+    
+function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
+    function generate(A,tt)
+        A[:] = 1
+    end
+    roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
+end
+
+
+function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT
+    function generate(A,tt)
+        A[:] = 1
+    end
+    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
+end
+
+
+function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT
+    gen(tt)=(7.820581169848508e6)*2
+    hallsingle(m, :Allocation, :totaluse, gen)
+end
+
+
+
+function constraintoffset_allocation_otherdemand(m::Model)
+    other = readtable(datapath("other.csv"))
+    gen(rr, ss, tt)=other[rr,:x1]
+    hallsingle(m, :Allocation, :balance, gen)
 end

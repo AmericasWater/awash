@@ -14,7 +14,7 @@ mingwextcost = 0. #we assume that the cost of extraction is at least mingwextcos
 ### EXTRACTION COST
 # sw: compute relative elevation if source downhill, 0 otherwise
 # if missing information, default value is specified by naelev
-if config["watercost-extraction"]
+if get(config, "watercost-extraction", true)
     if isfile(datapath("cache/canalextractioncost$suffix.jld"))
         println("Loading extraction cost from saved data...")
 	canalextractioncost = deserialize(open(datapath("cache/canalextractioncost$suffix.jld"), "r"));
@@ -31,7 +31,7 @@ if config["watercost-extraction"]
 				indx = indx[find(waternetdata["stations"][indx,:collection] .== draws[ii,:gaugeid][1:(search(draws[ii,:gaugeid],".")[1]-1)])]
 			end
 			elevation_source = waternetdata["stations"][indx, :elev][1]
-		
+
 			county_id = draws[ii, :fips] < 10000 ? "0$(draws[ii, :fips])" : "$(draws[ii, :fips])"
 			elevation_county = counties[:Elevation_ft][find(counties[:FIPS] .== county_id)][1] *0.305
 			if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
@@ -43,7 +43,7 @@ if config["watercost-extraction"]
 			end
 		end
 	end
-	
+
 	# gw: extraction cost prop to drawdown to watertable
 	aquiferextractioncost = zeros(numcounties)
         drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"))
@@ -72,7 +72,7 @@ end
 ### TREATMENT COST
 # treatment cost information at the county level
 # in $ per 1000m3 treated
-if config["watercost-treatment"]
+if get(config, "watercost-treatment", false)
 	swtreatmentcost = 10*ones(numcounties)
 	gwtreatmentcost = ones(numcounties)
 else

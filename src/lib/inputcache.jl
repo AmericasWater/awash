@@ -48,6 +48,9 @@ function knowndf(filenickname::AbstractString)
             getfilevalue(loadpath("agriculture/knownareas.csv"), "filtered",
                          () -> getfilteredtable("agriculture/knownareas.csv", :state, types=[String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
         end
+    elseif filenickname == "region-info"
+        getfilevalue(loadpath("county-info.csv"), "*",
+                     () -> configdescends(config, "counties") ? CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA") : CSV.read(loadpath("county-info.csv")))
     else
         error("Unknown DataFrame $filenickname.")
     end

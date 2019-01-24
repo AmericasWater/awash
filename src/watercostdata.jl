@@ -4,7 +4,7 @@
 using DataFrames
 using RData
 
-
+include("lib/inputcache.jl")
 
 # energy cost to lift 1000m3 by 1m
 energycostperlift = 0.05 # in $/1000m3 /m of lift | value from CALVIN
@@ -14,6 +14,7 @@ mingwextcost = 0. #we assume that the cost of extraction is at least mingwextcos
 ### EXTRACTION COST
 # sw: compute relative elevation if source downhill, 0 otherwise
 # if missing information, default value is specified by naelev
+naelev = 0.
 if get(config, "watercost-extraction", true)
     if isfile(datapath("cache/canalextractioncost$suffix.jld"))
         println("Loading extraction cost from saved data...")
@@ -32,7 +33,12 @@ if get(config, "watercost-extraction", true)
 			end
 			elevation_source = waternetdata["stations"][indx, :elev][1]
 
-			county_id = draws[ii, :fips] < 10000 ? "0$(draws[ii, :fips])" : "$(draws[ii, :fips])"
+                        if :fips in names(draws)
+			    county_id = draws[ii, :fips] < 10000 ? "0$(draws[ii, :fips])" : "$(draws[ii, :fips])"
+                        else
+                            county_id = draws[ii, :state]
+                        end
+                        counties = knowndf("region-info")
 			elevation_county = counties[:Elevation_ft][find(counties[:FIPS] .== county_id)][1] *0.305
 			if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
 				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(counties[:FIPS] .== county_id)][1]

@@ -4,6 +4,7 @@
 using DataFrames
 using RData
 
+include("lib/datastore.jl")
 include("lib/inputcache.jl")
 
 # energy cost to lift 1000m3 by 1m
@@ -39,9 +40,9 @@ if get(config, "watercost-extraction", true)
                             county_id = draws[ii, :state]
                         end
                         counties = knowndf("region-info")
-			elevation_county = counties[:Elevation_ft][find(counties[:FIPS] .== county_id)][1] *0.305
+			elevation_county = counties[:Elevation_ft][find(regionindex(counties, :) .== county_id)][1] *0.305
 			if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
-				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(counties[:FIPS] .== county_id)][1]
+				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(regionindex(counties, :) .== county_id)][1]
 			end
 
 			if elevation_source < elevation_county

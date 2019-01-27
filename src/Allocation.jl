@@ -2,8 +2,8 @@
 #
 # Determines how aggregate water demands per region can be satisfied
 # by available surface, ground, and purchased water resources.
-# 
-# The allocation module takes as parameters the withdrawals from each gauge and the volumes extracted in each aquifer. For each county and at each timestep, the component computes the amount of water allocated per source type and in total. The component also describes the return flows (the water used by the different sectors and returned to the surface network. 
+#
+# The allocation module takes as parameters the withdrawals from each gauge and the volumes extracted in each aquifer. For each county and at each timestep, the component computes the amount of water allocated per source type and in total. The component also describes the return flows (the water used by the different sectors and returned to the surface network.
 
 using Mimi
 using Distributions
@@ -26,16 +26,16 @@ include("lib/watercostdata.jl")
     copy_swwithdrawals = Variable(index=[canals, scenarios, time], unit="1000 m^3")
     # Combination across all canals supplying the counties
     swsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-    # Groundwater extracted from each aquifer 
+    # Groundwater extracted from each aquifer
     gwextraction = Parameter(index=[aquifers, scenarios, time], unit="1000 m^3")
     copy_gwextraction = Variable(index=[aquifers, scenarios, time], unit="1000 m^3")
     # Groundwater supplied per region
     gwsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-    
+
     # Supersource supplied per region
     supersourcesupply = Parameter(index=[regions, scenarios, time], unit="1000 m^3")
     copy_supersourcesupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-    
+
     # Total supply per region
     totalsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Difference between totalsupply and watertotaldemand
@@ -82,9 +82,6 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals (from optimize-surface)
 
-    allocation[:unitgwcost] = repeat(aquiferextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
-    allocation[:unitswcost] = repeat(canalextractioncost, outer = [1, m.indices_counts[:scenarios], m.indices_counts[:time]])+0.1;
-    allocation[:unitsupercost] = 1e6
     totaluse=ones(m.indices_counts[:time])
     allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
@@ -158,7 +155,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
     end
 end
 
-    
+
 function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
     function generate(A,tt)
         A[:] = 1

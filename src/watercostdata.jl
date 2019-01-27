@@ -39,25 +39,28 @@ if get(config, "watercost-extraction", true)
                         else
                             county_id = draws[ii, :state]
                         end
-                        counties = knowndf("region-info")
-			elevation_county = counties[:Elevation_ft][find(regionindex(counties, :) .== county_id)][1] *0.305
-			if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
+                        if ismissing(county_id) || county_id == "missing"
+                            canalextractioncost[ii] = 0
+                        else
+                            counties = knowndf("region-info")
+			    elevation_county = counties[:Elevation_ft][find(regionindex(counties, :) .== county_id)][1] *0.305
+			    if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
 				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(regionindex(counties, :) .== county_id)][1]
-			end
+			    end
 
-			if elevation_source < elevation_county
+			    if elevation_source < elevation_county
 				canalextractioncost[ii] = elevation_county - elevation_source
-			end
+			    end
+                        end
 		end
 	end
 
 	# gw: extraction cost prop to drawdown to watertable
 	aquiferextractioncost = zeros(numcounties)
         drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"))
-	fipsaquifer = readdlm(datapath("gwmodel/v_FIPS.txt"))
-	for ii in 1:numcounties
-                 county_id = parse(Float64, mastercounties[:fips][ii])
-		 aquiferextractioncost[ii] = drawdowndeepaquifer[find(fipsaquifer .== county_id)][1]
+	for ii in 1:numregions
+            # For now, assume that regions == GW aquifers
+	    aquiferextractioncost[ii] = drawdowndeepaquifer[ii]
 	end
 	aquiferextractioncost[find(aquiferextractioncost .<mingwextcost)] = mingwextcost
 
@@ -66,8 +69,8 @@ if get(config, "watercost-extraction", true)
 	aquiferextractioncost *= energycostperlift
 
 # save
-	serialize(open(datapath("cache/canalextractioncost$suffix.jld"), "w"), canalextractioncost)
-	serialize(open(datapath("cache/aquiferextractioncost$suffix.jld"), "w"), aquiferextractioncost)
+	serialize(open(cachepath("canalextractioncost$suffix.jld"), "w"), canalextractioncost)
+	serialize(open(cachepath("aquiferextractioncost$suffix.jld"), "w"), aquiferextractioncost)
     end
 
     else

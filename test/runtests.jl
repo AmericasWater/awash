@@ -2,9 +2,12 @@ using Base.Test
 
 function requirepackage(pkg, checkout=false; version=nothing)
     try
-        version = Pkg.installed(pkg)
-        if version == nothing
+        gotvers = Pkg.installed(pkg)
+        if gotvers == nothing
             error("Needs to be installed.")
+        end
+        if version != nothing && gotvers != version
+            Pkg.pin(pkg, version)
         end
     catch
         Pkg.add(pkg)

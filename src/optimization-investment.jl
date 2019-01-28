@@ -31,7 +31,7 @@ aquifer = initaquifer(m);
 # Only include variables needed in constraints and parameters needed in optimization
 
 paramcomps = [:Allocation, :Allocation, :Reservoir, :Reservoir, :Reservoir]
-parameters = [:waterfromsupersource, :withdrawals, :captures, :increasestorage, :reducestorage]
+parameters = [:supersourcesupply, :withdrawals, :captures, :increasestorage, :reducestorage]
 
 constcomps = [:WaterNetwork, :Allocation, :Reservoir, :Reservoir, :Reservoir]
 constraints = [:outflows, :balance, :storagemin, :storagemax, :storagecapacitymax]
@@ -54,7 +54,7 @@ if allowgw
     setobjective!(house, -varsum(discounted(m, grad_allocation_cost_waterfromgw(m), .03)))
 end
 setobjective!(house, -varsum(discounted(m, grad_allocation_cost_withdrawals(m), .03)))
-setobjective!(house, -varsum(discounted(m, grad_allocation_cost_waterfromsupersource(m), .03)))
+setobjective!(house, -varsum(discounted(m, grad_allocation_cost_supersourcesupply(m), .03)))
 setobjective!(house, -varsum(discounted(m, grad_reservoir_cost_captures(m), .03)))
 setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_increasestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_increasestorage(m), .03)))
 setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapacitymax(m) * grad_reservoir_storagecapacitymax_reducestorage(m), .03)) + -varsum(discounted(m, grad_reservoir_investcost_reducestorage(m), .03)))
@@ -85,7 +85,7 @@ setconstraint!(house, -gror) # +
 setconstraintoffset!(house, constraintoffset_waternetwork_outflows(m)) # +
 
 # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
-setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
+setconstraint!(house, -grad_allocation_balance_supersourcesupply(m)) # -
 if allowgw
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
 end

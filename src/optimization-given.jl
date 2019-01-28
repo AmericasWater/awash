@@ -49,7 +49,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # Only include variables needed in constraints and parameters needed in optimization
 
     paramcomps = [:Allocation, :Allocation, :Allocation]
-    parameters = [:quarterwaterfromsupersource, :waterfromsupersource, :withdrawals]
+    parameters = [:quartersupersourcesupply, :supersourcesupply, :withdrawals]
 
     constcomps = [:WaterNetwork, :Allocation]
     constraints = [:outflows, :balance]
@@ -85,15 +85,15 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # swbalance is the demand minus supply
     # Reservoir storage cannot be <min or >max
 
-    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quarterwaterfromsupersource => :waterfromsupersource, :storagemin => :storage, :storagemax => :storage));
+    house = LinearProgrammingHouse(m, paramcomps, parameters, constcomps, constraints, Dict(:quartersupersourcesupply => :supersourcesupply, :storagemin => :storage, :storagemax => :storage));
 
     # Minimize supersource_cost + withdrawal_cost + suboptimallevel_cost
     if allowgw == true
         setobjective!(house, -hall_relabel(varsum(grad_watercost_costgw(m)), :gwextraction,:Allocation, :gwextraction))
     end
     setobjective!(house, -hall_relabel(varsum(grad_watercost_costswwithdrawals(m)), :swwithdrawals, :Allocation, :swwithdrawals))
-    setobjective!(house, -.5 * hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quarterwaterfromsupersource))
-    setobjective!(house, -hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quarterwaterfromsupersource))
+    setobjective!(house, -.5 * hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quartersupersourcesupply))
+    setobjective!(house, -hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quartersupersourcesupply))
     if allowreservoirs
         setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
     end
@@ -134,8 +134,8 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
 
     # Constrain swdemand < swsupply, or recorded < supersource + withdrawals, or -supersource - withdrawals < -recorded
-    setconstraint!(house, -room_relabel_parameter(grad_allocation_balance_waterfromsupersource(m), :waterfromsupersource, :Allocation, :quarterwaterfromsupersource)) # -
-    setconstraint!(house, -grad_allocation_balance_waterfromsupersource(m)) # -
+    setconstraint!(house, -room_relabel_parameter(grad_allocation_balance_supersourcesupply(m), :supersourcesupply, :Allocation, :quartersupersourcesupply)) # -
+    setconstraint!(house, -grad_allocation_balance_supersourcesupply(m)) # -
     if allowgw == true
         setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     end
@@ -143,7 +143,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     setconstraintoffset!(house, -constraintoffset_allocation_recordedtotal(m, allowgw != false, demandmodel)) # -
 
     recorded = knowndf("exogenous-withdrawals")
-    setupper!(house, LinearProgrammingHall(:Allocation, :quarterwaterfromsupersource, vec(repeat((config["timestep"] * convert(Vector, recorded[:, :TO_SW]) * 1383. / 12) / 4, outer=[1, numsteps]))))
+    setupper!(house, LinearProgrammingHall(:Allocation, :quartersupersourcesupply, vec(repeat((config["timestep"] * convert(Vector, recorded[:, :TO_SW]) * 1383. / 12) / 4, outer=[1, numsteps]))))
 
     if allowreservoirs
         # Reservoir constraints:
@@ -201,7 +201,7 @@ Save the results for simulation runs
 """
 function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=false, allowreservoirs=true)
     # The size of each optimized parameter
-    varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quarterwaterfromsupersource => :waterfromsupersource))
+    varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quartersupersourcesupply => :supersourcesupply))
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files

@@ -82,8 +82,8 @@ function initallocation(m::Model)
 
     # Check if there are saved withdrawals (from optimize-surface)
 
-    totaluse=ones(m.indices_counts[:time])
-    allocation[:totaluse]=totaluse*7.820581169848508e6 #max total annual water use from simulation
+    watertotaldemand=ones(m.indices_counts[:time])
+    allocation[:watertotaldemand]=watertotaldemand*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
 	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
     	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
@@ -113,7 +113,7 @@ function grad_allocation_balance_waterfromgw(m::Model)
     roomdiagonal(m, :Allocation, :balance, :gwextraction, 1.)
 end
 
-function grad_allocation_balance_waterfromsupersource(m::Model)
+function grad_allocation_balance_supersourcesupply(m::Model)
     roomdiagonal(m, :Allocation, :balance, :supersourcesupply, 1.)
 end
 
@@ -156,25 +156,25 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 end
 
 
-function grad_allocation_totaluse_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
+function grad_allocation_watertotaldemand_waterfromgw(m::Model)    #STATE LEVEL CONSTRAINT
     function generate(A,tt)
         A[:] = 1
     end
-    roomintersect(m,:Allocation, :totaluse, :waterfromgw,generate)
+    roomintersect(m,:Allocation, :watertotaldemand, :waterfromgw,generate)
 end
 
 
-function grad_allocation_totaluse_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT
+function grad_allocation_watertotaldemand_withdrawals(m::Model)    #STATE LEVEL CONSTRAINT
     function generate(A,tt)
         A[:] = 1
     end
-    roomintersect(m, :Allocation, :totaluse, :withdrawals, generate)
+    roomintersect(m, :Allocation, :watertotaldemand, :withdrawals, generate)
 end
 
 
-function constraintoffset_allocation_totaluse(m::Model) #STATE LEVEL CONSTRAINT
+function constraintoffset_allocation_watertotaldemand(m::Model) #STATE LEVEL CONSTRAINT
     gen(tt)=(7.820581169848508e6)*2
-    hallsingle(m, :Allocation, :totaluse, gen)
+    hallsingle(m, :Allocation, :watertotaldemand, gen)
 end
 
 

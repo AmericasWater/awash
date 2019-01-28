@@ -39,7 +39,7 @@ paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture,:Allocation]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst,:returns]
 constcomps = [:UnivariateAgriculture, :WaterNetwork, :Allocation,:Allocation,:Allocation,
               :UnivariateAgriculture,:UnivariateAgriculture,:UnivariateAgriculture]
-constraints = [:allagarea, :outflows, :balance,:totaluse,:returnbalance,
+constraints = [:allagarea, :outflows, :balance,:watertotaldemand,:returnbalance,
                :sorghumarea,:hayproduction,:barleyproduction]
 
 ## Constraint definitions:
@@ -113,9 +113,9 @@ if redohouse
     setconstraintoffset!(house,constraintoffset_univariateagriculture_barleyproduction(m))
 
 
-    setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
-    setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
-    setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
+    setconstraint!(house,grad_allocation_watertotaldemand_withdrawals(m))
+    setconstraint!(house,grad_allocation_watertotaldemand_waterfromgw(m))
+    setconstraintoffset!(house,constraintoffset_allocation_watertotaldemand(m))
 
 
 

@@ -87,25 +87,25 @@ function soleobjective_allocation(m::Model)
 end
 
 function grad_watercost_costgw(m::Model)
-	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, tt) -> m.parameters[:unitgwextractioncost].values[rr,tt] + m.parameters[:unitgwtreatmentcost].values[rr,tt] + m.parameters[:unitdistributioncost].values[rr,tt])
+	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, tt) -> m.external_parameters[:unitgwextractioncost].values[rr,tt] + m.external_parameters[:unitgwtreatmentcost].values[rr,tt] + m.external_parameters[:unitdistributioncost].values[rr,tt], [:scenarios])
 end
  
 function grad_watercost_costsupersource(m::Model)
-	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, tt) -> m.parameters[:unitsupersourcecost].values[rr,tt])
+	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, tt) -> m.external_parameters[:unitsupersourcecost].values[rr,tt], [:scenarios])
 end
 
 function grad_watercost_costswwithdrawals(m::Model)
      function generate(A, tt)
          # Fill in COUNTIES x CANALS matrix
          for pp in 1:nrow(draws)
-             fips = draws[pp, :fips] < 10000 ? (draws[pp, :fips] < 10 ? "0000$(draws[pp, :fips])" : "0$(draws[pp, :fips])") : "$(draws[pp, :fips])"
-             rr = findfirst(mastercounties[:fips] .== fips)
+             regionids = regionindex(draws, pp)
+             rr = findfirst(regionindex(masterregions, :) .== regionids)
              if rr > 0
-		     A[rr, pp] = m.parameters[:unitswextractioncost].values[pp,tt] + m.parameters[:unitswtreatmentcost].values[rr,tt] + m.parameters[:unitdistributioncost].values[rr,tt]
+		     A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp,tt] + m.external_parameters[:unitswtreatmentcost].values[rr,tt] + m.external_parameters[:unitdistributioncost].values[rr,tt]
              end
          end
      end
  
-     roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate)
+     roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate, [:scenarios], [:scenarios])
 end
 

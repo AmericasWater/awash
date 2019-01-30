@@ -62,9 +62,9 @@ setobjective!(house, -varsum(discounted(m, grad_reservoir_investcost_storagecapa
 # Constrain that the water in the stream is non-negative:
 # That is, outflows + runoff > 0, or -outflows < runoff
 if redogwwo
-    gwwo = grad_waternetwork_outflows_withdrawals(m);
+    gwwo = grad_waternetwork_outflows_swwithdrawals(m);
     serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
-    grwo = grad_returnflows_outflows_withdrawals(m, allowgw, demandmodel);
+    grwo = grad_returnflows_outflows_swwithdrawals(m, allowgw, demandmodel);
     serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
     gror = grad_reservoir_outflows_captures(m);
     serialize(open(cachepath("partialhouse-gror$suffix.jld"), "w"), gror);

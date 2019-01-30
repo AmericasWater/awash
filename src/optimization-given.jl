@@ -13,7 +13,7 @@ else
     include("weather.jl")
 end
 
-redogwwo = !isfile(cachepath("partialhouse-gwwo$suffix.jld"))
+redogwwo = !isfile(cachepath("partialhouse-gwwo$suffix.jld")) || !isfile(cachepath("partialhouse-grwo$suffix.jld"))
 
 include("WaterDemand.jl")
 include("WaterNetwork.jl")
@@ -101,9 +101,9 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     # Constrain that the water in the stream is non-negative, or superior to environmental requirement
     # That is, outflows + runoff > envrequirement, or -outflows < runoff - envrequirement
     if nocache
-        gwwo = grad_waternetwork_outflows_withdrawals(m);
+        gwwo = grad_waternetwork_outflows_swwithdrawals(m);
         serialize(open(cachepath("partialhouse-gwwo$suffix.jld"), "w"), gwwo);
-        grwo = grad_returnflows_outflows_withdrawals(m, allowgw != false, demandmodel);
+        grwo = grad_returnflows_outflows_swwithdrawals(m, allowgw != false, demandmodel);
         serialize(open(cachepath("partialhouse-grwo$suffix.jld"), "w"), grwo);
         if allowreservoirs
             gror = grad_reservoir_outflows_captures(m);

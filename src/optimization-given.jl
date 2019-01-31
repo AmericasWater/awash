@@ -205,7 +205,7 @@ function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=fal
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(datapath("extraction/supersource$suffix.jld"), "w"), reshape(sol.sol[1:varlens[1]], numcanals, numscenarios, numsteps) + reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numscenarios, numsteps))
+    serialize(open(datapath("extraction/supersource$suffix.jld"), "w"), reshape(sol.sol[1:varlens[1]], numregions, numscenarios, numsteps) + reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numregions, numscenarios, numsteps))
     serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
 
     if allowgw == true

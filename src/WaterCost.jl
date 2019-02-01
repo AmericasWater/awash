@@ -43,22 +43,23 @@ function run_timestep(c::WaterCost, tt::Int)
     p = c.Parameters
     d = c.Dimensions
 
-    v.swcost[:,tt] = zeros(numcounties)
-    for pp in 1:nrow(draws)
-	    fips = draws[pp, :fips] < 10000 ? "0$(draws[pp, :fips])" : "$(draws[pp, :fips])"
-	    rr = findfirst(mastercounties[:fips] .== fips)
+    for ss in 1:numscenarios
+        v.swcost[:, ss, tt] = zeros(numcounties)
+        for pp in 1:nrow(draws)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
 	    if rr > 0
-		    v.swcost[rr,tt] += p.swwithdrawals[pp,tt]*(p.unitswextractioncost[pp,tt]+p.unitswtreatmentcost[rr,tt]+p.unitdistributioncost[rr,tt])
+	        v.swcost[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]*(p.unitswextractioncost[pp, ss, tt]+p.unitswtreatmentcost[rr, ss, tt]+p.unitdistributioncost[rr, ss, tt])
 	    end
-    end
+        end
 
-    for rr in 1:numcounties
+        for rr in 1:numcounties
 	    aa = rr
-	    v.gwcost[rr,tt] = (p.unitgwextractioncost[aa,tt] + p.unitgwtreatmentcost[rr,tt] + p.unitdistributioncost[rr,tt]) * p.gwextraction[rr,tt]
-	    v.supersourcecost[rr,tt] = p.supersourcesupply[rr,tt]*p.unitsupersourcecost[rr,tt]
-	    v.totalcost[rr,tt] = v.swcost[rr,tt] + v.gwcost[rr,tt] + v.supersourcecost[rr,tt]
+	    v.gwcost[rr, ss, tt] = (p.unitgwextractioncost[aa, ss, tt] + p.unitgwtreatmentcost[rr, ss, tt] + p.unitdistributioncost[rr, ss, tt]) * p.gwextraction[rr, ss, tt]
+	    v.supersourcecost[rr, ss, tt] = p.supersourcesupply[rr, ss, tt]*p.unitsupersourcecost[rr, ss, tt]
+	    v.totalcost[rr, ss, tt] = v.swcost[rr, ss, tt] + v.gwcost[rr, ss, tt] + v.supersourcecost[rr, ss, tt]
+        end
     end
-    
 end
 
 """
@@ -66,14 +67,14 @@ Add a cost component to the model.
 """
 function initwatercost(m::Model)
     watercost = addcomponent(m, WaterCost);
-    watercost[:unitgwextractioncost] = repeat(aquiferextractioncost, outer = [1,numsteps])
-    watercost[:unitswextractioncost] = repeat(canalextractioncost, outer = [1,numsteps])
+    watercost[:unitgwextractioncost] = repeat(aquiferextractioncost, outer = [1,numscenarios, numsteps])
+    watercost[:unitswextractioncost] = repeat(canalextractioncost, outer = [1,numscenarios, numsteps])
 
-    watercost[:unitgwtreatmentcost] = repeat(gwtreatmentcost, outer = [1,numsteps])
-    watercost[:unitswtreatmentcost] = repeat(swtreatmentcost, outer = [1,numsteps])
+    watercost[:unitgwtreatmentcost] = repeat(gwtreatmentcost, outer = [1,numscenarios, numsteps])
+    watercost[:unitswtreatmentcost] = repeat(swtreatmentcost, outer = [1,numscenarios, numsteps])
     
-    watercost[:unitdistributioncost] = repeat(distributioncost, outer = [1,numsteps])
-    watercost[:unitsupersourcecost] = 1e6*ones(m.indices_counts[:regions], m.indices_counts[:time]);
+    watercost[:unitdistributioncost] = repeat(distributioncost, outer = [1,numscenarios, numsteps])
+    watercost[:unitsupersourcecost] = 1e6*ones(m.indices_counts[:regions], numscenarios, numsteps);
     watercost
 end
 
@@ -87,25 +88,25 @@ function soleobjective_allocation(m::Model)
 end
 
 function grad_watercost_costgw(m::Model)
-	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, tt) -> m.external_parameters[:unitgwextractioncost].values[rr,tt] + m.external_parameters[:unitgwtreatmentcost].values[rr,tt] + m.external_parameters[:unitdistributioncost].values[rr,tt], [:scenarios])
+	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, ss, tt) -> m.external_parameters[:unitgwextractioncost].values[rr, ss, tt] + m.external_parameters[:unitgwtreatmentcost].values[rr, ss, tt] + m.external_parameters[:unitdistributioncost].values[rr, ss, tt])
 end
  
 function grad_watercost_costsupersource(m::Model)
-	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, tt) -> m.external_parameters[:unitsupersourcecost].values[rr,tt], [:scenarios])
+	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, ss, tt) -> m.external_parameters[:unitsupersourcecost].values[rr, ss, tt])
 end
 
 function grad_watercost_costswwithdrawals(m::Model)
-     function generate(A, tt)
+     function generate(A, ss, tt)
          # Fill in COUNTIES x CANALS matrix
          for pp in 1:nrow(draws)
              regionids = regionindex(draws, pp)
              rr = findfirst(regionindex(masterregions, :) .== regionids)
              if rr > 0
-		     A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp,tt] + m.external_parameters[:unitswtreatmentcost].values[rr,tt] + m.external_parameters[:unitdistributioncost].values[rr,tt]
+		     A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, ss, tt] + m.external_parameters[:unitswtreatmentcost].values[rr, ss, tt] + m.external_parameters[:unitdistributioncost].values[rr, ss, tt]
              end
          end
      end
  
-     roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate, [:scenarios], [:scenarios])
+     roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate)
 end
 

@@ -57,7 +57,7 @@ function run_timestep(c::Allocation, tt::Int)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
             if rr > 0
-                v.swsupply[rr, ss, tt] += p.withdrawals[pp, ss, tt]
+                v.swsupply[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]
             end
             v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
         end

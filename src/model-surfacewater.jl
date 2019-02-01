@@ -30,7 +30,7 @@ waterstressindex = initwaterstressindex(model);
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
-returnflows[:withdrawals] = allocation[:copy_swwithdrawals];
+returnflows[:swwithdrawals] = allocation[:copy_swwithdrawals];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
 watercost[:gwextraction] = allocation[:copy_gwextraction];
@@ -44,4 +44,4 @@ environmentaldemand[:outflowsgauges] = waternetwork[:outflows];
 waterstressindex[:inflowgauge] = waternetwork[:inflows];
 waterstressindex[:withdrawalsw] = returnflows[:removed];
 waterstressindex[:withdrawalswregion] = allocation[:swsupply];
-waterstressindex[:withdrawalgw] = allocation[:watergw];
+waterstressindex[:withdrawalgw] = allocation[:gwsupply];

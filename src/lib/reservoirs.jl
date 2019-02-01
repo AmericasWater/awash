@@ -25,11 +25,40 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
     if dataset == "three"
         DataFrame(collection="three", colid=2)
     else
-        reservoirs = readtable(loadpath("reservoirs/allreservoirs.csv"))
+        try
+            reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Union{Float64, Missing}, Float64, Float64, Union{Float64, Missing}, Float64, String], missingstring="NA")
+        catch
+            reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Union{Float64, Missing}, Float64, Float64, Union{Float64, Missing}, Float64, String], missingstring="\"NA\"")
+        end
         if get(config, "filterstate", nothing) != nothing
-            reservoirs = reservoirs[floor(reservoirs[:fips] / 1000) .== parse(Int64, config["filterstate"]), :]
+            reservoirs = reservoirs[floor(parse.(Int64, reservoirs[:fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
         end
 
         reservoirs
     end
 end
+
+"""
+Calculate the estimated cost of construction of a reservoir of this capacity
+"""
+function estimatecost(capacity)
+    capacityaf = capacity * 1000 / 1233.48 # Convert to acre-ft
+    if log(capacityaf) < 10
+        capacityaf = exp(10)
+    end
+
+    exp.(0.7 + 0.9 * log((log(capacityaf) - 9.5) / 0.01)) * 1e6 # dollars
+end
+
+"""
+Marginal cost of increasing capacity, at the given capacity
+"""
+function marginalcost(capacity)
+    capacityaf = capacity * 1000 / 1233.48 # Convert to acre-ft
+    if log(capacityaf) < 10
+        capacityaf = exp(10)
+    end
+
+    estimatecost(capacity) * 0.9 * ((1 / capacityaf) / (log(capacityaf) - 9.5)) # Convert back to 1000 m^3, in dollars
+end
+

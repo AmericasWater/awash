@@ -6,7 +6,8 @@
 
 include("lib/readconfig.jl")
 if !isdefined(:config)
-    config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    ##config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    config = readconfig("../configs/paleo-4scen.yml")
 end
 
 if "rescap" in keys(config) && config["rescap"] == "zero"
@@ -32,13 +33,7 @@ summarizeparameters(house, sol.sol)
 #constdf = constraining(house, sol.sol)
 
 # Save the results
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
-
-serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-if allowreservoirs
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
-end
+save_optimization_given(house, sol, allowgw=false, allowreservoirs=allowreservoirs)
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)

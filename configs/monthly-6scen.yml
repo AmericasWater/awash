@@ -1,0 +1,9 @@
+# Take all additional configuration from paleo.yml
+parent-config: complete
+
+timestep: 1
+
+# Six scenarios, each for 2 years; only the second year is for output
+scenarios: [ 88, 136, 424, 604, 652, 712 ]
+scenario-length: 24
+

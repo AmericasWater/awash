@@ -18,7 +18,7 @@ solver = ClpSolver()
 @time sol = houseoptimize(house, solver)
 
 # Save the results, if not available
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
+varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quarterwaterfromsupersource => :waterfromsupersource))
 
 allparams = Symbol[]
 allvalues = Float64[]
@@ -41,7 +41,7 @@ if isfile(outputpath)
     mismatches = Int64[]
     for ii in 1:nrow(alldf)
         @test compdf[ii, :parameter] == string(alldf[ii, :parameter])
-        if abs(compdf[ii, :value] - alldf[ii, :value]) / max(compdf[ii, :value], alldf[ii, :value]) > 0.01
+        if abs(compdf[ii, :value] - alldf[ii, :value]) / max(compdf[ii, :value], alldf[ii, :value]) > 0.1
             push!(mismatches, ii)
         end
     end
@@ -53,15 +53,7 @@ if isfile(outputpath)
     end
     @test length(mismatches) == 0
 else
-    writetable(outputpath, alldf)
+    CSV.write(outputpath, alldf)
 end
 
-if !isfile(datapath("extraction/withdrawals$suffix.jld"))
-    serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-end
-if !isfile(datapath("extraction/returns$suffix.jld"))
-    serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-end
-if !isfile(datapath("extraction/captures$suffix.jld"))
-    serialize(open(datapath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
-end
+save_optimization_given(house, sol, false, true)

@@ -3,9 +3,9 @@
 # Produces a linear programming model where demands are determined by
 # the optimization, and some features are required to be constant.
 
-redohouse =true#!isfile(cachepath("fullhouse$suffix.jld"))
-redogwwo =!isfile(cachepath("partialhouse2$suffix.jld"))
-allowreservoirs=false
+redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
+redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
+allowreservoirs = false
 
 include("world.jl")
 include("weather.jl")
@@ -15,11 +15,8 @@ include("UnivariateAgriculture.jl")
 include("IrrigationAgriculture.jl")
 include("WaterDemand.jl")
 include("PopulationDemand.jl")
-include("Market.jl")
-include("Transportation.jl")
 include("WaterNetwork.jl")
 include("Allocation.jl")
-include("UrbanDemand.jl")
 include("ReturnFlows.jl")
 
 println("Creating model...")
@@ -35,18 +32,15 @@ agriculture = initagriculture(m); # dep. IrrigationAgriculture, UnivariateAgricu
 waterdemand = initwaterdemand(m); # dep. Agriculture, PopulationDemand
 allocation = initallocation(m); # dep. WaterDemand, optimization (withdrawals)
 waternetwork = initwaternetwork(m); # dep. WaterDemand
-transportation = inittransportation(m); # optimization-only
-market = initmarket(m); # dep. Transporation, Agriculture
-urbandemand = initurbandemand(m); # Just here for the parameters
 
 # Only include variables needed in constraints and parameters needed in optimization
 
 paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture,:Allocation]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst,:returns]
 constcomps = [:UnivariateAgriculture, :WaterNetwork, :Allocation,:Allocation,:Allocation,
-:UnivariateAgriculture,:UnivariateAgriculture,:UnivariateAgriculture]
+              :UnivariateAgriculture,:UnivariateAgriculture,:UnivariateAgriculture]
 constraints = [:allagarea, :outflows, :balance,:totaluse,:returnbalance,
-:sorghumarea,:hayproduction,:barleyproduction]
+               :sorghumarea,:hayproduction,:barleyproduction]
 
 ## Constraint definitions:
 # domesticbalance is the amount being supplied to local markets

@@ -1,9 +1,10 @@
 julia 0.6
 CSV
 Mimi
-OptiMimi julia5
+OptiMimi
 Graphs
 MathProgBase
 Missings
 YAML
 RData
+NullableArrays

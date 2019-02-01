@@ -109,7 +109,7 @@ function initunivariateagriculture(m::Model)
         kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         for rr in 1:numcounties
-            if config["dataset"] == "counties"
+            if configdescends(config, "counties")
                 regionid = masterregions[rr, :fips]
             else
                 regionid = masterregions[rr, :state]
@@ -120,12 +120,12 @@ function initunivariateagriculture(m::Model)
                     year = index2year(tt)
                     if year >= 1949 && year <= 2009
                         numgdds = gdds[rr, Symbol("x$year")]
-                        if isna(numgdds)
+                        if ismissing(numgdds)
                             numgdds = 0
                         end
 
                         numkdds = kdds[rr, Symbol("x$year")]
-                        if isna(numkdds)
+                        if ismissing(numkdds)
                             numkdds = 0
                         end
                     else

@@ -7,7 +7,7 @@ data(county.fips)
 
 infos <- read.csv("../../data/counties/county-info.csv")
 infos$FIPS <- as.numeric(as.character(infos$FIPS))
-infos$elevation <- as.numeric(as.character(infos$Elevation.ft)) * .3048 # convert to m
+infos$elevation <- as.numeric(as.character(infos$Elevation_ft)) * .3048 # convert to m
 
 counties$x <- c(counties$x, NA)
 counties$y <- c(counties$y, NA)

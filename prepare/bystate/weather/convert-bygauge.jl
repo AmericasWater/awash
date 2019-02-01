@@ -36,8 +36,11 @@ num = length(newlabels)
 # Get all the data
 contributing_area = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "contributing_area")
 runoff = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "runoff")
+runoff[isnan.(runoff)] = 0
 baseflow = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "baseflow")
+baseflow[isnan.(baseflow)] = 0
 totalflow = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "totalflow")
+totalflow[isnan.(totalflow)] = 0
 
 # Set up repositories for results
 newcontributing_area = zeros(num)
@@ -64,8 +67,8 @@ for ii in 1:length(newlabels)
     for oldupstream in oldupstreams
         row = findfirst(waternetwork[:gaugeid] .== oldupstream)
         index = find((gage_latitude .== waternetwork[row, :lat]) .& (gage_longitude .== waternetwork[row, :lon]))
-        append!(indices, index)
-    end
+        append!(indices, index) 
+   end
 
     newcontributing_area[ii] = sum(contributing_area[indices])
     if length(indices) > 0
@@ -103,4 +106,4 @@ ncwrite(collect(1:num), "../../../data/cache/states/contributing_runoff_by_gage.
 nccreate("../../../data/cache/states/contributing_runoff_by_gage.nc", "month", "month", 735)
 ncwrite(collect(1:735), "../../../data/cache/states/contributing_runoff_by_gage.nc", "month")
 
-cp("../../../data/cache/states/contributing_runoff_by_gage.nc", "/Users/jrising/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc", remove_destination=true)
+cp("../../../data/cache/states/contributing_runoff_by_gage.nc", expanduser("~/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc"), remove_destination=true)

@@ -77,7 +77,7 @@ if redohouse
 
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo
-        gwwo = grad_waternetwork_outflows_withdrawals(m);
+        gwwo = grad_waternetwork_outflows_swwithdrawals(m);
         serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
         serialize(open(cachepath("partialhouse2$suffix.jld"), "w"), cwro);

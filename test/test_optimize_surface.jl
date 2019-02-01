@@ -18,12 +18,12 @@ solver = ClpSolver()
 @time sol = houseoptimize(house, solver)
 
 # Save the results, if not available
-varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quarterwaterfromsupersource => :waterfromsupersource))
+varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quartersupersourcesupply => :supersourcesupply))
 
 allparams = Symbol[]
 allvalues = Float64[]
 for ii in 1:length(house.parameters)
-    if house.parameters[ii] in [:withdrawals, :returns]
+    if house.parameters[ii] in [:swwithdrawals]
         # Just include sum, since not completely constrained
         allparams = [allparams; house.parameters[ii]]
         allvalues = [allvalues; sum(sol.sol[sum([1; varlens[1:(ii-1)]]):sum(varlens[1:ii])])]

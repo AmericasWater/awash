@@ -16,12 +16,12 @@ using OptiMimi
     scenarios = Index()
 
     # How much to send from each gauge to each county
-    withdrawals = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
+    swwithdrawals = Parameter(index=[canals, scenarios, time], unit="1000 m^3")
     # Return rate by canal
     returnrate = Parameter(index=[canals], unit="fraction")
 
     # For now, exact copy of withdrawals; later, the amount actually provided for each withdrawal?
-    copy_withdrawals = Variable(index=[canals, scenarios, time], unit="1000 m^3")
+    copy_swwithdrawals = Variable(index=[canals, scenarios, time], unit="1000 m^3")
     # Water removed from gauge
     removed = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
     # Water returned to gauge
@@ -40,15 +40,15 @@ function run_timestep(c::ReturnFlows, tt::Int)
 
     for ss in 1:numscenarios
         for pp in 1:nrow(draws)
-            v.copy_withdrawals[pp, ss, tt] = p.withdrawals[pp, ss, tt]
-            if p.withdrawals[pp, ss, tt] > 0
+            v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
+            if p.swwithdrawals[pp, ss, tt] > 0
                 gaugeid = draws[pp, :gaugeid]
                 vertex = get(wateridverts, gaugeid, nothing)
                 if vertex == nothing
                     println("Missing $gaugeid")
                 else
                     gg = vertex_index(vertex)
-                    v.removed[gg, ss, tt] += p.withdrawals[pp, ss, tt]
+                    v.removed[gg, ss, tt] += p.swwithdrawals[pp, ss, tt]
                 end
             end
         end
@@ -71,7 +71,7 @@ Add a ReturnFlows component to the model.
 function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     returnflows = addcomponent(m, ReturnFlows);
 
-    returnflows[:withdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
+    returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
     # Calculate return flows from withdrawals
     returnflows[:returnrate] = vector_canalreturns(m, includegw, demandmodel)
 
@@ -125,7 +125,7 @@ end
 """
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
-function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function grad_returnflows_outflows_swwithdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
     canalreturns = vector_canalreturns(m, includegw, demandmodel)
 
     # Construct room
@@ -140,5 +140,5 @@ function grad_returnflows_outflows_withdrawals(m::Model, includegw::Bool, demand
         end
     end
 
-    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :withdrawals, generate, [:scenarios, :time], [:scenarios, :time])
+    roomintersect(m, :WaterNetwork, :outflows, :Allocation, :swwithdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end

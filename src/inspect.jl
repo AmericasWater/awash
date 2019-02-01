@@ -16,7 +16,7 @@ using StatsBase
 import Mimi: CertainScalarParameter, UncertainScalarParameter
 
 paramcomps = [:Allocation, :Allocation, :Allocation, :Agriculture, :Agriculture, :Transportation, :Market]
-parameters = [:waterfromsupersource, :waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
+parameters = [:supersourcesupply, :waterfromgw, :withdrawals, :rainfedareas, :irrigatedareas, :imported, :internationalsales]
 constcomps = [:Agriculture, :WaterNetwork, :Allocation, :Market, :Market]
 constraints = [:allagarea, :outflows, :balance, :available, :domesticbalance]
 ## Constraint definitions:

@@ -13,7 +13,7 @@ transportation = inittransportation(model); # optimization-only
 market = initmarket(model); # dep. Transportation, Agriculture
 
 # Connect up the components
-groundwater[:withdrawal] = allocation[:watergw];
+groundwater[:withdrawal] = allocation[:copy_gwextraction];
 
 market[:produced] = agriculture[:allcropproduction];
 market[:regionimports] = transportation[:regionimports];

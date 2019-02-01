@@ -8,6 +8,8 @@ using Mimi
 
 using Graphs
 
+include("lib/inputcache.jl")
+
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end
@@ -38,11 +40,7 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    if configdescends(config, "counties")
-        counties = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
-    else
-        counties = CSV.read(loadpath("county-info.csv"))
-    end
+    counties = knowndf("region-info")
     edges = Dict{String, Vector{String}}()
 
     for row in 1:size(counties, 1)

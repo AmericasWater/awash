@@ -5,6 +5,7 @@
 using Mimi
 using Distributions
 
+include("lib/inputcache.jl")
 include("lib/groundwaterdata.jl")
 
 @defcomp Aquifer begin
@@ -97,11 +98,7 @@ function initaquifer(m::Model)
     aquifer[:deltatime] = convert(Float64, config["timestep"]);
 
     # Get elevation from county-info file
-    if config["dataset"] == "counties"
-        countyinfo = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
-    else
-        countyinfo = CSV.read(loadpath("county-info.csv"))
-    end
+    countyinfo = knowndf("region-info")
     countyinfo[:FIPS] = regionindex(countyinfo, :)
 
     aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))

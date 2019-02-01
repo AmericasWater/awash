@@ -89,8 +89,6 @@ function initreservoir(m::Model, name=nothing)
         reservoir = addcomponent(m, Reservoir, name)
     end
 
-    reservoir[:captures] = zeros(numreservoirs, numscenarios, numsteps);
-
     if config["dataset"] == "three"
         reservoir[:storagecapacitymax] = 8.2*ones(numreservoirs)
         reservoir[:storagecapacitymin] = 0.5*ones(numreservoirs)

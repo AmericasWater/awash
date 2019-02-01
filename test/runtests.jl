@@ -1,28 +1,32 @@
 using Base.Test
 
-function requirepackage(pkg, checkout=false)
+function requirepackage(pkg, checkout=false; version=nothing)
     try
-        version = Pkg.installed(pkg)
-        if version == nothing
+        gotvers = Pkg.installed(pkg)
+        if gotvers == nothing
             error("Needs to be installed.")
+        end
+        if version != nothing && gotvers != version
+            Pkg.pin(pkg, version)
         end
     catch
         Pkg.add(pkg)
         if checkout
             Pkg.checkout(pkg)
         end
+        if version != nothing
+            Pkg.pin(pkg, version)
+        end
     end
 end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("Mimi")
-Pkg.pin("Mimi", v"0.4.0")
+requirepackage("Mimi", version=v"0.4.0")
 requirepackage("Graphs")
 requirepackage("NetCDF")
 requirepackage("DataArrays")
-requirepackage("OptiMimi")
-Pkg.checkout("OptiMimi")
+requirepackage("OptiMimi", true)
 requirepackage("RData")
 requirepackage("Clp")
 requirepackage("NullableArrays")

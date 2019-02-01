@@ -16,10 +16,12 @@ include("ReturnFlows.jl");
 include("WaterNetwork.jl");
 include("Allocation.jl");
 include("Reservoir.jl");
+include("WaterCost.jl");
 include("EnvironmentalDemand.jl")
 include("WaterStressIndex.jl")
 
 allocation = initallocation(model); # dep. WaterDemand, optimization (withdrawals)
+watercost = initwatercost(model); # dep. Allocation
 returnflows = initreturnflows(model, true); # dep. Allocation
 waternetwork = initwaternetwork(model); # dep. ReturnFlows
 reservoir = initreservoir(model); # Allocation and WaterNetwork or optimization-only
@@ -28,9 +30,12 @@ waterstressindex = initwaterstressindex(model);
 
 # Connect up the components
 allocation[:watertotaldemand] = waterdemand[:totaldemand];
-returnflows[:withdrawals] = allocation[:copy_withdrawals];
+returnflows[:swwithdrawals] = allocation[:copy_swwithdrawals];
 waternetwork[:removed] = returnflows[:removed];
 waternetwork[:returned] = returnflows[:returned];
+watercost[:gwextraction] = allocation[:copy_gwextraction];
+watercost[:swwithdrawals] = allocation[:copy_swwithdrawals];
+watercost[:supersourcesupply] = allocation[:copy_supersourcesupply];
 reservoir[:inflowsgauges] = waternetwork[:inflows];
 reservoir[:outflowsgauges] = waternetwork[:outflows];
 
@@ -39,4 +44,4 @@ environmentaldemand[:outflowsgauges] = waternetwork[:outflows];
 waterstressindex[:inflowgauge] = waternetwork[:inflows];
 waterstressindex[:withdrawalsw] = returnflows[:removed];
 waterstressindex[:withdrawalswregion] = allocation[:swsupply];
-waterstressindex[:withdrawalgw] = allocation[:watergw];
+waterstressindex[:withdrawalgw] = allocation[:gwsupply];

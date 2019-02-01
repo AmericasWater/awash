@@ -8,6 +8,7 @@ using DataFrames
 using RData
 include("lib/weather.jl")
 include("lib/coding.jl")
+include("lib/inputcache.jl")
 
 statefips = dncload("weather", "state_fips", [config["ncregion"]])
 if config["ncregion"] == "county"
@@ -17,11 +18,7 @@ else
     indicies = dncload("weather", "state", ["county"])
 end
 
-if config["dataset"] == "counties"
-    regions = CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA")
-else
-    regions = CSV.read(loadpath("county-info.csv"))
-end
+regions = knowndf("region-info")
 
 regions[:FIPS] = regionindex(regions, :)
 

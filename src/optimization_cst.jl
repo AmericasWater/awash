@@ -39,7 +39,7 @@ paramcomps = [:Allocation, :Allocation, :UnivariateAgriculture,:Allocation]
 parameters = [:waterfromgw, :withdrawals, :totalareas_cst,:returns]
 constcomps = [:UnivariateAgriculture, :WaterNetwork, :Allocation,:Allocation,:Allocation,
               :UnivariateAgriculture,:UnivariateAgriculture,:UnivariateAgriculture]
-constraints = [:allagarea, :outflows, :balance,:totaluse,:returnbalance,
+constraints = [:allagarea, :outflows, :balance,:watertotaldemand,:returnbalance,
                :sorghumarea,:hayproduction,:barleyproduction]
 
 ## Constraint definitions:
@@ -70,7 +70,7 @@ if redohouse
 
     # Constrain outflows + runoff > 0, or -outflows < runoff **SAME AS CST
      if redogwwo
-        gwwo = grad_waternetwork_outflows_withdrawals(m);
+        gwwo = grad_waternetwork_outflows_swwithdrawals(m);
         serialize(open(datapath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
         serialize(open(datapath("partialhouse2$suffix.jld"), "w"), cwro);
@@ -81,7 +81,7 @@ if redohouse
 
     # Specify the components affecting outflow: withdrawals, returns, captures
     setconstraint!(house, -room_relabel_parameter(gwwo, :withdrawals, :Allocation, :withdrawals)) # +
-    setconstraint!(house, room_relabel_parameter(gwwo - grad_waternetwork_immediateoutflows_withdrawals(m), :withdrawals, :Allocation, :returns)) # -
+    setconstraint!(house, room_relabel_parameter(gwwo - grad_waternetwork_immediateoutflows_swwithdrawals(m), :withdrawals, :Allocation, :returns)) # -
     # Specify that these can at most equal the cummulative runoff
     setconstraintoffset!(house, cwro) # +
 
@@ -113,9 +113,9 @@ if redohouse
     setconstraintoffset!(house,constraintoffset_univariateagriculture_barleyproduction(m))
 
 
-    setconstraint!(house,grad_allocation_totaluse_withdrawals(m))
-    setconstraint!(house,grad_allocation_totaluse_waterfromgw(m))
-    setconstraintoffset!(house,constraintoffset_allocation_totaluse(m))
+    setconstraint!(house,grad_allocation_watertotaldemand_withdrawals(m))
+    setconstraint!(house,grad_allocation_watertotaldemand_waterfromgw(m))
+    setconstraintoffset!(house,constraintoffset_allocation_watertotaldemand(m))
 
 
 

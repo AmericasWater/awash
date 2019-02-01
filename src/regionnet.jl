@@ -1,8 +1,14 @@
+## Construct Region Network
+#
+# Setup the network between regions, used for transportation.
+
 using Mimi
 
 # Region Network definitions
 
 using Graphs
+
+include("lib/inputcache.jl")
 
 if !isdefined(:RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
@@ -34,16 +40,12 @@ else
     println("Trying to create a new region network...")
 
     # Load the network of counties
-    if config["dataset"] == "counties"
-        counties = readtable(datapath("county-info.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
-    else
-        counties = readtable(datapath("county-info$suffix.csv"), eltypes=[String, String, String, String, Float64, Float64, Float64, Float64, Float64, Float64, Float64])
-    end
+    counties = knowndf("region-info")
     edges = Dict{String, Vector{String}}()
 
     for row in 1:size(counties, 1)
         neighboring = counties[row, :Neighboring]
-        if !isna.(neighboring)
+        if !ismissing.(neighboring)
             chunks = String[neighboring[start:start+config["indexlen"]-1] for start in 1:config["indexlen"]:length(neighboring)]
             index = regionindex(counties, row)
 

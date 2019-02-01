@@ -2,7 +2,7 @@
 # "10" for Delaware (3 counties), "08" for Colorado (64 counties)
 filterstate: null
 
-  
+
 # Current options: counties (full-country), dummy (5-counties)
 dataset: counties
 
@@ -12,13 +12,15 @@ endmonth: 9/2010
 
 # First entry in VIC_WB to include
 startweather: 612
-  
+
 # Months per time step
 timestep: 6
-  
-# Type of optimization: "SW" for only surface water, "SWGW" for the conjunctive use of both resources
-optimtype: "SWGW"
-  
+
+# Cost configuration: if false, cost is 0.
+watercost-extraction: false #distinction between sw and gw (gw = 100, sw = 1)
+watercost-treatment: false
+
+
 # Reservoir: set to "zero" to set all reservoir storage capacities to 0
 rescap: "full"
 
@@ -27,4 +29,6 @@ urbandemand-path: demand/urbandemand_May11.csv
 urbandemand-column: per_capita
 urbandemand-transform: repcap
 urbandemand-index: FIPS_county
-  
+
+# Environmental flow: proportion of unmodified flows that should be guaranteed in the streams to preserve the environment
+proportionnaturalflowforenvironment: 0.5

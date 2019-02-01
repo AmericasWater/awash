@@ -1,8 +1,8 @@
-# The transporation component
+## Agriculture Transporation Component
 #
-# Each region is linked to other regions, accoring to the `regionnet`.  This
-# component determines the total imports and exports for each region, based on the
-# transport on each edge.
+# Each region is linked to other regions, accoring to the `regionnet`.
+# This component determines the total imports and exports for each
+# region, based on the transport on each edge.
 
 using Mimi
 
@@ -24,6 +24,7 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
     regions = Index()
     edges = Index()
     allcrops = Index()
+    scenarios = Index()
 
     # Internal
     # Cost per unit for transportation on a given edge
@@ -31,14 +32,14 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
 
     # Optimized
     # Amount of resource imported on each link
-    imported = Parameter(index=[edges, allcrops, time], unit="lborbu")
+    imported = Parameter(index=[edges, allcrops, scenarios, time], unit="lborbu")
 
     # The costs for each edge"s transportation
-    cost = Variable(index=[edges, allcrops, time], unit="\$")
+    cost = Variable(index=[edges, allcrops, scenarios, time], unit="\$")
 
     # The total imported to and exported from each region
-    regionimports = Variable(index=[regions, allcrops, time], unit="lborbu")
-    regionexports = Variable(index=[regions, allcrops, time], unit="lborbu")
+    regionimports = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
+    regionexports = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
 end
 
 """
@@ -52,13 +53,13 @@ function run_timestep(c::Transportation, tt::Int)
     # Costs are easy: just resource imported * cost-per-unit
     for ee in d.edges
         for cc in d.allcrops
-            v.cost[ee, cc, tt] = p.imported[ee, cc, tt] * p.cost_edge[ee, tt]
+            v.cost[ee, cc, :, tt] = p.imported[ee, cc, :, tt] * p.cost_edge[ee, tt]
         end
     end
 
     for cc in d.allcrops
         for ii in d.regions
-            v.regionexports[ii, cc, tt] = 0.0
+            v.regionexports[ii, cc, :, tt] = 0.0
         end
 
         # Sum over all edges for each region to translate to region-basis
@@ -68,13 +69,17 @@ function run_timestep(c::Transportation, tt::Int)
             numneighbors = out_degree(regverts[regionindex(masterregions, ii)], regionnet)
 
             # Sum over all *out-edges* to get import
-            v.regionimports[ii, cc, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, tt])
+            for ss in d.scenarios
+                v.regionimports[ii, cc, ss, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, ss, tt])
+            end
 
             # Sum over the edges that have this as an out-edge
             sources = get(sourceiis, ii, Int64[])
             for source in sources
                 if source > 0
-                    v.regionexports[source, cc, tt] += p.imported[edge1, cc, tt]
+                    for ss in d.scenarios
+                        v.regionexports[source, cc, ss, tt] += p.imported[edge1, cc, ss, tt]
+                    end
                 end
                 edge1 += 1 # length(sources) == numneighbors
             end
@@ -103,7 +108,7 @@ function inittransportation(m::Model)
     # Average cost is 0.76 / m^3
     transit[:cost_edge] = repmat([.76], m.indices_counts[:edges], m.indices_counts[:time])
 
-    transit[:imported] = repeat([0.], outer=[m.indices_counts[:edges], m.indices_counts[:allcrops], m.indices_counts[:time]])
+    transit[:imported] = repeat([0.], outer=[m.indices_counts[:edges], m.indices_counts[:allcrops], numscenarios, m.indices_counts[:time]])
 
     transit
 end
@@ -125,7 +130,7 @@ function grad_transportation_regionimports_imported(m::Model)
         end
     end
 
-    roomintersect(m, :Transportation, :regionimports, :imported, generate, [:allcrops, :time], [:allcrops, :time])
+    roomintersect(m, :Transportation, :regionimports, :imported, generate, [:allcrops, :scenarios, :time], [:allcrops, :scenarios, :time])
 end
 
 # row: variables, col = parameters
@@ -145,10 +150,10 @@ function grad_transportation_regionexports_imported(m::Model)
         end
     end
 
-    roomintersect(m, :Transportation, :regionexports, :imported, generate, [:allcrops, :time], [:allcrops, :time])
+    roomintersect(m, :Transportation, :regionexports, :imported, generate, [:allcrops, :scenarios, :time], [:allcrops, :scenarios, :time])
 end
 
 function grad_transportation_cost_imported(m::Model)
     gen(ee, cc, tt) = m.external_parameters[:cost_edge].values[ee, tt] * volume_per_unit[cc]
-    roomdiagonal(m, :Transportation, :cost, :imported, gen)
+    roomdiagonal(m, :Transportation, :cost, :imported, gen, [:scenarios])
 end

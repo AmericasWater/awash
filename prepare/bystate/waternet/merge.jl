@@ -4,7 +4,7 @@ config = emptyconfig()
 
 include("../../../src/lib/datastore.jl")
 include("../../../src/lib/reservoirs.jl")
-include("../../../src/waternet.jl")
+include("../../../src/initwaternet.jl")
 
 include("mergelib.jl")
 include("statelib.jl")

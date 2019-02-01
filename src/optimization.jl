@@ -1,3 +1,10 @@
+## Complete Optimization Model construction
+#
+# Produces a linear programming model where demands are determined by
+# the optimization.
+
+using OptiMimi
+
 redohouse = true #!isfile(cachepath("fullhouse$suffix.jld"))
 redogwwo = true #!isfile(cachepath("partialhouse2$suffix.jld"))
 
@@ -70,7 +77,7 @@ if redohouse
 
     # Constrain outflows + runoff > 0, or -outflows < runoff
     if redogwwo
-        gwwo = grad_waternetwork_outflows_withdrawals(m);
+        gwwo = grad_waternetwork_outflows_swwithdrawals(m);
         serialize(open(cachepath("partialhouse$suffix.jld"), "w"), gwwo);
         cwro = constraintoffset_waternetwork_outflows(m);
         serialize(open(cachepath("partialhouse2$suffix.jld"), "w"), cwro);
@@ -91,8 +98,8 @@ if redohouse
                    grad_market_available_regionexports(m) * grad_transportation_regionexports_imported(m))) # +-
 
     # Constrain swdemand < swsupply, or irrigation + domestic < pumping + withdrawals, or irrigation - pumping - withdrawals < -domestic
-    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_univariateagriculture_totalirrigation_totalareas(m)) # +
-    setconstraint!(house, grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_irrigationagriculture_totalirrigation_irrigatedareas(m)) # +
+    setconstraint!(house, room_relabel(grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_univariateagriculture_totalirrigation_totalareas(m), :totaldemand, :Allocation, :balance)) # +
+    setconstraint!(house, room_relabel(grad_waterdemand_swdemandbalance_totalirrigation(m) * grad_irrigationagriculture_totalirrigation_irrigatedareas(m), :totaldemand, :Allocation, :balance)) # +
     setconstraint!(house, -grad_allocation_balance_waterfromgw(m)) # -
     setconstraint!(house, -grad_allocation_balance_withdrawals(m)) # - THIS IS SUPPLY
     setconstraintoffset!(house, -hall_relabel(constraintoffset_urbandemand_waterdemand(m), :waterdemand, :Allocation, :balance)) # -
@@ -110,15 +117,15 @@ if redohouse
     # Clean up
 
     house.b[isnan.(house.b)] = 0
-    house.b[!isfinite(house.b)] = 0
+    house.b[.!isfinite.(house.b)] = 0
     house.f[isnan.(house.f)] = 0
-    house.f[!isfinite(house.f)] = 0
+    house.f[.!isfinite.(house.f)] = 0
 
     ri, ci, vv = findnz(house.A)
     for ii in find(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(!isfinite(vv))
+    for ii in find(.!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

@@ -1,11 +1,20 @@
+## Perform Optimization with known demands
+#
+# Optimize a model from `optimization-given` with only surface waters.
+
 #### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
 
 include("lib/readconfig.jl")
 if !isdefined(:config)
-    config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    ##config = readconfig("../configs/single.yml") # Just use 1 year for optimization
+    config = readconfig("../configs/paleo-4scen.yml")
 end
 
-allowreservoirs = true
+if "rescap" in keys(config) && config["rescap"] == "zero"
+	allowreservoirs = false
+else
+	allowreservoirs = true
+end
 
 include("optimization-given.jl")
 house = optimization_given(false, allowreservoirs)
@@ -24,13 +33,7 @@ summarizeparameters(house, sol.sol)
 #constdf = constraining(house, sol.sol)
 
 # Save the results
-varlens = varlengths(house.model, house.paramcomps, house.parameters)
-
-serialize(open(cachepath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-serialize(open(cachepath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numsteps))
-if allowreservoirs
-    serialize(open(cachepath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:end], numreservoirs, numsteps))
-end
+save_optimization_given(house, sol, allowgw=false, allowreservoirs=allowreservoirs)
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)

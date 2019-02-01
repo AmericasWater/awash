@@ -1,3 +1,9 @@
+## Agriculture Economic Research Service library
+#
+# Provides functions for accessing ERS data
+
+include("coding.jl")
+
 """
 Return the 4-letter crop code used by ERS
 """
@@ -10,7 +16,7 @@ function ers_crop(crop::AbstractString)
         return "soyb"
     end
 
-    if crop in ["whea", "wheat", "Wheat", "Wheat.Winter", "wheat.co.rainfed"  , "wheat.co.irrigated"]
+    if crop in ["whea", "wheat", "Wheat", "Wheat.Winter", "wheat.co.rainfed", "wheat.co.irrigated"]
         return "whea"
     end
 
@@ -46,9 +52,9 @@ Returns a value for every region
 If a value is given for the region, use that; otherwise use US averages
 """
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
-    df = readtable(datapath("global/ers.csv"))
+    df = CSV.read(loadpath("global/ers.csv"), types=[String, String, String, Float64, Float64])
 
-    reglink = readtable(datapath("agriculture/ers/reglink.csv"))
+    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), allowmissing=:none)
     fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
@@ -86,9 +92,9 @@ function ers_information(crop::AbstractString, item::AbstractString, year::Int64
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== year), :]
+    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
 
-    result = zeros(size(masterregions, 1)) * NA
+    result = zeros(size(masterregions, 1)) * missing
     for region in unique(reglink_abbr)
         value = subdf[subdf[:region] .== region, :value]
         if (length(value) == 0)
@@ -99,7 +105,7 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[isna.(result)] = value[1]
+        result[[ismissing(result[ii]) for ii in 1:length(result)]] = value[1]
     end
 
     result
@@ -109,7 +115,7 @@ end
 List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
-    df = readtable(datapath("global/ers.csv"))
+    df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
     ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
 end
 
@@ -118,13 +124,15 @@ function getaverage(crop::AbstractString,item::AbstractString)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
 end
 
-uniopcost=zeros(numcounties, numunicrops)
-unioverhead=zeros(numcounties,numunicrops)
+if isdefined(:numcounties) # might not be, if loaded outside of model
+    uniopcost=zeros(numcounties, numunicrops)
+    unioverhead=zeros(numcounties,numunicrops)
 
-for cc in 1:length(unicrops)
-    crop = ers_crop(unicrops[cc])
-    if crop != nothing
-        uniopcost[:, cc] = getaverage(crop, "opcost")
-        unioverhead[:, cc] = getaverage(crop, "overhead")
+    for cc in 1:length(unicrops)
+        crop = ers_crop(unicrops[cc])
+        if crop != nothing
+            uniopcost[:, cc] = getaverage(crop, "opcost")
+            unioverhead[:, cc] = getaverage(crop, "overhead")
+        end
     end
 end

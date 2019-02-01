@@ -1,8 +1,10 @@
 include("../../src/lib/readconfig.jl")
 config = readconfig("../configs/complete-yearly.yml") # Just use 1 year for optimization
 
+allowreservoirs = false
+
 include("../../src/optimization-given.jl")
-house = optimization_given(true, false);
+house = optimization_given(true, allowreservoirs);
 
 using MathProgBase
 using Gurobi
@@ -12,7 +14,7 @@ recorded = getfilteredtable("extraction/USGS-2010.csv")
 centroids = readtable(datapath("mapping/US_county_2000-simple-latlon-centroids.csv"))
 centroids[:fips] = round(Int64, centroids[:NHGISST] * 100 + centroids[:NHGISCTY] / 10)
 
-radius = 50 # km
+radius = 100 # km
 
 deg2rad(deg) = deg*pi/180
 

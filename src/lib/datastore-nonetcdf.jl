@@ -1,3 +1,8 @@
+## Large Dataset library, without using NetCDFs
+#
+# Handles large data files what need to be downloaded, which are done
+# in CSV format for computers what do not have NetCDF support.
+
 using DataFrames
 
 """

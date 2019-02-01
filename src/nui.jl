@@ -1,8 +1,14 @@
-# Install any packages that need to be installed
+## Basic User Interface
+#
+# Install any packages that need to be installed and sets up standard
+# functions.
+
+if Pkg.installed("CSV") == nothing
+    Pkg.add("CSV")
+end
 
 if Pkg.installed("Mimi") == nothing
     Pkg.add("Mimi")
-    Pkg.checkout("Mimi")
 end
 
 if Pkg.installed("OptiMimi") == nothing
@@ -18,6 +24,10 @@ if Pkg.installed("MathProgBase") == nothing
     Pkg.add("MathProgBase")
 end
 
+if Pkg.installed("Missings") == nothing
+    Pkg.add("Missings")
+end
+
 if Pkg.installed("RCall") == nothing
     warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
 end
@@ -28,6 +38,10 @@ end
 
 if Pkg.installed("RData") == nothing
     Pkg.add("RData")
+end
+
+if Pkg.installed("NullableArrays") == nothing
+    Pkg.add("NullableArrays")
 end
 
 if !is_windows() && Pkg.installed("NetCDF") == nothing
@@ -46,6 +60,17 @@ include("lib/graphing.jl")
 
 config = emptyconfig()
 model = nothing # The master model object for functions below
+
+function prepsimulatesurface(configfile::AbstractString)
+    global config, model
+
+    config = readconfig("../configs/" * configfile)
+
+    # Download any files we will need
+    predownload()
+
+    include("../src/model-surfacewater.jl")
+end
 
 function prepsimulate(configfile::AbstractString)
     global config, model
@@ -66,8 +91,9 @@ function prepoptimizesurface(configfile::AbstractString)
     # Download any files we will need
     predownload()
 
-    include("optimization-given.jl")
-    house = optimization_given(false)
+    include(joinpath(dirname(@__FILE__), "optimization-given.jl"))
+    global redogwwo = true
+    house = Base.invokelatest(optimization_given, false)
     model = house
 end
 
@@ -127,21 +153,24 @@ Produce a choropleth map of an output variable from a model run.
 * `component`: a symbol for a component (e.g., :Allocation)
 * `variable`: a symbol for a variable (e.g., :waterallocated)
 """
-function mapdata(component, variable, subset=nothing)
-    if subset == nothing
+function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
+    if variable == nothing
+	data = vec(component)
+    elseif subset == nothing
         data = vec(model[component, variable])
     else
         data = vec(model[component, variable][subset...])
     end
-
+						    
     if length(data) != numcounties
         error("This does not appear to be a county result.")
     end
 
     df = DataFrame(fips=collect(masterregions[:fips]), value=data)
-    usmap(df)
+    usmap(df, centered=nothing)
 end
+										    
 
-open("../docs/intro.txt") do fp
+open(joinpath(dirname(@__FILE__), "../docs/intro.txt")) do fp
     println(readstring(fp))
 end

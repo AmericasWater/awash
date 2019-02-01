@@ -1,5 +1,9 @@
+## Graphing library
+#
+# Includes either graphing library, with `graphing-rcall.jl`
+# preferred.
+
 if Pkg.installed("RCall") != nothing
-    print("installed")
     include("graphing-rcall.jl")
 else
     if Pkg.installed("Shapefile") == nothing
@@ -21,3 +25,4 @@ Produce a choropleth map of an DataFrame.
 * `centered::Bollean`: Should the colors diverge from a common center value?  Not implemented for graphing-native.
 """
 usmap
+

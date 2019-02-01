@@ -6,7 +6,7 @@ using MathProgBase
 using Gurobi
 solver = GurobiSolver()
 
-allowreservoirs = true
+allowreservoirs = false
 
 house = optimization_given(false, allowreservoirs)
 @time sol = houseoptimize(house, solver)

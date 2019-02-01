@@ -1,23 +1,56 @@
+## Configuration Interpretation library
+#
+# Functions to read and interpret configuration files.
+
 using YAML
 
 function readconfig(ymlpath)
-    if ymlpath[1:11] == "../configs/"
+    if length(ymlpath) > 11 && ymlpath[1:11] == "../configs/"
         ymlpath = joinpath(dirname(@__FILE__), "../" * ymlpath)
     end
 
     config = YAML.load(open(ymlpath))
-
-    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["dataset"] * "/dataset.yml")))
-
-    for key in keys(dataset)
-        if !in(key, keys(config))
-            config[key] = dataset[key]
-        end
+    if "parent-config" in keys(config)
+        config = mergeconfigs(readconfig(joinpath(dirname(ymlpath), config["parent-config"] * ".yml")), config)
     end
+
+    dataset = readdatasetconfig(config["dataset"])
+
+    config = mergeconfigs(dataset, config)
 
     config["indexcols"] = map(Symbol, config["indexcols"])
 
     config
+end
+
+"""
+Read dataset configuration
+"""
+function readdatasetconfig(dataset)
+    dataset = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * dataset * "/dataset.yml")))
+    if "parent-dataset" in keys(dataset)
+        parent = readdatasetconfig(dataset["parent-dataset"])
+
+        return mergeconfigs(parent, dataset)
+    else
+        return dataset
+    end
+end
+
+"""
+Universal logic for merging config files
+"""
+function mergeconfigs(parent, child)
+    for key in keys(parent)
+        if !in(key, keys(child))
+            child[key] = parent[key]
+        else
+            if isa(parent[key], Dict) && isa(child[key], Dict)
+                child[key] = mergeconfigs(parent[key], child[key])
+            end
+        end
+    end
+    return child
 end
 
 function emptyconfig()
@@ -27,6 +60,16 @@ end
 function parsemonth(mmyyyy)
     parts = split(mmyyyy, '/')
     (parse(UInt16, parts[2]) - 1) * 12 + parse(UInt8, parts[1])
+end
+
+function parseyear(mmyyyy)
+    parts = split(mmyyyy, '/')
+    parse(UInt16, parts[2])
+end
+
+function index2time(tt::Int64)
+    times = parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])
+    times[tt]
 end
 
 # Consider reworking this using index2yearindex and similar
@@ -39,8 +82,6 @@ function index2year(tt::Int64)
     years = startyear:endyear
 
     years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
-
-
 end
 
 if !isdefined(:configtransforms)
@@ -121,4 +162,22 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
     else
         readtable(datapath(defpath))[:, defcol]
     end
+end
+
+"""
+Does this config derive have the given dataset as ancestor
+"""
+function configdescends(config, dataset)
+    if config["dataset"] == dataset
+        return true
+    end
+
+    if "parent-dataset" in keys(config)
+        # Copied from readdatasetconfig, but without recursion
+        parent = YAML.load(open(joinpath(dirname(@__FILE__), "../../data/" * config["parent-dataset"] * "/dataset.yml")))
+        parent["dataset"] = config["parent-dataset"]
+        return configdescends(parent, dataset)
+    end
+
+    return false
 end

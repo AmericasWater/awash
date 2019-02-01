@@ -1,3 +1,7 @@
+## Perform Optimization with endogenous demands
+#
+# Optimize a model from `optimization`, with endogenous water demands.
+
 using Mimi
 using OptiMimi
 include("lib/readconfig.jl")
@@ -10,7 +14,7 @@ suffix = getsuffix()
 if config["cst"]=="true"
     include("optimization_cst.jl")
 else
-    include ("optimization.jl")
+    include("optimization.jl")
 end
 
 using MathProgBase
@@ -87,10 +91,9 @@ elseif analysis == :debug
     varlens = varlengths(m, house.paramcomps, house.parameters)
 
     if config["filterstate"] == "08"
-        serialize(open(datapath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps))
-        serialize(open(datapath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
-        serialize(open(datapath("extraction/totalareas_cst$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,8))
-        serialize(open(datapath("extraction/returns$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcanals, numsteps))
+        serialize(open(cachepath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[1:sum(varlens[1])], numcounties, numsteps))
+        serialize(open(cachepath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numcanals, numsteps))
+        serialize(open(cachepath("extraction/totalareas_cst$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcounties,8))
     end
 
     writetable("../results/regionout.csv", rdf)

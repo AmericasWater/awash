@@ -56,6 +56,9 @@ function cachepath(filename)
     if !isdir(cachedir)
         mkdir(cachedir)
     end
+    if !isdir(dirname(joinpath(cachedir, filename)))
+        mkdir(dirname(joinpath(cachedir, filename)))
+    end
     joinpath(cachedir, filename)
 end
 

@@ -1,5 +1,6 @@
 include("../../src/lib/readconfig.jl")
-config = readconfig("../../configs/complete-yearly.yml")
+##config = readconfig("../../configs/complete-yearly.yml")
+config = readconfig("../../configs/complete.yml")
 
 using Gurobi
 solver = GurobiSolver()
@@ -25,4 +26,5 @@ df = DataFrame(gauge=repeat(gaugeorder, outer=numsteps),
                time=repeat(1:numsteps, inner=numgauges),
                flows_rfnr=flows_rfnr, flows_nrnr=flows_nrnr,
                flows_rfwr=flows_rfwr, flows_nw=flows_nw)
-writetable("optimizes.csv", df)
+# writetable("optimizes.csv", df)
+writetable("optimizes-monthly.csv", df)

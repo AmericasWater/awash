@@ -31,7 +31,7 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
             reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Union{Float64, Missing}, Float64, Float64, Union{Float64, Missing}, Float64, String], missingstring="\"NA\"")
         end
         if get(config, "filterstate", nothing) != nothing
-            reservoirs = reservoirs[floor(parse.(Int64, reservoirs[:fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
+            reservoirs = reservoirs[floor.(parse.(Int64, reservoirs[:fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
         end
 
         reservoirs

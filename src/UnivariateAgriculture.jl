@@ -4,6 +4,7 @@
 # is a constant function of area.
 
 using DataFrames
+using CSV
 using Mimi
 
 include("lib/coding.jl")
@@ -102,8 +103,8 @@ function initunivariateagriculture(m::Model)
         end
 
         # Load degree day data
-        gdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
-        kdds = readtable(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
+        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
+        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
 
         cropirrigationrate, waterdeficits = getunivariateirrigationrates(unicrops[cc])
 

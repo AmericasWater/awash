@@ -16,7 +16,7 @@ println("Running model...")
 
 include("../src/lib/coding.jl")
 df1 = getdataframe(model, :Agriculture, :allirrigation)
-rename!(df1, :allirrigation, :value)
+rename!(df1, :allirrigation => :value)
 df1[:variable] = :allirrigation
 # df2 = getdataframe(model, :ReturnFlows, :returned)
 # df2 = DataFrame(regions=["global"], time=[2000], value=[sum(df2[:returned])], variable=[:returned])

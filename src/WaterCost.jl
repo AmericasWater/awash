@@ -96,17 +96,49 @@ function grad_watercost_costsupersource(m::Model)
 end
 
 function grad_watercost_costswwithdrawals(m::Model)
-     function generate(A, ss, tt)
-         # Fill in COUNTIES x CANALS matrix
-         for pp in 1:nrow(draws)
-             regionids = regionindex(draws, pp)
-             rr = findfirst(regionindex(masterregions, :) .== regionids)
-             if rr > 0
-		     A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, ss, tt] + m.external_parameters[:unitswtreatmentcost].values[rr, ss, tt] + m.external_parameters[:unitdistributioncost].values[rr, ss, tt]
-             end
-         end
-     end
+    # Check if cost data is duplicated across s and t
+    isduplicated = true
+    for pp in 1:nrow(draws)
+        if !all(m.external_parameters[:unitswextractioncost].values[pp, :, :] .== m.external_parameters[:unitswextractioncost].values[pp, 1, 1])
+            isduplicated = false
+            break
+        end
+    end
+    if isduplicated
+        for rr in 1:numregions
+            if !all(m.external_parameters[:unitswtreatmentcost].values[rr, :, :] .== m.external_parameters[:unitswtreatmentcost].values[rr, 1, 1]) || !all(m.external_parameters[:unitdistributioncost].values[rr, :, :] .== m.external_parameters[:unitdistributioncost].values[rr, 1, 1])
+                isduplicated = false
+                break
+            end
+        end
+    end
+
+    if isduplicated
+        function generate(A)
+            # Fill in COUNTIES x CANALS matrix
+            for pp in 1:nrow(draws)
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr > 0
+		    A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, 1, 1] + m.external_parameters[:unitswtreatmentcost].values[rr, 1, 1] + m.external_parameters[:unitdistributioncost].values[rr, 1, 1]
+                end
+            end
+        end
+
+        return roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate, [:scenarios, :time], [:scenarios, :time])
+    end
+    
+    function generate(A, ss, tt)
+        # Fill in COUNTIES x CANALS matrix
+        for pp in 1:nrow(draws)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
+            if rr > 0
+		A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, ss, tt] + m.external_parameters[:unitswtreatmentcost].values[rr, ss, tt] + m.external_parameters[:unitdistributioncost].values[rr, ss, tt]
+            end
+        end
+    end
  
-     roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate)
+    roomintersect(m, :WaterCost, :totalcost, :swwithdrawals, generate)
 end
 

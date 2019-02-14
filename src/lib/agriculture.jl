@@ -203,14 +203,14 @@ else
         national = StatisticalAgricultureModel(nationals, :crop, get(nationalcrop, crop, crop))
         bayespath = nothing #findcroppath("agriculture/bayesian/", crop, ".csv")
         if bayespath != nothing
-            counties = CSV.read(bayespath)
+            counties = CSV.read(bayespath, categorical=false)
             combiner = fallbackpool
         else
             croppath = findcroppath("agriculture/unpooled-", crop, ".csv")
             if croppath == nothing
                 continue
             end
-            counties = CSV.read(croppath)
+            counties = CSV.read(croppath, categorical=false)
             counties[:fips] = regionindex(counties, :, tostr=true)
             combiner = gaussianpool
         end

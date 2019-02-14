@@ -103,8 +103,8 @@ function initunivariateagriculture(m::Model)
         end
 
         # Load degree day data
-        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"))
-        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"))
+        gdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-gdd.csv"), missingstring="NA")
+        kdds = CSV.read(findcroppath("agriculture/edds/", unicrops[cc], "-kdd.csv"), missingstring="NA")
 
         cropirrigationrate, waterdeficits = getunivariateirrigationrates(unicrops[cc])
 

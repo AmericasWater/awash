@@ -316,23 +316,23 @@ Read Naresh's special yield file format
 function read_nareshyields(crop::AbstractString, use2010yields=true)
     # Get the yield data
     if crop == "corn.co.rainfed"
-        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
-        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), delim=' ')
+        fipses = map(xfips -> "0" * string(xfips), names(df))
         yields = df[1:61,:]
         bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "corn.co.irrigated"
-        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), separator=' ')
-        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        df = CSV.read(loadpath("colorado/blended_predicted_corn.txt"), delim=' ')
+        fipses = map(xfips -> "0" * string(xfips), names(df))
         yields = df[62:122,:]
         bayespath = loadpath("agriculture/bayesian/Corn.csv")
     elseif crop == "wheat.co.rainfed"
-        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
-        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), delim=' ')
+        fipses = map(xfips -> "0" * string(xfips), names(df))
         yields = df[1:61,:]
         bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     elseif crop == "wheat.co.irrigated"
-        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), separator=' ')
-        fipses = map(xfips -> "0" * string(xfips)[2:end], names(df))
+        df = CSV.read(loadpath("colorado/blended_predicted_wheat.txt"), delim=' ')
+        fipses = map(xfips -> "0" * string(xfips), names(df))
         yields = df[62:122,:]
         bayespath = loadpath("agriculture/bayesian/Wheat.csv")
     end
@@ -366,8 +366,9 @@ end
 Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
+    println(filepath)
     df = CSV.read(filepath)
-    df[:fips] = [isna.(df[ii, :County_ANSI]) ? 0 : df[ii, :State_ANSI] * 1000 + df[ii, :County_ANSI] for ii in 1:nrow(df)];
+    df[:fips] = [isna.(df[ii, Symbol("County ANSI")]) ? 0 : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")]) for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 
     # Reorder these values to match regions

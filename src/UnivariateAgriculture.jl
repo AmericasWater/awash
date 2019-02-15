@@ -120,13 +120,13 @@ function initunivariateagriculture(m::Model)
                     tts, weights = yearindex2timeindexes(yy)
                     year = index2year(tts[1]) + 1 # XXX: Always year after planting
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, Symbol("x$year")]
-                        if isna.(numgdds)
+                        numgdds = gdds[rr, Symbol("$year")]
+                        if ismissing.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, Symbol("x$year")]
-                        if isna.(numkdds)
+                        numkdds = kdds[rr, Symbol("$year")]
+                        if ismissing.(numkdds)
                             numkdds = 0
                         end
                     else
@@ -159,7 +159,7 @@ function initunivariateagriculture(m::Model)
             else
                 column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[isna.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                constantareas[ismissing.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
             end
         end
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numharvestyears])

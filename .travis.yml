@@ -1,5 +1,6 @@
 sudo: required
 language: julia
+before_install: sudo apt-get install maven
 install: travis_wait mvn install
 julia:
   - 0.6

@@ -153,7 +153,6 @@ function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
 end
 
 function findcroppath(prefix, crop, suffix, recurse=true)
-    println(prefix * crop * suffix)
     if isfile(loadpath(prefix * crop * suffix))
         return loadpath(prefix * crop * suffix)
     end
@@ -196,7 +195,6 @@ else
                                         "wheat" => "Wheat", "hay" => "alfalfa")
 
     for crop in allcrops
-        println(crop)
         agmodels[crop] = Dict{Int64, StatisticalAgricultureModel}()
 
         # Create the national model
@@ -356,7 +354,7 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
             # Remove the trend from the yields
             orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))
         end
-        result[:, ii] = exp(orderedyields) # Exponentiate because in logs
+        result[:, ii] = exp.(orderedyields) # Exponentiate because in logs
     end
 
     result
@@ -366,7 +364,6 @@ end
 Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
-    println(filepath)
     df = CSV.read(filepath)
     df[:fips] = [isna.(df[ii, Symbol("County ANSI")]) ? 0 : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")]) for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);

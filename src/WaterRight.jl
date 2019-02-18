@@ -76,7 +76,6 @@ function grad_waterright_swtotal_withdrawals(m::Model)
         for pp in 1:nrow(draws)
             rr_ = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
             if rr_ > 0
-                println(pp)
                 A[rr_,pp] = 1.
             end
         end

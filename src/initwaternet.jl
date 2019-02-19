@@ -96,7 +96,7 @@ else
         end
 
         nextpt = netdata[row, :nextpt]
-        if isna.(nextpt)
+        if ismissing.(nextpt)
             continue
         end
 

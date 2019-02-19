@@ -6,7 +6,9 @@ include("model-surfacewater.jl")
 
 include("Market.jl");
 include("Transportation.jl");
+println("Before GW")
 include("Groundwater.jl");
+println("After GW")
 
 groundwater = initaquifer(model); # Allocation or optimization-only
 transportation = inittransportation(model); # optimization-only

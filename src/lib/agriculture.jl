@@ -135,9 +135,9 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
 end
 
 function gaussianpool(mean1, sdev1, mean2, sdev2)
-    if isna.(sdev1) || isnan.(sdev1)
+    if ismissing.(sdev1) || isnan.(sdev1)
         mean2, sdev2
-    elseif isna.(sdev2) || isnan.(sdev2)
+    elseif ismissing.(sdev2) || isnan.(sdev2)
         mean1, sdev1
     else
         (mean1 / sdev1^2 + mean2 / sdev2^2) / (1 / sdev1^2 + 1 / sdev2^2), 1 / (1 / sdev1^2 + 1 / sdev2^2)
@@ -145,7 +145,7 @@ function gaussianpool(mean1, sdev1, mean2, sdev2)
 end
 
 function fallbackpool(meanfallback, sdevfallback, mean1, sdev1)
-    if isna.(mean1)
+    if ismissing.(mean1)
         meanfallback, sdevfallback
     else
         mean1, sdev1
@@ -365,7 +365,7 @@ Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
     df = CSV.read(filepath)
-    df[:fips] = [isna.(df[ii, Symbol("County ANSI")]) ? 0 : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")]) for ii in 1:nrow(df)];
+    df[:fips] = [ismissing.(df[ii, Symbol("County ANSI")]) ? 0 : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")]) for ii in 1:nrow(df)];
     df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
 
     # Reorder these values to match regions

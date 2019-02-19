@@ -19,13 +19,9 @@ elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     aquiferconnexion = convert(Array, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif configdescends(config, "counties")
-    println("A")
     dfgw = CSV.read(loadpath("gwmodel/dfgw.csv"));
-    println("B")
-    lateralconductivity = convert(Array, CSV.read(loadpath("gwmodel/lateralconductivity.csv")));
-    println("C")
-    aquiferconnexion = convert(Array, CSV.read(loadpath("gwmodel/aquiferconnexion.csv")));
-    println("D")
+    lateralconductivity = Array(dlmread(loadpath("gwmodel/lateralconductivity.csv"), ',')[2:end,:])
+    aquiferconnexion = Array(dlmread(loadpath("gwmodel/aquiferconnexion.csv"), ',')[2:end,:])
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")

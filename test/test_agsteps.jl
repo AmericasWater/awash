@@ -8,7 +8,6 @@ config["filterstate"] = "08"
 println("Run yearly...")
 
 include("../src/model.jl")
-println("After Model")
 run(model)
 model_yearly = model
 

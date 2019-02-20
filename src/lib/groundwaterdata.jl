@@ -25,7 +25,7 @@ elseif configdescends(config, "counties")
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
-	vstates = round(Int64, floor(dfgw[:fips] ./ 1000));
+	vstates = round(Int64, floor.(dfgw[:fips] ./ 1000));
 	subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
 
         dfgw = dfgw[subfips,:];

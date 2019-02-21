@@ -39,7 +39,6 @@ elseif analysis == :debug
     # Look at parameter values
     varlens = varlengths(m, house.paramcomps, house.parameters)
     for ii in 1:length(house.parameters)
-        println(house.parameters[ii])
         index1 = sum(varlens[1:ii-1]) + 1
         index2 = sum(varlens[1:ii])
 
@@ -67,7 +66,6 @@ elseif analysis == :debug
 
     varlens = varlengths(m, house.constcomps, house.constraints)
     for ii in 1:length(house.constraints)
-        println(house.constraints[ii])
         index1 = sum(varlens[1:ii-1]) + 1
         index2 = sum(varlens[1:ii])
 

@@ -3,6 +3,7 @@ using Base.Test
 using DataArrays
 using DataFrames
 using OptiMimi
+using CSV
 
 include("../src/lib/readconfig.jl")
 config = readconfig("../configs/standard-1year-state.yml")
@@ -36,7 +37,7 @@ alldf = DataFrame(parameter=allparams, value=allvalues)
 
 outputpath = joinpath(dirname(@__FILE__), "../results/optimize-surface-test.csv")
 if isfile(outputpath)
-    compdf = readtable(outputpath)
+    compdf = CSV.read(outputpath)
     @test nrow(compdf) == nrow(alldf)
     mismatches = Int64[]
     for ii in 1:nrow(alldf)

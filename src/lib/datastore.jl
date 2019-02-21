@@ -139,7 +139,6 @@ Remove all jld files for this configuration
 function cache_clear()
     for filename in readdir(cachepath(""))
         if contains(filename, ".jld")
-            println(filename)
             rm(cachepath(filename))
         end
     end
@@ -207,8 +206,6 @@ function getregionindices(fipses, tomaster=true)
     if tomaster
         convert(Vector{Int64}, map(fips -> findfirst(masterfips, fips), fipses))
     else
-        println(typeof(masterfips))
-        println(typeof(fipses))
         convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
     end
 end
@@ -273,6 +270,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                     end
 
                     if any(isna.(sumadded))
+                        println("NA flows:")
                         println(controws)
                     end
 

@@ -44,7 +44,7 @@ if get(config, "watercost-extraction", true)
                         else
                             counties = knowndf("region-info")
 			    elevation_county = counties[:Elevation_ft][find(regionindex(counties, :) .== county_id)][1] *0.305
-			    if isna(elevation_county) # if county-info does not have elevation information, use values from gw model
+			    if ismissing(elevation_county) # if county-info does not have elevation information, use values from gw model
 				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(regionindex(counties, :) .== county_id)][1]
 			    end
 

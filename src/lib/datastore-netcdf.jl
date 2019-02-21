@@ -14,7 +14,6 @@ function predownload()
 
         if !isfile(filepath)
             println("Downloading $name...")
-            println(config["ncdatasets"][name]["ncurl"])
             download(config["ncdatasets"][name]["ncurl"], filepath)
         end
     end

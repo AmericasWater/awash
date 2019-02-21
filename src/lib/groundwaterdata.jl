@@ -14,18 +14,18 @@ if config["dataset"] == "states"
 
 elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
-    dfgw = readtable(loadpath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
+    dfgw = CSV.read(loadpath("gwmodel/dfgw$suffix.csv"));
+    lateralconductivity = convert(Array, CSV.read(loadpath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Array, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif configdescends(config, "counties")
-    dfgw = readtable(loadpath("gwmodel/dfgw.csv"));
-    lateralconductivity = convert(Array, readtable(loadpath("gwmodel/lateralconductivity.csv")));
-    aquiferconnexion = convert(Array, readtable(loadpath("gwmodel/aquiferconnexion.csv")));
+    dfgw = CSV.read(loadpath("gwmodel/dfgw.csv"));
+    lateralconductivity = Array(readdlm(loadpath("gwmodel/lateralconductivity.csv"), ',')[2:end,:])
+    aquiferconnexion = Array(readdlm(loadpath("gwmodel/aquiferconnexion.csv"), ',')[2:end,:])
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
-	vstates = round(Int64, floor(dfgw[:fips] ./ 1000));
+	vstates = round.(Int64, floor.(dfgw[:fips] ./ 1000));
 	subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
 
         dfgw = dfgw[subfips,:];

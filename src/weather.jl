@@ -43,9 +43,9 @@ else
     fullprecip[find(masterregions[:fips] .== "25019"),:,:] = 0 # set to 0 for Nantucket, MA
     precip[find(masterregions[:fips] .== "25019"),:,:] = 0
     recharge[find(masterregions[:fips] .== "25019"),:,:] = 0
-    fullprecip[find(masterregions[:fips] .== "53055"),:] = 0 # set to 0 for San Juan, WA
-    precip[find(masterregions[:fips] .== "53055"),:] = 0
-    recharge[find(masterregions[:fips] .== "53055"),:] = 0
+    fullprecip[find(masterregions[:fips] .== "53055"),:,:] = 0 # set to 0 for San Juan, WA
+    precip[find(masterregions[:fips] .== "53055"),:,:] = 0
+    recharge[find(masterregions[:fips] .== "53055"),:,:] = 0
 end
 
 # Load data from the water budget

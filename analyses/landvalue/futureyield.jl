@@ -8,6 +8,8 @@ config = readconfig("../../configs/single.yml")
 include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
+wheatshares = readtable("wheat-shares.csv")
+
 includeus = true
 #profitfix = true
 for profitfix in [true, "modeled"]
@@ -112,6 +114,17 @@ for ii in 1:length(bayes_crops)
         allgdds[:, jj] = weather[weatherrows, :gdds]
         allkdds[:, jj] = weather[weatherrows, :kdds]
         allinvalids[:, jj] = weatherrows .== 1
+        if crop == "Wheat"
+            weather2 = readtable(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).Winter.csv")))
+            all2050s2 = weather2[:year] .== futureyear
+            fips2050s2 = weather2[all2050s2, :fips]
+            rows2050s2 = find(all2050s2)
+            weatherrows2 = [any(fips2050s2 .== fips) ? rows2050s2[fips2050s2 .== fips][1] : 1 for fips in bios[:fips]]
+            springshares2 = [wheatshares[wheatshares[:fips] .== fips, :spring] for fips in bios[:fips]]
+            allgdds[:, jj] = allgdds[:, jj] .* springshares + weather2[weatherrows2, :gdds] .* (1 - springshares)
+            allkdds[:, jj] = allkdds[:, jj] .* springshares + weather2[weatherrows2, :kdds] .* (1 - springshares)
+            allinvalids[:, jj] = allinvalids[:, jj] .|| (weatherrows2 .== 1)
+        end
     end
 
     allgdds[allinvalids] = 0

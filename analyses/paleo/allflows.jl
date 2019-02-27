@@ -1,4 +1,3 @@
-using DataArrays
 using DataFrames
 using OptiMimi
 

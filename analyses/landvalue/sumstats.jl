@@ -1,4 +1,4 @@
-using NaNMath, DataArrays
+using NaNMath
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")

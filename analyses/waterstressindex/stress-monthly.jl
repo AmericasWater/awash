@@ -1,4 +1,4 @@
-using DataFrames, DataArrays
+using DataFrames
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")

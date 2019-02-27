@@ -1,4 +1,5 @@
-using Base.Test
+using Test
+using Pkg
 
 function requirepackage(pkg, checkout=false; version=nothing)
     try
@@ -10,9 +11,10 @@ function requirepackage(pkg, checkout=false; version=nothing)
             Pkg.pin(pkg, version)
         end
     catch
-        Pkg.add(pkg)
         if checkout
-            Pkg.checkout(pkg)
+            Pkg.add(PackageSpec(name=pkg, rev="master"))
+        else
+            Pkg.add(pkg)
         end
         if version != nothing
             Pkg.pin(pkg, version)
@@ -22,10 +24,10 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("Mimi", version=v"0.4.0")
+requirepackage("Mimi")
 requirepackage("Graphs")
+requirepackage("DataFrames")
 requirepackage("NetCDF")
-requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
 requirepackage("RData")
 requirepackage("Clp")

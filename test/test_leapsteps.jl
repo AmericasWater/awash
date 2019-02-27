@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 
 include("../src/lib/leapsteps.jl")
 

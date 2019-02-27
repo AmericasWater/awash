@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using DataFrames
 
 include("../src/lib/readconfig.jl")

@@ -1,6 +1,5 @@
-using Base.Test
+using Test
 
-using DataArrays
 using DataFrames
 using OptiMimi
 using CSV

@@ -16,7 +16,7 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
         try
             if nullallow[ii] == nothing
                 df[:, ii] = convert(Vector{types[ii]}, df[:, ii])
-            elseif typeof(nullallow[ii]) != DataArrays.NAtype
+            elseif typeof(nullallow[ii]) != nothing
                 df[:, ii] = replacemissing(df, names(df)[ii], nullallow[ii])
             end
         catch

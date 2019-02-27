@@ -1,7 +1,6 @@
-using Base.Test
+using Test
 
 ## Create a simple model and run it
-using DataArrays
 using DataFrames
 using OptiMimi
 using NaNMath

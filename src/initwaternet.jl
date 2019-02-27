@@ -4,7 +4,7 @@
 
 using Mimi
 using Graphs
-using DataFrames, DataArrays
+using DataFrames
 using RData
 
 include("lib/waternet.jl")

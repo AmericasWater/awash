@@ -2,7 +2,6 @@
 #
 # Construct the model with `model` and run it.
 
-using DataArrays
 using DataFrames
 using OptiMimi
 

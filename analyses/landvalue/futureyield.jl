@@ -1,6 +1,6 @@
 # Rerun 9/17
 
-using NaNMath, DataArrays, CSV
+using NaNMath, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")

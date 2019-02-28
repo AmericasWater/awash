@@ -3,48 +3,47 @@
 # Install any packages that need to be installed and sets up standard
 # functions.
 
-if Pkg.installed("CSV") == nothing
+using Pkg
+versions = Pkg.installed()
+
+if !("CSV" in keys(versions))
     Pkg.add("CSV")
 end
 
-if Pkg.installed("Mimi") == nothing
+if !("Mimi" in keys(versions))
     Pkg.add("Mimi")
 end
 
-if Pkg.installed("OptiMimi") == nothing
+if !("OptiMimi" in keys(versions))
     Pkg.add("OptiMimi")
     Pkg.checkout("OptiMimi")
 end
 
-if Pkg.installed("Graphs") == nothing
+if !("Graphs" in keys(versions))
     Pkg.add("Graphs")
 end
 
-if Pkg.installed("MathProgBase") == nothing
+if !("MathProgBase" in keys(versions))
     Pkg.add("MathProgBase")
 end
 
-if Pkg.installed("Missings") == nothing
+if !("Missings" in keys(versions))
     Pkg.add("Missings")
 end
 
-if Pkg.installed("RCall") == nothing
+if !("RCall" in keys(versions))
     warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
 end
 
-if Pkg.installed("YAML") == nothing
+if !("YAML" in keys(versions))
     Pkg.add("YAML")
 end
 
-if Pkg.installed("RData") == nothing
+if !("RData" in keys(versions))
     Pkg.add("RData")
 end
 
-if Pkg.installed("NullableArrays") == nothing
-    Pkg.add("NullableArrays")
-end
-
-if !is_windows() && Pkg.installed("NetCDF") == nothing
+if !is_windows() && !("NetCDF" in keys(versions))
     Pkg.add("NetCDF")
 end
 

@@ -3,14 +3,14 @@
 # Setup the network between regions, used for transportation.
 
 using Mimi
+using Graphs
+using Serialization
 
 # Region Network definitions
 
-using Graphs
-
 include("lib/inputcache.jl")
 
-if !isdefined(:RegionNetwork)
+if !(@isdefined RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end
 SimpleRegionNetwork = RegionNetwork{ExVertex, ExEdge}

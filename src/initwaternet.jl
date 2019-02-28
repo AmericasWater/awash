@@ -9,7 +9,7 @@ using RData
 
 include("lib/waternet.jl")
 
-if !isdefined(:RegionNetwork)
+if !(@isdefined RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end
 

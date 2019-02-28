@@ -84,7 +84,7 @@ function index2year(tt::Int64)
     years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
 end
 
-if !isdefined(:configtransforms)
+if !(@isdefined configtransforms)
     configtransforms = Dict{AbstractString, Function}()
     configtransforms["identity"] = (index, x) -> x
     configtransforms["repcap"] = (index, x) -> error("The PopulationDemand component needs to be loaded first.")

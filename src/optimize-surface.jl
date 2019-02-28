@@ -5,7 +5,7 @@
 #### Determine the gauge-level surface extractions that reproduce observed flows at minimum cost
 
 include("lib/readconfig.jl")
-if !isdefined(:config)
+if !(@isdefined config)
     ##config = readconfig("../configs/single.yml") # Just use 1 year for optimization
     config = readconfig("../configs/paleo-4scen.yml")
 end

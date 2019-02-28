@@ -19,7 +19,7 @@ function predownload()
     end
 end
 
-if !isdefined(:currentCSVFiles)
+if !(@isdefined currentCSVFiles)
     # Store previously opened CSVs
     const currentCSVFiles = Dict{String, DataFrame}()
 end

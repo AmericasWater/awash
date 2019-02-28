@@ -22,7 +22,7 @@ end
 """
 Get an array from a NetCDF file, downloading as needed
 """
-function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractString, dims::Vector{T})
+function dncload(name::AbstractString, variable::AbstractString, dims::Vector{T}) where T <: AbstractString
     filepath = cachepath(config["ncdatasets"][name]["filename"] * ".nc")
 
     if !isfile(filepath)

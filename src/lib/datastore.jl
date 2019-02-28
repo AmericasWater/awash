@@ -2,8 +2,6 @@
 #
 # Functions for accessing external data.
 
-using NullableArrays
-
 include("inputcache.jl")
 
 """
@@ -110,9 +108,9 @@ function cached_fallback(filename, generate)
         elseif isfile(datapath("$filename$suffix.jld"))
             return deserialize(open(datapath("$filename$suffix.jld")))
         end
+    catch
+        return generate()
     end
-
-    generate()
 end
 
 """
@@ -175,14 +173,8 @@ function canonicalindex(indexes)
     if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
-        return convert(Vector{String}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
-    end
     if typeof(indexes) <: Vector{String} || typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
-    end
-    if typeof(indexes) <: NullableArrays.NullableArray{String, 1}
-        return convert(Vector{String}, map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes))
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
@@ -323,7 +315,7 @@ end
 
 lastindexcol = nothing
 
-if Pkg.installed("NetCDF") != nothing
+if "NetCDF" in keys(Pkg.installed())
     include("datastore-netcdf.jl")
 else
     include("datastore-nonetcdf.jl")

@@ -1,9 +1,11 @@
 using Test
 using Pkg
 
+versions = Pkg.installed()
+
 function requirepackage(pkg, checkout=false; version=nothing)
     try
-        gotvers = Pkg.installed(pkg)
+        gotvers = get(versions, pkg, nothing)
         if gotvers == nothing
             error("Needs to be installed.")
         end
@@ -24,7 +26,7 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("Mimi")
+requirepackage("Mimi", true)
 requirepackage("Graphs")
 requirepackage("DataFrames")
 requirepackage("NetCDF")

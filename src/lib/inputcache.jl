@@ -2,7 +2,7 @@
 #
 # Provides a cache for files that only need to be loaded once.
 
-if !isdefined(:inputvalues)
+if !(@isdefined inputvalues)
     # Store previously opened CSVs
     const inputvalues = Dict{String, Any}()
 end

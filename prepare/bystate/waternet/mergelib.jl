@@ -1,7 +1,7 @@
 using Graphs
 using DataFrames
 
-if !isdefined(:RegionNetwork)
+if !(@isdefined RegionNetwork)
     const RegionNetwork{R, E} = IncidenceList{R, E}
     const OverlaidRegionNetwork = RegionNetwork{ExVertex, ExEdge}
 end

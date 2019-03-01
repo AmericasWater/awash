@@ -3,6 +3,7 @@
 # Functions to handle reservoirs.
 
 using DataFrames
+using CSV
 include("datastore.jl")
 
 """

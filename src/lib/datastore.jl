@@ -2,6 +2,7 @@
 #
 # Functions for accessing external data.
 
+using Pkg
 include("inputcache.jl")
 
 """
@@ -170,10 +171,10 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
+    if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: Vector{String} || typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
+    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
         return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: Integer
@@ -188,7 +189,7 @@ end
 
 """Return the index for each region key."""
 function getregionindices(fipses, tomaster=true)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
         masterfips = map(x -> parse(Int64, x), masterregions[:fips])
     else
         masterfips = masterregions[:fips]
@@ -292,7 +293,7 @@ Reorder values to match the master region indexes.
 Value is NA if a given region isn't in fipses.
 """
 function dataonmaster(fipses, values)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
         masterfips = map(x -> parse(Int64, x), masterregions[:fips])
     else
         masterfips = masterregions[:fips]

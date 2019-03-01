@@ -6,6 +6,7 @@ using Mimi
 using Graphs
 using DataFrames
 using RData
+using Serialization
 
 include("lib/waternet.jl")
 
@@ -40,8 +41,8 @@ elseif isfile(datapath("waternet/waternet$suffix.jld"))
 else
     # Load the network of counties
     if config["dataset"] == "three"
-        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, missing]), dist=repmat([1], 3)))
-        drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
+        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repeat(["three"], 3), colid=1:3, lat=repeat([0], 3), lon=-1:1, nextpt=[2, 3, missing], dist=repeat([1], 3)))
+        drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repeat(["contains"], 3), downhill=repeat([0], 3), exdist=repeat([0.0], 3)))
     elseif config["dataset"] == "dummy"
         waternetdata = load(datapath("waternet/dummynet.RData"));
         drawsdata = load(datapath("waternet/dummydraws.RData"));
@@ -51,7 +52,7 @@ else
     end
 
     netdata = waternetdata["network"];
-    netdata[:nextpt] = convert(DataVector{Int64}, netdata[:nextpt])
+    netdata[:nextpt] = convert(Vector{Union{Missings.Missing, Int64}}, netdata[:nextpt])
 
     # Load the county-network connections
     draws = drawsdata["draws"];
@@ -70,16 +71,16 @@ else
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
             # Flag all upstream nodes
-            checks = draws[:source]
-            while length(checks) > 0
-                includeds[checks] = true
+            chcks = draws[:source]
+            while length(chcks) > 0
+                includeds[chcks] = true
 
                 nexts = []
-                for check in checks
+                for check in chcks
                     nexts = [nexts; find(netdata[:nextpt] .== check)]
                 end
 
-                checks = nexts
+                chcks = nexts
             end
         else
             includeds[draws[:source]] = true

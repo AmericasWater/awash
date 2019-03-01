@@ -93,7 +93,7 @@ function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, dat
         df = nothing
 
         # Indexes is #, :, :, ... for each index of first dimension
-        indexes = repmat(Any[Colon()], length(vardiminfo))
+        indexes = repeat(Any[Colon()], length(vardiminfo))
         for ii in 1:size(data)[1]
             indexes[1] = ii
             subdf = getdataframe_helper(m, name, vardiminfo[2:end], data[indexes...])

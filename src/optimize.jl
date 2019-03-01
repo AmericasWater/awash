@@ -34,7 +34,7 @@ elseif analysis == :debug
     coning = constraining(house, convert(Vector{Float64}, sol.sol))
 
     rdf = DataFrame(fips=masterregions[:fips]);
-    cdf = DataFrame(fips=repmat(masterregions[:fips], numallcrops), crop=vec(repeat(allcrops, inner=[numcounties, 1])));
+    cdf = DataFrame(fips=repeat(masterregions[:fips], numallcrops), crop=vec(repeat(allcrops, inner=[numcounties, 1])));
 
     # Look at parameter values
     varlens = varlengths(m, house.paramcomps, house.parameters)

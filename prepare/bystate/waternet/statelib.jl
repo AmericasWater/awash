@@ -13,7 +13,7 @@ for ii in 1:nrow(draws)
 end
 
 function getregion(label)
-    regions = round.(Int64, floor(draws[(draws[:gaugeid] .== label) .& (draws[:justif] .== "contains"), :fips] / 1000))
+    regions = round.(Int64, floor.(draws[(draws[:gaugeid] .== label) .& (draws[:justif] .== "contains"), :fips] / 1000))
     if length(regions) == 1
         regions[1] < 10 ? "0$(regions[1])" : "$(regions[1])"
     elseif length(regions) == 0

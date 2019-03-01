@@ -59,8 +59,8 @@ sol, profile7 = resultandprofile(@timed houseoptimize(house, solver))
 outputs3 = optimoutputs(house, sol)
 
 result = DataFrame(
-    group=[repeat(["load(optimization-given)", "optimization_given", "houseoptimize(given)", "load(model)", "run(model)", "load(optimization)", "houseoptimize(full)"], inner=length(keys(profile1))); repmat(["outputs.given"], length(outputs1)); repmat(["outputs.model"], length(outputs2)); repmat(["outputs.full"], length(outputs3))],
-    task=[repmat([:profiling], 7 * length(keys(profile1))); repmat([:outputs], length(outputs1) + length(outputs2) + length(outputs3))],
+    group=[repeat(["load(optimization-given)", "optimization_given", "houseoptimize(given)", "load(model)", "run(model)", "load(optimization)", "houseoptimize(full)"], inner=length(keys(profile1))); repeat(["outputs.given"], length(outputs1)); repeat(["outputs.model"], length(outputs2)); repeat(["outputs.full"], length(outputs3))],
+    task=[repeat([:profiling], 7 * length(keys(profile1))); repeat([:outputs], length(outputs1) + length(outputs2) + length(outputs3))],
                    variable=[collect(keys(profile1)); collect(keys(profile2)); collect(keys(profile3)); collect(keys(profile4)); collect(keys(profile5)); collect(keys(profile6)); collect(keys(profile7)); collect(keys(outputs1)); collect(keys(outputs2)); collect(keys(outputs3))],
                    value=[collect(values(profile1)); collect(values(profile2)); collect(values(profile3)); collect(values(profile4)); collect(values(profile5)); collect(values(profile6)); collect(values(profile7)); collect(values(outputs1)); collect(values(outputs2)); collect(values(outputs3))])
 

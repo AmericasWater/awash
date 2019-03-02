@@ -13,8 +13,10 @@ function requirepackage(pkg, checkout=false; version=nothing)
             Pkg.pin(pkg, version)
         end
     catch
-        if checkout
+        if checkout == true
             Pkg.add(PackageSpec(name=pkg, rev="master"))
+        elseif typeof(checkout) <: String
+            Pkg.add(PackageSpec(name=pkg, rev=checkout))
         else
             Pkg.add(pkg)
         end
@@ -30,7 +32,7 @@ requirepackage("Mimi", true)
 requirepackage("Graphs")
 requirepackage("DataFrames")
 requirepackage("NetCDF")
-requirepackage("OptiMimi", true)
+requirepackage("OptiMimi", "julia7")
 requirepackage("RData")
 requirepackage("Clp")
 requirepackage("NullableArrays")

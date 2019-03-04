@@ -57,7 +57,7 @@ function run_timestep(c::WaterStressIndex, tt::Int)
                 gg = vertex_index(vertex)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
-                if rr > 0
+                if rr != nothing
                     v.availabilityrunoffall[rr, :, tt] += p.runoffgauge[gg, :, tt]
                     if draws[pp, :justif] == "contains"
                         v.availabilityrunofflocal[rr, :, tt] += p.runoffgauge[gg, :, tt]
@@ -85,7 +85,7 @@ function run_timestep(c::WaterStressIndex, tt::Int)
                 gg = vertex_index(vertex)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
-                if rr > 0
+                if rr != nothing
                     v.availabilityrunoffall[rr, :, tt] += p.runoffgauge[gg, :, tt]
                     v.availabilityrunofflocal[rr, :, tt] += p.runoffgauge[gg, :, tt]
 

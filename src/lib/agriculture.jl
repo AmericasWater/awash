@@ -114,7 +114,7 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
     gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "gddoffset"))
     kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "kddoffset"))
 
-    if interceptrow > 0
+    if interceptrow != nothing
         intercept = df[interceptrow, :mean]
         interceptse = df[interceptrow, :serr]
     else

@@ -48,7 +48,7 @@ function run_timestep(c::WaterCost, tt::Int)
         for pp in 1:nrow(draws)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
-	    if rr > 0
+	    if rr != nothing
 	        v.swcost[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]*(p.unitswextractioncost[pp, ss, tt]+p.unitswtreatmentcost[rr, ss, tt]+p.unitdistributioncost[rr, ss, tt])
 	    end
         end
@@ -119,7 +119,7 @@ function grad_watercost_costswwithdrawals(m::Model)
             for pp in 1:nrow(draws)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
-                if rr > 0
+                if rr != nothing
 		    A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, 1, 1] + m.external_parameters[:unitswtreatmentcost].values[rr, 1, 1] + m.external_parameters[:unitdistributioncost].values[rr, 1, 1]
                 end
             end
@@ -133,7 +133,7 @@ function grad_watercost_costswwithdrawals(m::Model)
         for pp in 1:nrow(draws)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr > 0
+            if rr != nothing
 		A[rr, pp] = m.external_parameters[:unitswextractioncost].values[pp, ss, tt] + m.external_parameters[:unitswtreatmentcost].values[rr, ss, tt] + m.external_parameters[:unitdistributioncost].values[rr, ss, tt]
             end
         end

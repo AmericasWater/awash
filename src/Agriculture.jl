@@ -52,7 +52,7 @@ function run_timestep(s::Agriculture, tt::Int)
         v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
         for cc in d.allcrops
             irrcc = findfirst(irrcrops, allcrops[cc])
-            if irrcc > 0
+            if irrcc != nothing
                 v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
                 if (length(yys) > 0)
                     v.allcropproduction[rr, cc, :, tt] = sum(p.irrcropproduction[rr, irrcc, :, yys], 1)

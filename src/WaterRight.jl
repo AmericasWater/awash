@@ -41,7 +41,7 @@ function run_timestep(c::WaterRight, tt::Int)
     for pp in 1:nrow(draws)
         regionids = regionindex(draws, pp)
         rr = findfirst(regionindex(masterregions, :) .== regionids)
-        if rr > 0
+        if rr != nothing
             v.swtotal[rr] += p.swtimestep[pp, tt]
         end
     end
@@ -75,7 +75,7 @@ function grad_waterright_swtotal_withdrawals(m::Model)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             rr_ = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
-            if rr_ > 0
+            if rr_ != nothing
                 A[rr_,pp] = 1.
             end
         end

@@ -27,7 +27,7 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
     df
 end
 
-function replacemissing{T}(df::DataFrame, column::Symbol, replace::T)
+function replacemissing(df::DataFrame, column::Symbol, replace::T) where T
     collect(Missings.replace(df[column], replace))
 end
 
@@ -86,7 +86,7 @@ function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, dat
         dim2 = length(m.indices_values[vardiminfo[2]])
         df[vardiminfo[1]] = repeat(m.indices_values[vardiminfo[1]],inner=[dim2])
         df[vardiminfo[2]] = repeat(m.indices_values[vardiminfo[2]],outer=[dim1])
-        df[name] = cat(1,[vec(data[i,:]) for i=1:dim1]...)
+        df[name] = cat([vec(data[i,:]) for i=1:dim1]..., dims=1)
         return df
     else
         # Initial blank DF

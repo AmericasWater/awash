@@ -56,7 +56,7 @@ function run_timestep(c::Allocation, tt::Int)
         for pp in 1:nrow(draws)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr > 0
+            if rr != nothing
                 v.swsupply[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]
             end
             v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
@@ -122,7 +122,7 @@ function grad_allocation_balance_swwithdrawals(m::Model)
         # Fill in COUNTIES x CANALS matrix
         for pp in 1:nrow(draws)
             rr = findfirst(regionindex(masterregions, :) .== regionindex(draws, pp))
-            if rr > 0
+            if rr != nothing
                 A[rr, pp] = 1.
             end
         end

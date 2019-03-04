@@ -145,7 +145,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 # Fill in the new values where given
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
-                    if ii > 0
+                    if ii != nothing
                         newvalue = transform(data[rr, indexcol], data[rr, column])
                         if !isna.(newvalue)
                             values[ii] = newvalue

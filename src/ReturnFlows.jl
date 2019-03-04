@@ -104,7 +104,7 @@ function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model
             if draws[pp, :justif] == "contains"
                 regionid = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionid)
-                if rr > 0
+                if rr != nothing
                     canalreturns[pp] = regionreturns[rr]
                 end
             end
@@ -113,7 +113,7 @@ function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model
         for pp in 1:nrow(draws)
             regionid = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionid)
-            if rr > 0
+            if rr != nothing
                 canalreturns[pp] = regionreturns[rr]
             end
         end

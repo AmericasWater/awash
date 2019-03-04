@@ -9,7 +9,7 @@ function reorderfips(values::Union{Array{Union{Missing, Float64}, 1}, Vector{Flo
     result = zeros(length(tofips))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])
-        if ii > 0
+        if ii != nothing
             result[rr] = values[ii]
         end
     end
@@ -22,7 +22,7 @@ function reorderfips(weather::Union{Array{Union{Missing, Float64}, 3}, Array{Flo
     result = zeros(length(tofips), size(weather, 2), size(weather, 3))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])
-        if ii > 0
+        if ii != nothing
             result[rr, :, :] = weather[ii, :, :]
         end
     end

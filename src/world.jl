@@ -44,7 +44,7 @@ else
 end
 
 numscenarios = length(get(config, "scenarios", [1]))
-numharvestyears = length(unique(cat(1, timeindex2yearindexes.(1:numsteps)...)))
+numharvestyears = length(unique(cat(timeindex2yearindexes.(1:numsteps)..., dims=1)))
 numunicrops = length(unicrops)
 numirrcrops = length(irrcrops)
 numallcrops = length(allcrops)
@@ -69,7 +69,7 @@ function newmodel()
     end
 
     yearnames = collect(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
-    yearindexes = cat(1, timeindex2yearindexes.(1:numsteps)...)
+    yearindexes = cat(timeindex2yearindexes.(1:numsteps)..., dims=1)
 
     setindex(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
     setindex(m, :regions, collect(masterregions[:fips]))

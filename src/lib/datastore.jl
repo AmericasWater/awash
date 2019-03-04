@@ -175,13 +175,13 @@ function canonicalindex(indexes)
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
-        return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
+        return map(index -> lpad(string(index), config["indexlen"], string)config["indexpad"])), indexes)
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
     end
     if typeof(indexes) <: String
-        return lpad(indexes, config["indexlen"], config["indexpad"])
+        return lpad(string(indexes), config["indexlen"], string(config["indexpad"]))
     end
 
     error("Unknown index column type $(typeof(indexes))")

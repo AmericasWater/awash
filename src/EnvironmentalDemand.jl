@@ -33,7 +33,7 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
             if draws[:justif][pp] == "contains"
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
-                if rr > 0
+                if rr != nothing
                     v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
                 end
             end
@@ -42,7 +42,7 @@ function run_timestep(c::EnvironmentalDemand, tt::Int)
         for pp in 1:nrow(draws)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr > 0
+            if rr != nothing
                 v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
             end
         end

@@ -51,7 +51,6 @@ using DataFrames
 
 using OptiMimi
 using MathProgBase
-import Mimi.getmetainfo
 
 include("lib/datastore.jl")
 include("lib/readconfig.jl")
@@ -127,9 +126,8 @@ their corresponding dimensions.
 `component` should be a symbol, like `:MyComponent`.
 """
 function getvariables(component)
-    parlist = collect(keys(getmetainfo(model, component).parameters))
-
-    varlist = variables(model, component)
+    parlist = parameters(component)
+    varlist = variables(component)
 
     pardims = map(name -> getindexlabels(model, component, name), parlist)
     vardims = map(name -> getindexlabels(model, component, name), varlist)

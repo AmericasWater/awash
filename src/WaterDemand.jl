@@ -61,12 +61,12 @@ function initwaterdemand(m::Model)
 
     # Initialized at USGS values, replaced by model-waterdemand
     recorded = knowndf("exogenous-withdrawals")
-    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, m.indices_counts[:time]]);
 
     waterdemand
 end

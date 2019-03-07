@@ -99,7 +99,7 @@ function getadded(stations::DataFrame)
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
     for ii in 1:nrow(stations)
-        gage = find((abs.(stations[ii, :lat] - gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] - gage_longitude) .< 1e-6))
+        gage = findall((abs.(stations[ii, :lat] .- gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] .- gage_longitude) .< 1e-6))
         if length(gage) != 1 || gage[1] > size(gage_totalflow)[1]
             continue
         end
@@ -107,7 +107,7 @@ function getadded(stations::DataFrame)
         added[:, ii] = vec(gage_totalflow[gage[1], :]) * gage_area[gage[1]]
     end
 
-    added[isnan.(added)] = 0 # if NaN, set to 0 so doesn't propagate
+    added[isnan.(added)] .= 0 # if NaN, set to 0 so doesn't propagate
 
     added
 end

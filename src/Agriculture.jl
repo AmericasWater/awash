@@ -37,43 +37,39 @@ include("lib/leapsteps.jl")
     allcropproduction_sumregion = Variable(index=[allcrops, scenarios, time], unit="lborbu")
     allirrigation = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     allagarea = Variable(index=[regions, time], unit="Ha")
-end
 
-function run_timestep(s::Agriculture, tt::Int)
-    v = s.Variables
-    p = s.Parameters
-    d = s.Dimensions
+    function run_timestep(p, v, d, t)
+        yys = timeindex2yearindexes(tt)
+        contyys = timeindex2contributingyearindexes(tt)
 
-    yys = timeindex2yearindexes(tt)
-    contyys = timeindex2contributingyearindexes(tt)
-
-    for rr in d.regions
-        v.allirrigation[rr, :, tt] = p.othercropsirrigation[rr, tt] + p.irrirrigation[rr, :, tt] + p.uniirrigation[rr, :, tt]
-        v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
-        for cc in d.allcrops
-            irrcc = findfirst(irrcrops, allcrops[cc])
-            if irrcc != nothing
-                v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
-                if (length(yys) > 0)
-                    v.allcropproduction[rr, cc, :, tt] = sum(p.irrcropproduction[rr, irrcc, :, yys], 1)
+        for rr in d.regions
+            v.allirrigation[rr, :, tt] = p.othercropsirrigation[rr, tt] + p.irrirrigation[rr, :, tt] + p.uniirrigation[rr, :, tt]
+            v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
+            for cc in d.allcrops
+                irrcc = findfirst(irrcrops, allcrops[cc])
+                if irrcc != nothing
+                    v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
+                    if (length(yys) > 0)
+                        v.allcropproduction[rr, cc, :, tt] = sum(p.irrcropproduction[rr, irrcc, :, yys], 1)
+                    else
+                        v.allcropproduction[rr, cc, :, tt] = 0
+                    end
                 else
-                    v.allcropproduction[rr, cc, :, tt] = 0
+                    unicc = findfirst(unicrops, allcrops[cc])
+                    v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
+                    if (length(yys) > 0)
+                        v.allcropproduction[rr, cc, :, tt] = sum(p.unicropproduction[rr, unicc, :, yys], 1)
+                    else
+                        v.allcropproduction[rr, cc, :, tt] = 0
+                    end
                 end
-            else
-                unicc = findfirst(unicrops, allcrops[cc])
-                v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
-                if (length(yys) > 0)
-                    v.allcropproduction[rr, cc, :, tt] = sum(p.unicropproduction[rr, unicc, :, yys], 1)
-                else
-                    v.allcropproduction[rr, cc, :, tt] = 0
-                end
+
+                v.allagarea[rr, tt] += maximum(v.allcropareas[rr, cc, contyys])
             end
-
-            v.allagarea[rr, tt] += maximum(v.allcropareas[rr, cc, contyys])
         end
-    end
 
-    v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction[:, :, :, tt], 1)
+        v.allcropproduction_sumregion[:, :, tt] = sum(v.allcropproduction[:, :, :, tt], 1)
+    end
 end
 
 function initagriculture(m::Model)

@@ -40,35 +40,31 @@ include("lib/watercostdata.jl")
     totalsupply = Variable(index=[regions, scenarios, time], unit="1000 m^3")
     # Difference between totalsupply and watertotaldemand
     balance = Variable(index=[regions, scenarios , time], unit="1000 m^3")
-end
 
-"""
-Sums the water from various sources and computes the cost
-"""
-function run_timestep(c::Allocation, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for ss in d.scenarios
-        # Surface water calculations
-        v.swsupply[:, ss, tt] = zeros(numcounties)
-        for pp in 1:nrow(draws)
-            regionids = regionindex(draws, pp)
-            rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr != nothing
-                v.swsupply[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]
+    """
+    Sums the water from various sources and computes the cost
+    """
+    function run_timestep(p, v, d, t)
+        for ss in d.scenarios
+            # Surface water calculations
+            v.swsupply[:, ss, tt] = zeros(numcounties)
+            for pp in 1:nrow(draws)
+                regionids = regionindex(draws, pp)
+                rr = findfirst(regionindex(masterregions, :) .== regionids)
+                if rr != nothing
+                    v.swsupply[rr, ss, tt] += p.swwithdrawals[pp, ss, tt]
+                end
+                v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
             end
-            v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
-        end
 
-        for rr in d.regions
-            aa = rr
-            v.copy_gwextraction[aa, ss, tt] = p.gwextraction[aa, ss, tt]
-            v.gwsupply[rr, ss, tt] = p.gwextraction[aa, ss, tt]
-            v.copy_supersourcesupply[rr, ss, tt] = p.supersourcesupply[rr, ss, tt]
-            v.totalsupply[rr, ss, tt] = v.swsupply[rr, ss, tt] + v.gwsupply[rr, ss, tt] + v.copy_supersourcesupply[rr, ss, tt]
-            v.balance[rr, ss, tt] = v.totalsupply[rr, ss, tt] - p.watertotaldemand[rr, ss, tt]
+            for rr in d.regions
+                aa = rr
+                v.copy_gwextraction[aa, ss, tt] = p.gwextraction[aa, ss, tt]
+                v.gwsupply[rr, ss, tt] = p.gwextraction[aa, ss, tt]
+                v.copy_supersourcesupply[rr, ss, tt] = p.supersourcesupply[rr, ss, tt]
+                v.totalsupply[rr, ss, tt] = v.swsupply[rr, ss, tt] + v.gwsupply[rr, ss, tt] + v.copy_supersourcesupply[rr, ss, tt]
+                v.balance[rr, ss, tt] = v.totalsupply[rr, ss, tt] - p.watertotaldemand[rr, ss, tt]
+            end
         end
     end
 end

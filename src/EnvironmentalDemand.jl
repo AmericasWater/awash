@@ -13,37 +13,33 @@ using DataFrames
     outflowsgauges = Parameter(index=[gauges, scenarios, time],unit="1000 m^3")
     balanceenvironmentalflows = Variable(index=[gauges, scenarios, time],unit="1000 m^3")
     environmentaldemand = Variable(index=[regions, scenarios, time],unit="1000 m^3")
-end
 
-"""
-The quantity of water demanded at each timestep
-"""
-function run_timestep(c::EnvironmentalDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    The quantity of water demanded at each timestep
+    """
+    function run_timestep(p, v, d, t)
+        for gg in d.gauges
+            v.minenvironmentalflows[gg, :, tt] = p.flowrequirementfactor * p.naturalflows[gg, :, tt];
+            v.balanceenvironmentalflows[gg, :, tt] = p.outflowsgauges[gg, :, tt] - v.minenvironmentalflows[gg, :, tt];
+        end
 
-    for gg in d.gauges
-        v.minenvironmentalflows[gg, :, tt] = p.flowrequirementfactor * p.naturalflows[gg, :, tt];
-        v.balanceenvironmentalflows[gg, :, tt] = p.outflowsgauges[gg, :, tt] - v.minenvironmentalflows[gg, :, tt];
-    end
-
-    if config["dataset"] == "counties"
-        for pp in 1:nrow(draws)
-            if draws[:justif][pp] == "contains"
+        if config["dataset"] == "counties"
+            for pp in 1:nrow(draws)
+                if draws[:justif][pp] == "contains"
+                    regionids = regionindex(draws, pp)
+                    rr = findfirst(regionindex(masterregions, :) .== regionids)
+                    if rr != nothing
+                        v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
+                    end
+                end
+            end
+        elseif config["dataset"] == "states"
+            for pp in 1:nrow(draws)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
                 if rr != nothing
                     v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
                 end
-            end
-        end
-    elseif config["dataset"] == "states"
-        for pp in 1:nrow(draws)
-            regionids = regionindex(draws, pp)
-            rr = findfirst(regionindex(masterregions, :) .== regionids)
-            if rr != nothing
-                v.environmentaldemand[rr, :, tt] += p.flowrequirementfactor * p.naturalflows[pp, :, tt];
             end
         end
     end

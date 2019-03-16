@@ -35,7 +35,6 @@ requirepackage("NetCDF")
 requirepackage("OptiMimi", "julia7")
 requirepackage("RData")
 requirepackage("Clp")
-requirepackage("NullableArrays")
 requirepackage("NaNMath")
 
 include("test_optimize_surface.jl")

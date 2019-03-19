@@ -54,42 +54,38 @@ include("lib/agriculture.jl")
 
     production_sumregion = Variable(index=[irrcrops, scenarios, time], unit="lborbu")
     area_sumregion = Variable(index=[irrcrops, time], unit="lborbu")
-end
 
-function run_timestep(s::IrrigationAgriculture, tt::Int)
-    v = s.Variables
-    p = s.Parameters
-    d = s.Dimensions
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            totalirrigation = zeros(numscenarios)
+            allagarea = 0.
+            for cc in d.irrcrops
+                v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
+                allagarea += v.totalareas[rr, cc, tt]
 
-    for rr in d.regions
-        totalirrigation = zeros(numscenarios)
-        allagarea = 0.
-        for cc in d.irrcrops
-            v.totalareas[rr, cc, tt] = p.irrigatedareas[rr, cc, tt] + p.rainfedareas[rr, cc, tt]
-            allagarea += v.totalareas[rr, cc, tt]
+                # Calculate deficit by crop, for unirrigated areas
+                v.water_deficit[rr, cc, :, tt] = max(0., p.water_demand[cc] - p.precipitation[rr, :, tt])
 
-            # Calculate deficit by crop, for unirrigated areas
-            v.water_deficit[rr, cc, :, tt] = max(0., p.water_demand[cc] - p.precipitation[rr, :, tt])
+                # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
+                totalirrigation += v.water_deficit[rr, cc, :, tt] * p.irrigatedareas[rr, cc, tt] / 100
 
-            # Calculate irrigation water, summed across all crops: 1 mm * Ha^2 = 10 m^3
-            totalirrigation += v.water_deficit[rr, cc, :, tt] * p.irrigatedareas[rr, cc, tt] / 100
+                # Calculate rainfed yield
+                v.lograinfedyield[rr, cc, :, tt] = p.logirrigatedyield[rr, cc, :, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, :, tt]
 
-            # Calculate rainfed yield
-            v.lograinfedyield[rr, cc, :, tt] = p.logirrigatedyield[rr, cc, :, tt] + p.deficit_coeff[rr, cc] * v.water_deficit[rr, cc, :, tt]
+                # Calculate total production
+                v.production[rr, cc, :, tt] = exp.(p.logirrigatedyield[rr, cc, :, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp.(v.lograinfedyield[rr, cc, :, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
-            # Calculate total production
-            v.production[rr, cc, :, tt] = exp.(p.logirrigatedyield[rr, cc, :, tt]) * p.irrigatedareas[rr, cc, tt] * 2.47105 + exp.(v.lograinfedyield[rr, cc, :, tt]) * p.rainfedareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+                # Calculate cultivation costs
+                v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            end
 
-            # Calculate cultivation costs
-            v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+            v.totalirrigation[rr, :, tt] = totalirrigation
+            v.allagarea[rr, tt] = allagarea
         end
 
-        v.totalirrigation[rr, :, tt] = totalirrigation
-        v.allagarea[rr, tt] = allagarea
+        v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
+        v.area_sumregion[:, tt] = sum(p.irrigatedareas[:, :, tt], 1) + sum(p.rainfedareas[:, :, tt], 1)
     end
-
-    v.production_sumregion[:, :, tt] = sum(v.production[:, :, :, tt], 1)
-    v.area_sumregion[:, tt] = sum(p.irrigatedareas[:, :, tt], 1) + sum(p.rainfedareas[:, :, tt], 1)
 end
 
 function initirrigationagriculture(m::Model)

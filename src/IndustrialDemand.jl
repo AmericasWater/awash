@@ -16,18 +16,14 @@ include("lib/datastore.jl")
 
     # Demanded water
     waterdemand = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-end
 
-"""
-The quantity of water demanded at each timestep
-"""
-function run_timestep(c::IndustrialDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        v.waterdemand[rr, :, tt] = p.industrywaterdemand[rr, :, tt] + p.miningwaterdemand[rr, :, tt]
+    """
+    The quantity of water demanded at each timestep
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            v.waterdemand[rr, :, tt] = p.industrywaterdemand[rr, :, tt] + p.miningwaterdemand[rr, :, tt]
+        end
     end
 end
 

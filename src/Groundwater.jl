@@ -32,42 +32,39 @@ include("lib/groundwaterdata.jl")
 
   # Piezometric head
   piezohead = Variable(index=[aquifers, scenarios, time], unit="m")
-end
 
-"""
-Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
-"""
-function run_timestep(c::Aquifer, tt::Int)
-  v = c.Variables
-  p = c.Parameters
-  d = c.Dimensions
-  ## initialization
-  if tt==1
-	  v.piezohead[:,:,tt] = repeat(p.piezohead0, 1, numscenarios);
-  else
-	  v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];
-  end
+    """
+    Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
+    """
+    function run_timestep(p, v, d, t)
+        ## initialization
+        if tt==1
+	    v.piezohead[:,:,tt] = repeat(p.piezohead0, 1, numscenarios);
+        else
+	    v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];
+        end
 
-  v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
-  ## repeat simulation timestep time
-  for mm in 1:config["timestep"]
-  	lflows=zeros(d.aquifers[end],1)
-  	for aa in 1:d.aquifers[end]
+        v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
+        ## repeat simulation timestep time
+        for mm in 1:config["timestep"]
+  	    lflows=zeros(d.aquifers[end],1)
+  	    for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
 		for aa_ in find(connections) + aa
-			latflow = p.lateralconductivity[aa,aa_]*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
-			lflows[aa] += latflow/1000;
-			lflows[aa_] -= latflow/1000;
-	                v.lateralflows[aa,tt] += latflow/1000;
-	                v.lateralflows[aa_,tt] -= latflow/1000;
+		    latflow = p.lateralconductivity[aa,aa_]*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
+		    lflows[aa] += latflow/1000;
+		    lflows[aa_] -= latflow/1000;
+	            v.lateralflows[aa,tt] += latflow/1000;
+	            v.lateralflows[aa_,tt] -= latflow/1000;
 		end
-	end
+	    end
 
-  # piezometric head initialisation and simulation
-	for aa in d.aquifers
+            # piezometric head initialisation and simulation
+	    for aa in d.aquifers
 		v.piezohead[aa,:,tt] = v.piezohead[aa,:,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,:,tt]/config["timestep"] - p.withdrawal[aa,:,tt]/config["timestep"] + lflows[aa])
-	end
-  end
+	    end
+        end
+    end
 end
 
 function makeconstraintpiezomin(aa, ss, tt)

@@ -181,7 +181,11 @@ function canonicalindex(indexes)
         return lpad("$indexes", config["indexlen"], config["indexpad"])
     end
     if typeof(indexes) <: String
-        return lpad(string(indexes), config["indexlen"], string(config["indexpad"]))
+        if config["indexpad"] == nothing
+            return indexes
+        else
+            return lpad(string(indexes), config["indexlen"], string(config["indexpad"]))
+        end
     end
 
     error("Unknown index column type $(typeof(indexes))")

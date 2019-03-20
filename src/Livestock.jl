@@ -15,18 +15,14 @@ using DataFrames
 
     # Copy through
     demand_copy = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-end
 
-"""
-Just copy through
-"""
-function run_timestep(c::Livestock, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        v.demand_copy[rr, :, tt] = p.livestockdemand[rr, :, tt]
+    """
+    Just copy through
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            v.demand_copy[rr, :, tt] = p.livestockdemand[rr, :, tt]
+        end
     end
 end
 

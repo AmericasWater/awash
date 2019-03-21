@@ -175,7 +175,11 @@ function canonicalindex(indexes)
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
     if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
-        return map(index -> lpad(string(index), config["indexlen"], string(config["indexpad"])), indexes)
+        if config["indexpad"] == nothing
+            return indexes
+        else
+            return map(index -> lpad(string(index), config["indexlen"], string(config["indexpad"])), indexes)
+        end
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])

@@ -40,21 +40,17 @@ using Mimi
     # Total revenue from selling all available
     domesticrevenue = Variable(index=[regions, allcrops, scenarios, time], unit="\$")
     internationalrevenue = Variable(index=[regions, allcrops, scenarios, time], unit="\$")
-end
 
-"""
-Compute the available local resource for consumption, `available`.
-"""
-function run_timestep(c::Market, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        for cc in d.allcrops
-            v.available[rr, cc, :, tt] = p.produced[rr, cc, :, tt] + p.regionimports[rr, cc, :, tt] - p.regionexports[rr, cc, :, tt]
-            v.domesticrevenue[rr, cc, :, tt] = p.domestic_prices[rr, cc] * (v.available[rr, cc, :, tt] - p.internationalsales[rr, cc, :, tt])
-            v.internationalrevenue[rr, cc, :, tt] = p.international_prices[rr, cc] * p.internationalsales[rr, cc, :, tt]
+    """
+    Compute the available local resource for consumption, `available`.
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            for cc in d.allcrops
+                v.available[rr, cc, :, tt] = p.produced[rr, cc, :, tt] + p.regionimports[rr, cc, :, tt] - p.regionexports[rr, cc, :, tt]
+                v.domesticrevenue[rr, cc, :, tt] = p.domestic_prices[rr, cc] * (v.available[rr, cc, :, tt] - p.internationalsales[rr, cc, :, tt])
+                v.internationalrevenue[rr, cc, :, tt] = p.international_prices[rr, cc] * p.internationalsales[rr, cc, :, tt]
+            end
         end
     end
 end

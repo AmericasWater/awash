@@ -17,12 +17,11 @@ for profitfix in [true, "modeled"]
         for allowtime in [false, true]
             for futureyear in [2050, 2070]
                 for limityield in ["ignore", "lybymc"]
-                    
+
 #holdcoeff = true #false
 #allowtime = true #false
 #futureyear = 2050
 #limityield = "ignore" #"lybymc" #"zeroy" # "limity"
-bayesdir = "posterior_distributions_variance"
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
 eddmodels = ["access1-0", "bcc-csm1-1", "ccsm4", "cnrm-cm5", "gfdl-cm3", "giss-e2-r",
@@ -62,12 +61,20 @@ for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
     println(crop)
 
+    fullcropdir = "Code_" * cropdirs[ii]
+    if crossval
+        fullcropdir = fullcropdir * "_cv"
+    end
+    if constvar
+        fullcropdir = fullcropdir * "_variance"
+    end
+
     # Load the second-level coefficients
-    b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
-    b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
-    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
-    b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
-    b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
+    b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b0.txt"), separator=' ', header=false))
+    b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b1.txt"), separator=' ', header=false))
+    b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b2.txt"), separator=' ', header=false))
+    b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b3.txt"), separator=' ', header=false))
+    b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b4.txt"), separator=' ', header=false))
 
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus)
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus)
@@ -133,11 +140,11 @@ for ii in 1:length(bayes_crops)
     gdds = sum(allgdds, 2) ./ sum(.!allinvalids, 2)
     kdds = sum(allkdds, 2) ./ sum(.!allinvalids, 2)
 
-    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
 
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
@@ -154,7 +161,7 @@ for ii in 1:length(bayes_crops)
 
         if holdcoeff
             wreq_coeff_future = wreq_coeff + b2s[:, 6] * differences[6, rr]
-            
+
             if allowtime
                 logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * (futureyear - 1948)
             else

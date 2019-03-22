@@ -1,4 +1,5 @@
  - actualcrops.R
+ - agriculture.jl
  - optcrop.jl
  - futureyield.jl
  - constrainopt.jl
@@ -6,3 +7,10 @@
  - changes.R
  - outputs.R
  - constraintopt-byprice2.jl
+
+ - basics.R
+ - assumptions.R
+ - cropribbon.R
+ - constopt-byprice.R
+ - farmvalue-display.R ?
+ - tempdists.R ?

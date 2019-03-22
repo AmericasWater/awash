@@ -23,12 +23,12 @@ end
 
 actualcrops = readtable("actualcrops.csv")
 actualcrops[:fips] = canonicalindex(actualcrops[:fips])
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "WHEAT"), :maxcrop] = "whea"
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "RICE"), :maxcrop] = "rice"
-actualcrops[!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "BARLEY"), :maxcrop] = "barl"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "WHEAT"), :maxcrop] = "whea"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "RICE"), :maxcrop] = "rice"
+actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "BARLEY"), :maxcrop] = "barl"
 
 # Collect observed crop
 obscrop = repeat(["none"], outer=nrow(masterregions))
@@ -87,6 +87,9 @@ for crop in crops
 
             yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", prepdata_changeirr)
             cropprofit_changeirr[weatherrow] = yield_total_changeirr * price_all[weatherrow] - costs_all[weatherrow]
+        catch
+            cropprofit[weatherrow] = missing
+            cropprofit_changeirr[weatherrow] = missing
         end
     end
 

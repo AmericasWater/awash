@@ -36,48 +36,44 @@ reservoirdata = getreservoirs(config)
     # Cost of captures
     unitcostcaptures= Parameter(unit="\$/1000m3")
     cost = Variable(index=[reservoirs, scenarios, time], unit="\$")
-end
 
-"""
-Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
-"""
-function run_timestep(c::Reservoir, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
+    """
+    function run_timestep(p, v, d, t)
+        v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
+        v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
 
-    v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
-    v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
-
-    for gg in 1:numgauges
-	index = vertex_index(downstreamorder[gg])
-	if isreservoir[index] > 0
-	    rr = isreservoir[index]
-	    v.inflows[rr, :, tt] = p.inflowsgauges[gg, :, tt];
-	    v.outflows[rr, :, tt] = p.outflowsgauges[gg, :, tt];
-	end
-    end
-
-    for rr in d.reservoirs
-        v.cost[rr, :, tt] = p.unitcostcaptures*p.captures[rr, :, tt]
-	if tt==1
-	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
-	else
-	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
-	end
-
-        for ss in 1:numscenarios
-	    if p.captures[rr,ss,tt]<0
-		v.withdrawals[rr,ss,tt] = -p.captures[rr,ss,tt] - (v.outflows[rr,ss,tt] - v.inflows[rr,ss,tt])
-		if v.inflows[rr,ss,tt]<v.outflows[rr,ss,tt]
-		    v.releases[rr,ss,tt] = v.outflows[rr,ss,tt] - v.inflows[rr, ss, tt]
-		else
-		    v.releases[rr,ss,tt] = 0
-                end
-	    else
-		v.releases[rr,ss,tt] = 0
-		v.withdrawals[rr,ss,tt] = 0
+        for gg in 1:numgauges
+	    index = vertex_index(downstreamorder[gg])
+	    if isreservoir[index] > 0
+	        rr = isreservoir[index]
+	        v.inflows[rr, :, tt] = p.inflowsgauges[gg, :, tt];
+	        v.outflows[rr, :, tt] = p.outflowsgauges[gg, :, tt];
 	    end
+        end
+        
+        for rr in d.reservoirs
+            v.cost[rr, :, tt] = p.unitcostcaptures*p.captures[rr, :, tt]
+	    if tt==1
+	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
+	    else
+	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
+	    end
+
+            for ss in 1:numscenarios
+	        if p.captures[rr,ss,tt]<0
+		    v.withdrawals[rr,ss,tt] = -p.captures[rr,ss,tt] - (v.outflows[rr,ss,tt] - v.inflows[rr,ss,tt])
+		    if v.inflows[rr,ss,tt]<v.outflows[rr,ss,tt]
+		        v.releases[rr,ss,tt] = v.outflows[rr,ss,tt] - v.inflows[rr, ss, tt]
+		    else
+		        v.releases[rr,ss,tt] = 0
+                    end
+	        else
+		    v.releases[rr,ss,tt] = 0
+		    v.withdrawals[rr,ss,tt] = 0
+	        end
+            end
         end
     end
 end

@@ -26,41 +26,37 @@ using OptiMimi
     removed = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
     # Water returned to gauge
     returned = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
-end
 
-function run_timestep(c::ReturnFlows, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    function run_timestep(p, v, d, t)
+        for gg in 1:numgauges
+            v.removed[gg, :, tt] = 0.
+            v.returned[gg, :, tt] = 0.
+        end
 
-    for gg in 1:numgauges
-        v.removed[gg, :, tt] = 0.
-        v.returned[gg, :, tt] = 0.
-    end
-
-    for ss in 1:numscenarios
-        for pp in 1:nrow(draws)
-            v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
-            if p.swwithdrawals[pp, ss, tt] > 0
-                gaugeid = draws[pp, :gaugeid]
-                vertex = get(wateridverts, gaugeid, nothing)
-                if vertex == nothing
-                    println("Missing $gaugeid")
-                else
-                    gg = vertex_index(vertex)
-                    v.removed[gg, ss, tt] += p.swwithdrawals[pp, ss, tt]
+        for ss in 1:numscenarios
+            for pp in 1:nrow(draws)
+                v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
+                if p.swwithdrawals[pp, ss, tt] > 0
+                    gaugeid = draws[pp, :gaugeid]
+                    vertex = get(wateridverts, gaugeid, nothing)
+                    if vertex == nothing
+                        println("Missing $gaugeid")
+                    else
+                        gg = vertex_index(vertex)
+                        v.removed[gg, ss, tt] += p.swwithdrawals[pp, ss, tt]
+                    end
                 end
             end
         end
-    end
-
-    # Propogate in downstream order
-    for hh in 1:numgauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            index = vertex_index(upstream, waternet)
-            v.returned[gg, :, tt] += p.returnrate[index] * v.removed[index, :, tt]
+        
+        # Propogate in downstream order
+        for hh in 1:numgauges
+            gg = vertex_index(downstreamorder[hh])
+            gauge = downstreamorder[hh].label
+            for upstream in out_neighbors(wateridverts[gauge], waternet)
+                index = vertex_index(upstream, waternet)
+                v.returned[gg, :, tt] += p.returnrate[index] * v.removed[index, :, tt]
+            end
         end
     end
 end

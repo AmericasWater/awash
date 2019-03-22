@@ -142,7 +142,7 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
-gaugeorder = Vector{String}(length(wateridverts))
+gaugeorder = Vector{String}(undef, length(wateridverts))
 for vertex in downstreamorder
     gaugeorder[vertex_index(vertex)] = vertex.label
 end

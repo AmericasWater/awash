@@ -204,9 +204,9 @@ function getregionindices(fipses, tomaster=true)
     end
 
     if tomaster
-        convert(Vector{Int64}, map(fips -> findfirst(masterfips, fips), fipses))
+        convert(Vector{Int64}, map(fips -> findfirst(masterfips .== fips), fipses))
     else
-        convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
+        convert(Vector{Int64}, map(fips -> findfirst(fipses .== fips), masterfips))
     end
 end
 
@@ -311,7 +311,7 @@ function dataonmaster(fipses, values)
     end
 
     function valueonmaster(fips)
-        index = findfirst(fipses, fips)
+        index = findfirst(fipses .== fips)
         if index == 0
             missing
         else

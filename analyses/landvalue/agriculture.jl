@@ -1,3 +1,5 @@
+using CSV
+
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/standard-1year.yml")
 
@@ -21,7 +23,7 @@ else
     crops = ["corn", "soyb", "whea", "sorg", "barl", "cott", "rice", "oats", "pean"]
 end
 
-actualcrops = readtable("actualcrops.csv")
+actualcrops = CSV.read("actualcrops.csv")
 actualcrops[:fips] = canonicalindex(actualcrops[:fips])
 actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
 actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
@@ -37,34 +39,34 @@ for ii in 1:nrow(masterregions)
     obsrow = actualcrops[actualcrops[:fips] .== fips, :]
     if nrow(obsrow) == 1
         observed = obsrow[1, :maxcrop]
-        if !isna(observed)
+        if !ismissing(observed)
             obscrop[ii] = observed
         end
     end
 end
 
-fipsdf = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
 
-value = repmat([0.0], size(masterregions, 1))
-maxvalue = repmat(["none"], size(masterregions, 1))
-profit = repmat([0.0], size(masterregions, 1))
-maxprofit = repmat(["none"], size(masterregions, 1))
-estprofit = repmat([0.0], size(masterregions, 1))
-obsestprofit = repmat([0.0], size(masterregions, 1))
-maxestprofit = repmat(["none"], size(masterregions, 1))
-estprofit_changeirr = repmat([0.0], size(masterregions, 1))
-obsestprofit_changeirr = repmat([0.0], size(masterregions, 1))
-maxestprofit_changeirr = repmat(["none"], size(masterregions, 1))
+value = repeat([0.0], size(masterregions, 1))
+maxvalue = repeat(["none"], size(masterregions, 1))
+profit = repeat([0.0], size(masterregions, 1))
+maxprofit = repeat(["none"], size(masterregions, 1))
+estprofit = repeat([0.0], size(masterregions, 1))
+obsestprofit = repeat([0.0], size(masterregions, 1))
+maxestprofit = repeat(["none"], size(masterregions, 1))
+estprofit_changeirr = repeat([0.0], size(masterregions, 1))
+obsestprofit_changeirr = repeat([0.0], size(masterregions, 1))
+maxestprofit_changeirr = repeat(["none"], size(masterregions, 1))
 for crop in crops
     data = ers_information(crop, "Opportunity cost of land", 2010; includeus=false)
-    data[isna.(data)] = 0
+    data[ismissing.(data)] = 0
     data = convert(Vector{Float64}, data)
 
     maxvalue[data .> value] = crop
     value = max(value, data)
 
     data = ers_information(crop, "revenue", 2010; includeus=false) - ers_information(crop, "cost", 2010; includeus=false)
-    data[isna.(data)] = 0
+    data[ismissing.(data)] = 0
     data = convert(Vector{Float64}, data)
 
     price_all = ers_information(crop, "price", 2010; includeus=true);
@@ -122,10 +124,10 @@ for ii in 1:nrow(masterregions)
     obsrow = actualcrops[actualcrops[:fips] .== fips, :]
     if nrow(obsrow) == 1
         observed = obsrow[1, :maxcrop]
-        if !isna(observed)
+        if !ismissing(observed)
             obscrop[ii] = observed
             data = ers_information(observed, "revenue", 2010; includeus=false) - ers_information(observed, "cost", 2010; includeus=false)
-            data[isna.(data)] = 0
+            data[ismissing.(data)] = 0
             data = convert(Vector{Float64}, data)
 
             if observed != maxprofit[ii]

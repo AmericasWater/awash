@@ -8,7 +8,6 @@ include("../../src/lib/agriculture-ers.jl")
 include("curryield.jl")
 
 includeus = true
-bayesdir = "posterior_distributions_variance"
 
 #limityield = "ignore" #"lybymc" #"zeroy" # "limity"
 # trendyear = 62 + 60
@@ -34,24 +33,24 @@ maxprofit = Dict{Int64, Vector{Any}}()
 
 allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
 allyields = zeros(6, nrow(masterregions))
-    
+
 for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
     println(crop)
 
-    prepdata = preparecrop(crop, changeirr)
-    
+    prepdata = preparecrop(crop, false, true, changeirr)
+
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
-    
+
     df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
     for rr in 1:nrow(df)
         regionid = df[rr, :FIPS]
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
-        
+
         try # fails if weatherrow == 0 or NAs in gdds or kdds
             yield_total = getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
-            
+
             allyields[ii, weatherrow] = yield_total
 
             price_row = price[weatherrow]

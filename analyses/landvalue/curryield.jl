@@ -11,37 +11,45 @@ maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
 
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
-function preparecrop(crop, changeirr)
+function preparecrop(crop, crossval, constvar, changeirr)
     ii = findfirst(bayes_crops .== crop)
-    
+
+    fullcropdir = "Code_" * cropdirs[ii]
+    if crossval
+        fullcropdir = fullcropdir * "_cv"
+    end
+    if constvar
+        fullcropdir = fullcropdir * "_variance"
+    end
+
     # Load degree day data
     gdds = readtable(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-gdd.csv")));
     kdds = readtable(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-kdd.csv")));
 
-    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
-    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_intercept = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_alpha.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_time = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta1.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_wreq = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta2.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_gdds = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta3.txt"), separator=' ', header=false)[:, 1:3111];
+    bayes_kdds = readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta4.txt"), separator=' ', header=false)[:, 1:3111];
 
     if changeirr == true
-        b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b0.txt"), separator=' ', header=false))
-        b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b1.txt"), separator=' ', header=false))
-        b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b2.txt"), separator=' ', header=false))
-        b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b3.txt"), separator=' ', header=false))
-        b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/$bayesdir/$(cropdirs[ii])/coeff_b4.txt"), separator=' ', header=false))
+        b0s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b0.txt"), separator=' ', header=false))
+        b1s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b1.txt"), separator=' ', header=false))
+        b2s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b2.txt"), separator=' ', header=false))
+        b3s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b3.txt"), separator=' ', header=false))
+        b4s = convert(Matrix{Float64}, readtable(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b4.txt"), separator=' ', header=false))
     else
         b0s = b1s = b2s = b3s = b4s = nothing
     end
 
     wreq_max = maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
-    
+
     return ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max
 end
 
 function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
     ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
-    
+
     if changeirr == true
         intercept = bayes_intercept[:, rr] + b0s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
         time_coeff = bayes_time[:, rr] + b1s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
@@ -64,7 +72,7 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
     else
         wreq_row = irrigation[weatherrow, Symbol("wreq$(irr_crops[ii])")]
     end
-    
+
     if changeirr == "skip"
         logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
     else

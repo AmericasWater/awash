@@ -43,7 +43,7 @@ for ii in 1:length(bayes_crops)
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
 
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+    df = readtable(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
     for rr in 1:nrow(df)
         regionid = df[rr, :FIPS]
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))

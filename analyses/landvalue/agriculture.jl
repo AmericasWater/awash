@@ -45,7 +45,7 @@ for ii in 1:nrow(masterregions)
     end
 end
 
-fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
 value = repeat([0.0], size(masterregions, 1))
 maxvalue = repeat(["none"], size(masterregions, 1))

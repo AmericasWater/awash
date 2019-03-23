@@ -100,12 +100,12 @@ function ers_information_loaded(crop::AbstractString, item::AbstractString, year
         if (length(value) == 0)
             continue
         end
-        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] = value[1]
+        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] .= value[1]
     end
 
     if includeus
         value = subdf[subdf[:region] .== "us", :value]
-        result[[ismissing(result[ii]) for ii in 1:length(result)]] = value[1]
+        result[[ismissing(result[ii]) for ii in 1:length(result)]] .= value[1]
     end
 
     result

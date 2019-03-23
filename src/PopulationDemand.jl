@@ -59,19 +59,15 @@ configtransforms["repcap"] = (fips, x) -> getpopulation_withinyear(fips, populat
 
     # Amount of crops that would buy
     cropinterest = Variable(index=[regions, allcrops, time], unit="lborbu")
-end
 
-"""
-Compute the `surplus` as `available` - `demand`.
-"""
-function run_timestep(c::PopulationDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        for cc in d.allcrops
-            v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
+    """
+    Compute the `surplus` as `available` - `demand`.
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            for cc in d.allcrops
+                v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
+            end
         end
     end
 end

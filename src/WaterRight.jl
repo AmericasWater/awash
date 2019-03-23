@@ -22,34 +22,29 @@ using DataFrames
     gwtotal = Variable(index=[regions], unit="1000 m^3")
     #totalrighttotaltime = Variable(index=[regions], unit="1000 m^3")
 
-end
-
-"""
-Compute the amount extracted and the cost for doing it.
-"""
-function run_timestep(c::WaterRight, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    # not sure if useful ...
-    if tt == 1
-        swtotal = zeros(numregions)
-        gwtotal = zeros(numregions)
-    end
-
-    for pp in 1:nrow(draws)
-        regionids = regionindex(draws, pp)
-        rr = findfirst(regionindex(masterregions, :) .== regionids)
-        if rr != nothing
-            v.swtotal[rr] += p.swtimestep[pp, tt]
+    """
+    Compute the amount extracted and the cost for doing it.
+    """
+    function run_timestep(p, v, d, t)
+        # not sure if useful ...
+        if tt == 1
+            swtotal = zeros(numregions)
+            gwtotal = zeros(numregions)
         end
-    end
 
-    for rr in d.regions
-        v.gwtotal[rr] += p.gwtimestep[rr, tt]
-    end
+        for pp in 1:nrow(draws)
+            regionids = regionindex(draws, pp)
+            rr = findfirst(regionindex(masterregions, :) .== regionids)
+            if rr != nothing
+                v.swtotal[rr] += p.swtimestep[pp, tt]
+            end
+        end
 
+        for rr in d.regions
+            v.gwtotal[rr] += p.gwtimestep[rr, tt]
+        end
+
+    end
 end
 
 """

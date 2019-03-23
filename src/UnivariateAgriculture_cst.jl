@@ -46,37 +46,33 @@ include("lib/agriculture.jl")
     opcost = Variable(index=[regions, unicrops, time], unit="\$")
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
-end
 
-function run_timestep(s::UnivariateAgriculture, tt::Int)
-    v = s.Variables
-    p = s.Parameters
-    d = s.Dimensions
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            totalirrigation = 0.
+            allagarea = 0.
 
-    for rr in d.regions
-        totalirrigation = 0.
-        allagarea = 0.
+            for cc in d.unicrops
+                v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
+                v.allagarea += p.totalareas[rr, cc, tt]
 
-        for cc in d.unicrops
-            v.totalareas2[rr, cc, tt] = p.totalareas[rr, cc, tt]
-            v.allagarea += p.totalareas[rr, cc, tt]
+                # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
+                totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
 
-            # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
-            totalirrigation += p.totalareas[rr, cc, tt] * p.irrigation_rate[rr, cc, tt] / 100
+                # Calculate total production
+                v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
+                v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
 
-            # Calculate total production
-            v.yield2[rr, cc, tt] = p.yield[rr, cc, tt]
-            v.production[rr, cc, tt] = p.yield[rr, cc, tt] * p.totalareas[rr, cc, tt] * 2.47105 # convert acres to Ha
+                # Calculate cultivation costs
+                v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
+                # Calculate Operating cost
+                v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
 
-            # Calculate cultivation costs
-            v.unicultivationcost[rr, cc, tt] = p.totalareas[rr, cc, tt] * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
-            # Calculate Operating cost
-            v.opcost[rr,cc,tt]= p.totalareas[rr, cc, tt] * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
+            end
 
+            v.totalirrigation[rr, tt] = totalirrigation
+            #v.allagarea[rr, tt] = allagarea
         end
-
-        v.totalirrigation[rr, tt] = totalirrigation
-        #v.allagarea[rr, tt] = allagarea
     end
 end
 

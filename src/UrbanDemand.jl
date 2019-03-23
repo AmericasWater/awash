@@ -16,18 +16,14 @@ include("lib/readconfig.jl")
 
     # Demanded water
     waterdemand = Variable(index=[regions, scenarios, time],unit="1000 m^3")
-end
 
-"""
-The quantity of water demanded at each timestep
-"""
-function run_timestep(c::UrbanDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        v.waterdemand[rr, :, tt] = p.domesticdemand[rr, :, tt]; # XXX: Where is commercial
+    """
+    The quantity of water demanded at each timestep
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            v.waterdemand[rr, :, tt] = p.domesticdemand[rr, :, tt]; # XXX: Where is commercial
+        end
     end
 end
 

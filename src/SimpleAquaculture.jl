@@ -19,13 +19,11 @@ include("lib/datastore.jl")
 
     # Demand combining the two effects
     demand = Variable(index=[regions, time], unit="1000 m^3")
-end
 
-function run_timestep(c::Aquaculture, tt::Int)
-    v, p, d = getvpd(c)
-
-    # Scale with production
-    v.demand[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
+    function run_timestep(p, v, d, t)
+        # Scale with production
+        v.demand[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
+    end
 end
 
 function initaquaculture(m::Model)

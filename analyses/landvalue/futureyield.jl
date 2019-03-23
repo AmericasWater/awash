@@ -94,7 +94,7 @@ for ii in 1:length(bayes_crops)
 
     differences = mean(alldifferences, 3)
 
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/posterior_distributions/fips_usa.csv"))
+    df = readtable(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
     wreqs = ones(nrow(df)) * maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
     for kk in 1:nrow(irrigation)

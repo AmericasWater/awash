@@ -34,22 +34,18 @@ returnpart = Dict([consumption[ii, :sector] => (1 - consumption[ii, :consumption
 
     # How much is returned by region
     totalreturn = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-end
 
-"""
-Compute the amount extracted and the cost for doing it.
-"""
-function run_timestep(c::WaterDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the amount extracted and the cost for doing it.
+    """
+    function run_timestep(p, v, d, t)
+        for rr in d.regions
+            # Sum all demands
+            v.totaldemand[rr, :, tt] = p.totalirrigation[rr, :, tt] + p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
+            v.otherdemand[rr, :, tt] = p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
 
-    for rr in d.regions
-        # Sum all demands
-        v.totaldemand[rr, :, tt] = p.totalirrigation[rr, :, tt] + p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
-        v.otherdemand[rr, :, tt] = p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
-
-        v.totalreturn[rr, :, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, :, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, :, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, :, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, :, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, :, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, :, tt]
+            v.totalreturn[rr, :, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, :, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, :, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, :, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, :, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, :, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, :, tt]
+        end
     end
 end
 

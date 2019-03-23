@@ -40,48 +40,44 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
     # The total imported to and exported from each region
     regionimports = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
     regionexports = Variable(index=[regions, allcrops, scenarios, time], unit="lborbu")
-end
 
-"""
-Compute the amount imported and exported by region.
-"""
-function run_timestep(c::Transportation, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the amount imported and exported by region.
+    """
+    function run_timestep(p, v, d, t)
+        # Costs are easy: just resource imported * cost-per-unit
+        for ee in d.edges
+            for cc in d.allcrops
+                v.cost[ee, cc, :, tt] = p.imported[ee, cc, :, tt] * p.cost_edge[ee, tt]
+            end
+        end
 
-    # Costs are easy: just resource imported * cost-per-unit
-    for ee in d.edges
         for cc in d.allcrops
-            v.cost[ee, cc, :, tt] = p.imported[ee, cc, :, tt] * p.cost_edge[ee, tt]
-        end
-    end
-
-    for cc in d.allcrops
-        for ii in d.regions
-            v.regionexports[ii, cc, :, tt] = 0.0
-        end
-
-        # Sum over all edges for each region to translate to region-basis
-        edge1 = 1
-        for ii in d.regions
-            # Get the number of edges this county imports from
-            numneighbors = out_degree(regverts[regionindex(masterregions, ii)], regionnet)
-
-            # Sum over all *out-edges* to get import
-            for ss in d.scenarios
-                v.regionimports[ii, cc, ss, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, ss, tt])
+            for ii in d.regions
+                v.regionexports[ii, cc, :, tt] = 0.0
             end
 
-            # Sum over the edges that have this as an out-edge
-            sources = get(sourceiis, ii, Int64[])
-            for source in sources
-                if source > 0
-                    for ss in d.scenarios
-                        v.regionexports[source, cc, ss, tt] += p.imported[edge1, cc, ss, tt]
-                    end
+            # Sum over all edges for each region to translate to region-basis
+            edge1 = 1
+            for ii in d.regions
+                # Get the number of edges this county imports from
+                numneighbors = out_degree(regverts[regionindex(masterregions, ii)], regionnet)
+
+                # Sum over all *out-edges* to get import
+                for ss in d.scenarios
+                    v.regionimports[ii, cc, ss, tt] = sum(p.imported[edge1:edge1 + numneighbors - 1, cc, ss, tt])
                 end
-                edge1 += 1 # length(sources) == numneighbors
+
+                # Sum over the edges that have this as an out-edge
+                sources = get(sourceiis, ii, Int64[])
+                for source in sources
+                    if source > 0
+                        for ss in d.scenarios
+                            v.regionexports[source, cc, ss, tt] += p.imported[edge1, cc, ss, tt]
+                        end
+                    end
+                    edge1 += 1 # length(sources) == numneighbors
+                end
             end
         end
     end

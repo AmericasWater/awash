@@ -59,28 +59,28 @@ obsestprofit_changeirr = repeat([0.0], size(masterregions, 1))
 maxestprofit_changeirr = repeat(["none"], size(masterregions, 1))
 for crop in crops
     data = ers_information(crop, "Opportunity cost of land", 2010; includeus=false)
-    data[ismissing.(data)] = 0
+    data[ismissing.(data)] .= 0
     data = convert(Vector{Float64}, data)
 
-    maxvalue[data .> value] = crop
+    maxvalue[data .> value] .= crop
     value = max(value, data)
 
     data = ers_information(crop, "revenue", 2010; includeus=false) - ers_information(crop, "cost", 2010; includeus=false)
-    data[ismissing.(data)] = 0
+    data[ismissing.(data)] .= 0
     data = convert(Vector{Float64}, data)
 
     price_all = ers_information(crop, "price", 2010; includeus=true);
     costs_all = ers_information(crop, "opcost", 2010; includeus=true);
 
-    maxprofit[data .> profit] = crop
+    maxprofit[data .> profit] .= crop
     profit = max(profit, data)
 
     # Determine the profit under the estimated yields
     prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
     prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true)
 
-    cropprofit = zeros(nrow(masterregions))
-    cropprofit_changeirr = zeros(nrow(masterregions))
+    cropprofit = zeros(Union{Missing, Float64}, nrow(masterregions))
+    cropprofit_changeirr = zeros(Union{Missing, Float64}, nrow(masterregions))
     for weatherrow in 1:nrow(masterregions)
         rr = findfirst(fipsdf[:FIPS] .== parse(Int64, masterregions[weatherrow, :fips]))
         try
@@ -95,12 +95,12 @@ for crop in crops
         end
     end
 
-    obsestprofit[obscrop .== crop] = cropprofit[obscrop .== crop]
-    maxestprofit[cropprofit .> estprofit] = crop
+    obsestprofit[obscrop .== crop] .= cropprofit[obscrop .== crop]
+    maxestprofit[cropprofit .> estprofit] .= crop
     estprofit = max(estprofit, cropprofit)
 
-    obsestprofit_changeirr[obscrop .== crop] = cropprofit_changeirr[obscrop .== crop]
-    maxestprofit_changeirr[cropprofit_changeirr .> estprofit_changeirr] = crop
+    obsestprofit_changeirr[obscrop .== crop] .= cropprofit_changeirr[obscrop .== crop]
+    maxestprofit_changeirr[cropprofit_changeirr .> estprofit_changeirr] .= crop
     estprofit_changeirr = max(estprofit_changeirr, cropprofit_changeirr)
 end
 
@@ -127,7 +127,7 @@ for ii in 1:nrow(masterregions)
         if !ismissing(observed)
             obscrop[ii] = observed
             data = ers_information(observed, "revenue", 2010; includeus=false) - ers_information(observed, "cost", 2010; includeus=false)
-            data[ismissing.(data)] = 0
+            data[ismissing.(data)] .= 0
             data = convert(Vector{Float64}, data)
 
             if observed != maxprofit[ii]

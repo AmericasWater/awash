@@ -144,7 +144,7 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
 end
 
 function constraintoffset_agriculture_allagarea(m::Model)
-    hallsingle(m, :Agriculture, :allagarea, (rr, yy) -> max(countylandareas[rr] - m.external_parameters[:othercropsarea].values[rr, yy], 0))
+    hallsingle(m, :Agriculture, :allagarea, (rr, yy) -> max(countylandareas[rr] - m.md.external_params[:othercropsarea].values[rr, yy], 0))
 end
 
 function grad_agriculture_allcropproduction_unicropproduction(m::Model)

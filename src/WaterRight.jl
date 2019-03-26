@@ -79,7 +79,7 @@ function grad_waterright_swtotal_withdrawals(m::Model)
 end
 
 function constraintoffset_waterright_swrighttotal(m::Model)
-    hallsingle(m, :WaterRight, :swtotal, (rr) -> m.external_parameters[:swrighttotal].values[rr])
+    hallsingle(m, :WaterRight, :swtotal, (rr) -> m.md.external_params[:swrighttotal].values[rr])
 end
 
 function grad_waterright_gwtotal_waterfromgw(m::Model)
@@ -96,5 +96,5 @@ function grad_waterright_gwtotal_waterfromgw(m::Model)
 end
 
 function constraintoffset_waterright_gwrighttotal(m::Model)
-    hallsingle(m, :WaterRight, :gwtotal, (rr) -> m.external_parameters[:gwrighttotal].values[rr])
+    hallsingle(m, :WaterRight, :gwtotal, (rr) -> m.md.external_params[:gwrighttotal].values[rr])
 end

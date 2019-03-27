@@ -1,4 +1,4 @@
-using CSV
+using CSV, Missings
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/standard-1year.yml")
@@ -15,7 +15,7 @@ include("curryield.jl")
 crop2bayes_crop = Dict("barl" => "Barley", "corn" => "Corn", "cott" => "Cotton",
                        "rice" => "Rice", "soyb" => "Soybean", "whea" => "Wheat")
 
-for do_cropdrop in [false, true]
+do_cropdrop = true
 
 if do_cropdrop
     crops = ["corn", "soyb", "whea", "barl", "cott", "rice"]
@@ -47,6 +47,7 @@ end
 
 fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
+let
 value = repeat([0.0], size(masterregions, 1))
 maxvalue = repeat(["none"], size(masterregions, 1))
 profit = repeat([0.0], size(masterregions, 1))
@@ -66,7 +67,7 @@ for crop in crops
     value = max(value, data)
 
     data = ers_information(crop, "revenue", 2010; includeus=false) - ers_information(crop, "cost", 2010; includeus=false)
-    data[ismissing.(data)] .= 0
+    data[ismissing.(data)] .= -Inf
     data = convert(Vector{Float64}, data)
 
     price_all = ers_information(crop, "price", 2010; includeus=true);
@@ -79,8 +80,8 @@ for crop in crops
     prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
     prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true)
 
-    cropprofit = zeros(Union{Missing, Float64}, nrow(masterregions))
-    cropprofit_changeirr = zeros(Union{Missing, Float64}, nrow(masterregions))
+    cropprofit = zeros(nrow(masterregions))
+    cropprofit_changeirr = zeros(nrow(masterregions))
     for weatherrow in 1:nrow(masterregions)
         rr = findfirst(fipsdf[:FIPS] .== parse(Int64, masterregions[weatherrow, :fips]))
         try
@@ -90,8 +91,8 @@ for crop in crops
             yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", prepdata_changeirr)
             cropprofit_changeirr[weatherrow] = yield_total_changeirr * price_all[weatherrow] - costs_all[weatherrow]
         catch
-            cropprofit[weatherrow] = missing
-            cropprofit_changeirr[weatherrow] = missing
+            cropprofit[weatherrow] = -Inf
+            cropprofit_changeirr[weatherrow] = -Inf
         end
     end
 
@@ -127,8 +128,11 @@ for ii in 1:nrow(masterregions)
         if !ismissing(observed)
             obscrop[ii] = observed
             data = ers_information(observed, "revenue", 2010; includeus=false) - ers_information(observed, "cost", 2010; includeus=false)
-            data[ismissing.(data)] .= 0
-            data = convert(Vector{Float64}, data)
+            if typeof(data) <: Vector{Missing}
+                data = zeros(length(data))
+            else
+                data = collect(Missings.replace(data, -Inf))
+            end
 
             if observed != maxprofit[ii]
                 toadd[ii] = profit[ii] - data[ii]
@@ -153,5 +157,4 @@ if do_cropdrop
 else
     CSV.write("farmvalue.csv", masterregions)
 end
-
 end

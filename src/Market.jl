@@ -94,12 +94,12 @@ function grad_market_available_internationalsales(m::Model)
 end
 
 function deriv_market_totalrevenue_produced(m::Model)
-    gen(rr, cc) = m.external_parameters[:domestic_prices].values[rr, cc]
+    gen(rr, cc) = m.md.external_params[:domestic_prices].values[rr, cc]
     hallsingle(m, :Market, :produced, gen, [:scenarios, :time])
 end
 
 function deriv_market_totalrevenue_internationalsales(m::Model)
-    gen(rr, cc) = -m.external_parameters[:domestic_prices].values[rr, cc] + m.external_parameters[:international_prices].values[rr, cc]
+    gen(rr, cc) = -m.md.external_params[:domestic_prices].values[rr, cc] + m.md.external_params[:international_prices].values[rr, cc]
     hallsingle(m, :Market, :internationalsales, gen, [:scenarios, :time])
 end
 

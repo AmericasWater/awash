@@ -176,7 +176,7 @@ end
 
 function grad_irrigationagriculture_production_irrigatedareas(m::Model)
     ## Common rr, cc, tt
-    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (ss1) -> exp.(m.external_parameters[:logirrigatedyield].values[:, :, ss1, :]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonalintersect(m, :IrrigationAgriculture, :production, :irrigatedareas, (ss1) -> exp.(m.md.external_params[:logirrigatedyield].values[:, :, ss1, :]) * 2.47105 * .99 * config["timestep"]/12) # Convert Ha to acres
     # 1% lost to irrigation technology (makes irrigated and rainfed not perfectly equivalent)
 end
 
@@ -186,7 +186,7 @@ function grad_irrigationagriculture_production_rainfedareas(m::Model)
         A = zeros(numregions, numirrcrops, numsteps)
         for cc in 1:numirrcrops
             for tt in 1:numsteps
-                A[:, cc, tt] = exp.(m.external_parameters[:logirrigatedyield].values[:, cc, ss1, tt] + m.external_parameters[:deficit_coeff].values[:, cc] * max.(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[:, ss1, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
+                A[:, cc, tt] = exp.(m.md.external_params[:logirrigatedyield].values[:, cc, ss1, tt] + m.md.external_params[:deficit_coeff].values[:, cc] * max.(0., m.md.external_params[:water_demand].values[cc] - m.md.external_params[:precipitation].values[:, ss1, tt])) * 2.47105 * config["timestep"]/12 # Convert Ha to acres
             end
         end
         A
@@ -200,7 +200,7 @@ function grad_irrigationagriculture_totalirrigation_irrigatedareas(m::Model)
         for rr in 1:numcounties
             for cc in 1:numirrcrops
                 for ss in 1:numscenarios
-                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc, ss], [numcounties, numirrcrops, numscenarios])] = max(0., m.external_parameters[:water_demand].values[cc] - m.external_parameters[:precipitation].values[rr, ss, tt]) / 100
+                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc, ss], [numcounties, numirrcrops, numscenarios])] = max(0., m.md.external_params[:water_demand].values[cc] - m.md.external_params[:precipitation].values[rr, ss, tt]) / 100
                 end
             end
         end

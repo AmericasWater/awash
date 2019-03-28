@@ -1,4 +1,4 @@
-using CSV, NaNMath, DelimitedFiles
+using CSV, NaNMath, DelimitedFiles, Missings
 
 irrigation = CSV.read("irrigation.csv")
 
@@ -23,8 +23,8 @@ function preparecrop(crop, crossval, constvar, changeirr)
     end
 
     # Load degree day data
-    gdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-gdd.csv")));
-    kdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-kdd.csv")));
+    gdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-gdd.csv")), types=repeat([Union{Missing, Float64}], 61), missingstring="NA");
+    kdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-kdd.csv")), types=repeat([Union{Missing, Float64}], 61), missingstring="NA");
 
     bayes_intercept = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_alpha.txt"), ' ')[:, 1:3111];
     bayes_time = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta1.txt"), ' ')[:, 1:3111];
@@ -64,8 +64,14 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
         time_coeff = bayes_time[:, rr]
     end
 
-    gdds_row = collect(Missings.replace(convert(Matrix{Union{Missing, Float64}}, gdds[weatherrow, end-9:end]), NaN)) #2:end])
-    kdds_row = collect(Missings.replace(convert(Matrix{Union{Missing, Float64}}, kdds[weatherrow, end-9:end]), NaN)) #2:end])
+    gdds1 = collect(gdds[weatherrow, end-9:end])
+    kdds1 = collect(kdds[weatherrow, end-9:end])
+    if all(Missings.ismissing.(gdds1)) || all(Missings.ismissing.(kdds1))
+        return missing
+    end
+
+    gdds_row = collect(Missings.replace(gdds1, NaN))'
+    kdds_row = collect(Missings.replace(kdds1, NaN))'
     time_row = trendyear # Give all yields as 2010; otherwise collect(1:61)
     if ismissing(irrigation[weatherrow, Symbol("wreq$(irr_crops[ii])")])
         wreq_row = wreq_max

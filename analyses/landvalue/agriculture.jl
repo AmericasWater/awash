@@ -84,15 +84,23 @@ for crop in crops
     cropprofit_changeirr = zeros(nrow(masterregions))
     for weatherrow in 1:nrow(masterregions)
         rr = findfirst(fipsdf[:FIPS] .== parse(Int64, masterregions[weatherrow, :fips]))
-        try
-            yield_total = getyield(rr, weatherrow, false, 62, "ignore", prepdata)
-            cropprofit[weatherrow] = yield_total * price_all[weatherrow] - costs_all[weatherrow]
-
-            yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", prepdata_changeirr)
-            cropprofit_changeirr[weatherrow] = yield_total_changeirr * price_all[weatherrow] - costs_all[weatherrow]
-        catch
+        if rr == nothing
             cropprofit[weatherrow] = -Inf
             cropprofit_changeirr[weatherrow] = -Inf
+        else
+            yield_total = getyield(rr, weatherrow, false, 62, "ignore", prepdata)
+            if ismissing(yield_total)
+                cropprofit[weatherrow] = -Inf
+            else
+                cropprofit[weatherrow] = yield_total * price_all[weatherrow] - costs_all[weatherrow]
+            end
+
+            yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", prepdata_changeirr)
+            if ismissing(yield_total_changeirr)
+                cropprofit_changeirr[weatherrow] = -Inf
+            else
+                cropprofit_changeirr[weatherrow] = yield_total_changeirr * price_all[weatherrow] - costs_all[weatherrow]
+            end
         end
     end
 

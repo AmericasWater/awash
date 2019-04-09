@@ -88,7 +88,7 @@ function initallocation(m::Model)
         recorded = knowndf("exogenous-withdrawals")
 
 	allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
-	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383./12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
+	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383. / 12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
     	allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]));
     end
 
@@ -127,7 +127,7 @@ function grad_allocation_balance_swwithdrawals(m::Model)
     roomintersect(m, :Allocation, :balance, :swwithdrawals, generate, [:scenarios, :time], [:scenarios, :time])
 end
 
-function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function constraintoffset_allocation_recordedtotal(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         constraintoffset_allocation_recordedbalance(m, includegw)
     else

@@ -40,7 +40,7 @@ values = getconstraintsolution(house, sol, :outflows)
 
 cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
 offset = cwro.f
-offset[isnan.(offset)] = 0
+offset[isnan.(offset)] .= 0
 outflows = offset - values
 outflows = reshape(outflows, house.model.indices_counts[:gauges], house.model.indices_counts[:time])
 writecsv(datapath("extraction/outflows-bygauge.csv"), outflows)

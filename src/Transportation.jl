@@ -54,7 +54,7 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
 
         for cc in d.allcrops
             for ii in d.regions
-                v.regionexports[ii, cc, :, tt] = 0.0
+                v.regionexports[ii, cc, :, tt] .= 0.0
             end
 
             # Sum over all edges for each region to translate to region-basis

@@ -36,7 +36,7 @@ function initurbandemand(m::Model)
     # data from USGS 2010 for the 2000 county definition
     recorded = knowndf("exogenous-withdrawals")
 
-    urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383./12. * config["timestep"], outer=[1, numscenarios, numsteps])
+    urbandemand[:domesticdemand] = repeat(convert(Vector, recorded[:, :PS_To]) * 1383. / 12. * config["timestep"], outer=[1, numscenarios, numsteps])
 
     urbandemand
 end

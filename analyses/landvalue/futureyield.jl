@@ -1,6 +1,6 @@
 # Rerun 9/17
 
-using NaNMath, CSV, DelimitedFiles
+using NaNMath, CSV, DelimitedFiles, Statistics
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/single.yml")
@@ -8,7 +8,13 @@ config = readconfig("../../configs/single.yml")
 include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
 
-wheatshares = readtable("wheat-shares.csv")
+wheatshares = CSV.read("wheat-shares.csv")
+wheatshares[:fips] = convert(Vector{Int64}, wheatshares[:fips])
+wheatshares[:spring] = convert(Vector{Float64}, wheatshares[:spring])
+wheatshares[:winter] = convert(Vector{Float64}, wheatshares[:winter])
+
+crossval = false
+constvar = true
 
 includeus = true
 #profitfix = true
@@ -32,7 +38,7 @@ biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "mg", "mi", "mp", "mr" , "no"]
 
 if profitfix != false
-    profitfixdf = readtable("farmvalue-limited.csv")
+    profitfixdf = CSV.read("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
     profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
@@ -45,8 +51,8 @@ maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
                       "Rice" => 10180, "Soybean" => 249, "Wheat" => 142.5)
 
 # Load historical bioclim data
-bios = readtable(expanduser("~/Dropbox/Agriculture Weather/us-bioclims-new.csv"))
-bios[:fips] = trunc(Int, bios[:NHGISST] * 100 + bios[:NHGISCTY] / 10)
+bios = CSV.read(expanduser("~/Dropbox/Agriculture Weather/us-bioclims-new.csv"))
+bios[:fips] = trunc.(Int, bios[:NHGISST] * 100 + bios[:NHGISCTY] / 10)
 
 maxprofit = Dict{Int64, Vector{Any}}()
 allprofits = -Inf * ones(6, nrow(masterregions)) # crop, region
@@ -82,24 +88,24 @@ for ii in 1:length(bayes_crops)
     alldifferences = zeros(6, nrow(bios), length(biomodels))
     for jj in 1:length(biomodels)
         # Load future bioclim data
-        bios_future = readtable(expanduser("~/Dropbox/Agriculture Weather/bioclims-$futureyear/$(biomodels[jj])85bi$(futureyear % 100).csv"))
+        bios_future = CSV.read(expanduser("~/Dropbox/Agriculture Weather/bioclims-$futureyear/$(biomodels[jj])85bi$(futureyear % 100).csv"))
 
         alldifferences[1, :, jj] = bios_future[:bio1_mean] - bios[:bio1_mean]
         alldifferences[2, :, jj] = bios_future[:bio3_mean] - bios[:bio3_mean]
         alldifferences[3, :, jj] = bios_future[:bio5_mean] - bios[:bio5_mean]
         alldifferences[4, :, jj] = bios_future[:bio12_mean] - bios[:bio12_mean]
         alldifferences[5, :, jj] = bios_future[:bio15_mean] - bios[:bio15_mean]
-        alldifferences[6, :, jj] = 0 # Fill in this later (GCM-independent)
+        alldifferences[6, :, jj] .= 0 # Fill in this later (GCM-independent)
     end
 
-    differences = mean(alldifferences, 3)
+    differences = mean(alldifferences, dims=3)
 
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
+    df = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
     wreqs = ones(nrow(df)) * maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
     for kk in 1:nrow(irrigation)
         rr = findfirst(df[:FIPS] .== irrigation[kk, :fips])
-        if rr > 0
+        if rr != nothing
             differences[6, rr] = irrigation[kk, :irrfrac] - irrigation[kk, irr_crops[ii]]
             if !ismissing(irrigation[kk, Symbol("wreq$(irr_crops[ii])")])
                 wreqs[rr] = irrigation[kk, Symbol("wreq$(irr_crops[ii])")]
@@ -113,32 +119,32 @@ for ii in 1:length(bayes_crops)
 
     for jj in 1:length(eddmodels)
         # Load degree day data
-        weather = readtable(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
+        weather = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
         all2050s = weather[:year] .== futureyear
         fips2050s = weather[all2050s, :fips]
-        rows2050s = find(all2050s)
+        rows2050s = findall(all2050s)
         weatherrows = [any(fips2050s .== fips) ? rows2050s[fips2050s .== fips][1] : 1 for fips in bios[:fips]]
         allgdds[:, jj] = weather[weatherrows, :gdds]
         allkdds[:, jj] = weather[weatherrows, :kdds]
         allinvalids[:, jj] = weatherrows .== 1
         if crop == "Wheat"
-            weather2 = readtable(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).Winter.csv")))
+            weather2 = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).Winter.csv")))
             all2050s2 = weather2[:year] .== futureyear
             fips2050s2 = weather2[all2050s2, :fips]
-            rows2050s2 = find(all2050s2)
+            rows2050s2 = findall(all2050s2)
             weatherrows2 = [any(fips2050s2 .== fips) ? rows2050s2[fips2050s2 .== fips][1] : 1 for fips in bios[:fips]]
-            springshares2 = [wheatshares[wheatshares[:fips] .== fips, :spring] for fips in bios[:fips]]
-            allgdds[:, jj] = allgdds[:, jj] .* springshares + weather2[weatherrows2, :gdds] .* (1 - springshares)
-            allkdds[:, jj] = allkdds[:, jj] .* springshares + weather2[weatherrows2, :kdds] .* (1 - springshares)
-            allinvalids[:, jj] = allinvalids[:, jj] .|| (weatherrows2 .== 1)
+            springshares2 = [let ii = findfirst(wheatshares[:fips] .== fips); ii == nothing ? 0. : wheatshares[ii, :spring]; end for fips in bios[:fips]]
+            allgdds[:, jj] = allgdds[:, jj] .* springshares2 + weather2[weatherrows2, :gdds] .* (1. .- springshares2)
+            allkdds[:, jj] = allkdds[:, jj] .* springshares2 + weather2[weatherrows2, :kdds] .* (1. .- springshares2)
+            allinvalids[:, jj] = allinvalids[:, jj] .| (weatherrows2 .== 1)
         end
     end
 
-    allgdds[allinvalids] = 0
-    allkdds[allinvalids] = 0
+    allgdds[allinvalids] .= 0
+    allkdds[allinvalids] .= 0
 
-    gdds = sum(allgdds, 2) ./ sum(.!allinvalids, 2)
-    kdds = sum(allkdds, 2) ./ sum(.!allinvalids, 2)
+    gdds = sum(allgdds, dims=2) ./ sum(.!allinvalids, dims=2)
+    kdds = sum(allkdds, dims=2) ./ sum(.!allinvalids, dims=2)
 
     bayes_intercept = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_alpha.txt"), ' ')[:, 1:3111];
     bayes_time = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta1.txt"), ' ')[:, 1:3111];
@@ -149,7 +155,7 @@ for ii in 1:length(bayes_crops)
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
         rr = findfirst(df[:FIPS] .== fips)
-        if rr == 0
+        if rr == nothing
             continue
         end
 
@@ -183,7 +189,7 @@ for ii in 1:length(bayes_crops)
         end
 
         if limityield == "lybymc"
-            logyield[logyield .> log(maximum_yields[crop])] = NaN
+            logyield[logyield .> log(maximum_yields[crop])] .= NaN
         end
         yield_total = NaNMath.mean(exp.(logyield))
         if limityield != "ignore" && yield_total > maximum_yields[crop]
@@ -238,8 +244,8 @@ if length(suffixes) > 0
 end
 suffix = join(suffixes, "-")
 
-writecsv("all$(futureyear)profits$suffix.csv", allprofits')
-writecsv("all$(futureyear)yields$suffix.csv", allyields')
+writedlm("all$(futureyear)profits$suffix.csv", allprofits', ',')
+writedlm("all$(futureyear)yields$suffix.csv", allyields', ',')
 
 result = DataFrame(fips=Int64[], profit=Float64[], crop=String[], yield=Float64[], price=Float64[], costs=Float64[])
 

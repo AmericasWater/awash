@@ -7,7 +7,7 @@ using RData
 using CSV
 
 if config["dataset"] == "states"
-    warn("State level groundwater model for US is inexistant")
+    @warn "State level groundwater model for US is inexistant"
     dfgw = DataFrame(Any[50*ones(49), zeros(49), ones(49)*0.1, ones(49), zeros(49)], [:depthaquif, :piezohead0, :storagecoef, :areaaquif, :elevation]);
     lateralconductivity = zeros(49,49);
     aquiferconnexion = zeros(49,49);

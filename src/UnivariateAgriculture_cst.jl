@@ -174,7 +174,7 @@ function initunivariateagriculture(m::Model)
                 else
                     column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                     constantareas[:, cc] = totalareas[column]*0.404686#Convert to Ha
-                    constantareas[isna(totalareas[column]), cc] = 0.
+                    constantareas[isna(totalareas[column]), cc] .= 0.
 
                     end
             end
@@ -323,7 +323,7 @@ function grad_univariateagriculture_sorghumarea_totalareas_cst(m::Model)
                     if unicrops[cc]=="sorghum"
                      A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 1.
                     else
-                       A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] = 0.
+                       A[fromindex([rr, tt], [numcounties, numsteps]),fromindex([rr, cc], [numcounties, numunicrops])] .= 0.
                     end
                 end
             end
@@ -337,9 +337,9 @@ function grad_univariateagriculture_sorghumarea_totalareas(m::Model)
         for rr in 1:numcounties
             for cc in 1:numunicrops
                 if unicrops[cc]=="sorghum"
-                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 1.
+                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] .= 1.
                     else
-                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] = 0
+                    A[rr, fromindex([rr, cc], [numcounties, numunicrops])] .= 0
                     end
             end
         end

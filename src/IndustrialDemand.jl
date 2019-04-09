@@ -35,8 +35,8 @@ function initindustrialdemand(m::Model)
 
     # data from USGS 2010 for the 2000 county definition
     recorded = knowndf("exogenous-withdrawals")
-    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, numsteps]);
-    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, numsteps]);
+    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383. / 12., outer=[1, numscenarios, numsteps]);
+    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383. / 12., outer=[1, numscenarios, numsteps]);
     industrialdemand
 end
 

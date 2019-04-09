@@ -29,8 +29,8 @@ using OptiMimi
 
     function run_timestep(p, v, d, t)
         for gg in 1:numgauges
-            v.removed[gg, :, tt] = 0.
-            v.returned[gg, :, tt] = 0.
+            v.removed[gg, :, tt] .= 0.
+            v.returned[gg, :, tt] .= 0.
         end
 
         for ss in 1:numscenarios
@@ -48,7 +48,7 @@ using OptiMimi
                 end
             end
         end
-        
+
         # Propogate in downstream order
         for hh in 1:numgauges
             gg = vertex_index(downstreamorder[hh])
@@ -64,7 +64,7 @@ end
 """
 Add a ReturnFlows component to the model.
 """
-function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     returnflows = addcomponent(m, ReturnFlows);
 
     returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
@@ -78,7 +78,7 @@ end
 """
 Construct the return flow rate based on observed sector-specific demands
 """
-function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     # Expected returns by county: sum of (RSTxRST * RST)
     expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, includegw, demandmodel) +
         grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
@@ -121,7 +121,7 @@ end
 """
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
-function grad_returnflows_outflows_swwithdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function grad_returnflows_outflows_swwithdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     canalreturns = vector_canalreturns(m, includegw, demandmodel)
 
     # Construct room

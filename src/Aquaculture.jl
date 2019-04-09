@@ -46,7 +46,7 @@ include("lib/datastore.jl")
                 v.entrant_demand[:, tt] = (mygrowth - theirgrowth) * entrant_demandpermt * v.production_anomaly[:, tt] / sum(v.production_anomaly[:, tt])
             end
         else
-            v.entrant_demand[:, tt] = 0
+            v.entrant_demand[:, tt] .= 0
         end
 
         # Temperature effect

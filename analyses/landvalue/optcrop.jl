@@ -1,4 +1,4 @@
-using NaNMath, CSV
+using NaNMath, CSV, DelimitedFiles
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")
@@ -20,7 +20,7 @@ if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
 end
 
 if profitfix != false
-    profitfixdf = readtable("farmvalue-limited.csv")
+    profitfixdf = CSV.read("farmvalue-limited.csv")
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
     profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
@@ -43,8 +43,9 @@ for ii in 1:length(bayes_crops)
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
 
-    df = readtable(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
+    df = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
     for rr in 1:nrow(df)
+        println(rr)
         regionid = df[rr, :FIPS]
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
 
@@ -72,6 +73,7 @@ for ii in 1:length(bayes_crops)
             if profit > get(maxprofit, regionid, [-Inf])[1]
                 maxprofit[regionid] = [profit, crop, yield_total, price_row, costs_row]
             end
+        catch
         end
     end
 end
@@ -101,8 +103,8 @@ if trendyear != 62
 end
 suffix = join(suffixes, "-")
 
-writecsv("currentprofits$suffix.csv", allprofits')
-writecsv("currentyields$suffix.csv", allyields')
+writedlm("currentprofits$suffix.csv", allprofits', ',')
+writedlm("currentyields$suffix.csv", allyields', ',')
 
 result = DataFrame(fips=Int64[], profit=Float64[], crop=String[], yield=Float64[], price=Float64[], costs=Float64[])
 

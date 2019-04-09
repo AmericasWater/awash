@@ -61,7 +61,7 @@ function getirrigationperdayarea(irtotal)
         totaldayareas += days .* collect(Missings.replace(irrigareas[crop], 0.))
     end
 
-    otherareas[otherareas .< 0] = 0
+    otherareas[otherareas .< 0] .= 0
     totaldayareas += 365 * otherareas
 
     return irtotal ./ totaldayareas

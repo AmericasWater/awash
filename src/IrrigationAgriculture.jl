@@ -161,8 +161,8 @@ function initirrigationagriculture(m::Model)
         columns = convert(Vector{Int64}, columns)
         for cc in columns
             # Replace NAs with 0, and convert to float. TODO: improve this
-            rainfeds[isna.(rainfeds[cc]), cc] = 0.
-            irrigateds[isna.(irrigateds[cc]), cc] = 0.
+            rainfeds[isna.(rainfeds[cc]), cc] .= 0.
+            irrigateds[isna.(irrigateds[cc]), cc] .= 0.
             # Convert to Ha
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686

@@ -32,7 +32,7 @@ if !("Missings" in keys(versions))
 end
 
 if !("RCall" in keys(versions))
-    warn("RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`.")
+    @warn "RCall is not installed, so some graphing will not work.  If you have R installed, install RCall with `Pkg.add(\"RCall\")`."
 end
 
 if !("YAML" in keys(versions))
@@ -158,7 +158,7 @@ function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
     else
         data = vec(model[component, variable][subset...])
     end
-						    
+
     if length(data) != numcounties
         error("This does not appear to be a county result.")
     end
@@ -166,7 +166,7 @@ function mapdata(component, variable=nothing, subset=nothing, centered=nothing)
     df = DataFrame(fips=collect(masterregions[:fips]), value=data)
     usmap(df, centered=nothing)
 end
-										    
+
 
 open(joinpath(dirname(@__FILE__), "../docs/intro.txt")) do fp
     println(readstring(fp))

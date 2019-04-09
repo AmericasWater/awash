@@ -52,7 +52,7 @@ include("lib/leapsteps.jl")
                     if (length(yys) > 0)
                         v.allcropproduction[rr, cc, :, tt] = sum(p.irrcropproduction[rr, irrcc, :, yys], 1)
                     else
-                        v.allcropproduction[rr, cc, :, tt] = 0
+                        v.allcropproduction[rr, cc, :, tt] .= 0
                     end
                 else
                     unicc = findfirst(unicrops, allcrops[cc])
@@ -60,7 +60,7 @@ include("lib/leapsteps.jl")
                     if (length(yys) > 0)
                         v.allcropproduction[rr, cc, :, tt] = sum(p.unicropproduction[rr, unicc, :, yys], 1)
                     else
-                        v.allcropproduction[rr, cc, :, tt] = 0
+                        v.allcropproduction[rr, cc, :, tt] .= 0
                     end
                 end
 
@@ -81,7 +81,7 @@ function initagriculture(m::Model)
 
     recorded = knowndf("exogenous-withdrawals")
     othercropsirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
-    othercropsirrigation[knownareas[:total] .== 0] = 0
+    othercropsirrigation[knownareas[:total] .== 0] .= 0
     othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])
     agriculture[:othercropsirrigation] = othercropsirrigation
 

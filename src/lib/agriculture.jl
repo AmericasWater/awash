@@ -398,7 +398,7 @@ function crop_information(crop::AbstractString, dict, default; warnonmiss=false)
     end
 
     if warnonmiss
-        warn("Could not find crop information for $crop.")
+        @warn "Could not find crop information for $crop."
     end
 
     return default

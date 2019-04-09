@@ -59,25 +59,27 @@ function getdataframe(m::Model, componentname::Symbol, name::Symbol)
     end
 end
 
-function getdataframe(m::Model, mi::ModelInstance, componentname::Symbol, name::Symbol)
-    comp_type = typeof(mi.components[componentname])
+# import Mimi: getdiminfoforvar
 
-    meta_module_name = Symbol(supertype(typeof(mi.components[componentname])).name.module)
-    meta_component_name = Symbol(supertype(typeof(mi.components[componentname])).name.name)
+# function getdataframe(m::Model, mi::ModelInstance, componentname::Symbol, name::Symbol)
+#     comp_type = typeof(mi.components[componentname])
 
-    vardiminfo = getdiminfoforvar((meta_module_name,meta_component_name), name)
+#     meta_module_name = Symbol(supertype(typeof(mi.components[componentname])).name.module)
+#     meta_component_name = Symbol(supertype(typeof(mi.components[componentname])).name.name)
 
-    if length(vardiminfo)==0
-        return mi[componentname, name]
-    elseif length(vardiminfo)==1
-        df = DataFrame()
-        df[vardiminfo[1]] = m.indices_values[vardiminfo[1]]
-        df[name] = mi[componentname, name]
-        return df
-    else
-        return getdataframe_helper(m, name, vardiminfo, mi[componentname, name])
-    end
-end
+#     vardiminfo = getdiminfoforvar((meta_module_name,meta_component_name), name)
+
+#     if length(vardiminfo)==0
+#         return mi[componentname, name]
+#     elseif length(vardiminfo)==1
+#         df = DataFrame()
+#         df[vardiminfo[1]] = m.indices_values[vardiminfo[1]]
+#         df[name] = mi[componentname, name]
+#         return df
+#     else
+#         return getdataframe_helper(m, name, vardiminfo, mi[componentname, name])
+#     end
+# end
 
 function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, data::AbstractArray)
     if length(vardiminfo)==2

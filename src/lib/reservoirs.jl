@@ -19,7 +19,7 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
     if in("dataset", keys(config))
         dataset = config["dataset"]
     else
-        warn("Config does not contain dataset; assuming `counties`.")
+        @warn "Config does not contain dataset; assuming `counties`."
         dataset = "counties"
     end
 

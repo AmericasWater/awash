@@ -178,12 +178,12 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
 
     # Clean up
 
-    house.b[isnan.(house.b)] = 0
-    house.b[house.b .== Inf] = 1e9
-    house.b[house.b .== -Inf] = -1e9
-    house.f[isnan.(house.f)] = 0
-    house.f[house.f .== Inf] = 1e9
-    house.f[house.f .== -Inf] = -1e9
+    house.b[isnan.(house.b)] .= 0
+    house.b[house.b .== Inf] .= 1e9
+    house.b[house.b .== -Inf] .= -1e9
+    house.f[isnan.(house.f)] .= 0
+    house.f[house.f .== Inf] .= 1e9
+    house.f[house.f .== -Inf] .= -1e9
 
     ri, ci, vv = findnz(house.A)
     for ii in find(isnan.(vv))

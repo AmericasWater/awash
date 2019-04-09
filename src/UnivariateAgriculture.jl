@@ -80,7 +80,7 @@ include("lib/agriculture.jl")
         if length(yys) > 0
             v.production_sumregion[:, :, tt] = sum(sum(v.production[:, :, :, yys], 4), 1)
         else
-            v.production_sumregion[:, :, tt] = 0.
+            v.production_sumregion[:, :, tt] .= 0.
         end
         v.area_sumregion[:, tt] = sum(maximum(p.totalareas[:, :, contyys], 3), 1)
     end
@@ -155,7 +155,7 @@ function initunivariateagriculture(m::Model)
             else
                 column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
                 constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[ismissing.(totalareas[column]), cc] = 0. # Replace NAs with 0, and convert to float.
+                constantareas[ismissing.(totalareas[column]), cc] .= 0. # Replace NAs with 0, and convert to float.
             end
         end
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numharvestyears])

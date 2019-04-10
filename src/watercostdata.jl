@@ -24,13 +24,13 @@ if get(config, "watercost-extraction", true)
     else
 	canalextractioncost = zeros(numcanals)
 	for ii in 1:numcanals
-		gauge_id = draws[ii,:gaugeid][(search(draws[ii,:gaugeid],".")[1]+1):end]
+		gauge_id = draws[ii,:gaugeid][(findfirst(".", draws[ii,:gaugeid])[1]+1):end]
 		indx = find(waternetdata["stations"][:colid] .== gauge_id)
 		if length(indx) == 0
 			canalextractioncost[ii] = naelev
 		else
 			if length(indx)>1
-				indx = indx[find(waternetdata["stations"][indx,:collection] .== draws[ii,:gaugeid][1:(search(draws[ii,:gaugeid],".")[1]-1)])]
+				indx = indx[find(waternetdata["stations"][indx,:collection] .== draws[ii,:gaugeid][1:(findfirst(".", draws[ii,:gaugeid])[1]-1)])]
 			end
 			elevation_source = waternetdata["stations"][indx, :elev][1]
 

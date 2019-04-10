@@ -9,12 +9,10 @@ include("curryield.jl")
 
 includeus = true
 
-#limityield = "ignore" #"lybymc" #"zeroy" # "limity"
-# trendyear = 62 + 60
-for limityield in ["ignore", "lybymc"] #["lybymc"]
-for profitfix in ["modeled", true] #[false]
+for limityield in ["ignore", "lybymc"]
+for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
-for changeirr in ["skip", false, true] #[true]
+for changeirr in ["skip", false, true]
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
@@ -65,11 +63,11 @@ for ii in 1:length(bayes_crops)
                     costs_row -= profitfixdf[weatherrow, :esttoadd_changeirr] + .01
                 end
             end
-
+        
             profit = yield_total * price_row - costs_row
-
+            
             allprofits[ii, weatherrow] = profit
-
+        
             if profit > get(maxprofit, regionid, [-Inf])[1]
                 maxprofit[regionid] = [profit, crop, yield_total, price_row, costs_row]
             end

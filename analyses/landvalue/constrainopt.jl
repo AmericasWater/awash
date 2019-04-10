@@ -30,13 +30,13 @@ f = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj])
 # Constrain total area per county to existing
 knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
 areacrops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
-knownareas[:mytotal] = 0
+knownareas[:mytotal] .= 0
 for crop in areacrops
     knownareas[:mytotal] += knownareas[crop]
 end
 
 function areagen(subA, rr)
-    subA[:] = 1
+    subA[:] .= 1
 end
 AA = OptiMimi.matrixintersect([size(mat)[2]], [size(mat)[1], size(mat)[2]], [:county], [:crop, :county], areagen)
 bb = convert(Vector{Float64}, knownareas[:mytotal] * 0.404686) # Convert to Ha
@@ -45,7 +45,7 @@ bb = convert(Vector{Float64}, knownareas[:mytotal] * 0.404686) # Convert to Ha
 for cc in 1:length(areacrops)
     total = sum(knownareas[areacrops[cc]] * 0.404686)
     subAA = spzeros(size(mat)[1], size(mat)[2])
-    subAA[cc, :] = 1
+    subAA[cc, :] .= 1
     AA = [AA; vec(subAA)']
     push!(bb, total)
 end
@@ -53,8 +53,8 @@ end
 uppers = convert(Vector{Float64}, repeat(knownareas[:mytotal] * 0.404686, inner=6))
 lowers = zeros(prod(size(mat)))
 
-f[f .== Inf] = maximum(f[f .!= Inf]*10+1e6)
-f[isnan(f)] = 0
+f[f .== Inf] .= maximum(f[f .!= Inf]*10+1e6)
+f[isnan(f)] .= 0
 
 solver = GurobiSolver()
 sol = linprog(-f, AA, '<', bb, lowers, uppers, solver)

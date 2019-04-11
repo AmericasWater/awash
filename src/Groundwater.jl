@@ -50,7 +50,7 @@ include("lib/groundwaterdata.jl")
   	    lflows=zeros(d.aquifers[end],1)
   	    for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
-		for aa_ in find(connections) + aa
+		for aa_ in findall(connections) + aa
 		    latflow = p.lateralconductivity[aa,aa_]*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
 		    lflows[aa] += latflow/1000;
 		    lflows[aa_] -= latflow/1000;

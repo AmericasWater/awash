@@ -25,12 +25,12 @@ if get(config, "watercost-extraction", true)
 	canalextractioncost = zeros(numcanals)
 	for ii in 1:numcanals
 		gauge_id = draws[ii,:gaugeid][(findfirst(".", draws[ii,:gaugeid])[1]+1):end]
-		indx = find(waternetdata["stations"][:colid] .== gauge_id)
+		indx = findall(waternetdata["stations"][:colid] .== gauge_id)
 		if length(indx) == 0
 			canalextractioncost[ii] = naelev
 		else
 			if length(indx)>1
-				indx = indx[find(waternetdata["stations"][indx,:collection] .== draws[ii,:gaugeid][1:(findfirst(".", draws[ii,:gaugeid])[1]-1)])]
+				indx = indx[findall(waternetdata["stations"][indx,:collection] .== draws[ii,:gaugeid][1:(findfirst(".", draws[ii,:gaugeid])[1]-1)])]
 			end
 			elevation_source = waternetdata["stations"][indx, :elev][1]
 
@@ -43,9 +43,9 @@ if get(config, "watercost-extraction", true)
                             canalextractioncost[ii] = 0
                         else
                             counties = knowndf("region-info")
-			    elevation_county = counties[:Elevation_ft][find(regionindex(counties, :) .== county_id)][1] *0.305
+			    elevation_county = counties[:Elevation_ft][findall(regionindex(counties, :) .== county_id)][1] *0.305
 			    if ismissing(elevation_county) # if county-info does not have elevation information, use values from gw model
-				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][find(regionindex(counties, :) .== county_id)][1]
+				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][findall(regionindex(counties, :) .== county_id)][1]
 			    end
 
 			    if elevation_source < elevation_county
@@ -62,7 +62,7 @@ if get(config, "watercost-extraction", true)
             # For now, assume that regions == GW aquifers
 	    aquiferextractioncost[ii] = drawdowndeepaquifer[ii]
 	end
-	aquiferextractioncost[find(aquiferextractioncost .<mingwextcost)] = mingwextcost
+	aquiferextractioncost[findall(aquiferextractioncost .<mingwextcost)] = mingwextcost
 
 # compute costs
 	canalextractioncost *= energycostperlift

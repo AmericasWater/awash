@@ -77,7 +77,7 @@ else
 
                 nexts = []
                 for check in chcks
-                    nexts = [nexts; find(netdata[:nextpt] .== check)]
+                    nexts = [nexts; findall(netdata[:nextpt] .== check)]
                 end
 
                 chcks = nexts
@@ -166,6 +166,6 @@ if get(config, "filtercanals", nothing) != nothing
     if config["filtercanals"] == "direct"
         draws = draws[[findfirst(["contains", "up-pipe", "down-pipe"], justif) for justif in draws[:justif]] .> 0, :]
     else
-        draws = draws[find(draws[:justif] .== config["filtercanals"]),:]
+        draws = draws[findall(draws[:justif] .== config["filtercanals"]),:]
     end
 end

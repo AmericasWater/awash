@@ -68,7 +68,7 @@ for component in model.components
         end
 
         if in(component[1], paramcomps)
-            for index in find(paramcomps .== component[1])
+            for index in findall(paramcomps .== component[1])
                 if parameters[index] == Symbol(parameter)
                     optimized = "yup"
                     break

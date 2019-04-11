@@ -186,10 +186,10 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     house.f[house.f .== -Inf] .= -1e9
 
     ri, ci, vv = findnz(house.A)
-    for ii in find(isnan.(vv))
+    for ii in findall(isnan.(vv))
         house.A[ri[ii], ci[ii]] = vv[ii]
     end
-    for ii in find(.!isfinite.(vv))
+    for ii in findall(.!isfinite.(vv))
         house.A[ri[ii], ci[ii]] = 1e9
     end
 

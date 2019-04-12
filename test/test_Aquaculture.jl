@@ -14,8 +14,8 @@ numsteps = 1
 numcounties = length(regions)
 
 m = Model()
-setindex(m, :time, [1]) # Single period
-setindex(m, :regions, convert(Vector{AbstractString}, regions))
+set_dimension!(m, :time, [1]) # Single period
+set_dimension!(m, :regions, convert(Vector{AbstractString}, regions))
 
 # Add the component
 initaquaculture(m)

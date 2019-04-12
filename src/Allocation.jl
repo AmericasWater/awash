@@ -73,7 +73,7 @@ end
 Add a demand component to the model.
 """
 function initallocation(m::Model)
-    allocation = addcomponent(m, Allocation);
+    allocation = add_comp!(m, Allocation);
     allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
 
     # Check if there are saved withdrawals (from optimize-surface)

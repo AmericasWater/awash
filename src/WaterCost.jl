@@ -61,7 +61,7 @@ end
 Add a cost component to the model.
 """
 function initwatercost(m::Model)
-    watercost = addcomponent(m, WaterCost);
+    watercost = add_comp!(m, WaterCost);
     watercost[:unitgwextractioncost] = repeat(aquiferextractioncost, outer = [1,numscenarios, numsteps])
     watercost[:unitswextractioncost] = repeat(canalextractioncost, outer = [1,numscenarios, numsteps])
 

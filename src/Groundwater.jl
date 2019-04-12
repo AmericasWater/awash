@@ -82,7 +82,7 @@ end
 Add an Aquifer component to the model.
 """
 function initaquifer(m::Model)
-    aquifer = addcomponent(m, Aquifer)
+    aquifer = add_comp!(m, Aquifer)
     aquifer[:depthaquif] = dfgw[:depthaquif];
     aquifer[:storagecoef] = dfgw[:storagecoef];
     aquifer[:piezohead0] = dfgw[:piezohead0];

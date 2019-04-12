@@ -1,7 +1,7 @@
 # need waternet
 # this script breaks down
 
-using DataFrames
+using DataFrames, DelimitedFiles
 using RData
 
 include("lib/datastore.jl")
@@ -57,12 +57,12 @@ if get(config, "watercost-extraction", true)
 
 	# gw: extraction cost prop to drawdown to watertable
 	aquiferextractioncost = zeros(numcounties)
-        drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"))
+        drawdowndeepaquifer = readdlm(datapath("cost/drawdown0.txt"), ',')
 	for ii in 1:numregions
             # For now, assume that regions == GW aquifers
 	    aquiferextractioncost[ii] = drawdowndeepaquifer[ii]
 	end
-	aquiferextractioncost[findall(aquiferextractioncost .<mingwextcost)] = mingwextcost
+	aquiferextractioncost[findall(aquiferextractioncost .<mingwextcost)] .= mingwextcost
 
 # compute costs
 	canalextractioncost *= energycostperlift

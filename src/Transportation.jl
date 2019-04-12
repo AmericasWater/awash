@@ -94,7 +94,7 @@ end
 Add a transportation component to the model.
 """
 function inittransportation(m::Model)
-    transit = addcomponent(m, Transportation)
+    transit = add_comp!(m, Transportation)
 
     # 40' container = 76.5 m^3
     # Average rate is $1.58 per mile

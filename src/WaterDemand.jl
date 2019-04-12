@@ -53,7 +53,7 @@ end
 Add a WaterDemand component to the model.
 """
 function initwaterdemand(m::Model)
-    waterdemand = addcomponent(m, WaterDemand);
+    waterdemand = add_comp!(m, WaterDemand);
 
     # Initialized at USGS values, replaced by model-waterdemand
     recorded = knowndf("exogenous-withdrawals")

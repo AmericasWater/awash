@@ -58,7 +58,7 @@ include("lib/datastore.jl")
 end
 
 function initaquaculture(m::Model)
-    aquaculture = addcomponent(m, Aquaculture);
+    aquaculture = add_comp!(m, Aquaculture);
 
     scaling = config["timestep"] / 12.
 

@@ -2,7 +2,7 @@
 #
 # Loads groundwater structure for different configurations.
 
-using DataFrames
+using DataFrames, DelimitedFiles
 using RData
 using CSV
 

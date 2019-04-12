@@ -80,9 +80,9 @@ end
 
 function initreservoir(m::Model, name=nothing)
     if name == nothing
-        reservoir = addcomponent(m, Reservoir)
+        reservoir = add_comp!(m, Reservoir)
     else
-        reservoir = addcomponent(m, Reservoir, name)
+        reservoir = add_comp!(m, Reservoir, name)
     end
 
     if config["dataset"] == "three"

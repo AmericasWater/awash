@@ -138,7 +138,7 @@ function initirrigationagriculture(m::Model)
         water_demand[cc] = water_requirements[irrcrops[cc]] * 1000
     end
 
-    agriculture = addcomponent(m, IrrigationAgriculture)
+    agriculture = add_comp!(m, IrrigationAgriculture)
 
     agriculture[:logirrigatedyield] = logirrigatedyield
     agriculture[:deficit_coeff] = deficit_coeff

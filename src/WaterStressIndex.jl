@@ -108,7 +108,7 @@ end
 Add a WaterStressIndex component to the model.
 """
 function initwaterstressindex(m::Model)
-    waterstressindex = addcomponent(m, WaterStressIndex);
+    waterstressindex = add_comp!(m, WaterStressIndex);
 
     waterstressindex[:runoffgauge] = addeds[:, :, 1:numsteps]
     waterstressindex[:rechargegw] = recharge;

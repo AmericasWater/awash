@@ -31,7 +31,7 @@ end
 Add an industrial component to the model.
 """
 function initindustrialdemand(m::Model)
-    industrialdemand = addcomponent(m, IndustrialDemand);
+    industrialdemand = add_comp!(m, IndustrialDemand);
 
     # data from USGS 2010 for the 2000 county definition
     recorded = knowndf("exogenous-withdrawals")

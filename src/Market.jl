@@ -59,7 +59,7 @@ end
 Add a market component to the model.
 """
 function initmarket(m::Model)
-    market = addcomponent(m, Market)
+    market = add_comp!(m, Market)
     if config["filterstate"]=="08"
         prices=[3.65,5.25,5.25,8.80,11.7,5.6,5.6,124]
     else

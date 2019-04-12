@@ -42,7 +42,7 @@ using Mimi
 end
 
 function initwaternetwork(m::Model)
-    waternetwork = addcomponent(m, WaterNetwork)
+    waternetwork = add_comp!(m, WaterNetwork)
 
     # addeds loaded by weather.jl
     waternetwork[:added] = addeds[:, :, 1:numsteps]

@@ -61,27 +61,27 @@ function newmodel()
     m = Model()
 
     if config["dataset"] == "three"
-        setindex(m, :time, collect(1:3))
+        set_dimension!(m, :time, collect(1:3))
     elseif "scenario-length" in keys(config)
-        setindex(m, :time, collect(1:config["scenario-length"]))
+        set_dimension!(m, :time, collect(1:config["scenario-length"]))
     else
-        setindex(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
+        set_dimension!(m, :time, collect(parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])))
     end
 
     yearnames = collect(parseyear(config["startmonth"]):parseyear(config["endmonth"]))
     yearindexes = cat(timeindex2yearindexes.(1:numsteps)..., dims=1)
 
-    setindex(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
-    setindex(m, :regions, collect(masterregions[:fips]))
-    setindex(m, :unicrops, unicrops)
-    setindex(m, :irrcrops, irrcrops)
-    setindex(m, :allcrops, allcrops)
-    setindex(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
-    setindex(m, :edges, collect(1:num_edges(regionnet)))
-    setindex(m, :canals, collect(1:numcanals))
-    setindex(m, :reservoirs, collect(1:numreservoirs))
-    setindex(m, :aquifers, collect(1:numaquifers))
-    setindex(m, :scenarios, get(config, "scenarios", [1]))
+    set_dimension!(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes + 1]) # Happens if first year gets no harvest
+    set_dimension!(m, :regions, collect(masterregions[:fips]))
+    set_dimension!(m, :unicrops, unicrops)
+    set_dimension!(m, :irrcrops, irrcrops)
+    set_dimension!(m, :allcrops, allcrops)
+    set_dimension!(m, :gauges, collect(map(v -> v.label, vertices(waternet))))
+    set_dimension!(m, :edges, collect(1:num_edges(regionnet)))
+    set_dimension!(m, :canals, collect(1:numcanals))
+    set_dimension!(m, :reservoirs, collect(1:numreservoirs))
+    set_dimension!(m, :aquifers, collect(1:numaquifers))
+    set_dimension!(m, :scenarios, get(config, "scenarios", [1]))
 
     return m
 end

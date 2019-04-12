@@ -73,7 +73,7 @@ include("lib/leapsteps.jl")
 end
 
 function initagriculture(m::Model)
-    agriculture = addcomponent(m, Agriculture)
+    agriculture = add_comp!(m, Agriculture)
 
     knownareas = knowndf("agriculture-knownareas")
     othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha

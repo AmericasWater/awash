@@ -31,7 +31,7 @@ end
 Add an urban component to the model.
 """
 function initurbandemand(m::Model)
-    urbandemand = addcomponent(m, UrbanDemand);
+    urbandemand = add_comp!(m, UrbanDemand);
 
     # data from USGS 2010 for the 2000 county definition
     recorded = knowndf("exogenous-withdrawals")

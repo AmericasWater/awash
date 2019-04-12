@@ -65,7 +65,7 @@ end
 Add a ReturnFlows component to the model.
 """
 function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
-    returnflows = addcomponent(m, ReturnFlows);
+    returnflows = add_comp!(m, ReturnFlows);
 
     returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
     # Calculate return flows from withdrawals

@@ -76,7 +76,7 @@ end
 Add a populationdemand component to the model.
 """
 function initpopulationdemand(m::Model, years)
-    populationdemand = addcomponent(m, PopulationDemand)
+    populationdemand = add_comp!(m, PopulationDemand)
 
     # How much of each crop will people buy per year?
     populationdemand[:cropinterestperperson] = (365.25/12 * config["timestep"]) * [crop_interest[crop] for crop in allcrops]

@@ -139,7 +139,7 @@ function initunivariateagriculture(m::Model)
             end
         end
     end
-  agriculture = addcomponent(m, UnivariateAgriculture)
+  agriculture = add_comp!(m, UnivariateAgriculture)
 
     agriculture[:yield] = yield
     #if config["filterstate"]=="08"

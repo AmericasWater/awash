@@ -51,7 +51,7 @@ end
 Add a WaterRight component to the model.
 """
 function initwaterright(m::Model)
-    waterright = addcomponent(m, WaterRight);
+    waterright = add_comp!(m, WaterRight);
 
     # Water rights defined as USGS extraction values to start
     recorded = knowndf("exogenous-withdrawals")

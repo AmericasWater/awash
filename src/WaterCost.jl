@@ -69,7 +69,7 @@ function initwatercost(m::Model)
     watercost[:unitswtreatmentcost] = repeat(swtreatmentcost, outer = [1,numscenarios, numsteps])
 
     watercost[:unitdistributioncost] = repeat(distributioncost, outer = [1,numscenarios, numsteps])
-    watercost[:unitsupersourcecost] = 1e6*ones(m.indices_counts[:regions], numscenarios, numsteps);
+    watercost[:unitsupersourcecost] = 1e6*ones(dim_count(m, :regions), numscenarios, numsteps);
     watercost
 end
 

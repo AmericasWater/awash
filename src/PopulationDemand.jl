@@ -88,7 +88,7 @@ function initpopulationdemand(m::Model, years)
         population_yeardata = getpopulation_yeardata(year)
         population_before = getpopulation_yeardata(div(year, 10) * 10)
         population_after = getpopulation_yeardata((div(year, 10) + 1) * 10)
-        for ii in 1:m.indices_counts[:regions]
+        for ii in 1:dim_count(m, :regions)
             fips = m.indices_values[:regions][ii]
             pop = getpopulation_withinyear(fips, population_yeardata)
             if isna.(pop) && mod(year, 10) != 0

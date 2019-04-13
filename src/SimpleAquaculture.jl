@@ -32,7 +32,7 @@ function initaquaculture(m::Model)
     scaling = config["timestep"] / 12.
 
     # Baseline from USGS
-    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, m.indices_counts[:time]])
+    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, dim_count(m, :time)])
 
     # Production data from Fisheries of the United States
     production = readtable(datapath("aquaculture/production.csv"))

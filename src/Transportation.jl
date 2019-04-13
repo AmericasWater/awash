@@ -102,9 +102,9 @@ function inittransportation(m::Model)
     # Counties crossed is .5 X X = 3121 = 79
     # Average distance between counties = 37 mile
     # Average cost is 0.76 / m^3
-    transit[:cost_edge] = repeat([.76], m.indices_counts[:edges], m.indices_counts[:time])
+    transit[:cost_edge] = repeat([.76], dim_count(m, :edges), dim_count(m, :time))
 
-    transit[:imported] = repeat([0.], outer=[m.indices_counts[:edges], m.indices_counts[:allcrops], numscenarios, m.indices_counts[:time]])
+    transit[:imported] = repeat([0.], outer=dim_count(m, :edges), dim_count(m, :allcrops), numscenarios, dim_count(m, :time)])
 
     transit
 end

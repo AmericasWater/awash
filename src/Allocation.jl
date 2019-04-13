@@ -74,22 +74,22 @@ Add a demand component to the model.
 """
 function initallocation(m::Model)
     allocation = add_comp!(m, Allocation);
-    allocation[:watertotaldemand] = zeros(m.indices_counts[:regions], numscenarios, m.indices_counts[:time]);
+    allocation[:watertotaldemand] = zeros(dim_count(m, :regions), numscenarios, dim_count(m, :time));
 
     # Check if there are saved withdrawals (from optimize-surface)
 
-    watertotaldemand=ones(m.indices_counts[:time])
+    watertotaldemand=ones(dim_count(m, :time))
     allocation[:watertotaldemand]=watertotaldemand*7.820581169848508e6 #max total annual water use from simulation
     if config["dataset"] == "three"
-	allocation[:swwithdrawals] = zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]);
-    	allocation[:gwextraction] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
-    	allocation[:supersourcesupply] = zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]);
+	allocation[:swwithdrawals] = zeros(dim_count(m, :canals), dim_count(m, :scenarios), dim_count(m, :time));
+    	allocation[:gwextraction] = zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time));
+    	allocation[:supersourcesupply] = zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time));
     else
         recorded = knowndf("exogenous-withdrawals")
 
-	allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], m.indices_counts[:scenarios], m.indices_counts[:time]))
-	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383. / 12. *config["timestep"], outer=[1, m.indices_counts[:scenarios], m.indices_counts[:time]]))
-    	allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(m.indices_counts[:regions], m.indices_counts[:scenarios], m.indices_counts[:time]));
+	allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(dim_count(m, :canals), dim_count(m, :scenarios), dim_count(m, :time)))
+	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383. / 12. *config["timestep"], outer=[1, dim_count(m, :scenarios), dim_count(m, :time)]))
+    	allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time)));
     end
 
     allocation

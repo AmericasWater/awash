@@ -24,5 +24,5 @@ initaquaculture(m)
 run(m)
 
 # Check that it matches 2010
-demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]), outer=[1, m.indices_counts[:time]])
+demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]), outer=[1, dim_count(m, :time)])
 @test m[:Aquaculture, :demand] == demand_baseline

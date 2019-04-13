@@ -2,6 +2,7 @@
  - agriculture.jl
  - optcrop.jl
  - futureyield.jl
+ - mv max*.csv results; mv current*.csv results; mv all20*.csv results
  - constrainopt.jl
  - display.R any time
  - changes.R

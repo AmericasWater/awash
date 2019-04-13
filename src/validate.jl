@@ -21,7 +21,7 @@ end
 
 # Set up the constraints
 constraints = Function[]
-for tt in 1:m.indices_counts[:time]
+for tt in 1:dim_count(m, :time)
     constraints = [constraints; map(rr -> makeconstraint(rr, tt), 1:m.indices_counts[:regions])]
 end
 

@@ -67,7 +67,7 @@ Add a ReturnFlows component to the model.
 function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     returnflows = add_comp!(m, ReturnFlows);
 
-    returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
+    returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(dim_count(m, :canals), numscenarios, dim_count(m, :time)))
     # Calculate return flows from withdrawals
     returnflows[:returnrate] = vector_canalreturns(m, includegw, demandmodel)
 

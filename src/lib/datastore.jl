@@ -108,6 +108,8 @@ function cached_fallback(filename, generate)
             return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
         elseif isfile(datapath("$filename$suffix.jld"))
             return deserialize(open(datapath("$filename$suffix.jld")))
+        else
+            return generate()
         end
     catch
         return generate()

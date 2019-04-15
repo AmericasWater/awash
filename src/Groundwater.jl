@@ -90,7 +90,7 @@ function initaquifer(m::Model)
     aquifer[:lateralconductivity] = lateralconductivity;
     aquifer[:aquiferconnexion] = aquiferconnexion;
     aquifer[:recharge] = recharge
-    aquifer[:withdrawal] = zeros(dim_count(m, :regions), dim_count(m, :time));
+    aquifer[:withdrawal] = zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time));
 
     aquifer[:deltatime] = convert(Float64, config["timestep"]);
 

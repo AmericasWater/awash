@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/landvalue")
+setwd("~/research/water/awash/analyses/landvalue")
 
 library(dplyr)
 
@@ -24,14 +24,17 @@ for (year in c(2050, 2070)) {
 df$fips <- df$STATE * 100 + df$COUNTY / 10
 
 results <- data.frame()
+allres <- data.frame()
 for (scenario in 1:3) {
     topcrops <- read.csv(paste0("results/", maps[scenario]))
     topcrops <- topcrops %>% left_join(df)
     ## Determine max crop by 1 C bins
-    
+
     topcrops$bin <- round(topcrops[, tcol[scenario]] / 5) / 2
-    for (bin in unique(topcrops$bin))
+    for (bin in unique(topcrops$bin)) {
         results <- rbind(results, data.frame(scenario=sname[scenario], bin, count=sum(topcrops$bin == bin), density=mean(topcrops$bin == bin), topcrop=names(which.max(table(topcrops$topcrop[topcrops$bin == bin])))))
+        allres <- rbind(allres, data.frame(scenario=sname[scenario], bin, topcrop=topcrops$topcrop[topcrops$bin == bin]))
+    }
 }
 
 library(ggplot2)
@@ -70,3 +73,10 @@ ggplot(results, aes(bin, count, fill=as.character(topcrop))) +
     scale_fill_discrete(name=NULL)
 ##scale_fill_manual(breaks=breaks, values=values)
 ggsave("tempdists.pdf", width=6, height=4)
+
+ggplot(allres[!is.na(allres$topcrop),], aes(bin, fill=as.character(topcrop))) +
+    facet_grid(scenario ~ .) +
+    geom_bar() + theme_bw() +
+    xlab("Temperature (C)") + ylab("Counties with average temperature") +
+    scale_fill_discrete(name=NULL)
+ggsave("tempdists2.pdf", width=6, height=4)

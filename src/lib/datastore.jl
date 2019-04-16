@@ -308,13 +308,15 @@ function dataonmaster(fipses, values)
     else
         masterfips = masterregions[:fips]
     end
-    if typeof(fipses) <: Vector{Union{Missing, Int64}} || typeof(fipses) <: Vector{Union{Missing, String}}
+    if typeof(fipses) <: Vector{Union{Missing, Int64}}
         fipses = collect(Missings.replace(fipses, 0))
+    elseif typeof(fipses) <: Vector{Union{Missing, String}}
+        fipses = collect(Missings.replace(fipses, ""))
     end
 
     function valueonmaster(fips)
         index = findfirst(fipses .== fips)
-        if index == 0
+        if index == nothing
             missing
         else
             values[index]

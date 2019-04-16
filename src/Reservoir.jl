@@ -52,13 +52,13 @@ reservoirdata = getreservoirs(config)
 	        v.outflows[rr, :, tt] = p.outflowsgauges[gg, :, tt];
 	    end
         end
-        
+
         for rr in d.reservoirs
             v.cost[rr, :, tt] = p.unitcostcaptures*p.captures[rr, :, tt]
 	    if tt==1
-	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
+	        v.storage[rr,:,tt] = (1 .- p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] .+ p.captures[rr, :, tt]
 	    else
-	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
+	        v.storage[rr,:,tt] = (1 .- p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] .+ p.captures[rr, :, tt]
 	    end
 
             for ss in 1:numscenarios
@@ -136,7 +136,7 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm((1-m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm((1 .- m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
@@ -150,7 +150,7 @@ function constraintoffset_reservoir_storagecapacitymax(m::Model)
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, ss, tt) = (1-m.md.external_params[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.md.external_params[:storage0].values[rr]
+    gen(rr, ss, tt) = (1 .- m.md.external_params[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.md.external_params[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 

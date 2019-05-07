@@ -92,7 +92,7 @@ quickstats_planted = Dict("corn.co.rainfed" => "agriculture/allyears/maize-nonir
                           "wheat.co.rainfed" => "agriculture/allyears/wheat-nonirrigated-planted.csv",
                           "wheat.co.irrigated" => "agriculture/allyears/wheat-irrigated-planted.csv")
 
-type StatisticalAgricultureModel
+struct StatisticalAgricultureModel
     intercept::Float64
     interceptse::Float64
     gdds::Float64
@@ -122,14 +122,14 @@ function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
         interceptse = 0
     end
 
-    gdds = gddsrow != 0 ? df[gddsrow, :mean] : 0
-    gddsse = gddsrow != 0 ? df[gddsrow, :serr] : Inf
-    kdds = kddsrow != 0 ? df[kddsrow, :mean] : 0
-    kddsse = kddsrow != 0 ? df[kddsrow, :serr] : Inf
-    wreq = wreqrow != 0 ? df[wreqrow, :mean] : 0
-    wreqse = wreqrow != 0 ? df[wreqrow, :serr] : Inf
-    gddoffset = gddoffsetrow != 0 ? df[gddoffsetrow, :mean] : 0
-    kddoffset = kddoffsetrow != 0 ? df[kddoffsetrow, :mean] : 0
+    gdds = gddsrow != nothing ? df[gddsrow, :mean] : 0
+    gddsse = gddsrow != nothing ? df[gddsrow, :serr] : Inf
+    kdds = kddsrow != nothing ? df[kddsrow, :mean] : 0
+    kddsse = kddsrow != nothing ? df[kddsrow, :serr] : Inf
+    wreq = wreqrow != nothing ? df[wreqrow, :mean] : 0
+    wreqse = wreqrow != nothing ? df[wreqrow, :serr] : Inf
+    gddoffset = gddoffsetrow != nothing ? df[gddoffsetrow, :mean] : 0
+    kddoffset = kddoffsetrow != nothing ? df[kddoffsetrow, :mean] : 0
 
     StatisticalAgricultureModel(intercept, interceptse, gdds, gddsse, kdds, kddsse, wreq, wreqse, gddoffset, kddoffset)
 end

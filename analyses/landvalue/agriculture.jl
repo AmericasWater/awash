@@ -64,7 +64,7 @@ for crop in crops
     data = convert(Vector{Float64}, data)
 
     maxvalue[data .> value] .= crop
-    value = max(value, data)
+    value = max.(value, data)
 
     data = ers_information(crop, "revenue", 2010; includeus=false) - ers_information(crop, "cost", 2010; includeus=false)
     data[ismissing.(data)] .= -Inf
@@ -74,7 +74,7 @@ for crop in crops
     costs_all = ers_information(crop, "opcost", 2010; includeus=true);
 
     maxprofit[data .> profit] .= crop
-    profit = max(profit, data)
+    profit = max.(profit, data)
 
     # Determine the profit under the estimated yields
     prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
@@ -106,11 +106,11 @@ for crop in crops
 
     obsestprofit[obscrop .== crop] .= cropprofit[obscrop .== crop]
     maxestprofit[cropprofit .> estprofit] .= crop
-    estprofit = max(estprofit, cropprofit)
+    estprofit = max.(estprofit, cropprofit)
 
     obsestprofit_changeirr[obscrop .== crop] .= cropprofit_changeirr[obscrop .== crop]
     maxestprofit_changeirr[cropprofit_changeirr .> estprofit_changeirr] .= crop
-    estprofit_changeirr = max(estprofit_changeirr, cropprofit_changeirr)
+    estprofit_changeirr = max.(estprofit_changeirr, cropprofit_changeirr)
 end
 
 masterregions[:farmvalue] = value

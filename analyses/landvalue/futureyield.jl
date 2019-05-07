@@ -15,6 +15,7 @@ wheatshares[:winter] = convert(Vector{Float64}, wheatshares[:winter])
 
 crossval = false
 constvar = true
+rcp = "rcp85"
 
 includeus = true
 #profitfix = true
@@ -119,7 +120,7 @@ for ii in 1:length(bayes_crops)
 
     for jj in 1:length(eddmodels)
         # Load degree day data
-        weather = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
+        weather = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/$rcp/$(eddmodels[jj])/$(edds_crops[ii]).csv")))
         all2050s = weather[:year] .== futureyear
         fips2050s = weather[all2050s, :fips]
         rows2050s = findall(all2050s)
@@ -128,7 +129,7 @@ for ii in 1:length(bayes_crops)
         allkdds[:, jj] = weather[weatherrows, :kdds]
         allinvalids[:, jj] = weatherrows .== 1
         if crop == "Wheat"
-            weather2 = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/rcp85/$(eddmodels[jj])/$(edds_crops[ii]).Winter.csv")))
+            weather2 = CSV.read(joinpath(expanduser("~/Dropbox/Agriculture Weather/futureedds/$rcp/$(eddmodels[jj])/$(edds_crops[ii]).Winter.csv")))
             all2050s2 = weather2[:year] .== futureyear
             fips2050s2 = weather2[all2050s2, :fips]
             rows2050s2 = findall(all2050s2)
@@ -238,6 +239,9 @@ if holdcoeff
 end
 if limityield != "ignore"
     push!(suffixes, limityield)
+end
+if rcp != "rcp85"
+    push!(suffixes, rcp)
 end
 if length(suffixes) > 0
     suffixes = [""; suffixes]

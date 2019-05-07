@@ -4,6 +4,7 @@
 
 using Mimi
 using Distributions
+using SparseArrays
 
 reservoirdata = getreservoirs(config)
 
@@ -136,7 +137,7 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm((1 .- m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm(0 => (1 .- m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt))), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)

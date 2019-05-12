@@ -20,7 +20,7 @@ include("lib/datastore.jl")
     """
     Just copy through
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             v.demand_copy[rr, :, tt] = p.thermodemand[rr, :, tt]
         end

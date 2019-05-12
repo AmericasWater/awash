@@ -129,7 +129,7 @@ function initunivariateagriculture(m::Model)
                         numgdds = numkdds = 0
                     end
 
-                    logmodelyield = thismodel.intercept + thismodel.gdds * (numgdds - thismodel.gddoffset) + thismodel.kdds * (numkdds - thismodel.kddoffset) + (thismodel.wreq / 1000) * waterdeficits[rr, :, yy] # wreq: delta / m
+                    logmodelyield = thismodel.intercept .+ thismodel.gdds * (numgdds - thismodel.gddoffset) .+ thismodel.kdds * (numkdds - thismodel.kddoffset) .+ (thismodel.wreq / 1000) * waterdeficits[rr, :, yy] # wreq: delta / m
                     yield[rr, cc, :, yy] = min.(exp.(logmodelyield), maximum_yields[unicrops[cc]])
 
                     irrigation_rate[rr, cc, :, tts] = cropirrigationrate[rr, :, tts]
@@ -180,7 +180,7 @@ function getunivariateirrigationrates(crop::AbstractString)
         fulltts = fulltts[fulltts .<= size(fullprecip)[3]]
         for rr in 1:numregions
             for ss in 1:numscenarios
-                waterdeficit = sum(max.(0., water_demand / 12 - fullprecip[rr, ss, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
+                waterdeficit = sum(max.(0., water_demand / 12 .- fullprecip[rr, ss, fulltts]) .* fullweights)  # XXX: Assume precip over 12 months
                 waterdeficits[rr, ss, yy] = waterdeficit
                 irrigationrate[rr, ss, tts] = (unicrop_irrigationrate[crop] + waterdeficit * unicrop_irrigationstress[crop] / 1000) * weights / sum(weights)
             end

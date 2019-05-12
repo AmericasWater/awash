@@ -104,7 +104,7 @@ function inittransportation(m::Model)
     # Average cost is 0.76 / m^3
     transit[:cost_edge] = repeat([.76], dim_count(m, :edges), dim_count(m, :time))
 
-    transit[:imported] = repeat([0.], outer=dim_count(m, :edges), dim_count(m, :allcrops), numscenarios, dim_count(m, :time)])
+    transit[:imported] = repeat([0.], dim_count(m, :edges), dim_count(m, :allcrops), numscenarios, dim_count(m, :time))
 
     transit
 end

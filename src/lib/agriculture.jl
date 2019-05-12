@@ -157,12 +157,12 @@ function findcroppath(prefix, crop, suffix, recurse=true)
         return loadpath(prefix * crop * suffix)
     end
 
-    if isupper(crop[1]) && isfile(loadpath(prefix * lcfirst(crop) * suffix))
+    if isuppercase(crop[1]) && isfile(loadpath(prefix * lcfirst(crop) * suffix))
         return loadpath(prefix * lcfirst(crop) * suffix)
     end
 
-    if islower(crop[1]) && isfile(loadpath(prefix * ucfirst(crop) * suffix))
-        return loadpath(prefix * ucfirst(crop) * suffix)
+    if islowercase(crop[1]) && isfile(loadpath(prefix * uppercasefirst(crop) * suffix))
+        return loadpath(prefix * uppercasefirst(crop) * suffix)
     end
 
     if !recurse

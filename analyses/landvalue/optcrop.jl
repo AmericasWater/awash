@@ -8,12 +8,18 @@ include("../../src/lib/agriculture-ers.jl")
 include("curryield.jl")
 
 includeus = true
+extraneg = true
+onefips = false #53009
+onecrops = nothing #["Barley", "Cotton"]
 
 for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
+    continue
+end
+if onefips != false && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
     continue
 end
 
@@ -34,6 +40,9 @@ allyields = zeros(6, nrow(masterregions))
 
 for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
+    if onefips != false && !in(crop, onecrops)
+        continue
+    end
     println(crop)
 
     prepdata = preparecrop(crop, false, true, changeirr)
@@ -43,12 +52,16 @@ for ii in 1:length(bayes_crops)
 
     df = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
     for rr in 1:nrow(df)
-        println(rr)
         regionid = df[rr, :FIPS]
+        if onefips != false && onefips != regionid
+            continue
+        end
+        println(rr)
         weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
 
         try # fails if weatherrow == 0 or NAs in gdds or kdds
-            yield_total = getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
+            forceneg = extraneg && isextrapolate(regionid, crop)
+            yield_total = getyield(rr, weatherrow, changeirr, trendyear, limityield, forceneg, prepdata)
 
             allyields[ii, weatherrow] = yield_total
 
@@ -63,11 +76,14 @@ for ii in 1:length(bayes_crops)
                     costs_row -= profitfixdf[weatherrow, :esttoadd_changeirr] + .01
                 end
             end
-        
+
             profit = yield_total * price_row - costs_row
-            
+            if onefips != false
+                println("$profit = $yield_total * $price_row - $costs_row")
+            end
+
             allprofits[ii, weatherrow] = profit
-        
+
             if profit > get(maxprofit, regionid, [-Inf])[1]
                 maxprofit[regionid] = [profit, crop, yield_total, price_row, costs_row]
             end
@@ -76,6 +92,7 @@ for ii in 1:length(bayes_crops)
     end
 end
 
+if onefips == false
 suffixes = []
 if !includeus
     push!(suffixes, "erslimited")
@@ -111,6 +128,7 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("maxbayesian$suffix.csv", result)
+end
 end
 end
 end

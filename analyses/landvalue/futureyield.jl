@@ -17,13 +17,21 @@ crossval = false
 constvar = true
 rcp = "rcp85"
 
+onefips = false #53009
+onecrops = nothing #["Barley", "Cotton"]
+
 includeus = true
+extraneg = true
+
 #profitfix = true
 for profitfix in [true, "modeled"]
     for holdcoeff in [false, true]
         for allowtime in [false, true]
             for futureyear in [2050, 2070]
                 for limityield in ["ignore", "lybymc"]
+if onefips != false && (limityield != "ignore" || profitfix != "modeled" || holdcoeff != true || allowtime != false)
+    continue
+end
 
 #holdcoeff = true #false
 #allowtime = true #false
@@ -66,6 +74,9 @@ edds_crops = ["Barley", "Maize", "Cotton", "Rice", "Soybeans", "Wheat"]
 irr_crops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
 for ii in 1:length(bayes_crops)
     crop = bayes_crops[ii]
+    if onefips != false && !in(crop, onecrops)
+        continue
+    end
     println(crop)
 
     fullcropdir = "Code_" * cropdirs[ii]
@@ -155,6 +166,9 @@ for ii in 1:length(bayes_crops)
 
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
+        if onefips != false && onefips != fips
+            continue
+        end
         rr = findfirst(df[:FIPS] .== fips)
         if rr == nothing
             continue
@@ -169,6 +183,11 @@ for ii in 1:length(bayes_crops)
         if holdcoeff
             wreq_coeff_future = wreq_coeff + b2s[:, 6] * differences[6, rr]
 
+            if extraneg && isextrapolate(fips, crop)
+                wreq_coeff_future = forceneg_coeff(wreq_coeff_future)
+                kdds_coeff = forceneg_coeff(kdds_coeff)
+            end
+
             if allowtime
                 logyield = intercept + wreq_coeff_future * wreqs[rr] + gdds_coeff * gdds[kk] + kdds_coeff * kdds[kk] + time_coeff * (futureyear - 1948)
             else
@@ -181,6 +200,11 @@ for ii in 1:length(bayes_crops)
             wreq_coeff_future = wreq_coeff + b2s * differences[:, kk]
             gdds_coeff_future = gdds_coeff + b3s * differences[:, kk]
             kdds_coeff_future = kdds_coeff + b4s * differences[:, kk]
+
+            if extraneg && isextrapolate(fips, crop)
+                wreq_coeff_future = forceneg_coeff(wreq_coeff_future)
+                kdds_coeff_future = forceneg_coeff(kdds_coeff_future)
+            end
 
             if allowtime
                 logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * (futureyear - 1948)
@@ -216,6 +240,9 @@ for ii in 1:length(bayes_crops)
         end
 
         profit = yield_total * price_row - costs_row
+        if onefips != false
+            println("$profit = $yield_total * $price_row - $costs_row")
+        end
 
         allprofits[ii, findfirst(masterregions[:fips] .== canonicalindex(fips))] = profit
 
@@ -224,6 +251,8 @@ for ii in 1:length(bayes_crops)
         end
     end
 end
+
+if onefips == false
 
 suffixes = []
 if profitfix == true
@@ -258,6 +287,7 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("max$(futureyear)$suffix.csv", result)
+end
 end
 end
 end

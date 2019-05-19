@@ -16,6 +16,7 @@ crop2bayes_crop = Dict("barl" => "Barley", "corn" => "Corn", "cott" => "Cotton",
                        "rice" => "Rice", "soyb" => "Soybean", "whea" => "Wheat")
 
 do_cropdrop = true
+extraneg = true
 
 if do_cropdrop
     crops = ["corn", "soyb", "whea", "barl", "cott", "rice"]
@@ -83,19 +84,21 @@ for crop in crops
     cropprofit = zeros(nrow(masterregions))
     cropprofit_changeirr = zeros(nrow(masterregions))
     for weatherrow in 1:nrow(masterregions)
-        rr = findfirst(fipsdf[:FIPS] .== parse(Int64, masterregions[weatherrow, :fips]))
+        fips = parse(Int64, masterregions[weatherrow, :fips])
+        rr = findfirst(fipsdf[:FIPS] .== fips)
         if rr == nothing
             cropprofit[weatherrow] = -Inf
             cropprofit_changeirr[weatherrow] = -Inf
         else
-            yield_total = getyield(rr, weatherrow, false, 62, "ignore", prepdata)
+            forceneg = extraneg && isextrapolate(fips, crop2bayes_crop[crop])
+            yield_total = getyield(rr, weatherrow, false, 62, "ignore", forceneg, prepdata)
             if ismissing(yield_total)
                 cropprofit[weatherrow] = -Inf
             else
                 cropprofit[weatherrow] = yield_total * price_all[weatherrow] - costs_all[weatherrow]
             end
 
-            yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", prepdata_changeirr)
+            yield_total_changeirr = getyield(rr, weatherrow, true, 62, "ignore", forceneg, prepdata_changeirr)
             if ismissing(yield_total_changeirr)
                 cropprofit_changeirr[weatherrow] = -Inf
             else

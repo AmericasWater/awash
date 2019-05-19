@@ -11,6 +11,8 @@ maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
 
 cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
+knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
+
 function preparecrop(crop, crossval, constvar, changeirr)
     ii = findfirst(bayes_crops .== crop)
 
@@ -47,7 +49,26 @@ function preparecrop(crop, crossval, constvar, changeirr)
     return ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max
 end
 
-function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
+function isextrapolate(fips, crop)
+    ii = findfirst(bayes_crops .== crop)
+    if ii == nothing
+        ii = findfirst(edds_crops .== crop)
+    end
+    rr = findfirst(knownareas[:fips] .== fips)
+    return knownareas[rr, irr_crops[ii]] == 0
+end
+
+function forceneg_coeff(draws)
+    if (all(draws .> 0))
+        draws .= 0
+    else
+        draws[draws .> 0] .= NaN
+    end
+
+    return draws
+end
+
+function getyield(rr, weatherrow, changeirr, trendyear, limityield, forceneg, prepdata)
     ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
 
     if changeirr == true
@@ -62,6 +83,10 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
         gdds_coeff = bayes_gdds[:, rr]
         kdds_coeff = bayes_kdds[:, rr]
         time_coeff = bayes_time[:, rr]
+    end
+    if forceneg # force kdds_coeff <= 0 and wreq_coeff <= 0
+        wreq_coeff = forceneg_coeff(wreq_coeff)
+        kdds_coeff = forceneg_coeff(kdds_coeff)
     end
 
     gdds1 = collect(gdds[weatherrow, end-9:end])
@@ -86,7 +111,7 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, prepdata)
     end
     if limityield == "lybymc"
         logyield = vec(logyield)
-        logyield[logyield .> log(maximum_yields[crop])] = NaN
+        logyield[logyield .> log(maximum_yields[crop])] .= NaN
     end
     yield_total = NaNMath.mean(exp.(logyield))
     if limityield != "ignore" && yield_total > maximum_yields[crop]

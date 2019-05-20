@@ -47,7 +47,7 @@ include("lib/agriculture.jl")
     production_sumregion = Variable(index=[unicrops, scenarios, time], unit="lborbu")
     area_sumregion = Variable(index=[unicrops, time], unit="lborbu")
 
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         yys = timeindex2yearindexes(tt)
         contyys = timeindex2contributingyearindexes(tt)
 
@@ -56,15 +56,15 @@ include("lib/agriculture.jl")
             allagarea = 0.
 
             for cc in d.unicrops
-                v.totalareas2[rr, cc, contyys] = p.totalareas[rr, cc, contyys]
+                v.totalareas2[rr, cc, contyys] .= p.totalareas[rr, cc, contyys]
                 allagarea += maximum(p.totalareas[rr, cc, contyys])
 
                 # Calculate irrigation water, summed across all crops: 1 mm * Ha = 10 m^3
                 totalirrigation += maximum(p.totalareas[rr, cc, contyys]) * p.irrigation_rate[rr, cc, :, tt] / 100
 
                 # Calculate total production
-                v.yield2[rr, cc, :, yys] = p.yield[rr, cc, :, yys]
-                v.production[rr, cc, :, yys] = p.yield[rr, cc, :, yys] * minimum(p.totalareas[rr, cc, contyys]) * 2.47105 # convert acres to Ha
+                v.yield2[rr, cc, :, yys] .= p.yield[rr, cc, :, yys]
+                v.production[rr, cc, :, yys] .= p.yield[rr, cc, :, yys] * minimum(p.totalareas[rr, cc, contyys]) * 2.47105 # convert acres to Ha
 
                 # Calculate cultivation costs
                 v.unicultivationcost[rr, cc, tt] = mean(p.totalareas[rr, cc, contyys]) * cultivation_costs[unicrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
@@ -74,15 +74,15 @@ include("lib/agriculture.jl")
             end
 
             v.totalirrigation[rr, :, tt] = totalirrigation
-            v.allagarea[rr, contyys] = allagarea
+            v.allagarea[rr, contyys] .= allagarea
         end
 
         if length(yys) > 0
-            v.production_sumregion[:, :, tt] = sum(sum(v.production[:, :, :, yys], 4), 1)
+            v.production_sumregion[:, :, tt] .= sum(sum(v.production[:, :, :, yys], dims=4), dims=1)
         else
             v.production_sumregion[:, :, tt] .= 0.
         end
-        v.area_sumregion[:, tt] = sum(maximum(p.totalareas[:, :, contyys], 3), 1)
+        v.area_sumregion[:, tt] .= dropdims(sum(maximum(p.totalareas[:, :, contyys], dims=3), dims=1), dims=(1, 3))
     end
 end
 

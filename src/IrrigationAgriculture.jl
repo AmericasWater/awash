@@ -56,6 +56,10 @@ include("lib/agriculture.jl")
     area_sumregion = Variable(index=[irrcrops, time], unit="lborbu")
 
     function run_timestep(p, v, d, tt)
+        if numirrcrops == 0
+            return
+        end
+
         for rr in d.regions
             totalirrigation = zeros(numscenarios)
             allagarea = 0.
@@ -80,11 +84,11 @@ include("lib/agriculture.jl")
             end
 
             v.totalirrigation[rr, :, tt] .= totalirrigation
-            v.allagarea[rr, tt] .= allagarea
+            v.allagarea[rr, tt] = allagarea
         end
 
-        v.production_sumregion[:, :, tt] .= sum(v.production[:, :, :, tt], 1)
-        v.area_sumregion[:, tt] .= sum(p.irrigatedareas[:, :, tt], 1) + sum(p.rainfedareas[:, :, tt], 1)
+        v.production_sumregion[:, :, tt] .= sum(v.production[:, :, :, tt], dims=1)
+        v.area_sumregion[:, tt] .= sum(p.irrigatedareas[:, :, tt], dims=1) .+ sum(p.rainfedareas[:, :, tt], dims=1)
     end
 end
 

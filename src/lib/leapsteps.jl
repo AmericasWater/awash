@@ -1,6 +1,8 @@
 # Leaps require a full nummonths months to complete, irrespective of
 # starting date.
 
+import Mimi.FixedTimestep
+
 # Returns vector of 0 or more year that completed during this timestep
 function timeindex2leapindexes(tt::Int64, timestep::Int64, nummonths::Int64)
     if timestep == nummonths
@@ -18,6 +20,10 @@ function timeindex2leapindexes(tt::Int64, timestep::Int64, nummonths::Int64)
         lastleap = div((tt - 1) * timestep, nummonths)
         return collect((lastleap + 1):thisleap)
     end
+end
+
+function timeindex2leapindexes(tt::FixedTimestep, timestep::Int64, nummonths::Int64)
+    timeindex2leapindexes(tt.t, timestep, nummonths)
 end
 
 # Returns vector of 1 or more timesteps that contributed to the
@@ -79,15 +85,27 @@ function timeindex2contributingleapindexes(tt::Int64, timestep::Int64, nummonths
     end
 end
 
+function timeindex2contributingleapindexes(tt::FixedTimestep, timestep::Int64, nummonths::Int64)
+    timeindex2contributingleapindexes(tt.t, timestep, nummonths)
+end
+
 """Return a list of the years that finished in this timestep."""
 function timeindex2yearindexes(tt::Int64)
     timeindex2leapindexes(tt, config["timestep"], 12)
+end
+
+function timeindex2yearindexes(tt::FixedTimestep)
+    timeindex2yearindexes(tt.t)
 end
 
 """Return a list of the years that where involved in this timestep."""
 function timeindex2contributingyearindexes(tt::Int64)
     contyys = timeindex2contributingleapindexes(tt, config["timestep"], 12)
     unique(min.(contyys, numharvestyears)) # If fall off end, still use last year
+end
+
+function timeindex2contributingyearindexes(tt::FixedTimestep)
+    timeindex2contributingyearindexes(tt.t)
 end
 
 """Return a list of the timesteps that finished in this year."""

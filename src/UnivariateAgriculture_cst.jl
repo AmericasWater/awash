@@ -47,7 +47,7 @@ include("lib/agriculture.jl")
     # Total cultivation costs per crop
     unicultivationcost = Variable(index=[regions, unicrops, time], unit="\$")
 
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             totalirrigation = 0.
             allagarea = 0.

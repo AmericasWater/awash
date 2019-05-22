@@ -48,7 +48,7 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     """
     Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
         v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
 

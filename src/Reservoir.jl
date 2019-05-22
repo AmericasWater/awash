@@ -41,7 +41,7 @@ reservoirdata = getreservoirs(config)
     """
     Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
         v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
 
@@ -56,7 +56,7 @@ reservoirdata = getreservoirs(config)
 
         for rr in d.reservoirs
             v.cost[rr, :, tt] = p.unitcostcaptures*p.captures[rr, :, tt]
-	    if tt==1
+	    if is_first(tt)
 	        v.storage[rr,:,tt] = (1 .- p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] .+ p.captures[rr, :, tt]
 	    else
 	        v.storage[rr,:,tt] = (1 .- p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] .+ p.captures[rr, :, tt]

@@ -23,7 +23,7 @@ using Mimi
     """
     Compute the inflows and outflows at each node
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for hh in d.gauges
             gg = vertex_index(downstreamorder[hh])
             gauge = downstreamorder[hh].label

@@ -30,18 +30,18 @@ using DataFrames
     """
     Compute the amount extracted and the cost for doing it.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
-            v.indexgw[rr, :, tt] = p.withdrawalgw[rr, :, tt]./p.rechargegw[rr, :, tt]
+            v.indexgw[rr, :, tt] .= p.withdrawalgw[rr, :, tt]./p.rechargegw[rr, :, tt]
         end
 
         for gg in d.gauges
-            v.indexsw[gg, :, tt] = p.withdrawalsw[gg, :, tt]./(p.inflowgauge[gg, :, tt]+p.runoffgauge[gg, :, tt])
+            v.indexsw[gg, :, tt] .= p.withdrawalsw[gg, :, tt]./(p.inflowgauge[gg, :, tt]+p.runoffgauge[gg, :, tt])
         end
 
-        v.availabilityrunoffall[:,:,tt] = zeros(numcounties, numscenarios)
-        v.availabilityrunofflocal[:,:,tt] = zeros(numcounties, numscenarios)
-        v.availabilityinflowlocal[:,:,tt] = zeros(numcounties, numscenarios)
+        v.availabilityrunoffall[:,:,tt] .= zeros(numcounties, numscenarios)
+        v.availabilityrunofflocal[:,:,tt] .= zeros(numcounties, numscenarios)
+        v.availabilityinflowlocal[:,:,tt] .= zeros(numcounties, numscenarios)
 
         if config["dataset"] == "counties"
             for pp in 1:nrow(draws)
@@ -97,8 +97,8 @@ using DataFrames
             end
         end
 
-        v.indexWaSSli = (p.withdrawalgw + p.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
-        v.indexWaSSI = (p.withdrawalgw + p.withdrawalswregion)./((1-p.environmentalfactor).*(v.availabilityrunofflocal + v.availabilityinflowlocal) + p.rechargegw)
+        v.indexWaSSli[:, :, tt] .= (p.withdrawalgw[:, :, tt] + p.withdrawalswregion[:, :, tt])./(v.availabilityrunofflocal[:, :, tt] + v.availabilityinflowlocal[:, :, tt] + p.rechargegw[:, :, tt])
+        v.indexWaSSI[:, :, tt] .= (p.withdrawalgw[:, :, tt] + p.withdrawalswregion[:, :, tt])./((1.-p.environmentalfactor[:, :, tt]).*(v.availabilityrunofflocal[:, :, tt] + v.availabilityinflowlocal[:, :, tt]) + p.rechargegw[:, :, tt])
         # v.indexWSI = 1./(1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
 
     end

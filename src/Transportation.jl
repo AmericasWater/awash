@@ -44,7 +44,7 @@ volume_per_unit = [mt_per_pound / density_hay, # Lb alfalfa
     """
     Compute the amount imported and exported by region.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         # Costs are easy: just resource imported * cost-per-unit
         for ee in d.edges
             for cc in d.allcrops

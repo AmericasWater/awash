@@ -44,7 +44,7 @@ include("lib/watercostdata.jl")
     """
     Sums the water from various sources and computes the cost
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for ss in d.scenarios
             # Surface water calculations
             v.swsupply[:, ss, tt] = zeros(numcounties)

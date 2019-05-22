@@ -27,7 +27,7 @@ using OptiMimi
     # Water returned to gauge
     returned = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
 
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for gg in 1:numgauges
             v.removed[gg, :, tt] .= 0.
             v.returned[gg, :, tt] .= 0.

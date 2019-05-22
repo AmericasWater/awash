@@ -44,7 +44,7 @@ using Mimi
     """
     Compute the available local resource for consumption, `available`.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             for cc in d.allcrops
                 v.available[rr, cc, :, tt] = p.produced[rr, cc, :, tt] + p.regionimports[rr, cc, :, tt] - p.regionexports[rr, cc, :, tt]

@@ -38,7 +38,7 @@ returnpart = Dict([consumption[ii, :sector] => (1 - consumption[ii, :consumption
     """
     Compute the amount extracted and the cost for doing it.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             # Sum all demands
             v.totaldemand[rr, :, tt] = p.totalirrigation[rr, :, tt] + p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]

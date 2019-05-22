@@ -63,7 +63,7 @@ configtransforms["repcap"] = (fips, x) -> getpopulation_withinyear(fips, populat
     """
     Compute the `surplus` as `available` - `demand`.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             for cc in d.allcrops
                 v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]

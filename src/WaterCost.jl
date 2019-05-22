@@ -36,7 +36,7 @@ include("watercostdata.jl")
     """
     Sets the cost of the water in function of the state of the system
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for ss in 1:numscenarios
             v.swcost[:, ss, tt] = zeros(numcounties)
             for pp in 1:nrow(draws)

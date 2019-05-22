@@ -20,7 +20,7 @@ include("lib/datastore.jl")
     """
     The quantity of water demanded at each timestep
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             v.waterdemand[rr, :, tt] = p.industrywaterdemand[rr, :, tt] + p.miningwaterdemand[rr, :, tt]
         end

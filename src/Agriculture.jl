@@ -46,7 +46,7 @@ include("lib/leapsteps.jl")
             v.allirrigation[rr, :, tt] .= p.othercropsirrigation[rr, tt] .+ p.irrirrigation[rr, :, tt] .+ p.uniirrigation[rr, :, tt]
             v.allagarea[rr, tt] = maximum(p.othercropsarea[rr, contyys])
             for cc in d.allcrops
-                irrcc = findfirst(irrcrops, allcrops[cc])
+                irrcc = findfirst(irrcrops .== allcrops[cc])
                 if irrcc != nothing
                     v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
                     if (length(yys) > 0)
@@ -55,7 +55,7 @@ include("lib/leapsteps.jl")
                         v.allcropproduction[rr, cc, :, tt] .= 0
                     end
                 else
-                    unicc = findfirst(unicrops, allcrops[cc])
+                    unicc = findfirst(unicrops .== allcrops[cc])
                     v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
                     if (length(yys) > 0)
                         v.allcropproduction[rr, cc, :, tt] .= sum(p.unicropproduction[rr, unicc, :, yys], 1)
@@ -68,7 +68,7 @@ include("lib/leapsteps.jl")
             end
         end
 
-        v.allcropproduction_sumregion[:, :, tt] .= sum(v.allcropproduction[:, :, :, tt], dims=1)
+        v.allcropproduction_sumregion[:, :, tt] .= dropdims(sum(v.allcropproduction[:, :, :, tt], dims=1), dims=1)
     end
 end
 
@@ -117,7 +117,7 @@ function grad_agriculture_allagarea_irrcropareas(m::Model)
     function generate(A)
         for rr in 1:numcounties
             for irrcc in 1:numirrcrops
-                cc = findfirst(irrcrops[cc], allcrops)
+                cc = findfirst(irrcrops[cc] .== allcrops)
                 A[rr, fromindex([rr, cc], [numcounties, numallcrops])] = 1.
             end
         end
@@ -132,7 +132,7 @@ function grad_agriculture_allagarea_unicropareas(m::Model)
     function generate(A)
         for rr in 1:numcounties
             for unicc in 1:numunicrops
-                cc = findfirst(unicrops[cc], allcrops)
+                cc = findfirst(unicrops[cc] .== allcrops)
                 A[rr, fromindex([rr, cc], [numcounties, numallcrops])] = 1.
             end
         end
@@ -152,7 +152,7 @@ function grad_agriculture_allcropproduction_unicropproduction(m::Model)
         # A: R x ALL x R x UNI
         if !isempty(unicrops)
             for unicc in 1:numunicrops
-                allcc = findfirst(allcrops, unicrops[unicc])
+                allcc = findfirst(allcrops .== unicrops[unicc])
                 for rr in 1:numregions
                     A[fromindex([rr, allcc], [numregions, numallcrops]), fromindex([rr, unicc], [numregions, numunicrops])] = 1
                 end
@@ -167,7 +167,7 @@ function grad_agriculture_allcropproduction_irrcropproduction(m::Model)
         # A: R * ALL * S x R * IRR * S
         if !isempty(irrcrops)
             for irrcc in 1:numirrcrops
-                allcc = findfirst(allcrops, irrcrops[irrcc])
+                allcc = findfirst(allcrops .== irrcrops[irrcc])
                 for rr in 1:numregions
                     for ss in 1:numscenarios
                         A[fromindex([rr, allcc, ss], [numregions, numallcrops, numscenarios]), fromindex([rr, irrcc, ss], [numregions, numirrcrops, numscenarios])] = 1

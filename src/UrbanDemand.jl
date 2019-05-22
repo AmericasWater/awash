@@ -20,7 +20,7 @@ include("lib/readconfig.jl")
     """
     The quantity of water demanded at each timestep
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for rr in d.regions
             v.waterdemand[rr, :, tt] = p.domesticdemand[rr, :, tt]; # XXX: Where is commercial
         end

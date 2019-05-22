@@ -20,7 +20,7 @@ include("lib/datastore.jl")
     # Demand combining the two effects
     demand = Variable(index=[regions, time], unit="1000 m^3")
 
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         # Scale with production
         v.demand[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
     end

@@ -25,7 +25,7 @@ using DataFrames
     """
     Compute the amount extracted and the cost for doing it.
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         # not sure if useful ...
         if tt == 1
             swtotal = zeros(numregions)

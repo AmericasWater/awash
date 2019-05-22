@@ -17,7 +17,7 @@ using DataFrames
     """
     The quantity of water demanded at each timestep
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         for gg in d.gauges
             v.minenvironmentalflows[gg, :, tt] = p.flowrequirementfactor * p.naturalflows[gg, :, tt];
             v.balanceenvironmentalflows[gg, :, tt] = p.outflowsgauges[gg, :, tt] - v.minenvironmentalflows[gg, :, tt];

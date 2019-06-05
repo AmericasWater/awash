@@ -96,10 +96,9 @@ using DataFrames
                 end
             end
         end
-
         v.indexWaSSli[:, :, tt] .= (p.withdrawalgw[:, :, tt] + p.withdrawalswregion[:, :, tt])./(v.availabilityrunofflocal[:, :, tt] + v.availabilityinflowlocal[:, :, tt] + p.rechargegw[:, :, tt])
-        v.indexWaSSI[:, :, tt] .= (p.withdrawalgw[:, :, tt] + p.withdrawalswregion[:, :, tt])./((1.-p.environmentalfactor[:, :, tt]).*(v.availabilityrunofflocal[:, :, tt] + v.availabilityinflowlocal[:, :, tt]) + p.rechargegw[:, :, tt])
-        # v.indexWSI = 1./(1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
+        v.indexWaSSI[:, :, tt] .= (p.withdrawalgw[:, :, tt] + p.withdrawalswregion[:, :, tt])./((1 .- p.environmentalfactor).*(v.availabilityrunofflocal[:, :, tt] + v.availabilityinflowlocal[:, :, tt]) + p.rechargegw[:, :, tt])
+        # v.indexWSI = 1 ./ (1+exp(-6.4*v.withdrawalgw + v.withdrawalswregion)./(v.availabilityrunofflocal + v.availabilityinflowlocal + p.rechargegw)
 
     end
 end

@@ -36,9 +36,9 @@ include("lib/groundwaterdata.jl")
     """
     Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
     """
-    function run_timestep(p, v, d, t)
+    function run_timestep(p, v, d, tt)
         ## initialization
-        if tt==1
+        if is_first(tt)
 	    v.piezohead[:,:,tt] = repeat(p.piezohead0, 1, numscenarios);
         else
 	    v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];

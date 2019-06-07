@@ -50,7 +50,7 @@ using Mimi
 import Mimi: ModelInstance, getdiminfoforvar
 
 function getdataframe(m::Model, componentname::Symbol, name::Symbol)
-    if isnull(m.mi)
+    if ismissing(m.mi)
         error("Cannot get dataframe, model has not been built yet")
     elseif !(name in variables(m, componentname))
         error("Cannot get dataframe; variable not in provided component")

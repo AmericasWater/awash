@@ -78,7 +78,7 @@ include("lib/agriculture.jl")
         end
 
         if length(yys) > 0
-            v.production_sumregion[:, :, tt] .= sum(sum(v.production[:, :, :, yys], dims=4), dims=1)
+            v.production_sumregion[:, :, tt] .= dropdims(sum(sum(v.production[:, :, :, yys], dims=4), dims=1), dims=(1, 4))
         else
             v.production_sumregion[:, :, tt] .= 0.
         end

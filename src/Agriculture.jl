@@ -50,7 +50,7 @@ include("lib/leapsteps.jl")
                 if irrcc != nothing
                     v.allcropareas[rr, cc, tt] = maximum(p.irrcropareas[rr, irrcc, contyys])
                     if (length(yys) > 0)
-                        v.allcropproduction[rr, cc, :, tt] .= sum(p.irrcropproduction[rr, irrcc, :, yys], 1)
+                        v.allcropproduction[rr, cc, :, tt] .= dropdims(sum(p.irrcropproduction[rr, irrcc, :, yys], dims=2), dims=2)
                     else
                         v.allcropproduction[rr, cc, :, tt] .= 0
                     end
@@ -58,7 +58,7 @@ include("lib/leapsteps.jl")
                     unicc = findfirst(unicrops .== allcrops[cc])
                     v.allcropareas[rr, cc, tt] = maximum(p.unicropareas[rr, unicc, contyys])
                     if (length(yys) > 0)
-                        v.allcropproduction[rr, cc, :, tt] .= sum(p.unicropproduction[rr, unicc, :, yys], 1)
+                        v.allcropproduction[rr, cc, :, tt] .= dropdims(sum(p.unicropproduction[rr, unicc, :, yys], dims=2), dims=2)
                     else
                         v.allcropproduction[rr, cc, :, tt] .= 0
                     end

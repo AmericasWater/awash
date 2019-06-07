@@ -85,8 +85,6 @@ function initallocation(m::Model)
     else
         recorded = knowndf("exogenous-withdrawals")
 
-        println(cached_fallback("extraction/withdrawals", () -> zeros(dim_count(m, :canals), dim_count(m, :scenarios), dim_count(m, :time))))
-	println("AAA")
 	allocation[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(dim_count(m, :canals), dim_count(m, :scenarios), dim_count(m, :time)))
 	allocation[:gwextraction] = cached_fallback("extraction/waterfromgw", () -> repeat(convert(Vector, recorded[:, :TO_GW]) * 1383. / 12. *config["timestep"], outer=[1, dim_count(m, :scenarios), dim_count(m, :time)]))
     	allocation[:supersourcesupply] = cached_fallback("extraction/supersource", () -> zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time)));

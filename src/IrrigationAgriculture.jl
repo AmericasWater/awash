@@ -83,7 +83,9 @@ include("lib/agriculture.jl")
                 v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
             end
 
-            v.totalirrigation[rr, :, tt] .= totalirrigation
+            if numirrcrops > 0
+                v.totalirrigation[rr, :, tt] .= totalirrigation
+            end
             v.allagarea[rr, tt] = allagarea
         end
 

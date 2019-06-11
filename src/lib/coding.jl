@@ -49,16 +49,6 @@ end
 using Mimi
 import Mimi: ModelInstance, getdiminfoforvar
 
-function getdataframe(m::Model, componentname::Symbol, name::Symbol)
-    if ismissing(m.mi)
-        error("Cannot get dataframe, model has not been built yet")
-    elseif !(name in variables(m, componentname))
-        error("Cannot get dataframe; variable not in provided component")
-    else
-        return getdataframe(m, get(m.mi), componentname, name)
-    end
-end
-
 # import Mimi: getdiminfoforvar
 
 # function getdataframe(m::Model, mi::ModelInstance, componentname::Symbol, name::Symbol)

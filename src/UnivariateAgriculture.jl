@@ -73,7 +73,9 @@ include("lib/agriculture.jl")
                 v.opcost[rr,cc,tt] = mean(p.totalareas[rr, cc, contyys]) * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
             end
 
-            v.totalirrigation[rr, :, tt] = totalirrigation
+            if numunicrops > 0
+                v.totalirrigation[rr, :, tt] = totalirrigation
+            end
             v.allagarea[rr, contyys] .= allagarea
         end
 

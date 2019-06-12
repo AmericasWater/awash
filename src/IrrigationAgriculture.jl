@@ -57,6 +57,10 @@ include("lib/agriculture.jl")
 
     function run_timestep(p, v, d, tt)
         if numirrcrops == 0
+            for rr in d.regions
+                v.totalirrigation[rr, :, tt] .= 0
+                v.allagarea[rr, tt] = 0
+            end
             return
         end
 
@@ -83,9 +87,7 @@ include("lib/agriculture.jl")
                 v.irrcultivationcost[rr, cc, tt] = v.totalareas[rr, cc, tt] * cultivation_costs[irrcrops[cc]] * 2.47105 * config["timestep"] / 12 # convert acres to Ha
             end
 
-            if numirrcrops > 0
-                v.totalirrigation[rr, :, tt] .= totalirrigation
-            end
+            v.totalirrigation[rr, :, tt] .= totalirrigation
             v.allagarea[rr, tt] = allagarea
         end
 

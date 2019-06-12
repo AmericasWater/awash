@@ -51,6 +51,14 @@ include("lib/agriculture.jl")
         yys = timeindex2yearindexes(tt)
         contyys = timeindex2contributingyearindexes(tt)
 
+        if numirrcrops == 0
+            for rr in d.regions
+                v.totalirrigation[rr, :, tt] .= 0
+                v.allagarea[rr, contyys] .= 0
+            end
+            return
+        end
+
         for rr in d.regions
             totalirrigation = zeros(numscenarios)
             allagarea = 0.
@@ -73,9 +81,7 @@ include("lib/agriculture.jl")
                 v.opcost[rr,cc,tt] = mean(p.totalareas[rr, cc, contyys]) * uniopcost[rr,cc] * 2.47105 * config["timestep"] / 12
             end
 
-            if numunicrops > 0
-                v.totalirrigation[rr, :, tt] = totalirrigation
-            end
+            v.totalirrigation[rr, :, tt] = totalirrigation
             v.allagarea[rr, contyys] .= allagarea
         end
 

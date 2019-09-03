@@ -52,38 +52,38 @@ else
     end
 
     netdata = waternetdata["network"];
-    netdata[:nextpt] = convert(Vector{Union{Missings.Missing, Int64}}, netdata[:nextpt])
+    netdata[!, :nextpt] = convert(Vector{Union{Missings.Missing, Int64}}, netdata[!, :nextpt])
 
     # Load the county-network connections
     draws = drawsdata["draws"];
-    draws[:source] = round.(Int64, draws[:source])
+    draws[!, :source] .= round.(Int64, draws[!, :source])
     # Label all with the node name
-    draws[:gaugeid] = ""
+    draws[!, :gaugeid] .= ""
     for ii in 1:nrow(draws)
         row = draws[ii, :source]
         draws[ii, :gaugeid] = "$(netdata[row, :collection]).$(netdata[row, :colid])"
     end
 
     if get(config, "filterstate", nothing) != nothing
-        states = round.(Int64, draws[:fips] / 1000)
+        states = round.(Int64, draws[!, :fips] / 1000)
         draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
 
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
             # Flag all upstream nodes
-            chcks = draws[:source]
+            chcks = draws[!, :source]
             while length(chcks) > 0
                 includeds[chcks] = true
 
                 nexts = []
                 for check in chcks
-                    nexts = [nexts; findall(netdata[:nextpt] .== check)]
+                    nexts = [nexts; findall(netdata[!, :nextpt] .== check)]
                 end
 
                 chcks = nexts
             end
         else
-            includeds[draws[:source]] = true
+            includeds[draws[!, :source]] .= true
         end
     else
         includeds = trues(nrow(netdata))
@@ -164,8 +164,8 @@ end
 # Filter county connections draws
 if get(config, "filtercanals", nothing) != nothing
     if config["filtercanals"] == "direct"
-        draws = draws[[findfirst(["contains", "up-pipe", "down-pipe"], justif) for justif in draws[:justif]] .> 0, :]
+        draws = draws[[findfirst(x -> x in ["contains", "up-pipe", "down-pipe"], justif) for justif in draws[!, :justif]] .> 0, :]
     else
-        draws = draws[findall(draws[:justif] .== config["filtercanals"]),:]
+        draws = draws[findall(draws[!, :justif] .== config["filtercanals"]),:]
     end
 end

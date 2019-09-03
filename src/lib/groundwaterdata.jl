@@ -15,8 +15,8 @@ if config["dataset"] == "states"
 elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
     dfgw = CSV.read(loadpath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, CSV.read(loadpath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
+    lateralconductivity = convert(Matrix, CSV.read(loadpath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Matrix, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif configdescends(config, "counties")
     dfgw = CSV.read(loadpath("gwmodel/dfgw.csv"));
@@ -25,7 +25,7 @@ elseif configdescends(config, "counties")
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
-	vstates = round.(Int64, floor.(dfgw[:fips] ./ 1000));
+	vstates = round.(Int64, floor.(dfgw[!, :fips] ./ 1000));
 	subfips = findall(vstates .== parse(Int64, get(config,"filterstate", nothing)));
 
         dfgw = dfgw[subfips,:];

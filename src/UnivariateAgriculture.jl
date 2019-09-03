@@ -50,10 +50,11 @@ include("lib/agriculture.jl")
     function run_timestep(p, v, d, tt)
         yys = timeindex2yearindexes(tt)
         contyys = timeindex2contributingyearindexes(tt)
-
-        if numirrcrops == 0
+        
+        if numunicrops == 0
             for rr in d.regions
                 v.totalirrigation[rr, :, tt] .= 0
+                v.totalareas2[rr, :, contyys] .= 0.
                 v.allagarea[rr, contyys] .= 0
             end
             return
@@ -102,7 +103,7 @@ function initunivariateagriculture(m::Model)
     for cc in 1:numunicrops
         if unicrops[cc] in ["corn.co.rainfed", "corn.co.irrigated", "wheat.co.rainfed", "wheat.co.irrigated"]
             yield[:, cc, :, :] = read_nareshyields(unicrops[cc])
-            irrigation_rate[:,cc,:,:] = known_irrigationrate[unicrops[cc]] * config["timestep"] / 12
+            irrigation_rate[:,cc,:,:] .= known_irrigationrate[unicrops[cc]] * config["timestep"] / 12
             continue
         end
 
@@ -162,8 +163,8 @@ function initunivariateagriculture(m::Model)
                 constantareas[:, cc] = read_quickstats(datapath(quickstats_planted[unicrops[cc]]))
             else
                 column = findfirst(Symbol(unicrops[cc]) .== names(totalareas))
-                constantareas[:, cc] = totalareas[column] * 0.404686 # Convert to Ha
-                constantareas[ismissing.(totalareas[column]), cc] .= 0. # Replace NAs with 0, and convert to float.
+                constantareas[:, cc] = totalareas[!, column] * 0.404686 # Convert to Ha
+                constantareas[ismissing.(totalareas[!, column]), cc] .= 0. # Replace NAs with 0, and convert to float.
             end
         end
         agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numharvestyears])

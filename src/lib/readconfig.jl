@@ -97,7 +97,7 @@ TODO: This should look at config to see what these mean in context
 """
 function getindices(name::Symbol, as::Type=Any)
     if name == :regions
-        values = masterregions[:fips]
+        values = masterregions[!, :fips]
     else
         error("We have not defined index $name yet.")
     end

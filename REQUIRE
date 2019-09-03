@@ -7,4 +7,5 @@ MathProgBase
 Missings
 YAML
 RData
-
+WeakRefStrings
+PooledArrays

@@ -37,7 +37,7 @@ include("lib/datastore.jl")
         # Production effect
         v.production_adjusted[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
 
-        if tt > 1 && p.production[tt] > p.production[tt-1]
+        if !is_first(tt) && p.production[tt] > p.production[tt-1]
             mygrowth = p.production[tt] - p.production[tt-1]
             theirgrowth = p.production_baseline[tt] - p.production_baseline[tt-1]
             # Only include this if we have more entrants than they estimate fewer than me
@@ -63,14 +63,14 @@ function initaquaculture(m::Model)
     scaling = config["timestep"] / 12.
 
     # Baseline from USGS
-    demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, dim_count(m, :time)])
+    demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[!, :AQ_WFrTo]) * scaling, outer=[1, dim_count(m, :time)])
     aquaculture[:demand_baseline] = demand_baseline
 
     # Production data from Fisheries of the United States
     production = CSV.read(datapath("aquaculture/production.csv"))
-    production_baseline = repeat(production[production[:year] .== 2010, :production] * scaling, outer=[numsteps])
+    production_baseline = repeat(production[production[!, :year] .== 2010, :production] * scaling, outer=[numsteps])
     aquaculture[:production_baseline] = production_baseline
-    aquaculture[:production] = repeat(production[production[:year] .>= 2010, :production] * scaling, inner=[round.(Int64, 1. / scaling)])[1:numsteps] # doesn't follow actual historical timeline
+    aquaculture[:production] = repeat(production[production[!, :year] .>= 2010, :production] * scaling, inner=[round.(Int64, 1. / scaling)])[1:numsteps] # doesn't follow actual historical timeline
 
     # Demand per entrant as average demand
     aquaculture[:entrant_demandpermt] = sum(demand_baseline) / mean(production_baseline)

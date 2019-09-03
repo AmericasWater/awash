@@ -107,12 +107,12 @@ struct StatisticalAgricultureModel
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
-    interceptrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "intercept"))
-    gddsrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "gdds"))
-    kddsrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "kdds"))
-    wreqrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "wreq"))
-    gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "gddoffset"))
-    kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[:coef] .== "kddoffset"))
+    interceptrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "intercept"))
+    gddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gdds"))
+    kddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kdds"))
+    wreqrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kddoffset"))
 
     if interceptrow != nothing
         intercept = df[interceptrow, :mean]
@@ -209,7 +209,7 @@ else
                 continue
             end
             counties = CSV.read(croppath, categorical=false)
-            counties[:fips] = regionindex(counties, :, tostr=true)
+            counties[!, :fips] = regionindex(counties, :, tostr=true)
             combiner = gaussianpool
         end
 
@@ -284,17 +284,17 @@ Return the observed production for a given crop, in lb in bu
 function currentcropproduction(crop::AbstractString)
     cropnames = uniquemapping[crop]
     if "barley" in cropnames
-        sum(getfilteredtable("agriculture/allyears/barley_production_in_bu.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/barley_production_in_bu.csv")[!, :PRODUCTION_2010])
     elseif "corn" in cropnames
-        sum(getfilteredtable("agriculture/allyears/maize_production_in_bu.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/maize_production_in_bu.csv")[!, :PRODUCTION_2010])
     elseif "sorghum" in cropnames
-        sum(getfilteredtable("agriculture/allyears/sorghum_production_in_lb.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/sorghum_production_in_lb.csv")[!, :PRODUCTION_2010])
     elseif "soybeans" in cropnames
-        sum(getfilteredtable("agriculture/allyears/soybeans_production_in_bu.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/soybeans_production_in_bu.csv")[!, :PRODUCTION_2010])
     elseif "wheat" in cropnames
-        sum(getfilteredtable("agriculture/allyears/wheat_production_in_bu.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/wheat_production_in_bu.csv")[!, :PRODUCTION_2010])
     elseif "hay" in cropnames
-        sum(getfilteredtable("agriculture/allyears/hay_production_in_lb.csv")[:PRODUCTION_2010])
+        sum(getfilteredtable("agriculture/allyears/hay_production_in_lb.csv")[!, :PRODUCTION_2010])
     else
         return 0
     end
@@ -341,15 +341,15 @@ function read_nareshyields(crop::AbstractString, use2010yields=true)
     if use2010yields
         # Collect coefficients to remove the trend
         coefficients = CSV.read(bayespath)
-        timecoeffs = coefficients[coefficients[:coef] .== "time", :]
+        timecoeffs = coefficients[coefficients[!, :coef] .== "time", :]
 
-        regionindices_timecoeff = getregionindices(timecoeffs[:fips], false)
+        regionindices_timecoeff = getregionindices(timecoeffs[!, :fips], false)
     end
 
     result = zeros(numcounties, numharvestyears)
 
     for ii in 1:numharvestyears
-        orderedyields = vec(convert(Matrix{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
+        orderedyields = vec(convert(Vector{Float64}, yields[min(ii + index2year(1) - 1949, size(yields)[1]), regionindices_yield]))
         if use2010yields
             # Remove the trend from the yields
             orderedyields += timecoeffs[regionindices_timecoeff, :mean] * (2010 - (ii + index2year(1) - 1949))
@@ -365,13 +365,13 @@ Read USDA QuickStats data
 """
 function read_quickstats(filepath::AbstractString)
     df = CSV.read(filepath)
-    df[:fips] = [ismissing.(df[ii, Symbol("County ANSI")]) ? 0 : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")]) for ii in 1:nrow(df)];
-    df[:xvalue] = map(str -> parse(Float64, replace(str, ",", "")), df[:Value]);
+    df[!, :fips] = [ismissing.(df[ii, Symbol("County ANSI")]) ? 0 : (typeof(df[ii, Symbol("State ANSI")]) == Int64 ? df[ii, Symbol("State ANSI")] * 1000 + df[ii, Symbol("County ANSI")] : parse.(Int64, df[ii, Symbol("State ANSI")]) * 1000 + parse.(Int64, df[ii, Symbol("County ANSI")])) for ii in 1:nrow(df)];
+    df[!, :xvalue] = map(str -> parse(Float64, replace(str, "," => "")), df[!, :Value]);
 
     # Reorder these values to match regions
-    indices = getregionindices(canonicalindex(convert(Vector{Int64}, df[:fips])))
+    indices = getregionindices(canonicalindex(convert(Vector{Int64}, df[!, :fips])))
     result = zeros(nrow(masterregions))
-    result[indices[indices .> 0]] = df[:xvalue][indices .> 0]
+    result[indices[indices .> 0]] = df[!, :xvalue][indices .> 0]
 
     result
 end

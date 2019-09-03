@@ -84,7 +84,10 @@ else
             end
             add_edge!(regionnet, regverts[index], regverts[neighbor])
         end
-        sourceiis[indexin([index], regionindex(masterregions, :))[1]] = indexin(neighbors, regionindex(masterregions, :))
+        ii = indexin([index], regionindex(masterregions, :))[1]
+        if ii != nothing
+            sourceiis[ii] = filter(!isnothing, indexin(neighbors, regionindex(masterregions, :)))
+        end
     end
 
     serialize(open(cachepath("regionnet$suffix.jld"), "w"), regionnet)

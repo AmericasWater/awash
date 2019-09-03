@@ -25,7 +25,7 @@ using DataFrames
 
         if config["dataset"] == "counties"
             for pp in 1:nrow(draws)
-                if draws[:justif][pp] == "contains"
+                if draws[!, :justif][pp] == "contains"
                     regionids = regionindex(draws, pp)
                     rr = findfirst(regionindex(masterregions, :) .== regionids)
                     if rr != nothing

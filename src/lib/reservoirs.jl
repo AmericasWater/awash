@@ -3,6 +3,7 @@
 # Functions to handle reservoirs.
 
 using DataFrames
+using CSV
 include("datastore.jl")
 
 """
@@ -18,7 +19,7 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
     if in("dataset", keys(config))
         dataset = config["dataset"]
     else
-        warn("Config does not contain dataset; assuming `counties`.")
+        @warn "Config does not contain dataset; assuming `counties`."
         dataset = "counties"
     end
 
@@ -31,7 +32,7 @@ function getreservoirs(config::Union{Dict{Any,Any},Dict{AbstractString,Any}})
             reservoirs = CSV.read(loadpath("reservoirs/allreservoirs.csv"), types=[String, String, Union{Float64, Missing}, Float64, Float64, Union{Float64, Missing}, Float64, String], missingstring="\"NA\"")
         end
         if get(config, "filterstate", nothing) != nothing
-            reservoirs = reservoirs[floor.(parse.(Int64, reservoirs[:fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
+            reservoirs = reservoirs[floor.(parse.(Int64, reservoirs[!, :fips]) / 1000) .== parse(Int64, config["filterstate"]), :]
         end
 
         reservoirs

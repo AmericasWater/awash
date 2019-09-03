@@ -59,19 +59,15 @@ configtransforms["repcap"] = (fips, x) -> getpopulation_withinyear(fips, populat
 
     # Amount of crops that would buy
     cropinterest = Variable(index=[regions, allcrops, time], unit="lborbu")
-end
 
-"""
-Compute the `surplus` as `available` - `demand`.
-"""
-function run_timestep(c::PopulationDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        for cc in d.allcrops
-            v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
+    """
+    Compute the `surplus` as `available` - `demand`.
+    """
+    function run_timestep(p, v, d, tt)
+        for rr in d.regions
+            for cc in d.allcrops
+                v.cropinterest[rr, cc, tt] = p.population[rr, tt] * p.cropinterestperperson[cc]
+            end
         end
     end
 end
@@ -80,7 +76,7 @@ end
 Add a populationdemand component to the model.
 """
 function initpopulationdemand(m::Model, years)
-    populationdemand = addcomponent(m, PopulationDemand)
+    populationdemand = add_comp!(m, PopulationDemand)
 
     # How much of each crop will people buy per year?
     populationdemand[:cropinterestperperson] = (365.25/12 * config["timestep"]) * [crop_interest[crop] for crop in allcrops]
@@ -92,7 +88,7 @@ function initpopulationdemand(m::Model, years)
         population_yeardata = getpopulation_yeardata(year)
         population_before = getpopulation_yeardata(div(year, 10) * 10)
         population_after = getpopulation_yeardata((div(year, 10) + 1) * 10)
-        for ii in 1:m.indices_counts[:regions]
+        for ii in 1:dim_count(m, :regions)
             fips = m.indices_values[:regions][ii]
             pop = getpopulation_withinyear(fips, population_yeardata)
             if isna.(pop) && mod(year, 10) != 0
@@ -119,6 +115,6 @@ function initpopulationdemand(m::Model, years)
 end
 
 function constraintoffset_populationdemand_cropinterest(m::Model)
-    gen(rr, cc, tt) = -m.external_parameters[:population].values[rr, tt] * m.external_parameters[:cropinterestperperson].values[cc]
+    gen(rr, cc, tt) = -m.md.external_params[:population].values[rr, tt] * m.md.external_params[:cropinterestperperson].values[cc]
     hallsingle(m, :PopulationDemand, :cropinterest, gen)
 end

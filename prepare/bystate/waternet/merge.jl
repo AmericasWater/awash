@@ -1,6 +1,9 @@
+using Serialization, CSV
+
 include("../../../src/lib/readconfig.jl")
 suffix = ""
 config = emptyconfig()
+config["dataset"] = "counties"
 
 include("../../../src/lib/datastore.jl")
 include("../../../src/lib/reservoirs.jl")
@@ -31,7 +34,7 @@ map(ii -> "$(getregion(result[ii, :node])) -> $(getregion(result[ii, :outnode]))
 serialize(open("../../../data/states/waternet/waternet.jld", "w"), newwaternet)
 serialize(open("../../../data/states/waternet/wateridverts.jld", "w"), newwateridverts)
 
-writetable("newnetwork.csv", result)
+CSV.write("newnetwork.csv", result)
 
 stateindexes = readtable("../../../data/global/states.csv")
 

@@ -19,22 +19,20 @@ include("lib/datastore.jl")
 
     # Demand combining the two effects
     demand = Variable(index=[regions, time], unit="1000 m^3")
-end
 
-function run_timestep(c::Aquaculture, tt::Int)
-    v, p, d = getvpd(c)
-
-    # Scale with production
-    v.demand[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
+    function run_timestep(p, v, d, tt)
+        # Scale with production
+        v.demand[:, tt] = (p.production[tt] / p.production_baseline[tt]) * p.demand_baseline[:, tt]
+    end
 end
 
 function initaquaculture(m::Model)
-    aquaculture = addcomponent(m, Aquaculture);
+    aquaculture = add_comp!(m, Aquaculture);
 
     scaling = config["timestep"] / 12.
 
     # Baseline from USGS
-    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, m.indices_counts[:time]])
+    aquaculture[:demand_baseline] = repeat(convert(Vector{Float64}, readtable(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]) * scaling, outer=[1, dim_count(m, :time)])
 
     # Production data from Fisheries of the United States
     production = readtable(datapath("aquaculture/production.csv"))

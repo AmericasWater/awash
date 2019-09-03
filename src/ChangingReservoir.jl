@@ -44,61 +44,57 @@ reservoirdata = readtable(loadpath("reservoirs/allreservoirs.csv"))
     unitcostcaptures = Parameter(unit="\$ / 1000 m^3")
     cost = Variable(index=[reservoirs, scenarios, time], unit="\$")
     investcost = Variable(index=[reservoirs, time], unit="\$")
-end
 
-"""
-Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
-"""
-function run_timestep(c::Reservoir, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the storage for the reservoirs, the releases and the withdrawals from the reservoirs as they change in time
+    """
+    function run_timestep(p, v, d, tt)
+        v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
+        v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
 
-    v.inflows[:, :, tt] = zeros(numreservoirs, numscenarios);
-    v.outflows[:, :, tt] = zeros(numreservoirs, numscenarios);
-
-    for gg in 1:numgauges
-	index = vertex_index(downstreamorder[gg])
-	if isreservoir[index] > 0
-	    rr = isreservoir[index]
-	    v.inflows[rr, :, tt] = p.inflowsgauges[gg, :, tt];
-	    v.outflows[rr, :, tt] = p.outflowsgauges[gg, :, tt];
-	end
-    end
-
-    for rr in d.reservoirs
-	if tt==1
-	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
-            v.storagecapacitymax[rr, tt] = p.storagecapacitymax0[rr, tt]
-	else
-	    v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
-            v.storagecapacitymax[rr, tt] = v.storagecapacitymax[rr, tt - 1] + p.increasestorage[rr, tt-1] - p.reducestorage[rr, tt-1]
-	end
-
-        v.cost[rr, :, tt] = p.unitcostcaptures * p.captures[rr, :, tt] + p.unitcostcapacity * v.storagecapacitymax[rr, tt]
-        v.investcost[rr, :, tt] = p.unitcostcapacity * v.storagecapacitymax[rr, tt] # TODO: Add changing storage investment costs
-
-        for ss in 1:numscenarios
-	    if p.captures[rr,ss,tt]<0
-		v.withdrawals[rr,ss,tt] = -p.captures[rr,ss,tt] - (v.outflows[rr,ss,tt] - v.inflows[rr,ss,tt])
-		if v.inflows[rr,ss,tt]<v.outflows[rr,ss,tt]
-		    v.releases[rr,ss,tt] = v.outflows[rr,ss,tt] - v.inflows[rr, ss, tt]
-		else
-		    v.releases[rr,ss,tt] = 0
-                end
-	    else
-		v.releases[rr,ss,tt] = 0
-		v.withdrawals[rr,ss,tt] = 0
+        for gg in 1:numgauges
+	    index = vertex_index(downstreamorder[gg])
+	    if isreservoir[index] > 0
+	        rr = isreservoir[index]
+	        v.inflows[rr, :, tt] = p.inflowsgauges[gg, :, tt];
+	        v.outflows[rr, :, tt] = p.outflowsgauges[gg, :, tt];
 	    end
+        end
+
+        for rr in d.reservoirs
+	    if tt==1
+	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"]*p.storage0[rr] + p.captures[rr, :, tt]
+                v.storagecapacitymax[rr, tt] = p.storagecapacitymax0[rr, tt]
+	    else
+	        v.storage[rr,:,tt] = (1-p.evaporation[rr,:,tt]).^config["timestep"].*v.storage[rr,:,tt-1] + p.captures[rr, :, tt]
+                v.storagecapacitymax[rr, tt] = v.storagecapacitymax[rr, tt - 1] + p.increasestorage[rr, tt-1] - p.reducestorage[rr, tt-1]
+	    end
+
+            v.cost[rr, :, tt] = p.unitcostcaptures * p.captures[rr, :, tt] + p.unitcostcapacity * v.storagecapacitymax[rr, tt]
+            v.investcost[rr, :, tt] = p.unitcostcapacity * v.storagecapacitymax[rr, tt] # TODO: Add changing storage investment costs
+
+            for ss in 1:numscenarios
+	        if p.captures[rr,ss,tt]<0
+		    v.withdrawals[rr,ss,tt] = -p.captures[rr,ss,tt] - (v.outflows[rr,ss,tt] - v.inflows[rr,ss,tt])
+		    if v.inflows[rr,ss,tt]<v.outflows[rr,ss,tt]
+		        v.releases[rr,ss,tt] = v.outflows[rr,ss,tt] - v.inflows[rr, ss, tt]
+		    else
+		        v.releases[rr,ss,tt] = 0
+                    end
+	        else
+		    v.releases[rr,ss,tt] = 0
+		    v.withdrawals[rr,ss,tt] = 0
+	        end
+            end
         end
     end
 end
 
 function initreservoir(m::Model, name=nothing)
     if name == nothing
-        reservoir = addcomponent(m, Reservoir)
+        reservoir = add_comp!(m, Reservoir)
     else
-        reservoir = addcomponent(m, Reservoir, name)
+        reservoir = add_comp!(m, Reservoir, name)
     end
 
     reservoir[:captures] = zeros(numreservoirs, numscenarios, numsteps);
@@ -153,40 +149,40 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> (vtt >= ptt && vss == pss) ? spdiagm((1-m.external_parameters[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0) : spzeros(numreservoirs, numreservoirs), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> (vtt >= ptt && vss == pss) ? spdiagm((1-m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt)), 0) : spzeros(numreservoirs, numreservoirs), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-    gen(rr) = m.external_parameters[:storagecapacitymin].values[rr]
+    gen(rr) = m.md.external_params[:storagecapacitymin].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax0(m::Model)
-    gen(rr) = m.external_parameters[:storagecapacitymax0].values[rr]
+    gen(rr) = m.md.external_params[:storagecapacitymax0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax0_noscenarios(m::Model)
-    gen(rr) = m.external_parameters[:storagecapacitymax0].values[rr]
+    gen(rr) = m.md.external_params[:storagecapacitymax0].values[rr]
     hallsingle(m, :Reservoir, :storagecapacitymax, gen, [:time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, ss, tt) = (1-m.external_parameters[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.external_parameters[:storage0].values[rr]
+    gen(rr, ss, tt) = (1-m.md.external_params[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.md.external_params[:storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 
 function grad_reservoir_cost_captures(m::Model)
-    roomdiagonal(m, :Reservoir, :cost, :captures, m.external_parameters[:unitcostcaptures].value)
+    roomdiagonal(m, :Reservoir, :cost, :captures, m.md.external_params[:unitcostcaptures].value)
 end
 
 function grad_reservoir_investcost_storagecapacitymax(m::Model)
-    roomdiagonal(m, :Reservoir, :investcost, :storagecapacitymax, m.external_parameters[:unitcostcapacity].value, [:scenarios])
+    roomdiagonal(m, :Reservoir, :investcost, :storagecapacitymax, m.md.external_params[:unitcostcapacity].value, [:scenarios])
 end
 
 function grad_reservoir_investcost_increasestorage(m::Model)
     # Set the constant marginal cost of increasing storage as the point-value marginal cost
-    costs = marginalcost.(m.external_parameters[:storagecapacitymax0].values)
+    costs = marginalcost.(m.md.external_params[:storagecapacitymax0].values)
     roomdiagonal(m, :Reservoir, :investcost, :increasestorage, (rr) -> costs[rr], [:scenarios, :time])
 end
 
@@ -200,6 +196,6 @@ end
 
 ### XXX: Should use different equation
 function grad_reservoir_investcost_reducestorage(m::Model)
-    costs = marginalcost.(m.external_parameters[:storagecapacitymax0].values)
+    costs = marginalcost.(m.md.external_params[:storagecapacitymax0].values)
     roomdiagonal(m, :Reservoir, :investcost, :reducestorage, (rr) -> costs[rr], [:scenarios, :time])
 end

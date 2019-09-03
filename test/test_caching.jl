@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 
 include("../src/lib/datastore.jl")
 include("../src/lib/readconfig.jl")

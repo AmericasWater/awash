@@ -2,12 +2,12 @@
 #
 # Loads groundwater structure for different configurations.
 
-using DataFrames
+using DataFrames, DelimitedFiles
 using RData
 using CSV
 
 if config["dataset"] == "states"
-    warn("State level groundwater model for US is inexistant")
+    @warn "State level groundwater model for US is inexistant"
     dfgw = DataFrame(Any[50*ones(49), zeros(49), ones(49)*0.1, ones(49), zeros(49)], [:depthaquif, :piezohead0, :storagecoef, :areaaquif, :elevation]);
     lateralconductivity = zeros(49,49);
     aquiferconnexion = zeros(49,49);
@@ -15,8 +15,8 @@ if config["dataset"] == "states"
 elseif isfile(loadpath("gwmodel/dfgw$suffix.csv"))
     println("Loading saved groundwater model...")
     dfgw = CSV.read(loadpath("gwmodel/dfgw$suffix.csv"));
-    lateralconductivity = convert(Array, CSV.read(loadpath("gwmodel/lateralconductivity$suffix.csv")));
-    aquiferconnexion = convert(Array, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
+    lateralconductivity = convert(Matrix, CSV.read(loadpath("gwmodel/lateralconductivity$suffix.csv")));
+    aquiferconnexion = convert(Matrix, CSV.read(loadpath("gwmodel/aquiferconnexion$suffix.csv")));
 
 elseif configdescends(config, "counties")
     dfgw = CSV.read(loadpath("gwmodel/dfgw.csv"));
@@ -25,8 +25,8 @@ elseif configdescends(config, "counties")
 
     if config["filterstate"] != nothing
         println("Generating regionnal groundwater model...")
-	vstates = round.(Int64, floor.(dfgw[:fips] ./ 1000));
-	subfips = find(vstates .== parse(Int64, get(config,"filterstate", nothing)));
+	vstates = round.(Int64, floor.(dfgw[!, :fips] ./ 1000));
+	subfips = findall(vstates .== parse(Int64, get(config,"filterstate", nothing)));
 
         dfgw = dfgw[subfips,:];
   	lateralconductivity = lateralconductivity[subfips,subfips];

@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/landvalue")
+setwd("~/research/water/awash/analyses/landvalue")
 
 do.cornsoy.combo <- F
 

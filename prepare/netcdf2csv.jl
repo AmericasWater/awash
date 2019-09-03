@@ -1,4 +1,3 @@
-using DataArrays
 using NetCDF
 
 function netcdf2csv{T<:AbstractString}(ncpath::T, csvpath::T, coldimname::T, skipdimnames::Vector{T}=T[])

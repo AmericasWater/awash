@@ -1,6 +1,5 @@
-using Base.Test
+using Test
 
-using DataArrays
 using DataFrames
 using OptiMimi
 using CSV
@@ -21,6 +20,7 @@ solver = ClpSolver()
 # Save the results, if not available
 varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quartersupersourcesupply => :supersourcesupply))
 
+let
 allparams = Symbol[]
 allvalues = Float64[]
 for ii in 1:length(house.parameters)
@@ -58,3 +58,4 @@ else
 end
 
 save_optimization_given(house, sol, false, true)
+end

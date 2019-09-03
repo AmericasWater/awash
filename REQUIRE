@@ -1,4 +1,4 @@
-julia 0.6
+julia 0.7
 CSV
 Mimi
 OptiMimi
@@ -7,4 +7,6 @@ MathProgBase
 Missings
 YAML
 RData
-NullableArrays
+WeakRefStrings
+PooledArrays
+Distributions

@@ -16,18 +16,14 @@ include("lib/datastore.jl")
 
     # Demanded water
     waterdemand = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-end
 
-"""
-The quantity of water demanded at each timestep
-"""
-function run_timestep(c::IndustrialDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
-
-    for rr in d.regions
-        v.waterdemand[rr, :, tt] = p.industrywaterdemand[rr, :, tt] + p.miningwaterdemand[rr, :, tt]
+    """
+    The quantity of water demanded at each timestep
+    """
+    function run_timestep(p, v, d, tt)
+        for rr in d.regions
+            v.waterdemand[rr, :, tt] = p.industrywaterdemand[rr, :, tt] + p.miningwaterdemand[rr, :, tt]
+        end
     end
 end
 
@@ -35,17 +31,17 @@ end
 Add an industrial component to the model.
 """
 function initindustrialdemand(m::Model)
-    industrialdemand = addcomponent(m, IndustrialDemand);
+    industrialdemand = add_comp!(m, IndustrialDemand);
 
     # data from USGS 2010 for the 2000 county definition
     recorded = knowndf("exogenous-withdrawals")
-    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, numsteps]);
-    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, numsteps]);
+    industrialdemand[:industrywaterdemand] = repeat(convert(Vector, recorded[:,:IN_To]) * config["timestep"] * 1383. / 12., outer=[1, numscenarios, numsteps]);
+    industrialdemand[:miningwaterdemand] = repeat(convert(Vector,recorded[:,:MI_To]) * config["timestep"] * 1383. / 12., outer=[1, numscenarios, numsteps]);
     industrialdemand
 end
 
 function constraintoffset_industrialdemand_waterdemand(m::Model)
-    gen(rr, tt) = m.external_parameters[:miningwaterdemand].values[rr, tt] + m.external_parameters[:industrywaterdemand].values[rr,tt]
+    gen(rr, tt) = m.md.external_params[:miningwaterdemand].values[rr, tt] + m.md.external_params[:industrywaterdemand].values[rr,tt]
     hallsingle(m, :IndustrialDemand, :waterdemand, gen, [:scenarios])
 end
 

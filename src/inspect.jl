@@ -45,7 +45,7 @@ for component in model.components
                 continue
             end
 
-            p = model.external_parameters[parameter]
+            p = model.md.external_params[parameter]
             if isa(p, CertainScalarParameter) || isa(p, UncertainScalarParameter)
                 continue
             end
@@ -54,7 +54,7 @@ for component in model.components
                 connected = allvariablescomponents[findfirst(allvariables, getfield(component[2].Parameters, parameter))][1]
             else
                 # Check autocorrelation to see if identical or random
-                ac = StatsBase.autocor(vec(model.external_parameters[parameter].values), [1])
+                ac = StatsBase.autocor(vec(model.md.external_params[parameter].values), [1])
                 if (isnan.(ac[1]))
                     initialized = "nan"
                 elseif (ac[1] == 1)
@@ -68,7 +68,7 @@ for component in model.components
         end
 
         if in(component[1], paramcomps)
-            for index in find(paramcomps .== component[1])
+            for index in findall(paramcomps .== component[1])
                 if parameters[index] == Symbol(parameter)
                     optimized = "yup"
                     break

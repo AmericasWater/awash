@@ -1,8 +1,11 @@
-using Base.Test
+using Test
+using Pkg
+
+versions = Pkg.installed()
 
 function requirepackage(pkg, checkout=false; version=nothing)
     try
-        gotvers = Pkg.installed(pkg)
+        gotvers = get(versions, pkg, nothing)
         if gotvers == nothing
             error("Needs to be installed.")
         end
@@ -10,9 +13,12 @@ function requirepackage(pkg, checkout=false; version=nothing)
             Pkg.pin(pkg, version)
         end
     catch
-        Pkg.add(pkg)
-        if checkout
-            Pkg.checkout(pkg)
+        if checkout == true
+            Pkg.add(PackageSpec(name=pkg, rev="master"))
+        elseif typeof(checkout) <: String
+            Pkg.add(PackageSpec(name=pkg, rev=checkout))
+        else
+            Pkg.add(pkg)
         end
         if version != nothing
             Pkg.pin(pkg, version)
@@ -22,22 +28,16 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("Mimi", version=v"0.4.0")
+requirepackage("Mimi", true)
 requirepackage("Graphs")
+requirepackage("DataFrames")
 requirepackage("NetCDF")
-requirepackage("DataArrays")
 requirepackage("OptiMimi", true)
 requirepackage("RData")
 requirepackage("Clp")
-requirepackage("NullableArrays")
 requirepackage("NaNMath")
+requirepackage("WeakRefStrings")
+requirepackage("PooledArrays")
+requirepackage("Distributions")
 
-include("test_optimize_surface.jl")
-include("test_simulate.jl")
-include("test_Aquaculture.jl")
-include("test_Reservoir_optimization.jl")
-include("test_optimize_reservoir.jl")
-include("test_caching.jl")
-include("test_reservoirs.jl")
-include("test_leapsteps.jl")
-include("test_agsteps.jl")
+include("thetests.jl")

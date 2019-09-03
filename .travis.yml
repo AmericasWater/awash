@@ -1,7 +1,7 @@
 sudo: required
 language: julia
 julia:
-  - 0.6
+  - 1.0
 script:
   - julia --code-coverage test/runtests.jl
 after_success:

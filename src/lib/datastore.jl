@@ -2,9 +2,8 @@
 #
 # Functions for accessing external data.
 
-using NullableArrays
-using DataArrays
-
+using Pkg
+using WeakRefStrings, PooledArrays
 include("inputcache.jl")
 
 """
@@ -86,9 +85,9 @@ function getfilteredtable(filepath, fipscol=:FIPS; kwargs...)
     recorded = CSV.read(filepath; kwargs...)
     if get(config, "filterstate", nothing) != nothing
         if typeof(recorded[fipscol]) <: Vector{String}
-            recorded = recorded[find([value[1:2] for value in recorded[fipscol]] .== config["filterstate"]), :]
+            recorded = recorded[findall([value[1:2] for value in recorded[fipscol]] .== config["filterstate"]), :]
 	else
-            recorded = recorded[find(floor.(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+            recorded = recorded[findall(floor.(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
 	end
     end
     recorded
@@ -110,10 +109,12 @@ function cached_fallback(filename, generate)
             return deserialize(open(datapath("$filename$suffix-$confighash.jld")))
         elseif isfile(datapath("$filename$suffix.jld"))
             return deserialize(open(datapath("$filename$suffix.jld")))
+        else
+            return generate()
         end
+    catch
+        return generate()
     end
-
-    generate()
 end
 
 """
@@ -173,40 +174,43 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: DataVector{Int64} || typeof(indexes) <: Vector{Int64} || typeof(indexes) <: DataVector{Int32} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
+    if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: NullableArrays.NullableArray{Int64, 1}
-        return convert(Vector{String}, map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes))
-    end
-    if typeof(indexes) <: Vector{String} || typeof(indexes) <: DataVector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
-        return map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes)
-    end
-    if typeof(indexes) <: NullableArrays.NullableArray{String, 1}
-        return convert(Vector{String}, map(index -> lpad(index, config["indexlen"], config["indexpad"]), indexes))
+    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}} || typeof(indexes) <: WeakRefStrings.StringArray{String,1} || typeof(indexes) <: PooledArrays.PooledArray{String,UInt32,1,Array{UInt32,1}}
+        if config["indexpad"] == nothing
+            return indexes
+        else
+            return map(index -> lpad(string(index), config["indexlen"], string(config["indexpad"])), indexes)
+        end
     end
     if typeof(indexes) <: Integer
         return lpad("$indexes", config["indexlen"], config["indexpad"])
     end
     if typeof(indexes) <: String
-        return lpad(indexes, config["indexlen"], config["indexpad"])
+        if config["indexpad"] == nothing
+            return indexes
+        else
+            return lpad(string(indexes), config["indexlen"], string(config["indexpad"]))
+        end
     end
 
+    println(indexes)
     error("Unknown index column type $(typeof(indexes))")
 end
 
 """Return the index for each region key."""
 function getregionindices(fipses, tomaster=true)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
-        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
+        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
     else
-        masterfips = masterregions[:fips]
+        masterfips = masterregions[!, :fips]
     end
 
     if tomaster
-        convert(Vector{Int64}, map(fips -> findfirst(masterfips, fips), fipses))
+        convert(Vector{Int64}, map(index -> index == nothing ? 0 : index, map(fips -> findfirst(masterfips .== fips), fipses)))
     else
-        convert(Vector{Int64}, map(fips -> findfirst(fipses, fips), masterfips))
+        convert(Vector{Int64}, map(index -> index == nothing ? 0 : index, map(fips -> findfirst(fipses .== fips), masterfips)))
     end
 end
 
@@ -236,9 +240,9 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                 ## Inpute the added water for all junctions
                 waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
                 stations = waternetdata["stations"]
-                stations[:gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
+                stations[!, :gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
                 network = waternetdata["network"]
-                network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
+                network[!, :gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
 
                 contribs = cachereadtable(loadpath("waternet/contribs.csv"), eltypes=[String, String, Float64])
                 contribs = dropmissing(contribs, :sink)
@@ -251,7 +255,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                         continue # Already done
                     end
 
-                    controws = contribs[contribs[:sink] .== gageid, :]
+                    controws = contribs[contribs[!, :sink] .== gageid, :]
 
                     sumadded = zeros(size(addeds)[2])
                     numadded = 0
@@ -260,7 +264,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                         if isna(controws[jj, :factor])
                             continue
                         end
-                        gagejj = findfirst(controws[jj, :source] .== network[:gageid])
+                        gagejj = findfirst(controws[jj, :source] .== network[!, :gageid])
                         sumadded += addeds[gagejj, :] * controws[jj, :factor]
                         numadded += 1
                     end
@@ -301,18 +305,20 @@ Reorder values to match the master region indexes.
 Value is NA if a given region isn't in fipses.
 """
 function dataonmaster(fipses, values)
-    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: DataVector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
-        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+    if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
+        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
     else
-        masterfips = masterregions[:fips]
+        masterfips = masterregions[!, :fips]
     end
-    if typeof(fipses) <: Vector{Union{Missing, Int64}} || typeof(fipses) <: Vector{Union{Missing, String}}
+    if typeof(fipses) <: Vector{Union{Missing, Int64}}
         fipses = collect(Missings.replace(fipses, 0))
+    elseif typeof(fipses) <: Vector{Union{Missing, String}}
+        fipses = collect(Missings.replace(fipses, ""))
     end
 
     function valueonmaster(fips)
-        index = findfirst(fipses, fips)
-        if index == 0
+        index = findfirst(fipses .== fips)
+        if index == nothing
             missing
         else
             values[index]
@@ -324,7 +330,7 @@ end
 
 lastindexcol = nothing
 
-if Pkg.installed("NetCDF") != nothing
+if "NetCDF" in keys(Pkg.installed())
     include("datastore-netcdf.jl")
 else
     include("datastore-nonetcdf.jl")

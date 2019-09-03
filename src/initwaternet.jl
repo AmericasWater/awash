@@ -4,12 +4,13 @@
 
 using Mimi
 using Graphs
-using DataFrames, DataArrays
+using DataFrames
 using RData
+using Serialization
 
 include("lib/waternet.jl")
 
-if !isdefined(:RegionNetwork)
+if !(@isdefined RegionNetwork)
     RegionNetwork{R, E} = IncidenceList{R, E}
 end
 
@@ -40,8 +41,8 @@ elseif isfile(datapath("waternet/waternet$suffix.jld"))
 else
     # Load the network of counties
     if config["dataset"] == "three"
-        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repmat(["three"], 3), colid=1:3, lat=repmat([0], 3), lon=-1:1, nextpt=@data([2, 3, missing]), dist=repmat([1], 3)))
-        drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repmat(["contains"], 3), downhill=repmat([0], 3), exdist=repmat([0.0], 3)))
+        waternetdata = Dict{Any, Any}("network" => DataFrame(collection=repeat(["three"], 3), colid=1:3, lat=repeat([0], 3), lon=-1:1, nextpt=[2, 3, missing], dist=repeat([1], 3)))
+        drawsdata = Dict{Any, Any}("draws" => DataFrame(fips=1:3, source=1:3, justif=repeat(["contains"], 3), downhill=repeat([0], 3), exdist=repeat([0.0], 3)))
     elseif config["dataset"] == "dummy"
         waternetdata = load(datapath("waternet/dummynet.RData"));
         drawsdata = load(datapath("waternet/dummydraws.RData"));
@@ -51,38 +52,38 @@ else
     end
 
     netdata = waternetdata["network"];
-    netdata[:nextpt] = convert(DataVector{Int64}, netdata[:nextpt])
+    netdata[!, :nextpt] = convert(Vector{Union{Missings.Missing, Int64}}, netdata[!, :nextpt])
 
     # Load the county-network connections
     draws = drawsdata["draws"];
-    draws[:source] = round.(Int64, draws[:source])
+    draws[!, :source] .= round.(Int64, draws[!, :source])
     # Label all with the node name
-    draws[:gaugeid] = ""
+    draws[!, :gaugeid] .= ""
     for ii in 1:nrow(draws)
         row = draws[ii, :source]
         draws[ii, :gaugeid] = "$(netdata[row, :collection]).$(netdata[row, :colid])"
     end
 
     if get(config, "filterstate", nothing) != nothing
-        states = round.(Int64, draws[:fips] / 1000)
+        states = round.(Int64, draws[!, :fips] / 1000)
         draws = draws[states .== parse(Int64, get(config, "filterstate", nothing)), :]
 
         includeds = falses(nrow(netdata))
         if filtersincludeupstream
             # Flag all upstream nodes
-            checks = draws[:source]
-            while length(checks) > 0
-                includeds[checks] = true
+            chcks = draws[!, :source]
+            while length(chcks) > 0
+                includeds[chcks] = true
 
                 nexts = []
-                for check in checks
-                    nexts = [nexts; find(netdata[:nextpt] .== check)]
+                for check in chcks
+                    nexts = [nexts; findall(netdata[!, :nextpt] .== check)]
                 end
 
-                checks = nexts
+                chcks = nexts
             end
         else
-            includeds[draws[:source]] = true
+            includeds[draws[!, :source]] .= true
         end
     else
         includeds = trues(nrow(netdata))
@@ -141,7 +142,7 @@ end
 # Prepare the model
 downstreamorder = topological_sort_by_dfs(waternet)[end:-1:1];
 
-gaugeorder = Vector{String}(length(wateridverts))
+gaugeorder = Vector{String}(undef, length(wateridverts))
 for vertex in downstreamorder
     gaugeorder[vertex_index(vertex)] = vertex.label
 end
@@ -163,8 +164,8 @@ end
 # Filter county connections draws
 if get(config, "filtercanals", nothing) != nothing
     if config["filtercanals"] == "direct"
-        draws = draws[[findfirst(["contains", "up-pipe", "down-pipe"], justif) for justif in draws[:justif]] .> 0, :]
+        draws = draws[[findfirst(x -> x in ["contains", "up-pipe", "down-pipe"], justif) for justif in draws[!, :justif]] .> 0, :]
     else
-        draws = draws[find(draws[:justif] .== config["filtercanals"]),:]
+        draws = draws[findall(draws[!, :justif] .== config["filtercanals"]),:]
     end
 end

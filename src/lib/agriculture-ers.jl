@@ -54,58 +54,58 @@ If a value is given for the region, use that; otherwise use US averages
 function ers_information(crop::AbstractString, item::AbstractString, year::Int64; includeus=true)
     df = CSV.read(loadpath("global/ers.csv"), types=[String, String, String, Float64, Float64])
 
-    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"), allowmissing=:none)
+    reglink = CSV.read(loadpath("agriculture/ers/reglink.csv"))
     fips = regionindex(reglink, :)
     indexes = getregionindices(fips)
 
     if (item == "cost")
-        allcosts = ers_information_loaded(crop, "Total, costs listed", year, df, indexes, reglink[:ABBR]; includeus=includeus)
-        unpaid = ers_information_loaded(crop, "Opportunity cost of unpaid labor", year, df, indexes, reglink[:ABBR]; includeus=includeus)
-        opportunity = ers_information_loaded(crop, "Opportunity cost of land", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        allcosts = ers_information_loaded(crop, "Total, costs listed", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
+        unpaid = ers_information_loaded(crop, "Opportunity cost of unpaid labor", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
+        opportunity = ers_information_loaded(crop, "Opportunity cost of land", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
         allcosts - unpaid - opportunity
 
     elseif(item == "opcost")
-        opcost= ers_information_loaded(crop, "Total, operating costs", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        opcost= ers_information_loaded(crop, "Total, operating costs", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
     elseif (item == "overhead")
-        opcost= ers_information_loaded(crop, "Total, allocated overhead", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        opcost= ers_information_loaded(crop, "Total, allocated overhead", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
     elseif (item == "yield")
-        ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
     elseif (item == "price")
         # Report total price, across all products, not the line below
-        #ers_information_loaded(crop, "Price (dollars per bushel at harvest)", year, df, indexes, reglink[:ABBR])
-        revenue = ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        #ers_information_loaded(crop, "Price (dollars per bushel at harvest)", year, df, indexes, reglink[!, :ABBR])
+        revenue = ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
 
         if crop == "cott"
-            yield = ers_information_loaded(crop, "Cotton yield: pounds per planted acre", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+            yield = ers_information_loaded(crop, "Cotton yield: pounds per planted acre", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
         elseif crop == "rice"
-            yield = ers_information_loaded(crop, "Yield (cwt per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus) * 100 # 1 cwt = 100 lb
+            yield = ers_information_loaded(crop, "Yield (cwt per planted acre)", year, df, indexes, reglink[!, :ABBR]; includeus=includeus) * 100 # 1 cwt = 100 lb
         else
-            yield = ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+            yield = ers_information_loaded(crop, "Yield (bushels per planted acre)", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
         end
 
         revenue ./ yield
     elseif (item == "revenue")
-        ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        ers_information_loaded(crop, "Total, gross value of production", year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
     else
-        ers_information_loaded(crop, item, year, df, indexes, reglink[:ABBR]; includeus=includeus)
+        ers_information_loaded(crop, item, year, df, indexes, reglink[!, :ABBR]; includeus=includeus)
     end
 end
 
 function ers_information_loaded(crop::AbstractString, item::AbstractString, year::Int64, df::DataFrame, reglink_indexes, reglink_abbr; includeus=true)
-    subdf = df[(df[:crop] .== crop) .& (df[:item] .== item) .& (df[:year] .== Float64(year)), :]
+    subdf = df[(df[!, :crop] .== crop) .& (df[!, :item] .== item) .& (df[!, :year] .== Float64(year)), :]
 
-    result = zeros(size(masterregions, 1)) * missing
+    result = Vector{Union{Missing, Float64}}(missing, size(masterregions, 1))
     for region in unique(reglink_abbr)
-        value = subdf[subdf[:region] .== region, :value]
+        value = subdf[subdf[!, :region] .== region, :value]
         if (length(value) == 0)
             continue
         end
-        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] = value[1]
+        result[reglink_indexes[(reglink_abbr .== region) .& (reglink_indexes .> 0)]] .= value[1]
     end
 
     if includeus
-        value = subdf[subdf[:region] .== "us", :value]
-        result[[ismissing(result[ii]) for ii in 1:length(result)]] = value[1]
+        value = subdf[subdf[!, :region] .== "us", :value]
+        result[[ismissing(result[ii]) for ii in 1:length(result)]] .= value[1]
     end
 
     result
@@ -116,7 +116,7 @@ List all available ERS information items.
 """
 function ers_information_list(crop::AbstractString)
     df = robustcsvread(loadpath("global/ers.csv"), [String, String, String, Float64, Float64], ".", [nothing, nothing, "unknown", nothing, nothing])
-    ["cost"; "yield"; "price"; "revenue"; unique(df[df[:crop] .== crop, :item])]
+    ["cost"; "yield"; "price"; "revenue"; unique(df[df[!, :crop] .== crop, :item])]
 end
 
 function getaverage(crop::AbstractString,item::AbstractString)
@@ -124,7 +124,7 @@ function getaverage(crop::AbstractString,item::AbstractString)
     result=(ers_information(crop,item,2005)+ers_information(crop,item,2006)+ers_information(crop,item,2007)+ers_information(crop,item,2008)+ers_information(crop,item,2009)+ers_information(crop,item,2010))/6
 end
 
-if isdefined(:numcounties) # might not be, if loaded outside of model
+if (@isdefined numcounties) # might not be, if loaded outside of model
     uniopcost=zeros(numcounties, numunicrops)
     unioverhead=zeros(numcounties,numunicrops)
 

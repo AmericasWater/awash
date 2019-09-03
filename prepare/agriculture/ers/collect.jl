@@ -1,5 +1,4 @@
 using DataFrames
-using DataArrays
 using ExcelReaders
 
 regabbrs = ["us", "nc", "hl", "np", "pg", "mp", "ss", "br", "fr", "eu"]

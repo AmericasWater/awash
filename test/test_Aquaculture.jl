@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using CSV
 
 # Load the component
@@ -14,8 +14,8 @@ numsteps = 1
 numcounties = length(regions)
 
 m = Model()
-setindex(m, :time, [1]) # Single period
-setindex(m, :regions, convert(Vector{AbstractString}, regions))
+set_dimension!(m, :time, [1]) # Single period
+set_dimension!(m, :regions, convert(Vector{AbstractString}, regions))
 
 # Add the component
 initaquaculture(m)
@@ -24,5 +24,5 @@ initaquaculture(m)
 run(m)
 
 # Check that it matches 2010
-demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]), outer=[1, m.indices_counts[:time]])
+demand_baseline = repeat(convert(Vector{Float64}, CSV.read(datapath("aquaculture/usgsextract.csv"))[:AQ_WFrTo]), outer=[1, dim_count(m, :time)])
 @test m[:Aquaculture, :demand] == demand_baseline

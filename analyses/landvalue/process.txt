@@ -1,8 +1,17 @@
  - actualcrops.R
+ - agriculture.jl
  - optcrop.jl
  - futureyield.jl
+ - mv max*.csv results; mv current*.csv results; mv all20*.csv results
  - constrainopt.jl
  - display.R any time
  - changes.R
  - outputs.R
  - constraintopt-byprice2.jl
+
+ - basics.R
+ - assumptions.R
+ - cropribbon.R
+ - constopt-byprice.R
+ - farmvalue-display.R ?
+ - tempdists.R ?

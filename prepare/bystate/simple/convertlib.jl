@@ -1,5 +1,4 @@
 using DataFrames
-using DataArrays
 
 function translateregion(region, subdf, columns, todrop, renames, translate)
     # Add on each column

@@ -7,7 +7,7 @@ using DataFrames
 include("lib/datastore.jl")
 
 # Load consumptive use data
-consumption = CSV.read(loadpath("returnflows/consumption.csv"), allowmissing=:none)
+consumption = CSV.read(loadpath("returnflows/consumption.csv"))
 returnpart = Dict([consumption[ii, :sector] => (1 - consumption[ii, :consumption]) * consumption[ii, :usablesw] for ii = 1:nrow(consumption)])
 
 @defcomp WaterDemand begin
@@ -34,22 +34,18 @@ returnpart = Dict([consumption[ii, :sector] => (1 - consumption[ii, :consumption
 
     # How much is returned by region
     totalreturn = Variable(index=[regions, scenarios, time], unit="1000 m^3")
-end
 
-"""
-Compute the amount extracted and the cost for doing it.
-"""
-function run_timestep(c::WaterDemand, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the amount extracted and the cost for doing it.
+    """
+    function run_timestep(p, v, d, tt)
+        for rr in d.regions
+            # Sum all demands
+            v.totaldemand[rr, :, tt] = p.totalirrigation[rr, :, tt] + p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
+            v.otherdemand[rr, :, tt] = p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
 
-    for rr in d.regions
-        # Sum all demands
-        v.totaldemand[rr, :, tt] = p.totalirrigation[rr, :, tt] + p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
-        v.otherdemand[rr, :, tt] = p.domesticuse[rr, :, tt] + p.industrialuse[rr, :, tt] + p.urbanuse[rr, :, tt] + p.thermoelectricuse[rr, :, tt] + p.livestockuse[rr, :, tt]
-
-        v.totalreturn[rr, :, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, :, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, :, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, :, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, :, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, :, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, :, tt]
+            v.totalreturn[rr, :, tt] = returnpart["irrigation/livestock"] * p.totalirrigation[rr, :, tt] + returnpart["domestic/commercial"] * p.domesticuse[rr, :, tt] + returnpart["industrial/mining"] * p.industrialuse[rr, :, tt] + returnpart["domestic/commercial"] * p.urbanuse[rr, :, tt] + returnpart["thermoelectric"] * p.thermoelectricuse[rr, :, tt] + returnpart["irrigation/livestock"] * p.livestockuse[rr, :, tt]
+        end
     end
 end
 
@@ -57,16 +53,16 @@ end
 Add a WaterDemand component to the model.
 """
 function initwaterdemand(m::Model)
-    waterdemand = addcomponent(m, WaterDemand);
+    waterdemand = add_comp!(m, WaterDemand);
 
     # Initialized at USGS values, replaced by model-waterdemand
     recorded = knowndf("exogenous-withdrawals")
-    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
-    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383./12., outer=[1, numscenarios, m.indices_counts[:time]]);
+    waterdemand[:totalirrigation] = repeat(convert(Vector, recorded[:,:IR_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
+    waterdemand[:industrialuse] = repeat(convert(Vector, recorded[:,:IN_To] + recorded[:,:MI_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
+    waterdemand[:urbanuse] = repeat(convert(Vector, recorded[:,:PS_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
+    waterdemand[:domesticuse] = repeat(convert(Vector, recorded[:,:DO_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
+    waterdemand[:livestockuse] = repeat(convert(Vector, recorded[:,:LI_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
+    waterdemand[:thermoelectricuse] = repeat(convert(Vector, recorded[:,:PT_To]) * config["timestep"] * 1383.0/12., outer=[1, numscenarios, dim_count(m, :time)]);
 
     waterdemand
 end
@@ -107,7 +103,7 @@ function grad_waterdemand_totalreturn_livestockuse(m::Model)
     roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"], [:scenarios])
 end
 
-function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfaceirrigation(m) + values_waterdemand_recordedgroundirrigation(m)
@@ -119,7 +115,7 @@ function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demand
     end
 end
 
-function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacedomestic(m) + values_waterdemand_recordedgrounddomestic(m)
@@ -131,7 +127,7 @@ function values_waterdemand_recordeddomestic(m::Model, includegw::Bool, demandmo
     end
 end
 
-function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfaceindustrial(m) + values_waterdemand_recordedgroundindustrial(m)
@@ -143,7 +139,7 @@ function values_waterdemand_recordedindustrial(m::Model, includegw::Bool, demand
     end
 end
 
-function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacethermoelectric(m) + values_waterdemand_recordedgroundthermoelectric(m)
@@ -155,7 +151,7 @@ function values_waterdemand_recordedthermoelectric(m::Model, includegw::Bool, de
     end
 end
 
-function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function values_waterdemand_recordedlivestock(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     if demandmodel == nothing
         if includegw
             values_waterdemand_recordedsurfacelivestock(m) + values_waterdemand_recordedgroundlivestock(m)

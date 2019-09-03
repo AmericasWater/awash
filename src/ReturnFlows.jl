@@ -26,41 +26,37 @@ using OptiMimi
     removed = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
     # Water returned to gauge
     returned = Variable(index=[gauges, scenarios, time], unit="1000 m^3")
-end
 
-function run_timestep(c::ReturnFlows, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    function run_timestep(p, v, d, tt)
+        for gg in 1:numgauges
+            v.removed[gg, :, tt] .= 0.
+            v.returned[gg, :, tt] .= 0.
+        end
 
-    for gg in 1:numgauges
-        v.removed[gg, :, tt] = 0.
-        v.returned[gg, :, tt] = 0.
-    end
-
-    for ss in 1:numscenarios
-        for pp in 1:nrow(draws)
-            v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
-            if p.swwithdrawals[pp, ss, tt] > 0
-                gaugeid = draws[pp, :gaugeid]
-                vertex = get(wateridverts, gaugeid, nothing)
-                if vertex == nothing
-                    println("Missing $gaugeid")
-                else
-                    gg = vertex_index(vertex)
-                    v.removed[gg, ss, tt] += p.swwithdrawals[pp, ss, tt]
+        for ss in 1:numscenarios
+            for pp in 1:nrow(draws)
+                v.copy_swwithdrawals[pp, ss, tt] = p.swwithdrawals[pp, ss, tt]
+                if p.swwithdrawals[pp, ss, tt] > 0
+                    gaugeid = draws[pp, :gaugeid]
+                    vertex = get(wateridverts, gaugeid, nothing)
+                    if vertex == nothing
+                        println("Missing $gaugeid")
+                    else
+                        gg = vertex_index(vertex)
+                        v.removed[gg, ss, tt] += p.swwithdrawals[pp, ss, tt]
+                    end
                 end
             end
         end
-    end
 
-    # Propogate in downstream order
-    for hh in 1:numgauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            index = vertex_index(upstream, waternet)
-            v.returned[gg, :, tt] += p.returnrate[index] * v.removed[index, :, tt]
+        # Propogate in downstream order
+        for hh in 1:numgauges
+            gg = vertex_index(downstreamorder[hh])
+            gauge = downstreamorder[hh].label
+            for upstream in out_neighbors(wateridverts[gauge], waternet)
+                index = vertex_index(upstream, waternet)
+                v.returned[gg, :, tt] += p.returnrate[index] * v.removed[index, :, tt]
+            end
         end
     end
 end
@@ -68,10 +64,10 @@ end
 """
 Add a ReturnFlows component to the model.
 """
-function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
-    returnflows = addcomponent(m, ReturnFlows);
+function initreturnflows(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
+    returnflows = add_comp!(m, ReturnFlows);
 
-    returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(m.indices_counts[:canals], numscenarios, m.indices_counts[:time]))
+    returnflows[:swwithdrawals] = cached_fallback("extraction/withdrawals", () -> zeros(dim_count(m, :canals), numscenarios, dim_count(m, :time)))
     # Calculate return flows from withdrawals
     returnflows[:returnrate] = vector_canalreturns(m, includegw, demandmodel)
 
@@ -82,7 +78,7 @@ end
 """
 Construct the return flow rate based on observed sector-specific demands
 """
-function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     # Expected returns by county: sum of (RSTxRST * RST)
     expectedreturns = grad_waterdemand_totalreturn_totalirrigation(m) * values_waterdemand_recordedirrigation(m, includegw, demandmodel) +
         grad_waterdemand_totalreturn_domesticuse(m) * values_waterdemand_recordeddomestic(m) +
@@ -104,7 +100,7 @@ function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model
             if draws[pp, :justif] == "contains"
                 regionid = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionid)
-                if rr > 0
+                if rr != nothing
                     canalreturns[pp] = regionreturns[rr]
                 end
             end
@@ -113,7 +109,7 @@ function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model
         for pp in 1:nrow(draws)
             regionid = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionid)
-            if rr > 0
+            if rr != nothing
                 canalreturns[pp] = regionreturns[rr]
             end
         end
@@ -125,7 +121,7 @@ end
 """
 Construct a matrix that represents the decrease in outflow caused by withdrawal
 """
-function grad_returnflows_outflows_swwithdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Void}=nothing)
+function grad_returnflows_outflows_swwithdrawals(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)
     canalreturns = vector_canalreturns(m, includegw, demandmodel)
 
     # Construct room

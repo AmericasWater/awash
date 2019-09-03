@@ -5,11 +5,11 @@
 include("datastore.jl")
 
 "Reorder `values`, currently ordered according to `fromfips`, to `tofips` order."
-function reorderfips(values::Union{DataArrays.DataArray{Float64, 1}, Vector{Float64}}, fromfips, tofips)
+function reorderfips(values::Union{Array{Union{Missing, Float64}, 1}, Vector{Float64}}, fromfips, tofips)
     result = zeros(length(tofips))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])
-        if ii > 0
+        if ii != nothing
             result[rr] = values[ii]
         end
     end
@@ -18,11 +18,11 @@ function reorderfips(values::Union{DataArrays.DataArray{Float64, 1}, Vector{Floa
 end
 
 "Reorder `weather`, a N(`fromfips`) x S x T matrix, into a N(`tofips`) x S x T matrix."
-function reorderfips(weather::Union{DataArrays.DataArray{Float64, 3}, Array{Float64, 3}}, fromfips, tofips)
+function reorderfips(weather::Union{Array{Union{Missing, Float64}, 3}, Array{Float64, 3}}, fromfips, tofips)
     result = zeros(length(tofips), size(weather, 2), size(weather, 3))
     for rr in 1:length(tofips)
         ii = findfirst(fromfips .== tofips[rr])
-        if ii > 0
+        if ii != nothing
             result[rr, :, :] = weather[ii, :, :]
         end
     end
@@ -99,7 +99,7 @@ function getadded(stations::DataFrame)
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
     for ii in 1:nrow(stations)
-        gage = find((abs.(stations[ii, :lat] - gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] - gage_longitude) .< 1e-6))
+        gage = findall((abs.(stations[ii, :lat] .- gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] .- gage_longitude) .< 1e-6))
         if length(gage) != 1 || gage[1] > size(gage_totalflow)[1]
             continue
         end
@@ -107,7 +107,7 @@ function getadded(stations::DataFrame)
         added[:, ii] = vec(gage_totalflow[gage[1], :]) * gage_area[gage[1]]
     end
 
-    added[isnan.(added)] = 0 # if NaN, set to 0 so doesn't propagate
+    added[isnan.(added)] .= 0 # if NaN, set to 0 so doesn't propagate
 
     added
 end

@@ -16,7 +16,7 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
         try
             if nullallow[ii] == nothing
                 df[:, ii] = convert(Vector{types[ii]}, df[:, ii])
-            elseif typeof(nullallow[ii]) != DataArrays.NAtype
+            elseif typeof(nullallow[ii]) != nothing
                 df[:, ii] = replacemissing(df, names(df)[ii], nullallow[ii])
             end
         catch
@@ -27,12 +27,12 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
     df
 end
 
-function replacemissing{T}(df::DataFrame, column::Symbol, replace::T)
-    collect(Missings.replace(df[column], replace))
+function replacemissing(df::DataFrame, column::Symbol, replace::T) where T
+    collect(Missings.replace(df[!, column], replace))
 end
 
 function dropmissing(df::DataFrame, column::Symbol)
-    df[.!isna.(df[column]),:]
+    df[.!isna.(df[!, column]),:]
 end
 
 warnedonce = []
@@ -49,35 +49,27 @@ end
 using Mimi
 import Mimi: ModelInstance, getdiminfoforvar
 
-function getdataframe(m::Model, componentname::Symbol, name::Symbol)
-    if isnull(m.mi)
-        error("Cannot get dataframe, model has not been built yet")
-    elseif !(name in variables(m, componentname))
-        error("Cannot get dataframe; variable not in provided component")
-    else
-        return getdataframe(m, get(m.mi), componentname, name)
-    end
-end
+# import Mimi: getdiminfoforvar
 
-function getdataframe(m::Model, mi::ModelInstance, componentname::Symbol, name::Symbol)
-    comp_type = typeof(mi.components[componentname])
+# function getdataframe(m::Model, mi::ModelInstance, componentname::Symbol, name::Symbol)
+#     comp_type = typeof(mi.components[componentname])
 
-    meta_module_name = Symbol(supertype(typeof(mi.components[componentname])).name.module)
-    meta_component_name = Symbol(supertype(typeof(mi.components[componentname])).name.name)
+#     meta_module_name = Symbol(supertype(typeof(mi.components[componentname])).name.module)
+#     meta_component_name = Symbol(supertype(typeof(mi.components[componentname])).name.name)
 
-    vardiminfo = getdiminfoforvar((meta_module_name,meta_component_name), name)
+#     vardiminfo = getdiminfoforvar((meta_module_name,meta_component_name), name)
 
-    if length(vardiminfo)==0
-        return mi[componentname, name]
-    elseif length(vardiminfo)==1
-        df = DataFrame()
-        df[vardiminfo[1]] = m.indices_values[vardiminfo[1]]
-        df[name] = mi[componentname, name]
-        return df
-    else
-        return getdataframe_helper(m, name, vardiminfo, mi[componentname, name])
-    end
-end
+#     if length(vardiminfo)==0
+#         return mi[componentname, name]
+#     elseif length(vardiminfo)==1
+#         df = DataFrame()
+#         df[vardiminfo[1]] = m.indices_values[vardiminfo[1]]
+#         df[name] = mi[componentname, name]
+#         return df
+#     else
+#         return getdataframe_helper(m, name, vardiminfo, mi[componentname, name])
+#     end
+# end
 
 function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, data::AbstractArray)
     if length(vardiminfo)==2
@@ -86,14 +78,14 @@ function getdataframe_helper(m::Model, name::Symbol, vardiminfo::Array{Any}, dat
         dim2 = length(m.indices_values[vardiminfo[2]])
         df[vardiminfo[1]] = repeat(m.indices_values[vardiminfo[1]],inner=[dim2])
         df[vardiminfo[2]] = repeat(m.indices_values[vardiminfo[2]],outer=[dim1])
-        df[name] = cat(1,[vec(data[i,:]) for i=1:dim1]...)
+        df[name] = cat([vec(data[i,:]) for i=1:dim1]..., dims=1)
         return df
     else
         # Initial blank DF
         df = nothing
 
         # Indexes is #, :, :, ... for each index of first dimension
-        indexes = repmat(Any[Colon()], length(vardiminfo))
+        indexes = repeat(Any[Colon()], length(vardiminfo))
         for ii in 1:size(data)[1]
             indexes[1] = ii
             subdf = getdataframe_helper(m, name, vardiminfo[2:end], data[indexes...])

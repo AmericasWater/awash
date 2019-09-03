@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/landvalue")
+setwd("~/research/water/awash/analyses/landvalue")
 
 do.notime <- T
 
@@ -120,7 +120,13 @@ library(xtable)
 
 if (do.notime) {
     df$optimized <- "Observed"
-    df$optimized[df$period %in% c("Optimal\nCurrent", "Optimal\n2050", "Optimal\n2070")] <- "Optimized"
+    if ("Optimal\nCurrent" %in% df$period) {
+        df$optimized[df$period %in% c("Optimal\nCurrent", "Optimal\n2050", "Optimal\n2070")] <- "Optimized"
+    } else {
+        df$optimized[7:12] <- "Optimized"
+        df$optimized[19:24] <- "Optimized"
+        df$optimized[31:36] <- "Optimized"
+    }
 
     df$period <- as.character(df$period)
     df$period[df$period %in% c("Observed", "Optimal\nCurrent")] <- "2010"
@@ -162,6 +168,9 @@ if (do.notime) {
     sum(df$profit[df$period == 2050 & df$optimized == 'Optimized']) / 1e9
     sum(df$profit[df$period == 2070 & df$optimized == 'Observed']) / 1e9
     sum(df$profit[df$period == 2070 & df$optimized == 'Optimized']) / 1e9
+
+    1 - sum(df$profit[df$period == 2070 & df$optimized == 'Observed']) / sum(df$profit[df$period == 2010 & df$optimized == 'Observed'])
+    1 - sum(df$profit[df$period == 2070 & df$optimized == 'Optimized']) / sum(df$profit[df$period == 2010 & df$optimized == 'Observed'])
 } else {
     df$prode9 <- df$production / 1e9
 
@@ -185,12 +194,3 @@ if (do.notime) {
         theme_bw() + xlab(NULL) + ylab("Profit (USD)")
 
 }
-
-
-
-sum(df$profit[df$period == "Current" & df$optimized == "Observed"]) / 1e9
-sum(df$profit[df$period == "Current" & df$optimized == "Optimized"]) / 1e9
-sum(df$profit[df$period == "2050" & df$optimized == "Observed"]) / 1e9
-sum(df$profit[df$period == "2050" & df$optimized == "Optimized"]) / 1e9
-sum(df$profit[df$period == "2070" & df$optimized == "Observed"]) / 1e9
-sum(df$profit[df$period == "2070" & df$optimized == "Optimized"]) / 1e9

@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/addeds")
+setwd("~/research/water/awash/analyses/addeds")
 load("../../data/counties/waternet/waternet.RData")
 
 library(ncdf4)
@@ -13,6 +13,35 @@ gage.names <- rep("", 22587)
 for (ii in 2:length(gages))
     gage.names <- paste(gage.names, strsplit(gages[ii], "")[[1]], sep="")
 gage.names <- gsub("\" *", "", gage.names)
+
+## Determine area for each node
+basin.areas <- rep(NA, nrow(network))
+
+get.basin.area <- function(ii, ignore=c()) {
+    ## if (!is.na(basin.areas[ii]))
+    ##     return(basin.areas[ii])
+
+    above <- 0
+    for (jj in which(network$nextpt == ii)) {
+        if (jj %in% ignore)
+            next
+        above <- above + get.basin.area(jj, ignore=c(ignore, ii))
+    }
+
+    name <- paste(network$collection[ii], network$colid[ii], sep='.')
+    gg <- which(gage.names == name)
+    if (length(gg) > 0)
+        return(above + areas[gg])
+    else
+        return(above)
+}
+
+for (ii in 1:nrow(network)) {
+    print(ii)
+    basin.areas[ii] <- get.basin.area(ii)
+}
+
+write.csv(data.frame(network$collection, network$colid, basin.areas), "basinareas.csv", row.names=F)
 
 manning.time <- function(dist, drop, flow) {
     n <- .035 # Major natural rivers from http://www.engineeringtoolbox.com/mannings-roughness-d_799.html
@@ -43,7 +72,7 @@ get.total.flows <- function(ii) {
         return(total.flows[ii,])
 
     total.flows[ii,] <<- 0 # fill 0 in case recurse
-    
+
     alltime <- 1:dim(flows)[2]
 
     incoming <- rep(0, dim(flows)[2])

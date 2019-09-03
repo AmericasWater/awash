@@ -32,42 +32,44 @@ include("lib/groundwaterdata.jl")
 
   # Piezometric head
   piezohead = Variable(index=[aquifers, scenarios, time], unit="m")
-end
 
-"""
-Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
-"""
-function run_timestep(c::Aquifer, tt::Int)
-  v = c.Variables
-  p = c.Parameters
-  d = c.Dimensions
-  ## initialization
-  if tt==1
-	  v.piezohead[:,:,tt] = repmat(p.piezohead0, 1, numscenarios);
-  else
-	  v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];
-  end
+    """
+    Compute the piezometric head for each reservoirs and the lateral flows between adjacent aquifers
+    """
+    function run_timestep(p, v, d, tt)
+        ## initialization
+        if is_first(tt)
+	    v.piezohead[:,:,tt] = repeat(p.piezohead0, 1, numscenarios);
+        else
+	    v.piezohead[:,:,tt] = v.piezohead[:,:,tt-1];
+        end
 
-  v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
-  ## repeat simulation timestep time
-  for mm in 1:config["timestep"]
-  	lflows=zeros(d.aquifers[end],1)
-  	for aa in 1:d.aquifers[end]
+        v.lateralflows[:,tt] = zeros(d.aquifers[end],1);
+        ## repeat simulation timestep time
+        for mm in 1:config["timestep"]
+  	    lflows=zeros(d.aquifers[end],1)
+  	    for aa in 1:d.aquifers[end]
 		connections = p.aquiferconnexion[aa, (aa+1):(d.aquifers[end]-1)]
-		for aa_ in find(connections) + aa
-			latflow = p.lateralconductivity[aa,aa_]*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
-			lflows[aa] += latflow/1000;
-			lflows[aa_] -= latflow/1000;
-	                v.lateralflows[aa,tt] += latflow/1000;
-	                v.lateralflows[aa_,tt] -= latflow/1000;
+		for aa_ in findall(connections .> 0) .+ aa
+		    latflow = p.lateralconductivity[aa,aa_].*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
+		    lflows[aa] += latflow/1000;
+	            v.lateralflows[aa,tt] += latflow/1000;
+                    if typeof(aa_) <: Int64
+		        lflows[aa_] = lflows[aa_] .- latflow/1000;
+	                v.lateralflows[aa_,tt] = v.lateralflows[aa_,tt] .- latflow/1000;
+                    else
+		        lflows[aa_] .= lflows[aa_] .- latflow/1000;
+	                v.lateralflows[aa_,tt] .= v.lateralflows[aa_,tt] .- latflow/1000;
+                    end                        
 		end
-	end
+	    end
 
-  # piezometric head initialisation and simulation
-	for aa in d.aquifers
-		v.piezohead[aa,:,tt] = v.piezohead[aa,:,tt] + (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,:,tt]/config["timestep"] - p.withdrawal[aa,:,tt]/config["timestep"] + lflows[aa])
-	end
-  end
+            # piezometric head initialisation and simulation
+	    for aa in d.aquifers
+		v.piezohead[aa,:,tt] = v.piezohead[aa,:,tt] .+ (1/(p.storagecoef[aa]*p.areaaquif[aa]))*(p.recharge[aa,:,tt]/config["timestep"] - p.withdrawal[aa,:,tt]/config["timestep"] .+ lflows[aa])
+	    end
+        end
+    end
 end
 
 function makeconstraintpiezomin(aa, ss, tt)
@@ -85,22 +87,22 @@ end
 Add an Aquifer component to the model.
 """
 function initaquifer(m::Model)
-    aquifer = addcomponent(m, Aquifer)
-    aquifer[:depthaquif] = dfgw[:depthaquif];
-    aquifer[:storagecoef] = dfgw[:storagecoef];
-    aquifer[:piezohead0] = dfgw[:piezohead0];
-    aquifer[:areaaquif] = dfgw[:areaaquif];
+    aquifer = add_comp!(m, Aquifer)
+    aquifer[:depthaquif] = dfgw[!, :depthaquif];
+    aquifer[:storagecoef] = dfgw[!, :storagecoef];
+    aquifer[:piezohead0] = dfgw[!, :piezohead0];
+    aquifer[:areaaquif] = dfgw[!, :areaaquif];
     aquifer[:lateralconductivity] = lateralconductivity;
     aquifer[:aquiferconnexion] = aquiferconnexion;
     aquifer[:recharge] = recharge
-    aquifer[:withdrawal] = zeros(m.indices_counts[:regions],m.indices_counts[:time]);
+    aquifer[:withdrawal] = zeros(dim_count(m, :regions), dim_count(m, :scenarios), dim_count(m, :time));
 
     aquifer[:deltatime] = convert(Float64, config["timestep"]);
 
     # Get elevation from county-info file
     countyinfo = knowndf("region-info")
-    countyinfo[:FIPS] = regionindex(countyinfo, :)
+    countyinfo[!, :FIPS] = regionindex(countyinfo, :)
 
-    aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))
+    aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[!, :FIPS], countyinfo[!, :Elevation_ft]))
     aquifer
 end

@@ -40,7 +40,7 @@ for switchcost in [0; collect(exp.(linspace(log(1), log(1000), 10))); 750; Inf]
 
         # Objectve
         if switchcost > 0
-            ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj] - switchcost * (baselinerow[jj] == 0 ? 1 : (isna(baseline[baselinerow[jj], :maxcrop]) ? 1 : baseline[baselinerow[jj], :maxcrop] != String(areacrops[ii]))))
+            ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj] - switchcost * (baselinerow[jj] == 0 ? 1 : (ismissing(baseline[baselinerow[jj], :maxcrop]) ? 1 : baseline[baselinerow[jj], :maxcrop] != String(areacrops[ii]))))
         else
             ff = OptiMimi.vectorsingle([size(mat)[1], size(mat)[2]], (ii, jj) -> mat[ii, jj])
         end

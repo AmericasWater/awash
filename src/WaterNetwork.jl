@@ -19,34 +19,30 @@ using Mimi
     inflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # Sum of upstream outflows
     outflows = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # inflow + added - removed + returned
     unmodifieds = Variable(index=[gauges, scenarios, time], unit="1000 m^3") # Sum of upstream unmodifieds + added
-end
 
-"""
-Compute the inflows and outflows at each node
-"""
-function run_timestep(c::WaterNetwork, tt::Int)
-    v = c.Variables
-    p = c.Parameters
-    d = c.Dimensions
+    """
+    Compute the inflows and outflows at each node
+    """
+    function run_timestep(p, v, d, tt)
+        for hh in d.gauges
+            gg = vertex_index(downstreamorder[hh])
+            gauge = downstreamorder[hh].label
+            allflow = zeros(numscenarios)
+            unmodified = zeros(numscenarios)
+            for upstream in out_neighbors(wateridverts[gauge], waternet)
+                allflow += v.outflows[vertex_index(upstream, waternet), :, tt]
+                unmodified += v.unmodifieds[vertex_index(upstream, waternet), :, tt]
+            end
 
-    for hh in d.gauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        allflow = zeros(numscenarios)
-        unmodified = zeros(numscenarios)
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            allflow += v.outflows[vertex_index(upstream, waternet), :, tt]
-            unmodified += v.unmodifieds[vertex_index(upstream, waternet), :, tt]
+            v.inflows[gg, :, tt] = allflow
+            v.outflows[gg, :, tt] = allflow + p.added[gg, :, tt] - p.removed[gg, :, tt] + p.returned[gg, :, tt]
+            v.unmodifieds[gg, :, tt] = unmodified + p.added[gg, :, tt]
         end
-
-        v.inflows[gg, :, tt] = allflow
-        v.outflows[gg, :, tt] = allflow + p.added[gg, :, tt] - p.removed[gg, :, tt] + p.returned[gg, :, tt]
-        v.unmodifieds[gg, :, tt] = unmodified + p.added[gg, :, tt]
     end
 end
 
 function initwaternetwork(m::Model)
-    waternetwork = addcomponent(m, WaterNetwork)
+    waternetwork = add_comp!(m, WaterNetwork)
 
     # addeds loaded by weather.jl
     waternetwork[:added] = addeds[:, :, 1:numsteps]

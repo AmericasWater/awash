@@ -59,12 +59,12 @@ end
 
 function parsemonth(mmyyyy)
     parts = split(mmyyyy, '/')
-    (parse(UInt16, parts[2]) - 1) * 12 + parse(UInt8, parts[1])
+    (parse(Int64, parts[2]) - 1) * 12 + parse(Int64, parts[1])
 end
 
 function parseyear(mmyyyy)
     parts = split(mmyyyy, '/')
-    parse(UInt16, parts[2])
+    parse(Int64, parts[2])
 end
 
 function index2time(tt::Int64)
@@ -75,8 +75,8 @@ end
 # Consider reworking this using index2yearindex and similar
 function index2year(tt::Int64)
     startmonth = parsemonth(config["startmonth"])
-    startyear = parse(Int16, split(config["startmonth"], '/')[2])
-    endyear = parse(Int16, split(config["endmonth"], '/')[2])
+    startyear = parse(Int64, split(config["startmonth"], '/')[2])
+    endyear = parse(Int64, split(config["endmonth"], '/')[2])
 
     times = startmonth:config["timestep"]:parsemonth(config["endmonth"])
     years = startyear:endyear
@@ -84,7 +84,7 @@ function index2year(tt::Int64)
     years[div(times[tt]-1, 12) - div(startmonth, 12) + 1]
 end
 
-if !isdefined(:configtransforms)
+if !(@isdefined configtransforms)
     configtransforms = Dict{AbstractString, Function}()
     configtransforms["identity"] = (index, x) -> x
     configtransforms["repcap"] = (index, x) -> error("The PopulationDemand component needs to be loaded first.")
@@ -97,7 +97,7 @@ TODO: This should look at config to see what these mean in context
 """
 function getindices(name::Symbol, as::Type=Any)
     if name == :regions
-        values = masterregions[:fips]
+        values = masterregions[!, :fips]
     else
         error("We have not defined index $name yet.")
     end
@@ -145,7 +145,7 @@ function configdata(name::AbstractString, defpath::AbstractString, defcol::Symbo
                 # Fill in the new values where given
                 for rr in 1:nrow(data)
                     ii = findfirst(data[rr, indexcol] .== indices)
-                    if ii > 0
+                    if ii != nothing
                         newvalue = transform(data[rr, indexcol], data[rr, column])
                         if !isna.(newvalue)
                             values[ii] = newvalue

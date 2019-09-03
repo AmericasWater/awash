@@ -38,5 +38,6 @@ requirepackage("Clp")
 requirepackage("NaNMath")
 requirepackage("WeakRefStrings")
 requirepackage("PooledArrays")
+requirepackage("Distributions")
 
 include("thetests.jl")

@@ -86,7 +86,7 @@ else
         end
         ii = indexin([index], regionindex(masterregions, :))[1]
         if ii != nothing
-            sourceiis[ii] = filter(!isnothing, indexin(neighbors, regionindex(masterregions, :)))
+            sourceiis[ii] = filter(!ismissing, indexin(neighbors, regionindex(masterregions, :)))
         end
     end
 

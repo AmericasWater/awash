@@ -28,11 +28,11 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-#requirepackage("Mimi", "time")
+requirepackage("Mimi", checkout=true)
 requirepackage("Graphs")
 requirepackage("DataFrames")
 requirepackage("NetCDF")
-requirepackage("OptiMimi")
+requirepackage("OptiMimi", checkout=true)
 requirepackage("RData")
 requirepackage("Clp")
 requirepackage("NaNMath")

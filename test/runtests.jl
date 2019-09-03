@@ -36,5 +36,7 @@ requirepackage("OptiMimi", true)
 requirepackage("RData")
 requirepackage("Clp")
 requirepackage("NaNMath")
+requirepackage("WeakRefStrings")
+requirepackage("PooledArrays")
 
 include("thetests.jl")

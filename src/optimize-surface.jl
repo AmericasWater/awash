@@ -7,7 +7,7 @@
 include("lib/readconfig.jl")
 if !(@isdefined config)
     ##config = readconfig("../configs/single.yml") # Just use 1 year for optimization
-    config = readconfig("../configs/paleo-4scen.yml")
+    config = readconfig("../configs/standard-1yearmonthly.yml")
 end
 
 if "rescap" in keys(config) && config["rescap"] == "zero"

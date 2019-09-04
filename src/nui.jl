@@ -43,7 +43,7 @@ if !("RData" in keys(versions))
     Pkg.add("RData")
 end
 
-if !is_windows() && !("NetCDF" in keys(versions))
+if !Sys.iswindows() && !("NetCDF" in keys(versions))
     Pkg.add("NetCDF")
 end
 

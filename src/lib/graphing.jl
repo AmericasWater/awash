@@ -3,14 +3,14 @@
 # Includes either graphing library, with `graphing-rcall.jl`
 # preferred.
 
-if Pkg.installed("RCall") != nothing
+if ("RCall" in keys(versions))
     include("graphing-rcall.jl")
 else
-    if Pkg.installed("Shapefile") == nothing
+    if !("Shapefile" in keys(versions))
         Pkg.add("Shapefile")
     end
 
-    if Pkg.installed("Gadfly") == nothing
+    if !("Gadfly" in keys(versions))
         Pkg.add("Gadfly")
     end
 

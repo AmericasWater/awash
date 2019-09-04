@@ -56,9 +56,12 @@ include("lib/agriculture.jl")
     area_sumregion = Variable(index=[irrcrops, time], unit="lborbu")
 
     function run_timestep(p, v, d, tt)
+        contyys = timeindex2contributingyearindexes(tt)
+
         if numirrcrops == 0
             for rr in d.regions
                 v.totalirrigation[rr, :, tt] .= 0
+                v.totalareas[rr, :, contyys] .= 0.
                 v.allagarea[rr, tt] = 0
             end
             return

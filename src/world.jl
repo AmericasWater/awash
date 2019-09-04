@@ -72,7 +72,7 @@ function newmodel()
     yearindexes = cat(timeindex2yearindexes.(1:numsteps)..., dims=1)
 
     set_dimension!(m, :harvestyear, length(yearnames) == maximum(yearindexes) ? yearnames[yearindexes] : yearnames[yearindexes .+ 1]) # Happens if first year gets no harvest
-    set_dimension!(m, :regions, collect(masterregions[:fips]))
+    set_dimension!(m, :regions, collect(masterregions[!, :fips]))
     set_dimension!(m, :unicrops, unicrops)
     set_dimension!(m, :irrcrops, irrcrops)
     set_dimension!(m, :allcrops, allcrops)

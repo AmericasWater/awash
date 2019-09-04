@@ -29,7 +29,7 @@ if isfile(datapath("drawdown.csv"))
     # gw: extraction cost prop to drawdown to watertable
     drawdown = readtable(datapath("drawdown.csv"))
     #80.6 replaced with 1000000
-    aquiferextractioncost=array(0.3048*drawdown[:mean]*energycostperlift)
+    aquiferextractioncost=array(0.3048*drawdown[!, :mean]*energycostperlift)
 else
     # In docs/Optimization%20by%20Radius.ipynb, find that 1 MG costs $1464.37
     # 1 MG = 3.785411784 1000 m^3, so 1000 m^3 costs $386.85

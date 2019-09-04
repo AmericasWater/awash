@@ -76,12 +76,12 @@ function initagriculture(m::Model)
     agriculture = add_comp!(m, Agriculture)
 
     knownareas = knowndf("agriculture-knownareas")
-    othercropsarea = repeat(convert(Vector, (knownareas[:total] - knownareas[:known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha
+    othercropsarea = repeat(convert(Vector, (knownareas[!, :total] - knownareas[!, :known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha
     agriculture[:othercropsarea] = othercropsarea
 
     recorded = knowndf("exogenous-withdrawals")
-    othercropsirrigation = ((knownareas[:total] - knownareas[:known]) ./ knownareas[:total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
-    othercropsirrigation[knownareas[:total] .== 0] .= 0
+    othercropsirrigation = ((knownareas[!, :total] - knownareas[!, :known]) ./ knownareas[!, :total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
+    othercropsirrigation[knownareas[!, :total] .== 0] .= 0
     othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])
     agriculture[:othercropsirrigation] = othercropsirrigation
 
@@ -181,7 +181,7 @@ end
 
 
 function constraintoffset_colorado_agriculture_sorghumarea(m::Model)
-    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[:x][:,1]
+    sorghum=readtable(datapath("../Colorado/sorghum.csv"))[!, :x][:,1]
     sorghum=repeat(convert(Vector,allarea),outer=[1,numsteps])
     gen(rr,tt)=sorghum[rr,tt]
     hallsingle(m, :Agriculture, :sorghumarea,gen)

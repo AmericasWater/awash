@@ -53,9 +53,14 @@ include("lib/groundwaterdata.jl")
 		for aa_ in findall(connections .> 0) .+ aa
 		    latflow = p.lateralconductivity[aa,aa_].*mean(v.piezohead[aa_,:,tt]-v.piezohead[aa,:,tt]); # in m3/month
 		    lflows[aa] += latflow/1000;
-		    lflows[aa_] .-= latflow/1000;
 	            v.lateralflows[aa,tt] += latflow/1000;
-	            v.lateralflows[aa_,tt] .-= latflow/1000;
+                    if typeof(aa_) <: Int64
+		        lflows[aa_] = lflows[aa_] .- latflow/1000;
+	                v.lateralflows[aa_,tt] = v.lateralflows[aa_,tt] .- latflow/1000;
+                    else
+		        lflows[aa_] .= lflows[aa_] .- latflow/1000;
+	                v.lateralflows[aa_,tt] .= v.lateralflows[aa_,tt] .- latflow/1000;
+                    end                        
 		end
 	    end
 
@@ -83,10 +88,10 @@ Add an Aquifer component to the model.
 """
 function initaquifer(m::Model)
     aquifer = add_comp!(m, Aquifer)
-    aquifer[:depthaquif] = dfgw[:depthaquif];
-    aquifer[:storagecoef] = dfgw[:storagecoef];
-    aquifer[:piezohead0] = dfgw[:piezohead0];
-    aquifer[:areaaquif] = dfgw[:areaaquif];
+    aquifer[:depthaquif] = dfgw[!, :depthaquif];
+    aquifer[:storagecoef] = dfgw[!, :storagecoef];
+    aquifer[:piezohead0] = dfgw[!, :piezohead0];
+    aquifer[:areaaquif] = dfgw[!, :areaaquif];
     aquifer[:lateralconductivity] = lateralconductivity;
     aquifer[:aquiferconnexion] = aquiferconnexion;
     aquifer[:recharge] = recharge
@@ -96,8 +101,8 @@ function initaquifer(m::Model)
 
     # Get elevation from county-info file
     countyinfo = knowndf("region-info")
-    countyinfo[:FIPS] = regionindex(countyinfo, :)
+    countyinfo[!, :FIPS] = regionindex(countyinfo, :)
 
-    aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[:FIPS], countyinfo[:Elevation_ft]))
+    aquifer[:elevation] = map(x -> ifelse(ismissing(x), 0., x), dataonmaster(countyinfo[!, :FIPS], countyinfo[!, :Elevation_ft]))
     aquifer
 end

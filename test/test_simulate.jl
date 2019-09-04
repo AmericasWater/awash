@@ -40,7 +40,6 @@ if isfile(outputpath)
             if abs(compdf[ii, :value] - alldf[ii, :value]) > 1e-6
                 push!(mismatches, ii)
                 println(abs.(compdf[ii, :value] - alldf[ii, :value]))
-                println(maximum(abs.(compdf[ii, :value] - alldf[ii, :value])))
             end
         end
     end

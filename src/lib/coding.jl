@@ -28,11 +28,11 @@ function robustcsvread(filepath::String, types::Vector{DataType}, null::String, 
 end
 
 function replacemissing(df::DataFrame, column::Symbol, replace::T) where T
-    collect(Missings.replace(df[column], replace))
+    collect(Missings.replace(df[!, column], replace))
 end
 
 function dropmissing(df::DataFrame, column::Symbol)
-    df[.!isna.(df[column]),:]
+    df[.!isna.(df[!, column]),:]
 end
 
 warnedonce = []

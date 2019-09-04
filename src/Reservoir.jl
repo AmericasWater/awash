@@ -97,7 +97,7 @@ function initreservoir(m::Model, name=nothing)
        	reservoir[:storage0] = zeros(numreservoirs);
      	reservoir[:evaporation] = zeros(numreservoirs, numscenarios, numsteps);
     else
-        rcmax = convert(Vector{Float64}, reservoirdata[:MAXCAP])./1000 #data in cubic meters, change to 1000m3
+        rcmax = convert(Vector{Float64}, reservoirdata[!, :MAXCAP])./1000 #data in cubic meters, change to 1000m3
      	reservoir[:storagecapacitymax] = rcmax;
      	reservoir[:storagecapacitymin] = zeros(numreservoirs);
         reservoir[:storage0] = zeros(numreservoirs);

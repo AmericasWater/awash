@@ -27,14 +27,14 @@ if analysis == :shadowcost
     lambdas = sol.attrs[:lambda][sum(varlens[1:2])+1:sum(varlens[1:3])]
     lambdas = reshape(lambdas, (3109, 2))
     df = convert(DataFrame, lambdas)
-    df[:fips] = map(x -> parse(Int64, x), masterregions[:fips])
+    df[!, :fips] = map(x -> parse(Int64, x), masterregions[!, :fips])
     writetable("../results/shadowprice.csv", df)
-    usmap(DataFrame(fips=df[:fips], value=df[:x1]))
+    usmap(DataFrame(fips=df[!, :fips], value=df[!, :x1]))
 elseif analysis == :debug
     coning = constraining(house, convert(Vector{Float64}, sol.sol))
 
-    rdf = DataFrame(fips=masterregions[:fips]);
-    cdf = DataFrame(fips=repeat(masterregions[:fips], numallcrops), crop=vec(repeat(allcrops, inner=[numcounties, 1])));
+    rdf = DataFrame(fips=masterregions[!, :fips]);
+    cdf = DataFrame(fips=repeat(masterregions[!, :fips], numallcrops), crop=vec(repeat(allcrops, inner=[numcounties, 1])));
 
     # Look at parameter values
     varlens = varlengths(m, house.paramcomps, house.parameters)

@@ -3,6 +3,7 @@
 # Functions for accessing external data.
 
 using Pkg
+using WeakRefStrings, PooledArrays
 include("inputcache.jl")
 
 """
@@ -176,7 +177,7 @@ function canonicalindex(indexes)
     if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}}
+    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}} || typeof(indexes) <: WeakRefStrings.StringArray{String,1} || typeof(indexes) <: PooledArrays.PooledArray{String,UInt32,1,Array{UInt32,1}}
         if config["indexpad"] == nothing
             return indexes
         else
@@ -194,15 +195,16 @@ function canonicalindex(indexes)
         end
     end
 
+    println(indexes)
     error("Unknown index column type $(typeof(indexes))")
 end
 
 """Return the index for each region key."""
 function getregionindices(fipses, tomaster=true)
     if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Int64, Missing}}
-        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
     else
-        masterfips = masterregions[:fips]
+        masterfips = masterregions[!, :fips]
     end
 
     if tomaster
@@ -238,9 +240,9 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                 ## Inpute the added water for all junctions
                 waternetdata = cachereadrda(loadpath("waternet/waternet.RData"))
                 stations = waternetdata["stations"]
-                stations[:gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
+                stations[!, :gageid] = ["$(stations[ii, :collection]).$(stations[ii, :colid])" for ii in 1:nrow(stations)]
                 network = waternetdata["network"]
-                network[:gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
+                network[!, :gageid] = ["$(network[ii, :collection]).$(network[ii, :colid])" for ii in 1:nrow(network)]
 
                 contribs = cachereadtable(loadpath("waternet/contribs.csv"), eltypes=[String, String, Float64])
                 contribs = dropmissing(contribs, :sink)
@@ -253,7 +255,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                         continue # Already done
                     end
 
-                    controws = contribs[contribs[:sink] .== gageid, :]
+                    controws = contribs[contribs[!, :sink] .== gageid, :]
 
                     sumadded = zeros(size(addeds)[2])
                     numadded = 0
@@ -262,7 +264,7 @@ function knownvariable(collection::AbstractString, name::AbstractString)
                         if isna(controws[jj, :factor])
                             continue
                         end
-                        gagejj = findfirst(controws[jj, :source] .== network[:gageid])
+                        gagejj = findfirst(controws[jj, :source] .== network[!, :gageid])
                         sumadded += addeds[gagejj, :] * controws[jj, :factor]
                         numadded += 1
                     end
@@ -304,9 +306,9 @@ Value is NA if a given region isn't in fipses.
 """
 function dataonmaster(fipses, values)
     if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
-        masterfips = map(x -> parse(Int64, x), masterregions[:fips])
+        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
     else
-        masterfips = masterregions[:fips]
+        masterfips = masterregions[!, :fips]
     end
     if typeof(fipses) <: Vector{Union{Missing, Int64}}
         fipses = collect(Missings.replace(fipses, 0))

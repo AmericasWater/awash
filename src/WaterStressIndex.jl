@@ -59,9 +59,9 @@ using DataFrames
                             # Checking if the gauge is the last one
                             gauge = downstreamorder[gg].label
                             for upstream in out_neighbors(wateridverts[gauge], waternet)
-                                for ii in findall(draws[:gaugeid] .== upstream.label)
-                                    if draws[:justif][ii] == "contains"
-                                        if draws[:fips][ii] != draws[:fips][pp]
+                                for ii in findall(draws[!, :gaugeid] .== upstream.label)
+                                    if draws[!, :justif][ii] == "contains"
+                                        if draws[!, :fips][ii] != draws[!, :fips][pp]
                                             v.availabilityinflowlocal[rr, :, tt] += p.inflowgauge[gg, :, tt]
                                         end
                                     end
@@ -86,8 +86,8 @@ using DataFrames
                         # Checking if the gauge is the last one
                         gauge = downstreamorder[gg].label
                         for upstream in out_neighbors(wateridverts[gauge], waternet)
-                            for ii in findall(draws[:gaugeid] .== upstream.label)
-                                if draws[:state][ii] != draws[:state][pp]
+                            for ii in findall(draws[!, :gaugeid] .== upstream.label)
+                                if draws[!, :state][ii] != draws[!, :state][pp]
                                     v.availabilityinflowlocal[rr, :, tt] += p.inflowgauge[gg, :, tt]
                                 end
                             end

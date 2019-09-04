@@ -25,7 +25,7 @@ if get(config, "watercost-extraction", true)
 	canalextractioncost = zeros(numcanals)
 	for ii in 1:numcanals
 		gauge_id = draws[ii,:gaugeid][(findfirst(".", draws[ii,:gaugeid])[1]+1):end]
-		indx = findall(waternetdata["stations"][:colid] .== gauge_id)
+		indx = findall(waternetdata["stations"][!, :colid] .== gauge_id)
 		if length(indx) == 0
 			canalextractioncost[ii] = naelev
 		else
@@ -43,7 +43,7 @@ if get(config, "watercost-extraction", true)
                             canalextractioncost[ii] = 0
                         else
                             counties = knowndf("region-info")
-			    elevation_county = counties[:Elevation_ft][findall(regionindex(counties, :) .== county_id)][1] *0.305
+			    elevation_county = counties[!, :Elevation_ft][findall(regionindex(counties, :) .== county_id)][1] *0.305
 			    if ismissing(elevation_county) # if county-info does not have elevation information, use values from gw model
 				elevation_county = readtable(datapath("gwmodel/county_elevation.txt"))[1][findall(regionindex(counties, :) .== county_id)][1]
 			    end

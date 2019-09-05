@@ -167,7 +167,7 @@ function initunivariateagriculture(m::Model)
                 constantareas[ismissing.(totalareas[!, column]), cc] .= 0. # Replace NAs with 0, and convert to float.
             end
         end
-        agriculture[:totalareas] = reshape(repeat(constantareas, outer=[1, numharvestyears]), (numcounties, numunicrops, numharvestyears))
+        agriculture[:totalareas] = repnew(constantareas, numharvestyears)
     end
 
     agriculture

@@ -9,6 +9,7 @@
 using DataFrames
 using Mimi
 
+include("lib/coding.jl")
 include("lib/agriculture.jl")
 
 @defcomp UnivariateAgriculture begin
@@ -187,7 +188,7 @@ deserialize(open(datapath("../Colorado/totalareas_cst-08.jld"), "r"));
         end
         constantareas=convert(Array,readtable(datapath("../Colorado/totalarea1-08.csv")))
         agriculture[:totalareas_cst] =constantareas
-        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numsteps])
+        agriculture[:totalareas] = repnew(constantareas, numsteps)
         agriculture[:sorghumarea] =repeat(sorghumarea, outer=[1, numsteps])
         agriculture[:maxarea] =repeat(maxarea, outer=[1, numsteps])
         if isfile(datapath("../extraction/totalareas$suffix.jld"))

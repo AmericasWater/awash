@@ -50,7 +50,7 @@ include("lib/agriculture.jl")
     function run_timestep(p, v, d, tt)
         yys = timeindex2yearindexes(tt)
         contyys = timeindex2contributingyearindexes(tt)
-        
+
         if numunicrops == 0
             for rr in d.regions
                 v.totalirrigation[rr, :, tt] .= 0
@@ -167,7 +167,7 @@ function initunivariateagriculture(m::Model)
                 constantareas[ismissing.(totalareas[!, column]), cc] .= 0. # Replace NAs with 0, and convert to float.
             end
         end
-        agriculture[:totalareas] = repeat(constantareas, outer=[1, 1, numharvestyears])
+        agriculture[:totalareas] = repnew(constantareas, numharvestyears)
     end
 
     agriculture

@@ -178,8 +178,8 @@ function initirrigationagriculture(m::Model)
             rainfeds[cc] = rainfeds[cc] * 0.404686
             irrigateds[cc] = irrigateds[cc] * 0.404686
         end
-        agriculture[:rainfedareas] = repeat(convert(Matrix, rainfeds[:, columns]), outer=[1, 1, numsteps])
-        agriculture[:irrigatedareas] = repeat(convert(Matrix, irrigateds[:, columns]), outer=[1, 1, numsteps])
+        agriculture[:rainfedareas] = repnew(convert(Matrix, rainfeds[:, columns]), numsteps)
+        agriculture[:irrigatedareas] = repnew(convert(Matrix, irrigateds[:, columns]), numsteps)
     end
 
     agriculture

@@ -33,7 +33,7 @@ summarizeparameters(house, sol.sol)
 #constdf = constraining(house, sol.sol)
 
 # Save the results
-save_optimization_given(house, sol, allowgw=false, allowreservoirs=allowreservoirs)
+save_optimization_given(house, sol, false, allowreservoirs)
 
 # How much water is in the streams?
 values = getconstraintsolution(house, sol, :outflows)

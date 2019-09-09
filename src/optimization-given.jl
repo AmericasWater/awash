@@ -93,7 +93,7 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     end
     setobjective!(house, -hall_relabel(varsum(grad_watercost_costswwithdrawals(m)), :swwithdrawals, :Allocation, :swwithdrawals))
     setobjective!(house, -.5 * hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quartersupersourcesupply))
-    setobjective!(house, -hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :quartersupersourcesupply))
+    setobjective!(house, -hall_relabel(varsum(grad_watercost_costsupersource(m)), :supersourcesupply, :Allocation, :supersourcesupply))
     if allowreservoirs
         setobjective!(house, -varsum(grad_reservoir_cost_captures(m)))
     end

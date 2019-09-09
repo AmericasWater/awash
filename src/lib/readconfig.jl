@@ -21,6 +21,8 @@ function readconfig(ymlpath)
     config["indexcols"] = map(Symbol, config["indexcols"])
     try
         clearfilecache()
+    catch
+        nothing
     end
 
     config

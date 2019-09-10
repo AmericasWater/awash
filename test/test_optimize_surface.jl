@@ -14,11 +14,15 @@ house = optimization_given(false)
 using MathProgBase
 using Clp
 solver = ClpSolver()
+# using Gurobi
+# solver = GurobiSolver()
 
 @time sol = houseoptimize(house, solver)
 
 # Save the results, if not available
 varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quartersupersourcesupply => :supersourcesupply))
+# varlengths(house.model, house.constcomps, house.constraints)
+
 
 let
 allparams = Symbol[]

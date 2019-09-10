@@ -19,6 +19,11 @@ function readconfig(ymlpath)
     config = mergeconfigs(dataset, config)
 
     config["indexcols"] = map(Symbol, config["indexcols"])
+    try
+        clearfilecache()
+    catch
+        nothing
+    end
 
     config
 end

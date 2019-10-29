@@ -17,6 +17,7 @@ crop2bayes_crop = Dict("barl" => "Barley", "corn" => "Corn", "cott" => "Cotton",
 
 do_cropdrop = true
 extraneg = true
+domcmcdraws = true # << for MC
 
 if do_cropdrop
     crops = ["corn", "soyb", "whea", "barl", "cott", "rice"]
@@ -24,8 +25,8 @@ else
     crops = ["corn", "soyb", "whea", "sorg", "barl", "cott", "rice", "oats", "pean"]
 end
 
-actualcrops = CSV.read("actualcrops.csv")
-actualcrops[:fips] = canonicalindex(actualcrops[:fips])
+actualcrops = CSV.read("actualcrops.csv"; copycols=true)
+actualcrops[!, :fips] = canonicalindex(actualcrops[!, :fips])
 actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
 actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
 actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
@@ -47,6 +48,8 @@ for ii in 1:nrow(masterregions)
 end
 
 fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
+
+for mcmcdraw in 215:3000 # XXX
 
 let
 value = repeat([0.0], size(masterregions, 1))
@@ -78,8 +81,13 @@ for crop in crops
     profit = max.(profit, data)
 
     # Determine the profit under the estimated yields
-    prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
-    prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true)
+    if domcmcdraws
+        prepdata = preparecrop(crop2bayes_crop[crop], false, true, false, mcmcdraw)
+        prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true, mcmcdraw)
+    else
+        prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
+        prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true)
+    end        
 
     cropprofit = zeros(nrow(masterregions))
     cropprofit_changeirr = zeros(nrow(masterregions))
@@ -163,9 +171,18 @@ masterregions[:toadd] = toadd
 masterregions[:esttoadd] = esttoadd
 masterregions[:esttoadd_changeirr] = esttoadd_changeirr
 
-if do_cropdrop
-    CSV.write("farmvalue-limited.csv", masterregions)
+if domcmcdraws
+    if do_cropdrop
+        CSV.write("farmvalue-limited-$mcmcdraw.csv", masterregions)
+    else
+        CSV.write("farmvalue-$mcmcdraw.csv", masterregions)
+    end
 else
-    CSV.write("farmvalue.csv", masterregions)
+    if do_cropdrop
+        CSV.write("farmvalue-limited.csv", masterregions)
+    else
+        CSV.write("farmvalue.csv", masterregions)
+    end
+end    
 end
 end

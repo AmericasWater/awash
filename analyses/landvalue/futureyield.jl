@@ -7,6 +7,7 @@ config = readconfig("../../configs/single.yml")
 
 include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
+include("curryield.jl")
 
 wheatshares = CSV.read("wheat-shares.csv")
 wheatshares[:fips] = convert(Vector{Int64}, wheatshares[:fips])
@@ -22,14 +23,17 @@ onecrops = nothing #["Barley", "Cotton"]
 
 includeus = true
 extraneg = true
+onlyprefed = true # << for MC
+domcmcdraws = true # << for MC
 
 #profitfix = true
+for mcmcdraw in 404:3000 # XXX
 for profitfix in [true, "modeled"]
     for holdcoeff in [false, true]
         for allowtime in [false, true]
             for futureyear in [2050, 2070]
                 for limityield in ["ignore", "lybymc"]
-if onefips != false && (limityield != "ignore" || profitfix != "modeled" || holdcoeff != true || allowtime != false)
+if (onefips != false || onlyprefed) && (limityield != "ignore" || profitfix != "modeled" || holdcoeff != true || allowtime != false)
     continue
 end
 
@@ -45,9 +49,13 @@ eddmodels = ["access1-0", "bcc-csm1-1", "ccsm4", "cnrm-cm5", "gfdl-cm3", "giss-e
 biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "hd", "he", "hg", "in", "ip", "mc",
              "mg", "mi", "mp", "mr" , "no"]
-
+if domcmcdraws
+    eddmodels = [eddmodels[mcmcdraw % length(eddmodels) + 1]]
+    biomodels = [biomodels[mcmcdraw % length(biomodels) + 1]]
+end
+    
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited.csv")
+    profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
     profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
@@ -93,6 +101,14 @@ for ii in 1:length(bayes_crops)
     b2s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b2.txt"), ' '))
     b3s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b3.txt"), ' '))
     b4s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b4.txt"), ' '))
+
+    if mcmcdraw != nothing
+        b0s = b0s[[mcmcdraw], :]
+        b1s = b1s[[mcmcdraw], :]
+        b2s = b2s[[mcmcdraw], :]
+        b3s = b3s[[mcmcdraw], :]
+        b4s = b4s[[mcmcdraw], :]
+    end
 
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus)
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus)
@@ -163,6 +179,14 @@ for ii in 1:length(bayes_crops)
     bayes_wreq = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta2.txt"), ' ')[:, 1:3111];
     bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
     bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
+
+    if mcmcdraw != nothing
+        bayes_intercept = bayes_intercept[[mcmcdraw], :]
+        bayes_time = bayes_time[[mcmcdraw], :]
+        bayes_wreq = bayes_wreq[[mcmcdraw], :]
+        bayes_gdds = bayes_gdds[[mcmcdraw], :]
+        bayes_kdds = bayes_kdds[[mcmcdraw], :]
+    end
 
     for kk in 1:nrow(bios)
         fips = bios[:fips][kk]
@@ -272,6 +296,12 @@ end
 if rcp != "rcp85"
     push!(suffixes, rcp)
 end
+if length(biomodels) == 1
+    push!(suffixes, "$(biomodels[1])")
+end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
 if length(suffixes) > 0
     suffixes = [""; suffixes]
 end
@@ -291,5 +321,10 @@ end
 end
 end
 end
+end
+end
+
+if !domcmcdraws
+    break
 end
 end

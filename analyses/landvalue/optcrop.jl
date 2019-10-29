@@ -11,20 +11,24 @@ includeus = true
 extraneg = true
 onefips = false #53009
 onecrops = nothing #["Barley", "Cotton"]
+onlyprefed = true # << for MC
+domcmcdraws = true # << for MC
 
 for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
+for mcmcdraw in 369:3000 # XXX
+
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
-if onefips != false && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
+if (onefips != false || onlyprefed) && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
     continue
 end
 
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited.csv")
+    profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
     profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
     profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
     profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
@@ -45,8 +49,12 @@ for ii in 1:length(bayes_crops)
     end
     println(crop)
 
-    prepdata = preparecrop(crop, false, true, changeirr)
-
+    if domcmcdraws
+        prepdata = preparecrop(crop, false, true, changeirr, mcmcdraw)
+    else
+        prepdata = preparecrop(crop, false, true, changeirr)
+    end
+    
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
 
@@ -116,6 +124,9 @@ end
 if trendyear != 62
     push!(suffixes, "$(2010+trendyear - 62)")
 end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
 suffix = join(suffixes, "-")
 
 writedlm("currentprofits$suffix.csv", allprofits', ',')
@@ -128,6 +139,12 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("maxbayesian$suffix.csv", result)
+
+if !domcmcdraws
+    break
+end
+
+end
 end
 end
 end

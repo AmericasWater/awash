@@ -13,7 +13,7 @@ cropdirs = ["barley", "corn", "cotton", "rice", "soybean", "wheat"]
 
 knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
 
-function preparecrop(crop, crossval, constvar, changeirr)
+function preparecrop(crop, crossval, constvar, changeirr, mcmcdraw=nothing)
     ii = findfirst(bayes_crops .== crop)
 
     fullcropdir = "Code_" * cropdirs[ii]
@@ -34,12 +34,28 @@ function preparecrop(crop, crossval, constvar, changeirr)
     bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
     bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
 
+    if mcmcdraw != nothing
+        bayes_intercept = bayes_intercept[[mcmcdraw], :]
+        bayes_time = bayes_time[[mcmcdraw], :]
+        bayes_wreq = bayes_wreq[[mcmcdraw], :]
+        bayes_gdds = bayes_gdds[[mcmcdraw], :]
+        bayes_kdds = bayes_kdds[[mcmcdraw], :]
+    end
+    
     if changeirr == true
         b0s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b0.txt"), ' '))
         b1s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b1.txt"), ' '))
         b2s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b2.txt"), ' '))
         b3s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b3.txt"), ' '))
         b4s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b4.txt"), ' '))
+
+        if mcmcdraw != nothing
+            b0s = b0s[[mcmcdraw], :]
+            b1s = b1s[[mcmcdraw], :]
+            b2s = b2s[[mcmcdraw], :]
+            b3s = b3s[[mcmcdraw], :]
+            b4s = b4s[[mcmcdraw], :]
+        end
     else
         b0s = b1s = b2s = b3s = b4s = nothing
     end

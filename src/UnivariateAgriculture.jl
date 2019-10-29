@@ -125,12 +125,12 @@ function initunivariateagriculture(m::Model)
                     tts, weights = yearindex2timeindexes(yy)
                     year = index2year(tts[1]) + 1 # XXX: Always year after planting
                     if year >= 1949 && year <= 2009
-                        numgdds = gdds[rr, Symbol("$year")]
+                        numgdds = gdds[rr, Symbol("x$year")]
                         if ismissing.(numgdds)
                             numgdds = 0
                         end
 
-                        numkdds = kdds[rr, Symbol("$year")]
+                        numkdds = kdds[rr, Symbol("x$year")]
                         if ismissing.(numkdds)
                             numkdds = 0
                         end

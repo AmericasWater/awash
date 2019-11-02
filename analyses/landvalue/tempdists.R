@@ -10,6 +10,9 @@ tcol <- c('bio1_mean', 'bio1_2050', 'bio1_2070')
 sname <- c('Current', '2050', '2070')
 
 fipsorder <- read.csv("../../data/global/counties.csv")
+knownareas <- read.csv("../../data/counties/agriculture/knownareas.csv")
+knownareas$mytotal <- knownareas$BARLEY + knownareas$CORN + knownareas$COTTON +
+    knownareas$RICE + knownareas$SOYBEANS + knownareas$WHEAT
 
 df <- read.csv("~/Dropbox/Agriculture Weather/us-bioclims-new.csv")
 for (year in c(2050, 2070)) {
@@ -33,6 +36,7 @@ allprof <- data.frame()
 for (scenario in 1:3) {
     topcrops <- read.csv(paste0("results/", maps[scenario]))
     topcrops <- topcrops %>% left_join(df)
+    topcrops <- subset(topcrops, fips %in% knownareas$fips[knownareas$mytotal > 0])
     ## Determine max crop by 1 C bins
 
     topcrops$bin <- round(topcrops[, tcol[scenario]] / 5) / 2

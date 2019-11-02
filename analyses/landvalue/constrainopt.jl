@@ -14,6 +14,8 @@ include("../../src/lib/datastore.jl")
 resdir = "results-mc" # "results"
 crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 
+shadows = DataFrame(fips=[masterregions[:fips]; crops])
+
 for filename in readdir(resdir)
     if !occursin("profits", filename) || filename[end-3:end] != ".csv" || occursin("constopt", filename)
         continue
@@ -69,5 +71,8 @@ for cc in 1:length(crops)
     df[Symbol(crops[cc])] = optareas[cc, :]
 end
 
-CSV.write(resdir * "/constopt-$filename", df)
+    CSV.write(resdir * "/constopt-$filename", df)
+    shadows[Symbol(filename[1:end-4])] = sol.attrs[:lambda]
 end
+
+CSV.write("results/shadows.csv", shadows)

@@ -44,6 +44,11 @@ function warnonce(warning::String)
     end
 end
 
+"""Add a new dimension at the end, repeating the existing dimensions."""
+function repnew(arr::Array, count::Int64)
+    reshape(repeat(arr, outer=[1, count]), (size(arr)..., count))
+end
+
 ### Extensions to Mimi
 
 using Mimi

@@ -39,5 +39,6 @@ requirepackage("NaNMath")
 requirepackage("WeakRefStrings")
 requirepackage("PooledArrays")
 requirepackage("Distributions")
+requirepackage("MathProgBase")
 
 include("thetests.jl")

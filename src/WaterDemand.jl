@@ -84,7 +84,8 @@ function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
+    ##roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
+    TODO # load from prepare/returnflows/rf-bycounty.csv
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)

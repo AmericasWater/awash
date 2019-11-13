@@ -84,8 +84,16 @@ function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    ##roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
-    TODO # load from prepare/returnflows/rf-bycounty.csv
+    fullpath = datapath("returnflows/returnfracs.csv")
+    if isfile(fullpath)
+        df = CSV.read(fullpath)
+        fipses = ["$(df[ii, :STATE] * 100)$(df[ii, :COUNTY] / 10)" for ii in 1:nrow(df)]
+        rflows = dataonmaster(fipses, df[!, :rfmean])
+        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, ii -> rflows[ii], [:scenarios])
+    else
+        @warn "Cannot find regional return flows; using constant."
+        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
+    end
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)

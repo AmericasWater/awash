@@ -11,6 +11,8 @@ calcropmap <- list('COTTON'='Cotton', 'HAY'=NA, 'PEANUTS'='Groundnuts', 'SOYBEAN
                    'OATS'=c('Oats', 'Oats.Winter'), 'PEAS'='Pulses', 'SWEET CORN'=c('Maize', 'Maize.2'), 'LENTILS'='Pulses',
                    'CANOLA'='Rapeseed.Winter', 'FLAXSEED'=NA, 'MUSTARD'=NA, 'SAFFLOWER'=NA, 'APPLES'=NA, 'PEACHES'=NA)
 
+library(dplyr)
+
 cleandf2 <- cleandf %>% group_by(commodity, fips) %>% summarize(area=sum(area))
 
 cleandf2$calcrop1 <- NA
@@ -20,8 +22,6 @@ for (crop in unique(cleandf2$commodity)) {
     cleandf2$calcrop2[cleandf2$commodity == crop] <- calcropmap[[crop]][2]
 }
 
-library(dplyr)
-
 cleandf3 <- cleandf2 %>% left_join(calendars, by=c('calcrop1'='crop', 'fips'), suffix=c('', '.cc1')) %>%
     left_join(calendars, by=c('calcrop2'='crop', 'fips'), suffix=c('', '.cc2'))
 
@@ -29,6 +29,7 @@ daypermonth <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 monthstarts <- c(1, 1 + cumsum(daypermonth))
 
 finals <- matrix(NA, 0, 12)
+finals.daily <- matrix(NA, 0, 365)
 for (fips in unique(cleandf3$fips)) {
     print(fips)
     subdata <- cleandf3[cleandf3$fips == fips,]
@@ -58,13 +59,15 @@ for (fips in unique(cleandf3$fips)) {
         byday <- byday + weighting * fraccrop
     }
 
+    finals.daily <- rbind(finals.daily, byday)
+
     bymonth <- rep(NA, 12)
     for (mm in 1:12)
         bymonth[mm] <- sum(byday[monthstarts[mm]:(monthstarts[mm+1]-1)])
     finals <- rbind(finals, bymonth)
 }
 
-image(y=1:12, x=1:nrow(finals), z=finals, xlab="County (unordered)", ylab="Month", main="Shares of irrigation demand by month")
+image(y=1:365, x=1:nrow(finals), z=finals.daily, xlab="County (unordered)", ylab="Day of the year", main="Shares of irrigation demand by day")
 
 plot(colSums(finals) / nrow(finals), type='l', xlab="Month", ylab="Share of irrigation demand")
 

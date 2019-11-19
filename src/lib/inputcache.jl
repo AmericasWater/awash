@@ -51,7 +51,7 @@ function knowndf(filenickname::AbstractString)
     elseif filenickname == "region-info"
         getfilevalue(loadpath("county-info.csv"), "*",
                      () -> configdescends(config, "counties") ? CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA") : CSV.read(loadpath("county-info.csv")))
-    elseif (filenickname == "irrigation-bymonth"
+    elseif filenickname == "irrigation-bymonth"
             getfilevalue(loadpath("demand/agmonthshares.csv"), "filtered",
                          () -> getfilteredtable("demand/agmonthshares.csv", missingstring="NA"))
     else

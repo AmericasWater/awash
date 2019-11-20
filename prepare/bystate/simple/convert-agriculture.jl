@@ -133,3 +133,49 @@ orderedconverttable("agriculture/knownareas.csv", config, translate)
 orderedconverttable("agriculture/totalareas.csv", config, translate)
 
 mirrorfile("agriculture/nationals.csv", config)
+
+## Return flows
+
+using Statistics, CSV
+
+df = readtable(joinpath(todata, "data/counties/returnflows/returnfracs.csv"))
+regioncol = :STATE
+outpath = joinpath(todata, "data/states/returnflows/returnfracs.csv")
+
+function regionaverage(df, regioncol, outpath)
+    columns = Dict{Symbol, Any}()
+    dropcols = []
+    for region in unique(df[!, regioncol])
+        if ismissing(region)
+            continue
+        end
+        println(region)
+        subdf = df[.!ismissing.(df[!, regioncol]) .& (df[!, regioncol] .== region), :]
+
+        for name in names(subdf)
+            println(name)
+            if subdf[!, name] isa Vector{Float64} || subdf[!, name] isa Vector{Union{Float64, Missing}} || subdf[!, name] isa Vector{Int64} || subdf[!, name] isa Vector{Union{Missing, Int64}}
+                value = mean(skipmissing(subdf[!, name]))
+            elseif all(subdf[!, name] .== subdf[1, name])
+                value = subdf[1, name]
+            else
+                push!(dropcols, name)
+                continue
+            end
+
+            if !in(name, keys(columns))
+                columns[name] = Vector{Union{typeof(value), Missing}}([])
+            end
+            push!(columns[name], value)
+        end
+    end
+
+    dropcols = unique(dropcols)
+
+    result = DataFrame()
+    for name in filter(name -> !in(name, dropcols), names(df))
+        result[!, name] = columns[name]
+    end
+
+    CSV.write(outpath, result)
+end

@@ -89,7 +89,8 @@ function grad_waterdemand_totalreturn_totalirrigation(m::Model)
         df = CSV.read(fullpath)
         fipses = ["$(df[ii, :STATE] * 100)$(df[ii, :COUNTY] / 10)" for ii in 1:nrow(df)]
         rflows = dataonmaster(fipses, df[!, :rfmean])
-        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, ii -> rflows[ii], [:scenarios, :time])
+        rflows[ismissing.(rflows)] .= returnpart["irrigation/livestock"]
+        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, ii -> -rflows[ii], [:scenarios, :time])
     else
         @warn "Cannot find regional return flows; using constant."
         roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])

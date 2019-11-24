@@ -90,7 +90,7 @@ function grad_waterdemand_totalreturn_totalirrigation(m::Model)
         if config["dataset"] == "states"
             fipses = [trunc.(Int64, df[ii, :STATE] / 10) for ii in 1:nrow(df)]
         else
-            fipses = [trunc.(Int64, df[ii, :STATE] * 100 + df[ii, :COUNTY] / 10) for ii in 1:nrow(df)]
+            fipses = [trunc.(Union{Int64, Missing}, df[ii, :STATE] * 100 + df[ii, :COUNTY] / 10) for ii in 1:nrow(df)]
         end
         rflows = dataonmaster(fipses, df[!, :rfmean])
         rflows[ismissing.(rflows)] .= returnpart["irrigation/livestock"]

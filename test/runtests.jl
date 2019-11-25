@@ -28,7 +28,7 @@ end
 
 requirepackage("CSV")
 requirepackage("YAML")
-requirepackage("Mimi", true)
+requirepackage("Mimi")
 requirepackage("Graphs")
 requirepackage("DataFrames")
 requirepackage("NetCDF")

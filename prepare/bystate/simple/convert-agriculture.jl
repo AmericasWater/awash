@@ -133,3 +133,48 @@ orderedconverttable("agriculture/knownareas.csv", config, translate)
 orderedconverttable("agriculture/totalareas.csv", config, translate)
 
 mirrorfile("agriculture/nationals.csv", config)
+
+## Monthly crop demands
+using Statistics, CSV
+
+states = CSV.read(joinpath(todata, "data/global/states.csv"))
+
+df = CSV.read(joinpath(todata, "data/counties/demand/agmonthshares.csv"))
+outpath = joinpath(todata, "data/states/demand/agmonthshares.csv")
+
+columns = Dict{Symbol, Any}(:ST => [])
+for stfips in unique(floor.(df[!, :fips] / 1000))
+    region = states[states[:fips] .== stfips, :state]
+    if (length(region) == 0)
+        println(stfips)
+        continue
+    end
+    println(region)
+    subdf = df[floor.(df[!, :fips] / 1000) .== stfips, :]
+
+    for name in names(subdf)
+        if (name == :fips)
+            continue
+        end
+        value = mean(subdf[!, name])
+
+        if !in(name, keys(columns))
+            columns[name] = Vector{Float64}()
+        end
+        push!(columns[name], value)
+    end
+
+    push!(columns[:ST], region)
+end
+
+result = DataFrame()
+for name in names(df)
+    if name == :fips
+        result[!, :ST] = columns[:ST]
+    else
+        result[!, name] = columns[name]
+    end
+end
+
+CSV.write(outpath, result)
+

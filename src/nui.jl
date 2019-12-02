@@ -15,8 +15,7 @@ if !("Mimi" in keys(versions))
 end
 
 if !("OptiMimi" in keys(versions))
-    Pkg.add("OptiMimi")
-    Pkg.checkout("OptiMimi")
+    Pkg.add(PackageSpec(name="OptiMimi", rev="master"))
 end
 
 if !("Graphs" in keys(versions))
@@ -169,5 +168,5 @@ end
 
 
 open(joinpath(dirname(@__FILE__), "../docs/intro.txt")) do fp
-    println(readstring(fp))
+    println(read(fp, String))
 end

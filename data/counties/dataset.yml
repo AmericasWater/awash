@@ -26,11 +26,15 @@ ncdatasets:
     csvcrc: 0xcefed8fe
   runoff:
     filename: contributing_runoff_by_gage
-    ncurl: https://www.dropbox.com/s/itw2dzdv0051acw/contributing_runoff_by_gage.nc?dl=1
-    csvurl: https://www.dropbox.com/s/fq8vrh4lgoewi40/contributing_runoff_by_gage.csv?dl=1
+    #ncurl: https://www.dropbox.com/s/m4ssmb4kfzw839n/contributing_runoff_by_gage_NLDAS2.nc?dl=1
+    #csvurl: https://www.dropbox.com/s/vpqmos2uzbsmn48/contributing_runoff_by_gage_NLDAS2.csv?dl=1
+    #nccrc32: 0x3e947be6
+    #csvcrc: 0xe29ee1df
+    ncurl: https://www.dropbox.com/s/9lv7rdily6prdrw/contributing_runoff_by_gage_Maurer.nc?dl=1
+    csvurl: https://www.dropbox.com/s/yj5ey6tvpyrkcs7/contributing_runoff_by_gage_Maurer.csv?dl=1
+    nccrc32: 0xe6a09f4a
+    csvcrc: 0xbbbd9989
     csvcoldim: gage
-    nccrc32: 0x78f4dc8d
-    csvcrc: 0x78f4dc8d
 
 # Regional dimension in VIC_WB.nc
 ncregion: county

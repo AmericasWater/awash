@@ -98,6 +98,8 @@ function getadded(stations::DataFrame)
 
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
+    stationmatches = repeat([false], nrow(stations))
+    gagematches = repeat([false], length(gage_latitude))
     for ii in 1:nrow(stations)
         gage = findall((abs.(stations[ii, :lat] .- gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] .- gage_longitude) .< 1e-6))
         if length(gage) != 1 || gage[1] > size(gage_totalflow)[1]
@@ -105,6 +107,21 @@ function getadded(stations::DataFrame)
         end
 
         added[:, ii] = vec(gage_totalflow[gage[1], :]) * gage_area[gage[1]]
+        stationmatches[ii] = true
+        gagematches[gage[1]] = true
+    end
+
+    # Fill all remaining unmatched flow data to closest unmatched station
+    for jj in findall(.!gagematches)
+        dists = sqrt.((stations[:, :lat] .- gage_latitude[jj]).^2 + (stations[:, :lon] .- gage_longitude[jj]).^2)
+        ii = argmin(dists)
+        if dists[ii] > 1
+            println("Gage $jj cannot be matched.")
+        end
+
+        added[:, ii] = vec(gage_totalflow[jj, :]) * gage_area[jj]
+        stationmatches[ii] = true
+        gagematches[jj] = true
     end
 
     added[isnan.(added)] .= 0 # if NaN, set to 0 so doesn't propagate

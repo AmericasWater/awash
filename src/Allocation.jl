@@ -158,11 +158,12 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
                     config["timestep"] * (totals[rr] - irrigations[rr]) * 1383. / 12 + portion * irrigations[rr] * 1383.
                 end
             end
+	    hallsingle(m, :Allocation, :balance, gen)
         else
 	    gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	    hallsingle(m, :Allocation, :balance, gen)
         end
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 

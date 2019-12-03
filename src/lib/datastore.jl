@@ -2,7 +2,7 @@
 #
 # Functions for accessing external data.
 
-using Pkg
+using Pkg, CSV
 using WeakRefStrings, PooledArrays
 include("inputcache.jl")
 
@@ -174,10 +174,10 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
+    if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}} || typeof(indexes) <: CSV.Column{Int64,Int64}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end
-    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}} || typeof(indexes) <: WeakRefStrings.StringArray{String,1} || typeof(indexes) <: PooledArrays.PooledArray{String,UInt32,1,Array{UInt32,1}}
+    if typeof(indexes) <: Vector{String} || typeof(indexes) <: Vector{Union{Missings.Missing, String}} || typeof(indexes) <: WeakRefStrings.StringArray{String,1} || typeof(indexes) <: PooledArrays.PooledArray{String,UInt32,1,Array{UInt32,1}} || typeof(indexes) <: CSV.Column{String,String}
         if config["indexpad"] == nothing
             return indexes
         else

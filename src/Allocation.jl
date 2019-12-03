@@ -146,7 +146,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
         if config["timestep"] % 12 != 0
             # Disaggregate water demands by month
             agdivision = knowndf("irrigation-bymonth")
-            master2agdiv = getregionindicies(agdivision[!, :fips], tomaster=false)
+            master2agdiv = getregionindicies(regionindex(agdivision, !), tomaster=false)
             totals = (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW])
             irrigations = (optimtype ? recorded[rr, :IR_To] : recorded[rr, :IR_SW])
 	    function gen(rr, ss, tt)

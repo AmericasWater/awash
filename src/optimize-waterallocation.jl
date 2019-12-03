@@ -11,27 +11,27 @@ if !(@isdefined config)
 end
 
 if "rescap" in keys(config) && config["rescap"] == "zero"
-	withreservoirs = false
+	allowreservoirs = false
 else
-	withreservoirs = true
+	allowreservoirs = true
 end
 
 
 # Run the water demand simulation to determine values
 if get(config, "demandmodel", nothing) == "USGS"
     include("optimization-given.jl")
-    house = optimization_given(true, withreservoirs, nothing, get(config, "waterrightconst", nothing))
+    house = optimization_given(true, allowreservoirs, nothing, get(config, "waterrightconst", nothing))
 else
     include("model-waterdemand.jl")
     println("Running demand model...")
     @time run(model)
     include("optimization-given.jl")
-    house = optimization_given(true, withreservoirs, model)
+    house = optimization_given(true, allowreservoirs, model)
 end
 
 using MathProgBase
-using Gurobi
-solver = GurobiSolver()
+using Clp
+solver = ClpSolver()
 
 @time sol = houseoptimize(house, solver)
 
@@ -48,7 +48,7 @@ summarizeparameters(house, sol.sol)
 #constraining(house, sol.sol)
 
 # Save the results
-save_optimization_given(house, sol, true, withreservoirs)
+save_optimization_given(house, sol, true, allowreservoirs)
 
 analysis = nothing
 

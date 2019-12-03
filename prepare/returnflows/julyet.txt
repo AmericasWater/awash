@@ -1,0 +1,3 @@
+http://iridl.ldeo.columbia.edu/SOURCES/.FAO/.GeoNetwork/.agrometeorological/.ET/.deg0p5/.edition1/.c6190/.etref/T/6.5/VALUE/X/-128.1667/-62.6667/RANGEEDGES/Y/22.44069/51.44069/RANGEEDGES/datafiles.html
+
+For July since core growing season is mostly May - September.

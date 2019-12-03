@@ -199,24 +199,52 @@ end
 """
 Save the results for simulation runs
 """
-function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=false, allowreservoirs=true)
+function save_optimization_given(house::LinearProgrammingHouse, sol, allowgw=false, allowreservoirs=true, savecsv=true)
     # The size of each optimized parameter
     varlens = varlengths(house.model, house.paramcomps, house.parameters, Dict(:quartersupersourcesupply => :supersourcesupply))
     varlens = [varlens; 0] # Add dummy, so allowgw can always refer to 1:4
 
     # Save into serialized files
-    serialize(open(cachepath("extraction/supersource$suffix.jld"), "w"), reshape(sol.sol[1:varlens[1]], numregions, numscenarios, numsteps) + reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numregions, numscenarios, numsteps))
-    serialize(open(cachepath("extraction/withdrawals$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps))
+    supersource = reshape(sol.sol[1:varlens[1]], numregions, numscenarios, numsteps) + reshape(sol.sol[varlens[1]+1:sum(varlens[1:2])], numregions, numscenarios, numsteps)
+    serialize(open(cachepath("extraction/supersource$suffix.jld"), "w"), supersource)
+    withdrawals = reshape(sol.sol[sum(varlens[1:2])+1:sum(varlens[1:3])], numcanals, numscenarios, numsteps)
+    serialize(open(cachepath("extraction/withdrawals$suffix.jld"), "w"), withdrawals)
 
-    if allowgw == true
-        serialize(open(cachepath("extraction/waterfromgw$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps))
+    changesinflow = getconstraintsolution(house, sol, :outflows)
+    runoffs = getconstraintoffset(house, :WaterNetwork, :outflows)
+    outflows = reshape(runoffs-changesinflow, numgauges, numscenarios, numsteps)
+    serialize(open(cachepath("extraction/flows$suffix.jld"), "w"), outflows)
+
+    if allowgw
+        waterfromgw = reshape(sol.sol[sum(varlens[1:3])+1:sum(varlens[1:4])], numcounties, numscenarios, numsteps)
+        serialize(open(cachepath("extraction/waterfromgw$suffix.jld"), "w"), waterfromgw)
     elseif isfile(cachepath("extraction/waterfromgw$suffix.jld"))
         rm(cachepath("extraction/waterfromgw$suffix.jld"))
     end
 
     if allowreservoirs
-        serialize(open(cachepath("extraction/captures$suffix.jld"), "w"), reshape(sol.sol[sum(varlens[1:3+(allowgw == true)])+1:end], numreservoirs, numscenarios, numsteps))
+        captures = reshape(sol.sol[sum(varlens[1:3+(allowgw == true)])+1:end], numreservoirs, numscenarios, numsteps)
+        serialize(open(cachepath("extraction/captures$suffix.jld"), "w"), captures)
     elseif isfile(cachepath("extraction/captures$suffix.jld"))
         rm(cachepath("extraction/captures$suffix.jld"))
+    end
+
+
+    if savecsv
+        if numscenarios == 1
+            CSV.write(cachepath("extraction/supersource$suffix.csv"), convert(DataFrame, supersource[:,1,:]))
+            CSV.write(cachepath("extraction/withdrawals$suffix.csv"), convert(DataFrame, withdrawals[:,1,:]))
+            CSV.write(cachepath("extraction/outflows$suffix.csv"), convert(DataFrame, outflows[:,1,:]))
+
+            if allowgw
+                CSV.write(cachepath("extraction/waterfromgw$suffix.csv"), convert(DataFrame, waterfromgw[:,1,:]))
+            end
+
+            if allowreservoirs
+                CSV.write(cachepath("extraction/captures$suffix.csv"), convert(DataFrame, captures[:,1,:]))
+            end
+        else
+            println("When multiple scenarios are considered, there are no default saving in CSV format.")
+        end
     end
 end

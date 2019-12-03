@@ -34,13 +34,3 @@ summarizeparameters(house, sol.sol)
 
 # Save the results
 save_optimization_given(house, sol, false, allowreservoirs)
-
-# How much water is in the streams?
-values = getconstraintsolution(house, sol, :outflows)
-
-cwro = deserialize(open(cachepath("partialhouse2$suffix.jld"), "r"));
-offset = cwro.f
-offset[isnan.(offset)] .= 0
-outflows = offset - values
-outflows = reshape(outflows, dim_count(house.model, :gauges), dim_count(house.model, :time))
-writecsv(datapath("extraction/outflows-bygauge.csv"), outflows)

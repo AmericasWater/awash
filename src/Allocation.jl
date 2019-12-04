@@ -146,11 +146,11 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
         if config["timestep"] % 12 != 0
             # Disaggregate water demands by month
             agdivision = knowndf("irrigation-bymonth")
-            master2agdiv = getregionindicies(regionindex(agdivision, !), tomaster=false)
-            totals = (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW])
-            irrigations = (optimtype ? recorded[rr, :IR_To] : recorded[rr, :IR_SW])
+            master2agdiv = getregionindices(regionindex(agdivision, !), false)
+            totals = (optimtype ? recorded[:, :TO_To] : recorded[:, :TO_SW])
+            irrigations = (optimtype ? recorded[:, :IR_To] : recorded[:, :IR_SW])
 	    function gen(rr, ss, tt)
-                if master2agdiv[rr] == nothing
+                if master2agdiv[rr] == nothing or master2agdiv[rr] == 0
                     config["timestep"] * totals[rr] * 1383. / 12
                 else
                     mm = ((index2time(tt) - 1) % 12 + 1)
@@ -160,7 +160,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
             end
 	    hallsingle(m, :Allocation, :balance, gen)
         else
-	    gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	    gen = (rr, ss, tt) -> config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
 	    hallsingle(m, :Allocation, :balance, gen)
         end
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE

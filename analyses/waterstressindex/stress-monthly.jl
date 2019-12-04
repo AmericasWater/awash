@@ -50,7 +50,7 @@ for filtercanals in [false, true]
 
             house = optimization_given(allowgw, allowreservoirs, nocache=true)
             sol = houseoptimize(house, solver)
-            supersource0 = getparametersolution(house, sol.sol, :quarterwaterfromsupersource) + getparametersolution(house, sol.sol, :waterfromsupersource)
+            supersource0 = getparametersolution(house, sol.sol, :quartersupersourcesupply) + getparametersolution(house, sol.sol, :supersourcesupply)
 
             # Calculate remaining flow in rivers-- not used because bad display
             # runoff = constraintoffset_waternetwork_outflows(house.model).f
@@ -70,7 +70,7 @@ for filtercanals in [false, true]
                 println("$startyear: $efp")
                 setconstraintoffset!(house, offset0 - LinearProgrammingHall(envflow1.component, envflow1.name, (efp / 100.) * envflow1.f))
                 sol = houseoptimize(house, solver)
-                supersource = getparametersolution(house, sol.sol, :waterfromsupersource)
+                supersource = getparametersolution(house, sol.sol, :supersourcesupply)
                 minefp[(supersource .> 0) .& (minefp .== 0)] = efp
 
                 df = vcat(finaldf, DataFrame(startyear=(startyear + burnyears) * ones(Int64, numregions * saveyears * 12), fips=repeat(masterregions[:fips], outer=saveyears * 12), time=repeat(1:(saveyears * 12), inner=numregions), supersource=supersource0[(numregions * burnyears * 12 + 1):end], minefp=minefp[(numregions * burnyears * 12 + 1):end]))

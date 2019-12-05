@@ -150,7 +150,7 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
             totals = (optimtype ? recorded[:, :TO_To] : recorded[:, :TO_SW])
             irrigations = (optimtype ? recorded[:, :IR_To] : recorded[:, :IR_SW])
 	    function gen(rr, ss, tt)
-                if master2agdiv[rr] == nothing or master2agdiv[rr] == 0
+                if (master2agdiv[rr] == nothing) || (master2agdiv[rr] == 0)
                     config["timestep"] * totals[rr] * 1383. / 12
                 else
                     mm = ((index2time(tt) - 1) % 12 + 1)

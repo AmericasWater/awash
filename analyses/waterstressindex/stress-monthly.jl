@@ -1,4 +1,4 @@
-using DataFrames
+using DataFrames, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")
@@ -29,7 +29,7 @@ for filtercanals in [false, true]
 
         println(suffix)
         if isfile("stress-$suffix.csv")
-            finaldf = readtable("stress-$suffix.csv")
+            finaldf = CSV.read("stress-$suffix.csv")
             startyear0 = maximum(finaldf[:startyear]) - burnyears + saveyears
             if startyear0 >= 2005
                 continue
@@ -71,16 +71,16 @@ for filtercanals in [false, true]
                 setconstraintoffset!(house, offset0 - LinearProgrammingHall(envflow1.component, envflow1.name, (efp / 100.) * envflow1.f))
                 sol = houseoptimize(house, solver)
                 supersource = getparametersolution(house, sol.sol, :supersourcesupply)
-                minefp[(supersource .> 0) .& (minefp .== 0)] = efp
+                minefp[(supersource .> 0) .& (minefp .== 0)] .= efp
 
                 df = vcat(finaldf, DataFrame(startyear=(startyear + burnyears) * ones(Int64, numregions * saveyears * 12), fips=repeat(masterregions[:fips], outer=saveyears * 12), time=repeat(1:(saveyears * 12), inner=numregions), supersource=supersource0[(numregions * burnyears * 12 + 1):end], minefp=minefp[(numregions * burnyears * 12 + 1):end]))
-                writetable("stress-$suffix.csv", df)
+                CSV.write("stress-$suffix.csv", df)
             end
 
-            minefp[(minefp .== 0)] = 100.
+            minefp[(minefp .== 0)] .= 100.
 
             finaldf = vcat(finaldf, DataFrame(startyear=(startyear + burnyears) * ones(Int64, numregions * saveyears * 12), fips=repeat(masterregions[:fips], outer=saveyears * 12), time=repeat(1:(saveyears * 12), inner=numregions), supersource=supersource0[(numregions * burnyears * 12 + 1):end], minefp=minefp[(numregions * burnyears * 12 + 1):end]))
-            writetable("stress-$suffix.csv", finaldf)
+            CSV.write("stress-$suffix.csv", finaldf)
         end
     end
 end

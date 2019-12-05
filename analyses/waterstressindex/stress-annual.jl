@@ -1,4 +1,4 @@
-using DataFrames
+using DataFrames, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete-yearly.yml")
@@ -57,15 +57,15 @@ for filtercanals in [false, true]
             setconstraintoffset!(house, offset0 - LinearProgrammingHall(envflow1.component, envflow1.name, (efp / 100.) * envflow1.f))
             sol = houseoptimize(house, solver)
             supersource = getparametersolution(house, sol.sol, :supersourcesupply)
-            minefp[(supersource .> 0) .& (minefp .== 0)] = efp
+            minefp[(supersource .> 0) .& (minefp .== 0)] .= efp
 
             df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)
-            writetable("stress-$suffix.csv", df)
+            CSV.write("stress-$suffix.csv", df)
         end
 
-        minefp[(minefp .== 0)] = 100.
+        minefp[(minefp .== 0)] .= 100.
 
         df = DataFrame(fips=repeat(masterregions[:fips], outer=numsteps), time=repeat(1:61, inner=numregions), supersource=supersource0, minefp=minefp)
-        writetable("stress-$suffix.csv", df)
+        CSV.write("stress-$suffix.csv", df)
     end
 end

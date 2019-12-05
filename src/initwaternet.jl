@@ -164,7 +164,7 @@ end
 # Filter county connections draws
 if get(config, "filtercanals", nothing) != nothing
     if config["filtercanals"] == "direct"
-        draws = draws[[findfirst(x -> x in ["contains", "up-pipe", "down-pipe"], justif) for justif in draws[!, :justif]] .> 0, :]
+        draws = draws[[justif in ["contains", "up-pipe", "down-pipe"] for justif in draws[!, :justif]] .> 0, :]
     else
         draws = draws[findall(draws[!, :justif] .== config["filtercanals"]),:]
     end

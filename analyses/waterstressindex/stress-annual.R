@@ -1,10 +1,10 @@
-setwd("~/research/awash/analyses/waterstressindex")
+setwd("~/research/water/awash/analyses/waterstressindex")
 
 source("vsenv-lib.R")
 
 demanddf <- read.csv("../../data/counties/extraction/USGS-2010.csv")
 
-srcname <- "annual-worst" #"annual"
+srcname <- "annual" #"annual-worst"
 
 get.terms <- function(filename, demand) {
     df <- read.csv(paste0("results/", filename))

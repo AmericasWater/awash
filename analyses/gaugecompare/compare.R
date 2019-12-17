@@ -85,19 +85,22 @@ mm.nrnr <- format(median(df$flows_nrnr[ava] / df$observed[ava], na.rm=T), digits
 mm.rfnr <- format(median(df$flows_rfnr[ava] / df$observed[ava], na.rm=T), digits=3)
 mm.rfwr <- format(median(df$flows_rfwr[ava] / df$observed[ava], na.rm=T), digits=3)
 
-df$modified.label <- "Large Modified Flows"
-df$modified.label[!df$modified] <- "Small Modified Flows"
+df$flowsize.label <- "Large Flows"
+df$flowsize.label[!ava0] <- "Small Flows"
+df$modified.label <- "Modified Flows"
+df$modified.label[!df$modified] <- "Unmodified Flows"
 
 ggplot(subset(df, ava0)) +
-    facet_grid(modified.label ~ .) +
+    facet_wrap(. ~ modified.label) + #facet_grid(modified.label ~ modified) +
     geom_density(aes(flows_nw / observed, colour='a')) +
     geom_density(aes(flows_nrnr / observed, colour='b')) +
     geom_density(aes(flows_rfnr / observed, colour='c')) +
     geom_density(aes(flows_rfwr / observed, colour='d')) +
     scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
-    scale_colour_discrete(name="Simulation\nAssumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0("Withdrawals only (MM: ", mm.nrnr, ")"), paste0("Withdrawals & Returns (MM: ", mm.rfnr, ")"), paste0("Withdrawals, Returns, & Reservoirs (MM: ", mm.rfwr, ")"))) +
-    theme_minimal() + xlab("Ratio of simulated to observed")
-ggsave("compare.pdf", width=8, height=5)
+    scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0("Withdrawals only (MM: ", mm.nrnr, ")"), paste0("Withdrawals & Returns (MM: ", mm.rfnr, ")"), paste0("Withdrawals, Returns & Reservoirs (MM: ", mm.rfwr, ")"))) +
+    theme_minimal() + xlab("Ratio of simulated to observed") +
+    theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 2.8)
+ggsave("compare.pdf", width=7, height=4)
 
 
 ggplot(subset(df, ava), aes(observed, flows_nw)) +

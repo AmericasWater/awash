@@ -1,12 +1,13 @@
 using CSV
 
-do_monthly = false
+for do_monthly in [false, true]
+    global config
 
 include("../../src/lib/readconfig.jl")
 if do_monthly
-    config = readconfig("../../configs/complete.yml")
+    config = readconfig("../../configs/complete-5year.yml")
 else
-    config = readconfig("../../configs/complete-yearly.yml")
+    config = readconfig("../../configs/complete-5year-yearly.yml")
 end
 
 using Gurobi
@@ -37,4 +38,6 @@ if do_monthly
     CSV.write("optimizes-monthly.csv", df)
 else
     CSV.write("optimizes.csv", df)
+end
+
 end

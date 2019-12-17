@@ -37,6 +37,7 @@ hirfracs <- c(.5, .15, .1)
 for (ii in 1:3) {
     sol <- optim(c(1, 1), function(xx) sum(abs(range((df4$top.ksat + xx[1]) / (df4$top.ksat + df4$julyet + xx[2]), na.rm=T) - c(lorfracs[ii], hirfracs[ii]))))
 
+    print(sol$par)
     print(range((df4$top.ksat + sol$par[1]) / (df4$top.ksat + df4$julyet + sol$par[2]), na.rm=T))
 
     df4[, irrmethod[ii]] <- (df4$top.ksat + sol$par[1]) / (df4$top.ksat + df4$julyet + sol$par[2])

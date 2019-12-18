@@ -1,4 +1,4 @@
-"FIPS","County","State","meanrf"
+"FIPS","County","State","rfmean"
 20183,"SMITH","Kansas",0.0561985081142172
 39075,"HOLMES","Ohio",0.0897667518720714
 37137,"PAMLICO","North Carolina",0.0578534187715717

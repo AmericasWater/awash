@@ -94,8 +94,8 @@ writeRaster(rasterDF, "returnflow.bil", format="EHdr", overwrite=T)
 results <- data.frame()
 for (pid in 1:nrow(polydata)) {
     rows <- found$EID[found$PID == pid]
-    meanrf <- mean(df4$avg[rows], na.rm=T)
-    results <- rbind(results, data.frame(ST=polydata$STUSPS00[pid], State=polydata$NAME00[pid], meanrf))
+    rfmean <- mean(df4$avg[rows], na.rm=T)
+    results <- rbind(results, data.frame(ST=polydata$STUSPS00[pid], State=polydata$NAME00[pid], rfmean))
 }
 
 write.csv(results, "../../data/states/returnflows/returnfracs.csv", row.names=F)
@@ -108,8 +108,8 @@ found <- findPolys(events, shp, maxRows=1e6)
 results <- data.frame()
 for (pid in 1:nrow(polydata)) {
     rows <- found$EID[found$PID == pid]
-    meanrf <- mean(df4$avg[rows], na.rm=T)
-    results <- rbind(results, data.frame(FIPS=as.numeric(as.character(polydata$STATE[pid])) * 100 + as.numeric(as.character(polydata$COUNTY[pid])) / 10, County=polydata$ICPSRNAM[pid], State=polydata$STATENAM[pid], meanrf))
+    rfmean <- mean(df4$avg[rows], na.rm=T)
+    results <- rbind(results, data.frame(FIPS=as.numeric(as.character(polydata$STATE[pid])) * 100 + as.numeric(as.character(polydata$COUNTY[pid])) / 10, County=polydata$ICPSRNAM[pid], State=polydata$STATENAM[pid], rfmean))
 }
 
 write.csv(results, "../../data/counties/returnflows/returnfracs.csv", row.names=F)

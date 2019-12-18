@@ -16,7 +16,7 @@ solver = GurobiSolver()
 include("../../src/optimization-given.jl")
 redogwwo = true
 
-house = optimization_given(false, false)
+house = optimization_given(false, false, nocache=true)
 flows_nw = constraintoffset_waternetwork_outflows(house.model).f # Natural flows
 sol = houseoptimize(house, solver)
 flows_rfnr = flows_nw - getconstraintsolution(house, sol, :outflows) # Return flows, no reservoirs
@@ -26,7 +26,7 @@ setconstraint!(house, -gwwo) # remove return flows
 sol = houseoptimize(house, solver)
 flows_nrnr = flows_nw - getconstraintsolution(house, sol, :outflows) # No returns, no reservoirs
 
-house = optimization_given(false, true)
+house = optimization_given(false, true, nocache=true)
 sol = houseoptimize(house, solver)
 flows_rfwr = flows_nw - getconstraintsolution(house, sol, :outflows) # Return flows, with reservoirs
 

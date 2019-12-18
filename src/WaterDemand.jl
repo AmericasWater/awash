@@ -88,12 +88,12 @@ function grad_waterdemand_totalreturn_totalirrigation(m::Model)
     if isfile(fullpath)
         df = CSV.read(fullpath)
         if config["dataset"] == "states"
-            fipses = [trunc.(Int64, df[ii, :STATE] / 10) for ii in 1:nrow(df)]
+            regids = df[!, :ST]
         else
-            fipses = [trunc.(Union{Int64, Missing}, df[ii, :STATE] * 100 + df[ii, :COUNTY] / 10) for ii in 1:nrow(df)]
+            fipses = df[!, :FIPS]
         end
-        rflows = dataonmaster(fipses, df[!, :rfmean])
-        rflows[ismissing.(rflows)] .= returnpart["irrigation/livestock"]
+        rflows = dataonmaster(fipses, tryparse.(Float64, df[!, :rfmean]))
+        rflows[ismissing.(rflows) .| (rflows .== nothing)] .= returnpart["irrigation/livestock"]
         roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, ii -> -rflows[ii], [:scenarios, :time])
     else
         @warn "Cannot find regional return flows; using constant."

@@ -89,10 +89,12 @@ function grad_waterdemand_totalreturn_totalirrigation(m::Model)
         df = CSV.read(fullpath)
         if config["dataset"] == "states"
             regids = df[!, :ST]
+            mastercol = :state
         else
             regids = df[!, :FIPS]
+            mastercol = :fips
         end
-        rflows = dataonmaster(regids, tryparse.(Float64, df[!, :rfmean]))
+        rflows = dataonmaster(regids, tryparse.(Float64, df[!, :rfmean]), mastercol)
         rflows[ismissing.(rflows) .| (rflows .== nothing)] .= returnpart["irrigation/livestock"]
         roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, ii -> -rflows[ii], [:scenarios, :time])
     else

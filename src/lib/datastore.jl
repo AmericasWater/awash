@@ -146,23 +146,30 @@ function cache_clear()
 end
 
 """
+Get the available index column
+"""
+function getindexcol(tbl)
+    for indexcol in config["indexcols"]
+        if indexcol in names(tbl)
+            return indexcol
+        end
+    end
+    return nothing
+end
+
+"""
 Get the region index for one or more rows
 """
 function regionindex(tbl, rows; tostr=true)
     global lastindexcol
 
     # Allow any of the column names
-    indexes = nothing
-    for indexcol in config["indexcols"]
-        if indexcol in names(tbl)
-            indexes = tbl[rows, indexcol]
-            lastindexcol = indexcol
-            break
-        end
-    end
-
-    if indexes == nothing
+    indexcol = getindexcol(tbl)
+    if indexcol == nothing
         error("Could not find any index column in table.")
+    else
+        indexes = tbl[rows, indexcol]
+        lastindexcol = indexcol
     end
 
     if !tostr
@@ -304,11 +311,11 @@ end
 Reorder values to match the master region indexes.
 Value is NA if a given region isn't in fipses.
 """
-function dataonmaster(fipses, values)
+function dataonmaster(fipses, values, mastercol=:fips)
     if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
-        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
+        masterfips = map(x -> parse(Int64, x), masterregions[!, mastercol])
     else
-        masterfips = masterregions[!, :fips]
+        masterfips = masterregions[!, mastercol]
     end
     if typeof(fipses) <: Vector{Union{Missing, Int64}}
         fipses = collect(Missings.replace(fipses, 0))

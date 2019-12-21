@@ -6,6 +6,7 @@ include("model-waterdemand.jl")
 
 ## Check if the optimize-surface script has produced captures data
 storedcaptures = cached_fallback("extraction/captures", () -> false)
+println("DDD")
 if storedcaptures == false
     @warn "Missing saved reservoirs file.  Please run optimize-surface.jl with allowreservoirs."
 elseif size(storedcaptures)[1] != numreservoirs || size(storedcaptures)[2] != numsteps

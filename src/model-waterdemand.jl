@@ -33,6 +33,7 @@ println("Creating model...")
 model = newmodel();
 
 # Add all of the components
+println("AAA")
 if get(config, "demandmodel", nothing) != "USGS"
     thermoelectric = initthermoelectric(model); # exogenous
     livestock = initlivestock(model); # exogenous
@@ -42,9 +43,11 @@ if get(config, "demandmodel", nothing) != "USGS"
     industrialdemand = initindustrialdemand(model); # exogenous
     urbandemand = initurbandemand(model); # exogenous
 end
+println("BBB")
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 
 # Connect up the components
+println("CCC")
 if get(config, "demandmodel", nothing) != "USGS"
     agriculture[:irrcropareas] = irrigationagriculture[:totalareas]
     agriculture[:irrcropproduction] = irrigationagriculture[:production]

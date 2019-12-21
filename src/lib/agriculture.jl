@@ -107,12 +107,12 @@ struct StatisticalAgricultureModel
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
-    interceptrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "intercept"))
-    gddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gdds"))
-    kddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kdds"))
-    wreqrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "wreq"))
-    gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gddoffset"))
-    kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kddoffset"))
+    interceptrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "intercept"))
+    gddsrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "gdds"))
+    kddsrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "kdds"))
+    wreqrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "kddoffset"))
 
     if interceptrow != nothing
         intercept = df[interceptrow, :mean]

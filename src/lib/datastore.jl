@@ -84,10 +84,10 @@ function getfilteredtable(filepath, fipscol=:FIPS; kwargs...)
     end
     recorded = CSV.read(filepath; kwargs...)
     if get(config, "filterstate", nothing) != nothing
-        if typeof(recorded[fipscol]) <: Vector{String}
-            recorded = recorded[findall([value[1:2] for value in recorded[fipscol]] .== config["filterstate"]), :]
+        if typeof(recorded[!, fipscol]) <: Vector{String}
+            recorded = recorded[findall([value[1:2] for value in recorded[!, fipscol]] .== config["filterstate"]), :]
 	else
-            recorded = recorded[findall(floor.(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
+            recorded = recorded[findall(floor.(recorded[!, fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
 	end
     end
     recorded

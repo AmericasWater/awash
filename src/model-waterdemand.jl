@@ -37,7 +37,6 @@ println("AAA")
 if get(config, "demandmodel", nothing) != "USGS"
     thermoelectric = initthermoelectric(model); # exogenous
     livestock = initlivestock(model); # exogenous
-    println("111")
     irrigationagriculture = initirrigationagriculture(model); # optimization-only
     univariateagriculture = initunivariateagriculture(model); # optimization-only
     println("222")

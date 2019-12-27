@@ -1,14 +1,16 @@
 using CSV
 
-for do_monthly in [false, true]
+for do_monthly in ["allyear"] #[false, true, "allyear"]
     global config
 
-include("../../src/lib/readconfig.jl")
-if do_monthly
-    config = readconfig("../../configs/complete-5year.yml")
-else
-    config = readconfig("../../configs/complete-5year-yearly.yml")
-end
+    include("../../src/lib/readconfig.jl")
+    if do_monthly == "allyear"
+        config = readconfig("../../configs/complete-yearly.yml")
+    elseif do_monthly
+        config = readconfig("../../configs/complete-5year.yml")
+    else
+        config = readconfig("../../configs/complete-5year-yearly.yml")
+    end
 
 using Gurobi
 solver = GurobiSolver()
@@ -34,10 +36,12 @@ df = DataFrame(gauge=repeat(gaugeorder, outer=numsteps),
                time=repeat(1:numsteps, inner=numgauges),
                flows_rfnr=flows_rfnr, flows_nrnr=flows_nrnr,
                flows_rfwr=flows_rfwr, flows_nw=flows_nw)
-if do_monthly
-    CSV.write("optimizes-monthly.csv", df)
-else
-    CSV.write("optimizes.csv", df)
-end
+    if do_monthly == "allyear"
+        CSV.write("optimizes-allyear.csv", df)
+    elseif do_monthly
+        CSV.write("optimizes-monthly.csv", df)
+    else
+        CSV.write("optimizes.csv", df)
+    end
 
 end

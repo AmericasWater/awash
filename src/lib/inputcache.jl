@@ -42,11 +42,15 @@ function knowndf(filenickname::AbstractString)
         end
     elseif filenickname == "agriculture-knownareas"
         try
+            println("oo")
             getfilevalue(loadpath("agriculture/knownareas.csv"), "filtered",
                          () -> getfilteredtable("agriculture/knownareas.csv", :fips, types=[Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
+            println("ok")
         catch
+            println("ko")
             getfilevalue(loadpath("agriculture/knownareas.csv"), "filtered",
                          () -> getfilteredtable("agriculture/knownareas.csv", :state, types=[String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
+            println("kk")
         end
     elseif filenickname == "region-info"
         getfilevalue(loadpath("county-info.csv"), "*",

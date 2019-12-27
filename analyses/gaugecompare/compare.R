@@ -4,13 +4,18 @@ library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 676
-do.monthly <- T
+do.monthly <- F
+do.allyear <- T
 
 source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {
     df <- read.csv("optimizes-monthly.csv")
 } else {
-    df <- read.csv("optimizes.csv")
+    if (do.allyear) {
+        df <- read.csv("optimizes-allyear.csv")
+        startmonth <- 1
+    } else
+        df <- read.csv("optimizes.csv")
 }
 df$observed <- NA
 
@@ -125,17 +130,31 @@ if (do.monthly) {
         theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.2)
     ggsave("compare-monthly.pdf", width=7, height=4)
 } else {
-    ggplot(subset(df, nonzero & largish)) +
-        facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
-        geom_density(aes(flows_nw / observed, colour='a')) +
-        geom_density(aes(flows_nrnr / observed, colour='b')) +
-        geom_density(aes(flows_rfnr / observed, colour='c')) +
-        geom_density(aes(flows_rfwr / observed, colour='d')) +
-        scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
-        scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0(" + Withdrawals (MM: ", mm.nrnr, ")"), paste0("  + Returns (MM: ", mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", mm.rfwr, ")"))) +
-        theme_minimal() + xlab("Ratio of simulated to observed") +
-        theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.4)
-    ggsave("compare.pdf", width=7, height=4)
+    if (do.allyear) {
+        ggplot(subset(df, nonzero & largish)) +
+            facet_grid((time > 50) ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(flows_nw / observed, colour='a')) +
+            geom_density(aes(flows_nrnr / observed, colour='b')) +
+            geom_density(aes(flows_rfnr / observed, colour='c')) +
+            geom_density(aes(flows_rfwr / observed, colour='d')) +
+            scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0(" + Withdrawals (MM: ", mm.nrnr, ")"), paste0("  + Returns (MM: ", mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", mm.rfwr, ")"))) +
+            theme_minimal() + xlab("Ratio of simulated to observed") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1))
+        ggsave("compare-allyear.pdf", width=7, height=4)
+    } else {
+        ggplot(subset(df, nonzero & largish)) +
+            facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(flows_nw / observed, colour='a')) +
+            geom_density(aes(flows_nrnr / observed, colour='b')) +
+            geom_density(aes(flows_rfnr / observed, colour='c')) +
+            geom_density(aes(flows_rfwr / observed, colour='d')) +
+            scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0(" + Withdrawals (MM: ", mm.nrnr, ")"), paste0("  + Returns (MM: ", mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", mm.rfwr, ")"))) +
+            theme_minimal() + xlab("Ratio of simulated to observed") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.4)
+        ggsave("compare.pdf", width=7, height=4)
+    }
 }
 
 ggplot(subset(df, ava), aes(observed, flows_nw)) +

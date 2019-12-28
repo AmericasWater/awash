@@ -41,17 +41,9 @@ function knowndf(filenickname::AbstractString)
                          () -> getfilteredtable("extraction/USGS-2010.csv", types=[String; Union{Missing, Int64}; String; repeat([Float64], 30)], missingstring="NA"))
         end
     elseif filenickname == "agriculture-knownareas"
-        try
-            println("oo")
-            getfilevalue(loadpath("agriculture/knownareas.csv"), "filtered",
-                         () -> getfilteredtable("agriculture/knownareas.csv", :fips, types=[Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
-            println("ok")
-        catch
-            println("ko")
-            getfilevalue(loadpath("agriculture/knownareas.csv"), "filtered",
-                         () -> getfilteredtable("agriculture/knownareas.csv", :state, types=[String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
-            println("kk")
-        end
+        filepath = loadpath("agriculture/knownareas.csv")
+        getfilevalue(filepath, "filtered",
+                     () -> checkheader(filepath, [Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]) ? getfilteredtable("agriculture/knownareas.csv", :fips, types=[Int64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]) : getfilteredtable("agriculture/knownareas.csv", :state, types=[String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64]))
     elseif filenickname == "region-info"
         getfilevalue(loadpath("county-info.csv"), "*",
                      () -> configdescends(config, "counties") ? CSV.read(loadpath("county-info.csv"), types=[Int64, String, String, String, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}, Union{Float64, Missing}], missingstring="NA") : CSV.read(loadpath("county-info.csv")))

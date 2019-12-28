@@ -33,19 +33,15 @@ println("Creating model...")
 model = newmodel();
 
 # Add all of the components
-println("AAA")
 if get(config, "demandmodel", nothing) != "USGS"
     thermoelectric = initthermoelectric(model); # exogenous
     livestock = initlivestock(model); # exogenous
     irrigationagriculture = initirrigationagriculture(model); # optimization-only
     univariateagriculture = initunivariateagriculture(model); # optimization-only
-    println("222")
     agriculture = initagriculture(model); # optimization-only
-    println("333")
     industrialdemand = initindustrialdemand(model); # exogenous
     urbandemand = initurbandemand(model); # exogenous
 end
-println("BBB")
 waterdemand = initwaterdemand(model); # dep. Agriculture, PopulationDemand
 
 # Connect up the components

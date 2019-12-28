@@ -2,7 +2,7 @@
 #
 # Functions for accessing external data.
 
-using Pkg, CSV
+using Pkg, CSV, DelimitedFiles
 using WeakRefStrings, PooledArrays
 include("inputcache.jl")
 
@@ -73,6 +73,25 @@ function getsuffix()
     end
 
     suffix
+end
+
+"""
+Check if a header definition matches a given file.
+"""
+function checkheader(filepath, types=Vector{Type}, count=10)
+    df, header = readdlm(filepath, ',', String, header=true)
+    for cc in 1:length(types)
+        if types[cc] <: String
+            continue
+        end
+        for rr in 1:min(count, size(df)[1])
+            xx = tryparse(types[cc], df[rr, cc])
+            if xx == nothing && !(df[rr, cc] in ["NA", "NaN"])
+                return false
+            end
+        end
+    end
+    return true
 end
 
 """

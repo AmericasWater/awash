@@ -75,19 +75,16 @@ end
 function initagriculture(m::Model)
     agriculture = add_comp!(m, Agriculture)
 
-    println("aaa")
     knownareas = knowndf("agriculture-knownareas")
     othercropsarea = repeat(convert(Vector, (knownareas[!, :total] - knownareas[!, :known]) * 0.404686), outer=[1, numharvestyears]) # Convert to Ha
     agriculture[:othercropsarea] = othercropsarea
 
-    println("bbb")
     recorded = knowndf("exogenous-withdrawals")
     othercropsirrigation = ((knownareas[!, :total] - knownareas[!, :known]) ./ knownareas[!, :total]) * config["timestep"] .* recorded[:, :IR_To] * 1383. / 12
     othercropsirrigation[knownareas[!, :total] .== 0] .= 0
     othercropsirrigation = repeat(convert(Vector, othercropsirrigation), outer=[1, numsteps])
     agriculture[:othercropsirrigation] = othercropsirrigation
 
-    println("ccc")
     for crop in Channel(missingcrops)
         areas = repeat(convert(Vector, currentcroparea(crop)), outer=[1, numharvestyears])
         agriculture[:othercropsarea] = othercropsarea + areas
@@ -101,7 +98,6 @@ function initagriculture(m::Model)
         end
     end
 
-    println("ddd")
     agriculture[:othercropsirrigation] = othercropsirrigation
     agriculture[:irrcropproduction] = zeros(Float64, (numregions, numirrcrops, numscenarios, numharvestyears))
     agriculture[:unicropproduction] = zeros(Float64, (numregions, numunicrops, numscenarios, numharvestyears))

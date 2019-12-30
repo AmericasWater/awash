@@ -4,7 +4,7 @@ using DelimitedFiles
 function netcdf2csv(ncpath::T, csvpath::T, coldimname::T, skipdimnames::Vector{T}=T[]) where {T<:AbstractString}
     println("Understanding dimensions...")
 
-    nc4 = ncinfo(ncpath)
+    nc4 = NetCDF.open(ncpath)
 
     coldim = nc4.dim[coldimname]
     skipdims = [nc4.dim[skipdimname] for skipdimname in skipdimnames]

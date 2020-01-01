@@ -116,7 +116,7 @@ function getadded(stations::DataFrame)
         dists = sqrt.((stations[:, :lat] .- gage_latitude[jj]).^2 + (stations[:, :lon] .- gage_longitude[jj]).^2)
         ii = argmin(dists)
         if dists[ii] > 1
-            println("Gage $jj cannot be matched: $(gage_latitude[jj]), $(gage_longitude[jj]) vs. $(stations[ii, :lat]), $(stations[ii, :lon])")
+            println("Gage $jj cannot be matched: $(gage_latitude[jj]), $(gage_longitude[jj]) closest to $(stations[ii, :lat]), $(stations[ii, :lon])")
         end
 
         added[:, ii] = vec(gage_totalflow[jj, :]) * gage_area[jj]

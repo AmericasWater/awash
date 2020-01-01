@@ -72,10 +72,11 @@ for ii in 1:length(newlabels)
     end
 
     newcontributing_area[ii] = sum(contributing_area[indices])
-    if length(indices) > 0
-        newlatitude[ii] = gage_latitude[indices[1]]
-        newlongitude[ii] = gage_longitude[indices[1]]
-    end
+
+    row = findfirst(waternetwork[:gaugeid] .== oldupstream)
+    newlatitude[ii] = waternetwork[row, :lat]
+    newlongitude[ii] = waternetwork[row, :lon]
+
     newrunoff[ii, :] = sum(runoff[indices, :], dims=1)
     newbaseflow[ii, :] = sum(baseflow[indices, :], dims=1)
     newtotalflow[ii, :] = sum(totalflow[indices, :], dims=1)

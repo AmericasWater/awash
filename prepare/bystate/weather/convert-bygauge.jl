@@ -73,7 +73,7 @@ for ii in 1:length(newlabels)
 
     newcontributing_area[ii] = sum(contributing_area[indices])
 
-    row = findfirst(waternetwork[:gaugeid] .== oldupstream)
+    row = findfirst(waternetwork[:gaugeid] .== oldupstreams[1])
     newlatitude[ii] = waternetwork[row, :lat]
     newlongitude[ii] = waternetwork[row, :lon]
 

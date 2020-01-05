@@ -115,7 +115,7 @@ function getadded(stations::DataFrame)
     for jj in findall(.!gagematches)
         dists = sqrt.((stations[:, :lat] .- gage_latitude[jj]).^2 + (stations[:, :lon] .- gage_longitude[jj]).^2)
         ii = argmin(dists)
-        if dists[ii] > 1
+        if dists[ii] > 1 && !("filterstate" in keys(config))
             println("Gage $jj cannot be matched: $(gage_latitude[jj]), $(gage_longitude[jj]) closest to $(stations[ii, :lat]), $(stations[ii, :lon])")
         end
 

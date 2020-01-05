@@ -91,7 +91,7 @@ function grad_waterdemand_totalreturn_totalirrigation(m::Model)
             regids = df[!, :ST]
             mastercol = :state
         else
-            regids = df[!, :FIPS]
+            regids = canonicalindex(df[!, :FIPS])
             mastercol = :fips
         end
         rflows = dataonmaster(regids, tryparse.(Float64, df[!, :rfmean]), mastercol)

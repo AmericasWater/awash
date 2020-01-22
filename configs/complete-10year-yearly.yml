@@ -6,11 +6,11 @@ filterstate: null
 dataset: counties
 
 # First and last month of the simulation
-startmonth: 1/2006
+startmonth: 1/2001
 endmonth: 12/2010
 
 # First entry in VIC_WB to include
-startweather: 676
+startweather: 616
 
 # Months per time step
 timestep: 12

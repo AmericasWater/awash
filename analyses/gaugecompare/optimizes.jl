@@ -1,11 +1,13 @@
 using CSV
 
-for do_monthly in ["allyear"] #[false, true, "allyear"]
+for do_monthly in ["10year"] #[false, true, "allyear"]
     global config
 
     include("../../src/lib/readconfig.jl")
     if do_monthly == "allyear"
         config = readconfig("../../configs/complete-yearly.yml")
+    elseif do_monthly == "10year"
+        config = readconfig("../../configs/complete-10year-yearly.yml")
     elseif do_monthly
         config = readconfig("../../configs/complete-5year.yml")
     else
@@ -38,6 +40,8 @@ df = DataFrame(gauge=repeat(gaugeorder, outer=numsteps),
                flows_rfwr=flows_rfwr, flows_nw=flows_nw)
     if do_monthly == "allyear"
         CSV.write("optimizes-allyear.csv", df)
+    elseif do_monthly == "10year"
+        CSV.write("optimizes-10year.csv", df)
     elseif do_monthly
         CSV.write("optimizes-monthly.csv", df)
     else

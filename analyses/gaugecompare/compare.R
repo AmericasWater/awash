@@ -1,19 +1,22 @@
-setwd("~/research/water/awash/analyses/gaugecompare")
+setwd("~/research/awash-temp/analyses/gaugecompare")
 
 library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 676
 do.monthly <- F
-do.allyear <- T
+do.other <- "10year" # "allyear"
 
-source("../../../network4/discharges.R", chdir=T)
+source("../../../water/network4/discharges.R", chdir=T)
 if (do.monthly) {
     df <- read.csv("optimizes-monthly.csv")
 } else {
-    if (do.allyear) {
+    if (do.other == "allyear") {
         df <- read.csv("optimizes-allyear.csv")
         startmonth <- 1
+    } else if (do.other == "10year") {
+        df <- read.csv("optimizes-10year.csv")
+        startmonth <- startmonth - 60
     } else
         df <- read.csv("optimizes.csv")
 }
@@ -60,7 +63,7 @@ for (gauge in unique(df$gauge)) {
         } else {
             if (starttime >= maxtime - 11)
                 next
-            for (year in 1:5) {
+            for (year in 1:length(dfrows)) {
                 df$observed[dfrows[year]] <- mean(values$flow[values$time >= starttime & values$time < starttime + 12])
                 starttime <- starttime + 12
                 if (starttime > maxtime)
@@ -130,7 +133,7 @@ if (do.monthly) {
         theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.2)
     ggsave("compare-monthly.pdf", width=7, height=4)
 } else {
-    if (do.allyear) {
+    if (do.other %in% c("allyear", "10year")) {
         ggplot(subset(df, nonzero & largish)) +
             facet_grid((time > 50) ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
             geom_density(aes(flows_nw / observed, colour='a')) +
@@ -141,7 +144,7 @@ if (do.monthly) {
             scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", mm.nw, ")"), paste0(" + Withdrawals (MM: ", mm.nrnr, ")"), paste0("  + Returns (MM: ", mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", mm.rfwr, ")"))) +
             theme_minimal() + xlab("Ratio of simulated to observed") +
             theme(legend.justification=c(.5,1), legend.position=c(.5,1))
-        ggsave("compare-allyear.pdf", width=7, height=4)
+        ggsave(paste0("compare-", do.other, ".pdf"), width=7, height=4)
     } else {
         ggplot(subset(df, nonzero & largish)) +
             facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
@@ -189,3 +192,104 @@ ggplot(subset(df, ava), aes(observed, flows_rfwr)) +
     theme_minimal() + xlab("Observed flows (1000 m^3 / year)") +
     ylab("Simulated flows with withdrawals + return flows + reservoirs")
 
+## NSE and KGE metrics
+
+library(dplyr)
+df2 <- df %>% group_by(gauge) %>% summarize(nse_rfnr=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+                                            nse_nrnr=1 - sum((flows_nrnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+                                            nse_rfwr=1 - sum((flows_rfwr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+                                            nse_nw=1 - sum((flows_nw - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+                                            kge_rfnr=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                            kge_nrnr=1 - sqrt((cor(flows_nrnr, observed, use="na.or.complete") - 1)^2 + (var(flows_nrnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_nrnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                            kge_rfwr=1 - sqrt((cor(flows_rfwr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfwr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfwr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                            kge_nw=1 - sqrt((cor(flows_nw, observed, use="na.or.complete") - 1)^2 + (var(flows_nw, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_nw, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                            modified=median(modified, na.rm=T), nonzero=median(nonzero, na.rm=T), largish=median(largish, na.rm=T))
+
+df2$flowsize.label <- "Large Flows"
+df2$flowsize.label[!df2$largish] <- "Small Flows"
+df2$modified.label <- "Modified Flows"
+df2$modified.label[!df2$modified] <- "Unmodified Flows"
+
+nse.mm.nw <- format(median(df2$nse_nw[aval], na.rm=T), digits=3)
+nse.mm.nrnr <- format(median(df2$nse_nrnr[aval], na.rm=T), digits=3)
+nse.mm.rfnr <- format(median(df2$nse_rfnr[aval], na.rm=T), digits=3)
+nse.mm.rfwr <- format(median(df2$nse_rfwr[aval], na.rm=T), digits=3)
+
+if (do.monthly) {
+    ggplot(subset(df2, nonzero & largish)) +
+        facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+        geom_density(aes(nse_nw, colour='a')) +
+        geom_density(aes(nse_nrnr, colour='b')) +
+        geom_density(aes(nse_rfnr, colour='c')) +
+        geom_density(aes(nse_rfwr, colour='d')) +
+        scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", nse.mm.nw, ")"), paste0(" + Withdrawals (MM: ", nse.mm.nrnr, ")"), paste0("  + Returns (MM: ", nse.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", nse.mm.rfwr, ")"))) +
+        theme_minimal() + xlab("NSE") +
+        theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+    ggsave("nse-monthly.pdf", width=7, height=4)
+} else {
+    if (do.other %in% c("allyear", "10year")) {
+        ggplot(subset(df2, nonzero & largish)) +
+            facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(nse_nw, colour='a')) +
+            geom_density(aes(nse_nrnr, colour='b')) +
+            geom_density(aes(nse_rfnr, colour='c')) +
+            geom_density(aes(nse_rfwr, colour='d')) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", nse.mm.nw, ")"), paste0(" + Withdrawals (MM: ", nse.mm.nrnr, ")"), paste0("  + Returns (MM: ", nse.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", nse.mm.rfwr, ")"))) +
+            theme_minimal() + xlab("NSE") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+        ggsave(paste0("nse-", do.other, ".pdf"), width=7, height=4)
+    } else {
+        ggplot(subset(df2, nonzero & largish)) +
+            facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(nse_nw, colour='a')) +
+            geom_density(aes(nse_nrnr, colour='b')) +
+            geom_density(aes(nse_rfnr, colour='c')) +
+            geom_density(aes(nse_rfwr, colour='d')) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", nse.mm.nw, ")"), paste0(" + Withdrawals (MM: ", nse.mm.nrnr, ")"), paste0("  + Returns (MM: ", nse.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", nse.mm.rfwr, ")"))) +
+            theme_minimal() + xlab("NSE") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+        ggsave("nse.pdf", width=7, height=4)
+    }
+}
+
+kge.mm.nw <- format(median(df2$kge_nw[aval], na.rm=T), digits=3)
+kge.mm.nrnr <- format(median(df2$kge_nrnr[aval], na.rm=T), digits=3)
+kge.mm.rfnr <- format(median(df2$kge_rfnr[aval], na.rm=T), digits=3)
+kge.mm.rfwr <- format(median(df2$kge_rfwr[aval], na.rm=T), digits=3)
+
+if (do.monthly) {
+    ggplot(subset(df2, nonzero & largish)) +
+        facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+        geom_density(aes(kge_nw, colour='a')) +
+        geom_density(aes(kge_nrnr, colour='b')) +
+        geom_density(aes(kge_rfnr, colour='c')) +
+        geom_density(aes(kge_rfwr, colour='d')) +
+        scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", kge.mm.nw, ")"), paste0(" + Withdrawals (MM: ", kge.mm.nrnr, ")"), paste0("  + Returns (MM: ", kge.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", kge.mm.rfwr, ")"))) +
+        theme_minimal() + xlab("KGE") +
+        theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+    ggsave("kge-monthly.pdf", width=7, height=4)
+} else {
+    if (do.other %in% c("allyear", "10year")) {
+        ggplot(subset(df2, nonzero & largish)) +
+            facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(kge_nw, colour='a')) +
+            geom_density(aes(kge_nrnr, colour='b')) +
+            geom_density(aes(kge_rfnr, colour='c')) +
+            geom_density(aes(kge_rfwr, colour='d')) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", kge.mm.nw, ")"), paste0(" + Withdrawals (MM: ", kge.mm.nrnr, ")"), paste0("  + Returns (MM: ", kge.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", kge.mm.rfwr, ")"))) +
+            theme_minimal() + xlab("KGE") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+        ggsave(paste0("kge-", do.other, ".pdf"), width=7, height=4)
+    } else {
+        ggplot(subset(df2, nonzero & largish)) +
+            facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
+            geom_density(aes(kge_nw, colour='a')) +
+            geom_density(aes(kge_nrnr, colour='b')) +
+            geom_density(aes(kge_rfnr, colour='c')) +
+            geom_density(aes(kge_rfwr, colour='d')) +
+            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (MM: ", kge.mm.nw, ")"), paste0(" + Withdrawals (MM: ", kge.mm.nrnr, ")"), paste0("  + Returns (MM: ", kge.mm.rfnr, ")"), paste0("  + Reservoirs (MM: ", kge.mm.rfwr, ")"))) +
+            theme_minimal() + xlab("KGE") +
+            theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + xlim(-1, 1)
+        ggsave("kge.pdf", width=7, height=4)
+    }
+}

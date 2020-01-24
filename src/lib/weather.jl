@@ -71,7 +71,7 @@ function sum2timestep(weather)
         for timestep in 1:numsteps
             allcounties = zeros(size(weather, 2))
             for month in 1:config["timestep"]
-                allcounties += weather[round.(Int64, (timestep - 1) * config["timestep"] + month + scenarios[ss] - 1), :]
+                allcounties += weatherfromstart[round.(Int64, (timestep - 1) * config["timestep"] + month + scenarios[ss] - 1), :]
             end
 
             bytimestep[:, ss, timestep] = allcounties

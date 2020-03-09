@@ -26,3 +26,12 @@ function matrix_downstreamgauges_canals(A::AbstractMatrix{Float64})
         end
     end
 end
+
+# function evaporation(temp, latitude, month)
+#     daylighthours = 4 * latitude * sin(0.53 * month - 1.65) + 12
+#     if abs(latitude) > 23.5 * pi / 180
+#         Ra = 3 * daylighthours * sin(0.131 * daylighthours - 0.95 * latitude)
+#     else
+#         Ra = 118 * daylighthours^0.2 * sin(0.131*daylighthours - 0.2 * latitude)
+#     end
+# end

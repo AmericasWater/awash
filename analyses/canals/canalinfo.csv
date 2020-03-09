@@ -1,0 +1,27 @@
+Location,FIPS,SW Demand (MGal/day),Local Sources,Canal Sources,Canal Imports (MG/d),Canal Exports (MG/d),Remaining Local Flow (MG/d)
+"Kent, MI",26081,2.8,Lower Thornapple River (contains): 0.0%,"Macatawa Bay (Ottawa, MI, missingcanal): 0.0%",0.0,0.0,20.069099940755024
+,,,Rogue River (contains): 0.0%,,,,
+,,,Prairie Creek-Grand River (contains): 0.0%,,,,
+,,,Rush Creek-Grand River (contains): 100.0%,,,,
+"Pima, AZ",4019,35.93,Canada del Oro (contains): 3.0%,None,0.0,0.0,12.82834460538396
+,,,Middle San Simon Wash (contains): 0.0%,,,,
+,,,Arivaca Creek (contains): 2.0%,,,,
+,,,Upper Aguirre Wash (contains): 1.0%,,,,
+,,,Lower Vamori Wash (contains): 0.0%,,,,
+,,,Guild Wash-Santa Cruz River (contains): 7.000000000000001%,,,,
+,,,Chukut Kuk Wash (contains): 0.0%,,,,
+,,,Cienega Creek (contains): 21.0%,,,,
+,,,Cuerda de Lena (contains): 1.0%,,,,
+,,,Upper San Simon Wash (contains): 0.0%,,,,
+,,,Upper Vamori Wash (contains): 0.0%,,,,
+,,,Julian Wash-Santa Cruz River (contains): 17.0%,,,,
+,,,Upper Santa Rosa Wash (contains): 2.0%,,,,
+,,,Altar Wash (contains): 2.0%,,,,
+,,,Lower Brawley Wash (contains): 0.0%,,,,
+,,,Upper Brawley Wash (contains): 0.0%,,,,
+,,,Agua Verde Creek-Pantano Wash (contains): 23.0%,,,,
+,,,Tanque Verde Creek-Rillito River (contains): 22.0%,,,,
+,,,Sells Wash (contains): 0.0%,,,,
+"Denver, CO",8031,149.12,Cherry Creek-South Platte River (contains): 11.0%,None,0.0,0.0,160.52641343493713
+,,,City of Lakewood-South Platte River (contains): 70.0%,,,,
+,,,Bear Creek (contains): 15.0%,,,,

@@ -1,13 +1,13 @@
-setwd("~/research/awash-temp/analyses/gaugecompare")
+setwd("~/research/water/awash/analyses/gaugecompare")
 
 library(ggplot2)
 
-do.only.hcdn <- T
+do.only.hcdn <- F
 startmonth <- 673
 do.monthly <- F
 do.other <- "allyear" #"10year"
 
-source("../../../water/network4/discharges.R", chdir=T)
+source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {
     df <- read.csv("optimizes-monthly.csv")
 } else {
@@ -85,6 +85,40 @@ if (do.only.hcdn) {
         theme_minimal() + xlab("Ratio of simulated to observed")
 }
 
+## Read raw run-off values
+## nc <- nc_open("~/Dropbox/America's Water/Public Model Data/VIC_WB.nc")
+## vic.fips <- ncvar_get(nc, "state_fips") * 1000 + ncvar_get(nc, "county_fips")
+## vic.flow <- ncvar_get(nc, "runoff") + ncvar_get(nc, "baseflow")
+## network$gid <- paste(network$collection, network$colid, sep='.')
+## load("../../data/counties/waternet/countydraws.RData")
+
+## df$vicro <- NA
+## numdone <- 0
+## for (gauge in unique(df$gauge)) {
+##     numdone <- numdone + 1
+##     print(numdone / 22559)
+##     dfrows <- which(df$gauge == gauge)
+##     grow <- which(network$gid == gauge)
+##     fips <- draws$fips[draws$source == grow & draws$justif == 'contains']
+##     if (length(fips) > 0 && fips %in% vic.fips) {
+##         if (do.monthly)
+##             df$vicro[dfrows] <- vic.flow[startmonth:length(dfrows), vic.fips == fips]
+##         else {
+##             for (year in 1:length(dfrows))
+##                 df$vicro[dfrows[year]] <- mean(vic.flow[(0:11) + startmonth + (year - 1)*12, vic.fips == fips])
+##         }
+##     }
+## }
+## vicrosaved <- df$vicro
+
+## numdone <- 0
+## for (gauge in unique(df$gauge)) {
+##     numdone <- numdone + 1
+##     print(numdone / 22559)
+##     dfrows <- which(df$gauge == gauge)
+##     df$vicro[dfrows] <- df$vicro[dfrows] * median(df$observed[dfrows] / df$vicro[dfrows])
+## }
+
 ## Check lineup
 allccf = rep(0, 25)
 for (gauge in unique(df$gauge)) {
@@ -138,7 +172,7 @@ if (do.other == "allyear") {
     df$period.label[df$time <= 50] <- "before 2000"
 } else
     df$period.label <- NA
-    
+
 if (do.monthly) {
     ggplot(subset(df, nonzero & largish)) +
         facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +

@@ -70,3 +70,15 @@ else
 end
 
 addeds = sum2timestep(getadded(waternetwork2))
+
+## Prepare evaporation information
+if config["ncregion"] == "county"
+    temps = ncread(loadpath("tasmat.nc4"), "tas")
+    temps = temps[10:end, gaugeindices]
+
+    sumtemps = sum2timestep(temps)
+    meantemps = sumtemps / config["timestep"]
+    
+    gaugetas = convert(Array{Union{Missing, Float64}, 3}, meantemps)
+    gaugetas[gaugetas .< -50] .= missing
+end

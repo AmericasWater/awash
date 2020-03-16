@@ -102,7 +102,19 @@ function constraintoffset_waternetwork_outflows(m::Model)
         gg = vertex_index(downstreamorder[hh])
         gauge = downstreamorder[hh].label
         for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :, :]
+            if LOSSFACTOR_DIST == nothing
+                lossfactor = DOWNSTREAM_FACTOR
+            else
+                upgg = vertex_index(upstream, waternet)
+                distance = waternetwork2[upgg, :dist]
+                lossfactor = exp.(LOSSFACTOR_DIST * distance .+ LOSSFACTOR_DISTTAS * distance * max.((gaugetas[gg, :, :] .+ gaugetas[upgg, :, :]) / 2, 0))
+                if typeof(lossfactor) <: Array{Missing}
+                    lossfactor = DOWNSTREAM_FACTOR
+                else
+                    lossfactor[ismissing.(lossfactor)] .= DOWNSTREAM_FACTOR
+                end
+            end
+            b[gg, :, :] += lossfactor .* b[vertex_index(upstream, waternet), :, :]
         end
     end
 

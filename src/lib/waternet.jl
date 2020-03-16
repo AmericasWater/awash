@@ -1,4 +1,9 @@
+# Temperature and distance-based method. Set LOSSFACTOR_DIST = nothing to use DOWNSTREAM_FACTOR
+LOSSFACTOR_DIST = 0 # < 0
+LOSSFACTOR_DISTTAS = 0 # < 0
+# Fall-back loss factor
 DOWNSTREAM_FACTOR = 0.99 # amount that survives to downstream nodes
+
 CANAL_FACTOR = (1 / .99) # amount needed to withdrawal to arrive in canal
 
 function matrix_gauges_canals(A::AbstractMatrix{Float64}, canal_values::Vector{Float64})

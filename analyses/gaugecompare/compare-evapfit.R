@@ -67,3 +67,6 @@ c(DOWNSTREAM_FACTOR, LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, CANAL_FACTOR)
 params[which.max(params$lognse),]
 
 params[which.max(params$logkge),]
+
+write.csv(params, "evapfit-results.csv", row.names=F)
+

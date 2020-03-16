@@ -1,0 +1,17 @@
+Newton's lognse
+
+ DOWNSTREAM_FACTOR2    LOSSFACTOR_DIST2 LOSSFACTOR_DISTTAS2       CANAL_FACTOR2 
+       1.006053e+00       -5.887422e-07       -2.675684e-08                  NA
+
+Newton's logkge
+
+ DOWNSTREAM_FACTOR2    LOSSFACTOR_DIST2 LOSSFACTOR_DISTTAS2       CANAL_FACTOR2 
+       9.894550e-01       -4.168049e-06       -3.409554e-07                  NA
+
+> params[which.max(params$lognse),]
+   iter DOWNSTREAM_FACTOR LOSSFACTOR_DIST LOSSFACTOR_DISTTAS CANAL_FACTOR     lognse      logkge
+96   95          0.997068               0      -2.379683e-08            1 -0.6587629 -0.04624651
+> 
+> params[which.max(params$logkge),]
+   iter DOWNSTREAM_FACTOR LOSSFACTOR_DIST LOSSFACTOR_DISTTAS CANAL_FACTOR     lognse      logkge
+82   81         0.9847768   -1.701192e-06      -7.749796e-08       1.0004 -0.7455441 -0.02072255

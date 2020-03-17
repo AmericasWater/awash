@@ -106,6 +106,7 @@ function constraintoffset_waternetwork_outflows(m::Model)
                 lossfactor = DOWNSTREAM_FACTOR
             else
                 upgg = vertex_index(upstream, waternet)
+                println(waternetwork2[1,:])
                 distance = waternetwork2[upgg, :dist]
                 lossfactor = exp.(LOSSFACTOR_DIST * distance .+ LOSSFACTOR_DISTTAS * distance * max.((gaugetas[gg, :, :] .+ gaugetas[upgg, :, :]) / 2, 0))
                 if typeof(lossfactor) <: Array{Missing}

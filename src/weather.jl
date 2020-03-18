@@ -62,10 +62,21 @@ else
     waternetwork = waternetdata["network"]
     waternetwork[!, :gaugeid] = map(ii -> "$(waternetwork[ii, :collection]).$(waternetwork[ii, :colid])", 1:size(waternetwork)[1])
 
-    waternetwork2 = DataFrame(gaugeid=String[], lat=Float64[], lon=Float64[])
+    waternetwork2 = DataFrame(gaugeid=String[], lat=Float64[], lon=Float64[], dist=Float64[])
     for gaugeid in gaugeorder
         row = findfirst(waternetwork[!, :gaugeid] .== gaugeid)
-        push!(waternetwork2, [gaugeid, waternetwork[row, :lat], waternetwork[row, :lon]])
+        push!(waternetwork2, [gaugeid, waternetwork[row, :lat], waternetwork[row, :lon], 0.]) # fill in dist later
+    end
+
+    for vertex in vertices(waternet)
+        for edge in out_edges(vertex, waternet)
+            downgid = source(edge).label
+            downrow = waternetwork2[waternetwork2[!, :gaugeid] .= downgid, :]
+            upgid = target(edge).label
+            uprow = waternetwork2[waternetwork2[!, :gaugeid] .= upgid, :]
+            dist = 100.0 * sqrt((downrow[1, :lat] - uprow[1, :lat])^2 + (downrow[1, :lon] - uprow[1, :lon])^2) # rough approximation
+            waternetwork2[waternetwork2[!, :gaugeid] .= upgid, :dist] .= dist
+        end
     end
 end
 
@@ -78,7 +89,7 @@ if config["ncregion"] == "county"
 
     sumtemps = sum2timestep(temps)
     meantemps = sumtemps / config["timestep"]
-    
+
     gaugetas = convert(Array{Union{Missing, Float64}, 3}, meantemps)
     gaugetas[gaugetas .< -50] .= missing
 end

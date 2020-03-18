@@ -17,7 +17,7 @@ mylog <- function(xx) {
 for (ii in 1:nrow(params)) {
     modeldf <- read.csv(paste0("evapfit-", params$iter[ii], ".csv"))
     df <- modeldf %>% left_join(otherdf)
-    
+
     df2 <- df %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
                                                 lognse=1 - sum((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T) / sum((mylog(observed) - mean(mylog(observed), na.rm=T))^2, na.rm=T),
                                                 kge=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
@@ -70,3 +70,40 @@ params[which.max(params$logkge),]
 
 write.csv(params, "evapfit-results.csv", row.names=F)
 
+##
+
+setwd("~/research/water/awash/analyses/gaugecompare")
+params <- read.csv("evapfit-results.csv")
+
+library(ggplot2)
+
+ggplot(params, aes(LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, colour=lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DISTTAS, CANAL_FACTOR, colour=lognse)) +
+    geom_point() + theme_bw() + ylim(1, 1.005)
+
+ggplot(params[params$CANAL_FACTOR < 1.01,], aes(LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, colour=lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DIST, lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DISTTAS, lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DISTTAS, logkge)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(CANAL_FACTOR, lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(CANAL_FACTOR, logkge)) +
+    geom_point() + theme_bw()
+
+library(gg3D)
+
+ggplot(params, aes(x=LOSSFACTOR_DIST, y=LOSSFACTOR_DISTTAS, z=CANAL_FACTOR, colour=lognse)) +
+    axes_3D() +
+    stat_3D() +
+    theme_void()

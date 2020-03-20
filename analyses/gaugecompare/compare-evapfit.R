@@ -5,8 +5,21 @@ library(dplyr)
 params <- read.csv("evapfit-params.csv")
 params$lognse <- NA
 params$logkge <- NA
+params$logrmse <- NA
+params$nse <- NA
+params$kge <- NA
+params$rmse <- NA
+params$lognse.yearly <- NA
+params$logkge.yearly <- NA
+params$logrmse.yearly <- NA
+params$nse.yearly <- NA
+params$kge.yearly <- NA
+params$rmse.yearly <- NA
 
 otherdf <- read.csv("evapdata.csv")
+otherdf$year <- floor((otherdf$time - 1) / 12) + 1
+
+otherdf.yearly <- otherdf %>% group_by(gauge, year) %>% summarize(observed=sum(observed))
 
 mylog <- function(xx) {
     yy <- log(xx)
@@ -21,17 +34,35 @@ for (ii in 1:nrow(params)) {
     df2 <- df %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
                                                 lognse=1 - sum((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T) / sum((mylog(observed) - mean(mylog(observed), na.rm=T))^2, na.rm=T),
                                                 kge=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
-                                                logkge=1 - sqrt((cor(mylog(flows_rfnr), mylog(observed), use="na.or.complete") - 1)^2 + (var(mylog(flows_rfnr), na.rm=T) / var(mylog(observed), na.rm=T) - 1)^2 + (mean(mylog(flows_rfnr), na.rm=T) / mean(mylog(observed), na.rm=T) - 1)^2))
+                                                logkge=1 - sqrt((cor(mylog(flows_rfnr), mylog(observed), use="na.or.complete") - 1)^2 + (var(mylog(flows_rfnr), na.rm=T) / var(mylog(observed), na.rm=T) - 1)^2 + (mean(mylog(flows_rfnr), na.rm=T) / mean(mylog(observed), na.rm=T) - 1)^2),
+                                                rmse=sqrt(mean((flows_rfnr - observed)^2, na.rm=T)),
+                                                logrmse=sqrt(mean((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T)))
 
     params$lognse[ii] <- median(df2$lognse, na.rm=T)
     params$logkge[ii] <- median(df2$logkge, na.rm=T)
+    params$logrmse[ii] <- median(df2$logrmse, na.rm=T)
+    params$nse[ii] <- median(df2$nse, na.rm=T)
+    params$kge[ii] <- median(df2$kge, na.rm=T)
+    params$rmse[ii] <- median(df2$rmse, na.rm=T)
 
-    ## median(df2$nse, na.rm=T)
-    ## median(df2$kge, na.rm=T)
-    ## plot(density(df2$nse[df2$nse > -10 & df2$nse < 10], na.rm=T))
-    ## plot(density(df2$kge[df2$kge > -10 & df2$kge < 10], na.rm=T))
-    ## plot(density(df2$lognse[df2$lognse > -10 & df2$lognse < 10], na.rm=T))
-    ## plot(density(df2$logkge[df2$logkge > -10 & df2$logkge < 10], na.rm=T))
+    modeldf$year <- floor((modeldf$time - 1) / 12) + 1
+    modeldf.yearly <- modeldf %>% group_by(gauge, year) %>% summarize(flows_rfnr=sum(flows_rfnr))
+    df.yearly <- modeldf.yearly %>% left_join(otherdf.yearly)
+
+    df2.yearly <- df.yearly %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+                                                lognse=1 - sum((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T) / sum((mylog(observed) - mean(mylog(observed), na.rm=T))^2, na.rm=T),
+                                                kge=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                                logkge=1 - sqrt((cor(mylog(flows_rfnr), mylog(observed), use="na.or.complete") - 1)^2 + (var(mylog(flows_rfnr), na.rm=T) / var(mylog(observed), na.rm=T) - 1)^2 + (mean(mylog(flows_rfnr), na.rm=T) / mean(mylog(observed), na.rm=T) - 1)^2),
+                                                rmse=sqrt(mean((flows_rfnr - observed)^2, na.rm=T)),
+                                                logrmse=sqrt(mean((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T)))
+
+    params$lognse.yearly[ii] <- median(df2.yearly$lognse, na.rm=T)
+    params$logkge.yearly[ii] <- median(df2.yearly$logkge, na.rm=T)
+    params$logrmse.yearly[ii] <- median(df2.yearly$logrmse, na.rm=T)
+    params$nse.yearly[ii] <- median(df2.yearly$nse, na.rm=T)
+    params$kge.yearly[ii] <- median(df2.yearly$kge, na.rm=T)
+    params$rmse.yearly[ii] <- median(df2.yearly$rmse, na.rm=T)
+
     print(params[ii,])
 }
 

@@ -75,7 +75,7 @@ else
             upgid = target(edge).label
             uprow = waternetwork2[waternetwork2[!, :gaugeid] .== upgid, :]
             dist = 100.0 * sqrt((downrow[1, :lat] - uprow[1, :lat])^2 + (downrow[1, :lon] - uprow[1, :lon])^2) # rough approximation
-            waternetwork2[waternetwork2[!, :gaugeid] .= upgid, :dist] .= dist
+            waternetwork2[waternetwork2[!, :gaugeid] .== upgid, :dist] .= dist
         end
     end
 end

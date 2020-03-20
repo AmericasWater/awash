@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/gaugecompare")
+setwd("~/research/water/awash/analyses/gaugecompare")
 
 library(dplyr)
 
@@ -89,6 +89,9 @@ ggplot(params[params$CANAL_FACTOR < 1.01,], aes(LOSSFACTOR_DIST, LOSSFACTOR_DIST
 ggplot(params, aes(LOSSFACTOR_DIST, lognse)) +
     geom_point() + theme_bw()
 
+ggplot(params, aes(LOSSFACTOR_DIST, logkge)) +
+    geom_point() + theme_bw()
+
 ggplot(params, aes(LOSSFACTOR_DISTTAS, lognse)) +
     geom_point() + theme_bw()
 
@@ -100,6 +103,13 @@ ggplot(params, aes(CANAL_FACTOR, lognse)) +
 
 ggplot(params, aes(CANAL_FACTOR, logkge)) +
     geom_point() + theme_bw()
+
+ggplot(params, aes(DOWNSTREAM_FACTOR, lognse)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(DOWNSTREAM_FACTOR, logkge)) +
+    geom_point() + theme_bw()
+
 
 library(gg3D)
 

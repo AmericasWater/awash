@@ -1,13 +1,13 @@
-setwd("~/research/awash/analyses/gaugecompare")
+setwd("~/research/water/awash/analyses/gaugecompare")
 
 library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 673
-do.monthly <- T
-do.other <- "allyear" #"10year"
+do.monthly <- F
+do.other <- F #"allyear" #"10year"
 
-source("../../../water/network4/discharges.R", chdir=T)
+source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {
     df <- read.csv("optimizes-monthly.csv")
 } else {
@@ -138,7 +138,7 @@ if (do.other == "allyear") {
     df$period.label[df$time <= 50] <- "before 2000"
 } else
     df$period.label <- NA
-    
+
 if (do.monthly) {
     ggplot(subset(df, nonzero & largish)) +
         facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
@@ -222,6 +222,7 @@ df2 <- df %>% group_by(gauge) %>% summarize(nse_rfnr=1 - sum((flows_rfnr - obser
                                             kge_nrnr=1 - sqrt((cor(flows_nrnr, observed, use="na.or.complete") - 1)^2 + (var(flows_nrnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_nrnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
                                             kge_rfwr=1 - sqrt((cor(flows_rfwr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfwr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfwr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
                                             kge_nw=1 - sqrt((cor(flows_nw, observed, use="na.or.complete") - 1)^2 + (var(flows_nw, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_nw, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
+                                            bias_rfwr=1 - mean(flows_rfwr, na.rm=T) / mean(observed, na.rm=T),
                                             modified=median(modified, na.rm=T), nonzero=median(nonzero, na.rm=T), largish=median(largish, na.rm=T))
 
 df2$flowsize.label <- "Large Flows"
@@ -315,3 +316,13 @@ if (do.monthly) {
         ggsave("kge.pdf", width=7, height=4)
     }
 }
+
+## Table of metrics
+metrics <- data.frame(metric=rep(c("Bias", "NSE", "KGE"), each=2), limit=c('\\pm 20', '\\pm 50', rep(c('\\ge 0.6', '\\ge 0.2'), 2)),
+                      value=c(mean(df2$bias_rfwr >= .8 & df2$bias_rfwr <= 1.2, na.rm=T),
+                              mean(df2$bias_rfwr >= .5 & df2$bias_rfwr <= 1.5, na.rm=T),
+                              mean(df2$nse_rfwr >= .6, na.rm=T), mean(df2$nse_rfwr >= .2, na.rm=T),
+                              mean(df2$kge_rfwr >= .6, na.rm=T), mean(df2$kge_rfwr >= .2, na.rm=T)))
+library(xtable)
+print(xtable(metrics), include.rownames=F, sanitize.text.function=function(x) x)
+

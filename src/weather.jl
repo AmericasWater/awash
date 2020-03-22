@@ -61,11 +61,11 @@ else
     waternetdata = load(loadpath("waternet/waternet-counties.RData"));
     waternetwork = waternetdata["network"]
     waternetwork[!, :gaugeid] = map(ii -> "$(waternetwork[ii, :collection]).$(waternetwork[ii, :colid])", 1:size(waternetwork)[1])
+    gaugeindices = map(ii -> findfirst(waternetwork[!, :gaugeid] .== gaugeorder[ii]), 1:length(gaugeorder))
 
     waternetwork2 = DataFrame(gaugeid=String[], lat=Float64[], lon=Float64[], dist=Float64[])
-    for gaugeid in gaugeorder
-        row = findfirst(waternetwork[!, :gaugeid] .== gaugeid)
-        push!(waternetwork2, [gaugeid, waternetwork[row, :lat], waternetwork[row, :lon], 0.]) # fill in dist later
+    for gg in 1:length(gaugeorder)
+        push!(waternetwork2, [gaugeorder[gg], waternetwork[gaugeindices[gg], :lat], waternetwork[gaugeindices[gg], :lon], 0.]) # fill in dist later
     end
 
     for vertex in vertices(waternet)
@@ -84,7 +84,7 @@ addeds = sum2timestep(getadded(waternetwork2))
 
 ## Prepare evaporation information
 if config["ncregion"] == "county"
-    temps = ncread(loadpath("tasmat.nc4"), "tas")
+    temps = ncread(loadpath("globa/tasmat.nc4"), "tas")
     temps = temps[10:end, gaugeindices]
 
     sumtemps = sum2timestep(temps)

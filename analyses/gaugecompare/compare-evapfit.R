@@ -31,7 +31,8 @@ for (ii in 1:nrow(params)) {
     modeldf <- read.csv(paste0("evapfit-", params$iter[ii], ".csv"))
     df <- modeldf %>% left_join(otherdf)
 
-    df2 <- df %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+    ## NOTE: Remove `filter` to reproduce existing results
+    df2 <- df %>% filter(observed > 1e3 / 12 & flows_rfnr > 1e-3) %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
                                                 lognse=1 - sum((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T) / sum((mylog(observed) - mean(mylog(observed), na.rm=T))^2, na.rm=T),
                                                 kge=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
                                                 logkge=1 - sqrt((cor(mylog(flows_rfnr), mylog(observed), use="na.or.complete") - 1)^2 + (var(mylog(flows_rfnr), na.rm=T) / var(mylog(observed), na.rm=T) - 1)^2 + (mean(mylog(flows_rfnr), na.rm=T) / mean(mylog(observed), na.rm=T) - 1)^2),
@@ -49,7 +50,7 @@ for (ii in 1:nrow(params)) {
     modeldf.yearly <- modeldf %>% group_by(gauge, year) %>% summarize(flows_rfnr=sum(flows_rfnr))
     df.yearly <- modeldf.yearly %>% left_join(otherdf.yearly)
 
-    df2.yearly <- df.yearly %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
+    df2.yearly <- df.yearly %>% filter(observed > 1e3 & flows_rfnr > 1e-3) %>% group_by(gauge) %>% summarize(nse=1 - sum((flows_rfnr - observed)^2, na.rm=T) / sum((observed - mean(observed, na.rm=T))^2, na.rm=T),
                                                 lognse=1 - sum((mylog(flows_rfnr) - mylog(observed))^2, na.rm=T) / sum((mylog(observed) - mean(mylog(observed), na.rm=T))^2, na.rm=T),
                                                 kge=1 - sqrt((cor(flows_rfnr, observed, use="na.or.complete") - 1)^2 + (var(flows_rfnr, na.rm=T) / var(observed, na.rm=T) - 1)^2 + (mean(flows_rfnr, na.rm=T) / mean(observed, na.rm=T) - 1)^2),
                                                 logkge=1 - sqrt((cor(mylog(flows_rfnr), mylog(observed), use="na.or.complete") - 1)^2 + (var(mylog(flows_rfnr), na.rm=T) / var(mylog(observed), na.rm=T) - 1)^2 + (mean(mylog(flows_rfnr), na.rm=T) / mean(mylog(observed), na.rm=T) - 1)^2),
@@ -106,6 +107,12 @@ write.csv(params, "evapfit-results.csv", row.names=F)
 setwd("~/research/water/awash/analyses/gaugecompare")
 params <- read.csv("evapfit-results.csv")
 
+params$chosen <- NA
+params$chosen[which.min(params$logrmse)] <- 'monthly'
+params$chosen[which.min(params$logrmse.yearly)] <- 'yearly'
+params$chosen[params$iter == 'base'] <- 'baseline'
+params$chosen[params$iter == 'base-lim'] <- 'lim-baseline'
+
 library(ggplot2)
 
 ggplot(params, aes(LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, colour=lognse)) +
@@ -117,10 +124,22 @@ ggplot(params, aes(LOSSFACTOR_DISTTAS, CANAL_FACTOR, colour=lognse)) +
 ggplot(params[params$CANAL_FACTOR < 1.01,], aes(LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, colour=lognse)) +
     geom_point() + theme_bw()
 
+ggplot(params, aes(LOSSFACTOR_DIST, logrmse, colour=chosen)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DIST, logrmse.yearly, colour=chosen)) +
+    geom_point() + theme_bw()
+
 ggplot(params, aes(LOSSFACTOR_DIST, lognse)) +
     geom_point() + theme_bw()
 
 ggplot(params, aes(LOSSFACTOR_DIST, logkge)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DISTTAS, logrmse, colour=chosen)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(LOSSFACTOR_DISTTAS, logrmse.yearly, colour=chosen)) +
     geom_point() + theme_bw()
 
 ggplot(params, aes(LOSSFACTOR_DISTTAS, lognse)) +
@@ -129,10 +148,22 @@ ggplot(params, aes(LOSSFACTOR_DISTTAS, lognse)) +
 ggplot(params, aes(LOSSFACTOR_DISTTAS, logkge)) +
     geom_point() + theme_bw()
 
+ggplot(params, aes(CANAL_FACTOR, logrmse, colour=chosen)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(CANAL_FACTOR, logrmse.yearly, colour=chosen)) +
+    geom_point() + theme_bw()
+
 ggplot(params, aes(CANAL_FACTOR, lognse)) +
     geom_point() + theme_bw()
 
 ggplot(params, aes(CANAL_FACTOR, logkge)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(DOWNSTREAM_FACTOR, logrmse, colour=chosen)) +
+    geom_point() + theme_bw()
+
+ggplot(params, aes(DOWNSTREAM_FACTOR, logrmse.yearly, colour=chosen)) +
     geom_point() + theme_bw()
 
 ggplot(params, aes(DOWNSTREAM_FACTOR, lognse)) +
@@ -140,6 +171,11 @@ ggplot(params, aes(DOWNSTREAM_FACTOR, lognse)) +
 
 ggplot(params, aes(DOWNSTREAM_FACTOR, logkge)) +
     geom_point() + theme_bw()
+
+params[which.min(params$logrmse),]
+params[which.min(params$logrmse.yearly),]
+params[which.min(params$rmse),]
+params[which.min(params$rmse.yearly),]
 
 
 library(gg3D)

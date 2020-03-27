@@ -84,7 +84,7 @@ addeds = sum2timestep(getadded(waternetwork2))
 
 ## Prepare evaporation information
 if config["ncregion"] == "county"
-    temps = ncread(loadpath("globa/tasmat.nc4"), "tas")
+    temps = ncread(loadpath("global/tasmat.nc4"), "tas")
     temps = temps[10:end, gaugeindices]
 
     sumtemps = sum2timestep(temps)

@@ -4,7 +4,7 @@ library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 673
-do.monthly <- F
+do.monthly <- T
 do.other <- F #"allyear" #"10year"
 
 source("../../../network4/discharges.R", chdir=T)
@@ -85,19 +85,22 @@ if (do.only.hcdn) {
         theme_minimal() + xlab("Ratio of simulated to observed")
 }
 
-## Check lineup
-allccf = rep(0, 25)
-for (gauge in unique(df$gauge)) {
-    xx = tryCatch({
-        ccf(df$flows_nw[df$gauge == gauge], df$observed[df$gauge == gauge], 12, na.action=na.pass, plot=F, type='correlation')$acf[,,1]
-    }, error=function(e) {
-        rep(0, 25)
-    })
-    xx[is.na(xx)] <- 0
-    allccf <- allccf + xx
-}
+df2 <- df[, c('gauge', 'time', 'observed')]
+write.csv(df2, "evapdata.csv", row.names=F)
 
-plot(-12:12, allccf)
+## Check lineup
+## allccf = rep(0, 25)
+## for (gauge in unique(df$gauge)) {
+##     xx = tryCatch({
+##         ccf(df$flows_nw[df$gauge == gauge], df$observed[df$gauge == gauge], 12, na.action=na.pass, plot=F, type='correlation')$acf[,,1]
+##     }, error=function(e) {
+##         rep(0, 25)
+##     })
+##     xx[is.na(xx)] <- 0
+##     allccf <- allccf + xx
+## }
+
+## plot(-12:12, allccf)
 
 df$modified <- df$flows_nw - df$flows_nrnr > mean(df$flows_nw - df$flows_nrnr) # more than average mod
 df$nonzero <- df$observed > 0 & df$flows_nw > 0 & df$flows_nrnr > 1e-3 & df$flows_rfnr > 1e-3 & df$flows_rfwr > 1e-3
@@ -110,19 +113,19 @@ if (do.monthly) {
 ava <- df$nonzero & df$modified
 aval <- df$nonzero & df$modified & df$largish
 
-summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nw[ava]), x=log(df$observed[ava]))))
-summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nrnr[ava]), x=log(df$observed[ava]))))
-summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_rfnr[ava]), x=log(df$observed[ava]))))
-summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_rfwr[ava]), x=log(df$observed[ava]))))
+## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nw[ava]), x=log(df$observed[ava]))))
+## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nrnr[ava]), x=log(df$observed[ava]))))
+## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_rfnr[ava]), x=log(df$observed[ava]))))
+## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_rfwr[ava]), x=log(df$observed[ava]))))
 
-quantile(df$flows_nw[aval] / df$observed[aval], na.rm=T)
-quantile(df$flows_nrnr[aval] / df$observed[aval], na.rm=T)
-quantile(df$flows_rfnr[aval] / df$observed[aval], na.rm=T)
-quantile(df$flows_rfwr[aval] / df$observed[aval], na.rm=T)
+## quantile(df$flows_nw[aval] / df$observed[aval], na.rm=T)
+## quantile(df$flows_nrnr[aval] / df$observed[aval], na.rm=T)
+## quantile(df$flows_rfnr[aval] / df$observed[aval], na.rm=T)
+## quantile(df$flows_rfwr[aval] / df$observed[aval], na.rm=T)
 
-ggplot(subset(df, aval), aes(flows_nw / observed)) +
-    geom_density() + scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6)) +
-    theme_minimal() + xlab("Ratio of simulated to observed")
+## ggplot(subset(df, aval), aes(flows_nw / observed)) +
+##     geom_density() + scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6)) +
+##     theme_minimal() + xlab("Ratio of simulated to observed")
 
 mm.nw <- format(median(df$flows_nw[aval] / df$observed[aval], na.rm=T), digits=3)
 mm.nrnr <- format(median(df$flows_nrnr[aval] / df$observed[aval], na.rm=T), digits=3)

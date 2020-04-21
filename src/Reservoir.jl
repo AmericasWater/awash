@@ -104,7 +104,7 @@ function initreservoir(m::Model, name=nothing)
         if "reshalf" in keys(config) && config["reshalf"] == "half"
             reservoir[:storage0] = (rcmax-reservoir[:storagecapacitymin])/2; #half full
         end
-        reservoir[:evaporation] = 0.05*ones(numreservoirs, numscenarios, numsteps);
+        reservoir[:evaporation] = evaporation_matrix(reservoir[:storage0]) #0.05*ones(numreservoirs, numscenarios, numsteps);
     end
 
     reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numscenarios, numsteps));

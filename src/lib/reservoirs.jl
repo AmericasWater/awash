@@ -103,7 +103,7 @@ function evaporation_matrix(volumes)
     bbox!(gevap, (min_x=-125.5, min_y=24.5, max_x=-65.5, max_y=50.5))
     epsg!(gevap, 4326)
 
-    times = parsemonth(config["startmonth"]):config["timestep"]:parsemonth(config["endmonth"])
+    times = collect(parsemonth(config["startmonth"]):parsemonth(config["endmonth"]))
 
     weather = zeros(numreservoirs, length(times));
     for ii in 1:numreservoirs
@@ -111,11 +111,12 @@ function evaporation_matrix(volumes)
         monthly = Float64[]
         for mm in 1:12
             ev = convert(Float64, gevap[rc[1], rc[2], mm])
-            push!(monthly, reservoirloss(ev, volumes, reservoirs[ii, :MAXCAP] / 1000; depth=reservoirs[ii, :height]))
+            push!(monthly, reservoirloss(ev, volumes[ii], reservoirs[ii, :MAXCAP] / 1000; depth=reservoirs[ii, :height]))
         end
-        monthly[monthly .=== missing] = 0.01
+        monthly[monthly .=== missing] .= 0.01
         weather[ii, :] = monthly[(times .- 1) .% 12 .+ 1]
     end
 
-    sum2timestep(weather) / config["timestep"]
+    println(size(weather'))
+    sum2timestep(weather'; dropstart=false) / config["timestep"]
 end

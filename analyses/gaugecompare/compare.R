@@ -4,8 +4,8 @@ library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 673
-do.monthly <- T
-do.other <- F #"allyear" #"10year"
+do.monthly <- F
+do.other <- "allyear" #"10year"
 
 source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {

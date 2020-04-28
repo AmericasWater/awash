@@ -33,8 +33,12 @@ end
 """
 Takes T x N and returns N x S x T for scenario spans.
 """
-function scenarioextract(weather, eachstep)
-    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+function scenarioextract(weather, eachstep; dropstart::Bool=true)
+    if dropstart
+        weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    else
+        weatherfromstart = weather
+    end
     scenarios = get(config, "scenarios", [1])
 
     if eachstep
@@ -57,12 +61,16 @@ Sum values within each timestep, and reorder dimensions, returning a N x S x T m
 
 Assumes that `config` is defined globally
 """
-function sum2timestep(weather)
+function sum2timestep(weather; dropstart::Bool=true)
     if config["timestep"] == 1
         return scenarioextract(weather, true)
     end
 
-    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    if dropstart
+        weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    else
+        weatherfromstart = weather
+    end
     scenarios = get(config, "scenarios", [1])
 
     bytimestep = zeros(size(weather, 2), numscenarios, numsteps)

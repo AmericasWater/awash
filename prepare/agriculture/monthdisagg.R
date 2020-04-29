@@ -69,7 +69,34 @@ for (fips in unique(cleandf3$fips)) {
 
 image(y=1:365, x=1:nrow(finals), z=finals.daily, xlab="County (unordered)", ylab="Day of the year", main="Shares of irrigation demand by day")
 
+library(ggplot2)
+library(reshape2)
+##rownames(finals.daily) <- 1:length(unique(cleandf3$fips))
+myorder <- 1:length(unique(cleandf3$fips))
+myorder[order(unique(cleandf3$fips))] <- 1:length(unique(cleandf3$fips))
+rownames(finals.daily) <- myorder
+
+library(maps)
+fipsstates <- c()
+for (ord in 1:length(unique(cleandf3$fips))) {
+    fips <- unique(cleandf3$fips)[myorder == ord]
+    statefips <- floor(fips / 1000)
+    fipsstates <- c(fipsstates, state.fips$abb[state.fips$fips == statefips][1])
+}
+fipsbreaks <- which(!duplicated(fipsstates))
+fipslabels <- fipsstates[fipsbreaks]
+
+ggplot(melt(finals.daily), aes(Var1,Var2, fill=value)) + geom_raster() +
+    scale_x_continuous(expand=c(0, 0), breaks=fipsbreaks, labels=fipslabels) + scale_y_continuous(expand=c(0, 0)) +
+    ylab("Day of the year") + scale_fill_continuous(name="Daily share") + xlab(NULL)
+
 plot(colSums(finals) / nrow(finals), type='l', xlab="Month", ylab="Share of irrigation demand")
+
+plotdf <- data.frame(month=month.abb, share=colSums(finals) / nrow(finals))
+plotdf$month <- factor(plotdf$month, levels=month.abb)
+
+ggplot(plotdf, aes(month, share)) +
+    geom_bar(stat="identity") + theme_bw() + xlab(NULL) + ylab("Average monthly share")
 
 finaldf <- as.data.frame(finals)
 finaldf$fips <- unique(cleandf3$fips)

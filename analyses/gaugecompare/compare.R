@@ -4,8 +4,8 @@ library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 673
-do.monthly <- F
-do.other <- "allyear" #"10year"
+do.monthly <- T
+do.other <- F #"allyear" #"10year" #### NOTE: best on F
 
 source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {
@@ -125,7 +125,6 @@ if (do.only.hcdn) {
 ##     dfrows <- which(df$gauge == gauge)
 ##     df$vicro[dfrows] <- df$vicro[dfrows] * median(df$observed[dfrows] / df$vicro[dfrows])
 ## }
->>>>>>> reviewed
 
 ## Check lineup
 ## allccf = rep(0, 25)

@@ -102,16 +102,20 @@ params[which.max(params$logkge),]
 
 write.csv(params, "evapfit-results.csv", row.names=F)
 
-##
 
 setwd("~/research/water/awash/analyses/gaugecompare")
 params <- read.csv("evapfit-results.csv")
 
 params$chosen <- NA
-params$chosen[which.min(params$logrmse)] <- 'monthly'
-params$chosen[which.min(params$logrmse.yearly)] <- 'yearly'
 params$chosen[params$iter == 'base'] <- 'baseline'
 params$chosen[params$iter == 'base-lim'] <- 'lim-baseline'
+params$chosen[which.min(params$logrmse + !is.na(params$chosen))] <- 'monthly'
+params$chosen[which.min(params$logrmse.yearly + !is.na(params$chosen))] <- 'yearly'
+
+load("../../data/counties/waternet/waternet.RData")
+meandist <- mean(network$dist, na.rm=T)
+
+params$avgloss <- params$LOSSFACTOR_DIST * meandist + params$LOSSFACTOR_DISTTAS * meandist * 10
 
 library(ggplot2)
 
@@ -124,11 +128,26 @@ ggplot(params, aes(LOSSFACTOR_DISTTAS, CANAL_FACTOR, colour=lognse)) +
 ggplot(params[params$CANAL_FACTOR < 1.01,], aes(LOSSFACTOR_DIST, LOSSFACTOR_DISTTAS, colour=lognse)) +
     geom_point() + theme_bw()
 
+## LOOK AT THIS ONE?
 ggplot(params, aes(LOSSFACTOR_DIST, logrmse, colour=chosen)) +
+    geom_point() + geom_point(data=subset(params, is.na(LOSSFACTOR_DIST)), aes(x=0)) + theme_bw()
+ggplot(params, aes(LOSSFACTOR_DISTTAS, rmse, colour=chosen)) +
+    geom_point() + geom_point(data=subset(params, is.na(LOSSFACTOR_DISTTAS)), aes(x=0)) + theme_bw()
+ggplot(params, aes(CANAL_FACTOR, rmse, colour=chosen)) +
+    geom_point() + theme_bw()
+ggplot(params, aes(DOWNSTREAM_FACTOR, rmse, colour=chosen)) +
     geom_point() + theme_bw()
 
-ggplot(params, aes(LOSSFACTOR_DIST, logrmse.yearly, colour=chosen)) +
+ggplot(params, aes(avgloss, lognse, colour=chosen)) + # also works for lognse.yearly
     geom_point() + theme_bw()
+
+## params[!is.na(params$chosen) & params$chosen == 'monthly',] ### 2020-04-29. Test with compare with do_monthly = F
+## params[which.min(params$rmse[c(-nrow(params), -nrow(params)+1)]),]
+params[which.max(params$lognse[c(-nrow(params), -nrow(params)+1)]),]
+
+ggplot(params, aes(LOSSFACTOR_DIST, logrmse.yearly, colour=chosen)) +
+    geom_point() + geom_point(data=subset(params, !is.na(chosen)), aes(x=0)) +
+    theme_bw()
 
 ggplot(params, aes(LOSSFACTOR_DIST, lognse)) +
     geom_point() + theme_bw()

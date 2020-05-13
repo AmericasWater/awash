@@ -33,6 +33,32 @@ function matrix_downstreamgauges_canals(A::AbstractMatrix{Float64})
     end
 end
 
+function propagate_downstream!(b::Array{Float64,3})
+    # b is like addeds (and usually `copy(addeds)`): [G x S x T]
+    # Propogate in downstream order
+    for hh in 1:numgauges
+        gg = vertex_index(downstreamorder[hh])
+        gauge = downstreamorder[hh].label
+        for upstream in out_neighbors(wateridverts[gauge], waternet)
+            if LOSSFACTOR_DIST == nothing
+                lossfactor = DOWNSTREAM_FACTOR
+            else
+                upgg = vertex_index(upstream, waternet)
+                distance = waternetwork2[upgg, :dist]
+                lossfactor = exp.(LOSSFACTOR_DIST * distance .+ LOSSFACTOR_DISTTAS * distance * max.((gaugetas[gg, :, :] .+ gaugetas[upgg, :, :]) / 2, 0))
+                if typeof(lossfactor) <: Array{Missing}
+                    lossfactor = DOWNSTREAM_FACTOR
+                else
+                    lossfactor[ismissing.(lossfactor)] .= DOWNSTREAM_FACTOR
+                end
+            end
+            b[gg, :, :] += lossfactor .* b[vertex_index(upstream, waternet), :, :]
+        end
+    end
+
+    return b
+end
+
 # function evaporation(temp, latitude, month)
 #     daylighthours = 4 * latitude * sin(0.53 * month - 1.65) + 12
 #     if abs(latitude) > 23.5 * pi / 180

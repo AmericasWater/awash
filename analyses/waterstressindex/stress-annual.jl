@@ -6,22 +6,25 @@ config = readconfig("../../configs/complete-yearly.yml")
 using Gurobi
 solver = GurobiSolver()
 
-allowgw = false #"demandonly"
-suffixbase = "annual" #"annual-alldemand"
+scenarios = ["-nores-nocanal", "-nores", "-withres"]
 
-for filtercanals in [false, true]
-    for allowreservoirs in [false, true]
-        if allowreservoirs
-            suffix = "$suffixbase-withres"
-        else
-            suffix = "$suffixbase-nores"
-        end
+for allowgw in [false, "demandonly"]
+    if allowgw == "demandonly"
+        suffixbase = "annual-alldemand"
+    else
+        suffixbase = "annual"
+    end
+
+    for scenario in scenarios
+        filtercanals = occursin("nores", scenario)
+        allowreservoirs = occursin("withres", scenario)
+
+        suffix = "$suffixbase$scenario"
 
         config["proportionnaturalflowforenvironment"] = .37
 
         if filtercanals
             config["filtercanals"] = "direct"
-            suffix *= "-nocanal"
         else
             config["filtercanals"] = nothing
         end

@@ -15,7 +15,7 @@ split.fipsyears <- function(longform, minormax) {
 
 split.fipsyears.xorder <- function(values, fips, minormax) {
     result <- data.frame(values, fips) %>% group_by(fips) %>% summarize(median=median(values), worst=minormax(values))
-    list(median=result$median, worst=result$worst)
+    list(fips=result$fips, median=result$median, worst=result$worst)
 }
 
 plot.failavail <- function(fips, failurefrac, failurefrac.worst, naturalflow, naturalflow.worst, suffix, force.disjunct=F) {

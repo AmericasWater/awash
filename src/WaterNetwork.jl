@@ -96,27 +96,7 @@ Construct a vector of maximum outflows, as the sum downstream of all contributin
 """
 function constraintoffset_waternetwork_outflows(m::Model)
     b = copy(addeds) # Start with direct added
-
-    # Propogate in downstream order
-    for hh in 1:numgauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            if LOSSFACTOR_DIST == nothing
-                lossfactor = DOWNSTREAM_FACTOR
-            else
-                upgg = vertex_index(upstream, waternet)
-                distance = waternetwork2[upgg, :dist]
-                lossfactor = exp.(LOSSFACTOR_DIST * distance .+ LOSSFACTOR_DISTTAS * distance * max.((gaugetas[gg, :, :] .+ gaugetas[upgg, :, :]) / 2, 0))
-                if typeof(lossfactor) <: Array{Missing}
-                    lossfactor = DOWNSTREAM_FACTOR
-                else
-                    lossfactor[ismissing.(lossfactor)] .= DOWNSTREAM_FACTOR
-                end
-            end
-            b[gg, :, :] += lossfactor .* b[vertex_index(upstream, waternet), :, :]
-        end
-    end
+    propagate_downstream!(b)
 
     generate = (gg, ss, tt) -> b[gg, ss, tt]
 

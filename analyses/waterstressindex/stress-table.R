@@ -259,3 +259,20 @@ ggplot(results3, aes(metric, mu, colour=scenario, fill=scenario, group=scenario)
     geom_linerange(aes(ymin=q0, ymax=q100), position=position_dodge(width=.9)) +
     scale_y_continuous(labels=scales::percent) + xlab(NULL) + ylab(NULL) +
     scale_fill_discrete(name="Scenario") + scale_colour_discrete(name="Scenario")
+
+## Look at how much reservoirs contribute
+
+setwd("~/research/water/awash/analyses/waterstressindex")
+
+df.sw0 <- read.csv(paste0("results/stress-annual-nores.csv"))
+df.sw1 <- read.csv(paste0("results/stress-annual-withres.csv"))
+df.all0 <- read.csv(paste0("results/stress-annual-alldemand-nores.csv"))
+df.all1 <- read.csv(paste0("results/stress-annual-alldemand-withres.csv"))
+
+library(dplyr)
+
+df0 <- df.all0 %>% left_join(df.sw0, by=c('fips', 'time'), suffix=c('.all', '.sw'))
+df1 <- df.all1 %>% left_join(df.sw1, by=c('fips', 'time'), suffix=c('.all', '.sw'))
+df <- df0 %>% left_join(df1, by=c('fips', 'time'), suffix=c('.nores', '.withres'))
+sum(df$supersource.nores)
+sum(df$supersource.withres)

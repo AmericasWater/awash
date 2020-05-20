@@ -27,12 +27,12 @@ end
 
 actualcrops = CSV.read("actualcrops.csv"; copycols=true)
 actualcrops[!, :fips] = canonicalindex(actualcrops[!, :fips])
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "WHEAT"), :maxcrop] = "whea"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "RICE"), :maxcrop] = "rice"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "BARLEY"), :maxcrop] = "barl"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "COTTON"), :maxcrop] .= "cott"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "SOYBEANS"), :maxcrop] .= "soyb"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "CORN"), :maxcrop] .= "corn"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "WHEAT"), :maxcrop] .= "whea"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "RICE"), :maxcrop] .= "rice"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "BARLEY"), :maxcrop] .= "barl"
 
 # Collect observed crop
 obscrop = repeat(["none"], outer=nrow(masterregions))
@@ -49,7 +49,7 @@ end
 
 fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
-for mcmcdraw in 215:3000 # XXX
+for mcmcdraw in 1:3000 # XXX
 
 let
 value = repeat([0.0], size(masterregions, 1))
@@ -87,7 +87,7 @@ for crop in crops
     else
         prepdata = preparecrop(crop2bayes_crop[crop], false, true, false)
         prepdata_changeirr = preparecrop(crop2bayes_crop[crop], false, true, true)
-    end        
+    end
 
     cropprofit = zeros(nrow(masterregions))
     cropprofit_changeirr = zeros(nrow(masterregions))
@@ -183,6 +183,6 @@ else
     else
         CSV.write("farmvalue.csv", masterregions)
     end
-end    
+end
 end
 end

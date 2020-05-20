@@ -24,13 +24,13 @@ if onefips != false && (limityield != "ignore" || profitfix != "modeled" || tren
 end
 
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited.csv")
-    profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
-    profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
-    profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
-    profitfixdf[profitfixdf[:obscrop] .== "rice", :obscrop] = "Rice"
-    profitfixdf[profitfixdf[:obscrop] .== "soyb", :obscrop] = "Soybean"
-    profitfixdf[profitfixdf[:obscrop] .== "whea", :obscrop] = "Wheat"
+    profitfixdf = CSV.read("farmvalue-limited.csv", copycols=true)
+    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] .= "Barley"
+    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] .= "Corn"
+    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] .= "Cotton"
+    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] .= "Rice"
+    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] .= "Soybean"
+    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] .= "Wheat"
 end
 
 maxprofit = Dict{Int64, Vector{Any}}()
@@ -57,7 +57,7 @@ for ii in 1:length(bayes_crops)
             continue
         end
         println(rr)
-        weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
+        weatherrow = findfirst(masterregions[!, :fips] .== canonicalindex(regionid))
 
         try # fails if weatherrow == 0 or NAs in gdds or kdds
             forceneg = extraneg && isextrapolate(regionid, crop)

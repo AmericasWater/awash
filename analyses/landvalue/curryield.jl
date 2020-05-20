@@ -28,18 +28,18 @@ function preparecrop(crop, crossval, constvar, changeirr)
     gdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-gdd.csv")), types=repeat([Union{Missing, Float64}], 61), missingstring="NA");
     kdds = CSV.read(joinpath(datapath("agriculture/edds/$(edds_crops[ii])-kdd.csv")), types=repeat([Union{Missing, Float64}], 61), missingstring="NA");
 
-    bayes_intercept = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_alpha.txt"), ' ')[:, 1:3111];
-    bayes_time = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta1.txt"), ' ')[:, 1:3111];
-    bayes_wreq = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta2.txt"), ' ')[:, 1:3111];
-    bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
-    bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
+    bayes_intercept = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_alpha.txt"), ' ')[:, 1:3111];
+    bayes_time = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta1.txt"), ' ')[:, 1:3111];
+    bayes_wreq = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta2.txt"), ' ')[:, 1:3111];
+    bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
+    bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
 
     if changeirr == true
-        b0s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b0.txt"), ' '))
-        b1s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b1.txt"), ' '))
-        b2s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b2.txt"), ' '))
-        b3s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b3.txt"), ' '))
-        b4s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa_cropyield_model/$fullcropdir/coeff_b4.txt"), ' '))
+        b0s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b0.txt"), ' '))
+        b1s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b1.txt"), ' '))
+        b2s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b2.txt"), ' '))
+        b3s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b3.txt"), ' '))
+        b4s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b4.txt"), ' '))
     else
         b0s = b1s = b2s = b3s = b4s = nothing
     end

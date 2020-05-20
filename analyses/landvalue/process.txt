@@ -1,7 +1,8 @@
- - actualcrops.R
- - agriculture.jl
- - optcrop.jl
- - futureyield.jl
+ - actualcrops.R -> actualcrops.csv
+ - agriculture.jl -> farmvalue-limited.csv
+ - optcrop.jl -> currentprofits, currentyields, maxbayesian
+ - futureyield.jl ->
+ 
  - mv max*.csv results; mv current*.csv results; mv all20*.csv results
  - constrainopt.jl
  - display.R any time

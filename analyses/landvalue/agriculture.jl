@@ -24,14 +24,14 @@ else
     crops = ["corn", "soyb", "whea", "sorg", "barl", "cott", "rice", "oats", "pean"]
 end
 
-actualcrops = CSV.read("actualcrops.csv")
-actualcrops[:fips] = canonicalindex(actualcrops[:fips])
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "COTTON"), :maxcrop] = "cott"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "SOYBEANS"), :maxcrop] = "soyb"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "CORN"), :maxcrop] = "corn"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "WHEAT"), :maxcrop] = "whea"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "RICE"), :maxcrop] = "rice"
-actualcrops[.!ismissing.(actualcrops[:maxcrop]) .& (actualcrops[:maxcrop] .== "BARLEY"), :maxcrop] = "barl"
+actualcrops = CSV.read("actualcrops.csv", copycols=true)
+actualcrops[!, :fips] = canonicalindex(actualcrops[!, :fips])
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "COTTON"), :maxcrop] .= "cott"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "SOYBEANS"), :maxcrop] .= "soyb"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "CORN"), :maxcrop] .= "corn"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "WHEAT"), :maxcrop] .= "whea"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "RICE"), :maxcrop] .= "rice"
+actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] .== "BARLEY"), :maxcrop] .= "barl"
 
 # Collect observed crop
 obscrop = repeat(["none"], outer=nrow(masterregions))

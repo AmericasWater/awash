@@ -34,12 +34,15 @@ function preparecrop(crop, crossval, constvar, changeirr, mcmcdraw=nothing)
     bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
     bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
 
+    bayes_sigma = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/sigma_y.txt"), ' ')
+
     if mcmcdraw != nothing
         bayes_intercept = bayes_intercept[[mcmcdraw], :]
         bayes_time = bayes_time[[mcmcdraw], :]
         bayes_wreq = bayes_wreq[[mcmcdraw], :]
         bayes_gdds = bayes_gdds[[mcmcdraw], :]
         bayes_kdds = bayes_kdds[[mcmcdraw], :]
+        bayes_sigma = bayes_sigma[[mcmcdraw], :]
     end
 
     if changeirr == true
@@ -62,7 +65,7 @@ function preparecrop(crop, crossval, constvar, changeirr, mcmcdraw=nothing)
 
     wreq_max = maximum(Missings.skipmissing(irrigation[:, Symbol("wreq$(irr_crops[ii])")]))
 
-    return ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max
+    return ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, bayes_sigma, b0s, b1s, b2s, b3s, b4s, wreq_max
 end
 
 function isextrapolate(fips, crop)
@@ -85,7 +88,7 @@ function forceneg_coeff(draws)
 end
 
 function getyield(rr, weatherrow, changeirr, trendyear, limityield, forceneg, prepdata)
-    ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
+    ii, gdds, kdds, bayes_intercept, bayes_time, bayes_wreq, bayes_gdds, bayes_kdds, bayes_sigma, b0s, b1s, b2s, b3s, b4s, wreq_max = prepdata
 
     if changeirr == true
         intercept = bayes_intercept[:, rr] + b0s[:, 6] * (irrigation[weatherrow, :irrfrac] - irrigation[weatherrow, irr_crops[ii]])
@@ -120,10 +123,11 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, forceneg, pr
         wreq_row = irrigation[weatherrow, Symbol("wreq$(irr_crops[ii])")]
     end
 
+    # Also add log bias correction (sigma^2/2), because about to exponentiate
     if changeirr == "skip"
-        logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
+        logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row + (bayes_sigma.^2) / 2
     else
-        logyield = intercept .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row
+        logyield = intercept .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row + (bayes_sigma.^2) / 2
     end
     if limityield == "lybymc"
         logyield = vec(logyield)

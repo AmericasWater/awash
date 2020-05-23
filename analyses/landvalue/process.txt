@@ -1,5 +1,6 @@
  - actualcrops.R -> actualcrops.csv
- - agriculture.jl -> farmvalue-limited.csv
+ - agriculture.jl -> farmvalue-limited<-N>.csv
+
  - optcrop.jl -> currentprofits, currentyields, maxbayesian
  - futureyield.jl ->
 

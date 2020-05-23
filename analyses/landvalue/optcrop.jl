@@ -18,7 +18,7 @@ for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
-for mcmcdraw in 369:3000 # XXX
+for mcmcdraw in 1:3000
 
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue

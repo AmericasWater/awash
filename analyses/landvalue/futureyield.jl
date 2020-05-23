@@ -180,12 +180,15 @@ for ii in 1:length(bayes_crops)
     bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
     bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
 
+    bayes_sigma = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/sigma_y.txt"), ' ')
+
     if mcmcdraw != nothing
         bayes_intercept = bayes_intercept[[mcmcdraw], :]
         bayes_time = bayes_time[[mcmcdraw], :]
         bayes_wreq = bayes_wreq[[mcmcdraw], :]
         bayes_gdds = bayes_gdds[[mcmcdraw], :]
         bayes_kdds = bayes_kdds[[mcmcdraw], :]
+        bayes_sigma = bayes_sigma[[mcmcdraw], :]
     end
 
     for kk in 1:nrow(bios)
@@ -236,6 +239,9 @@ for ii in 1:length(bayes_crops)
                 logyield = intercept_future + wreq_coeff_future * wreqs[rr] + gdds_coeff_future * gdds[kk] + kdds_coeff_future * kdds[kk] + time_coeff_future * 62 # eq. 2010
             end
         end
+
+        # Also add log bias correction (sigma^2/2), because about to exponentiate
+        logyield += (bayes_sigma.^2) / 2
 
         if limityield == "lybymc"
             logyield[logyield .> log(maximum_yields[crop])] .= NaN

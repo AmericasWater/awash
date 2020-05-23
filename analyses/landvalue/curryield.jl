@@ -73,7 +73,7 @@ function isextrapolate(fips, crop)
     if ii == nothing
         ii = findfirst(edds_crops .== crop)
     end
-    rr = findfirst(knownareas[:fips] .== fips)
+    rr = findfirst(knownareas[!, :fips] .== fips)
     return knownareas[rr, irr_crops[ii]] == 0
 end
 

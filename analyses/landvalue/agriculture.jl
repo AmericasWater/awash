@@ -38,7 +38,7 @@ actualcrops[.!ismissing.(actualcrops[!, :maxcrop]) .& (actualcrops[!, :maxcrop] 
 obscrop = repeat(["none"], outer=nrow(masterregions))
 for ii in 1:nrow(masterregions)
     fips = masterregions[ii, :fips]
-    obsrow = actualcrops[actualcrops[:fips] .== fips, :]
+    obsrow = actualcrops[actualcrops[!, :fips] .== fips, :]
     if nrow(obsrow) == 1
         observed = obsrow[1, :maxcrop]
         if !ismissing(observed)
@@ -50,6 +50,19 @@ end
 fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
 for mcmcdraw in 1:3000 # XXX
+
+if domcmcdraws
+    if do_cropdrop
+        filename = "farmvalue-limited-$mcmcdraw.csv"
+    else
+        filename = "farmvalue-$mcmcdraw.csv"
+    end
+
+    if isfile(filename)
+        continue
+    end
+    touch(filename)
+end
 
 let
 value = repeat([0.0], size(masterregions, 1))
@@ -93,7 +106,7 @@ for crop in crops
     cropprofit_changeirr = zeros(nrow(masterregions))
     for weatherrow in 1:nrow(masterregions)
         fips = parse(Int64, masterregions[weatherrow, :fips])
-        rr = findfirst(fipsdf[:FIPS] .== fips)
+        rr = findfirst(fipsdf[!, :FIPS] .== fips)
         if rr == nothing
             cropprofit[weatherrow] = -Inf
             cropprofit_changeirr[weatherrow] = -Inf

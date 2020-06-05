@@ -11,7 +11,7 @@ config = readconfig("../../configs/single.yml")
 include("../../src/world-minimal.jl")
 include("../../src/lib/datastore.jl")
 
-resdir = "results-mc" # "results"
+resdir = "results" # "results-mc"
 crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 
 shadows = DataFrame(fips=[masterregions[:fips]; crops])

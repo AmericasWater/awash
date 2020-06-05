@@ -23,11 +23,11 @@ onecrops = nothing #["Barley", "Cotton"]
 
 includeus = true
 extraneg = true
-onlyprefed = true # << for MC
-domcmcdraws = true # << for MC
+domcmcdraws = false
+onlyprefed = domcmcdraws
 
 #profitfix = true
-for mcmcdraw in 404:3000 # XXX
+for mcmcdraw in 1:1000
 for profitfix in [true, "modeled"]
     for holdcoeff in [false, true]
         for allowtime in [false, true]
@@ -54,14 +54,51 @@ if domcmcdraws
     biomodels = [biomodels[mcmcdraw % length(biomodels) + 1]]
 end
 
+suffixes = []
+if profitfix == true
+    push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
+end
+if !allowtime
+    push!(suffixes, "notime")
+end
+if holdcoeff
+    push!(suffixes, "histco")
+end
+if limityield != "ignore"
+    push!(suffixes, limityield)
+end
+if rcp != "rcp85"
+    push!(suffixes, rcp)
+end
+if length(biomodels) == 1
+    push!(suffixes, "$(biomodels[1])")
+end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
+if length(suffixes) > 0
+    suffixes = [""; suffixes]
+end
+suffix = join(suffixes, "-")
+
+if domcmcdraws
+    filename = "max$(futureyear)$suffix.csv"
+    if isfile(filename)
+	continue
+    end
+    touch(filename)
+end
+
 if profitfix != false
     profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
-    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] = "Barley"
-    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] = "Corn"
-    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] = "Cotton"
-    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] = "Rice"
-    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] = "Soybean"
-    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] = "Wheat"
+    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] .= "Barley"
+    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] .= "Corn"
+    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] .= "Cotton"
+    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] .= "Rice"
+    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] .= "Soybean"
+    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] .= "Wheat"
 end
 
 maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
@@ -284,35 +321,6 @@ end
 
 if onefips == false
 
-suffixes = []
-if profitfix == true
-    push!(suffixes, "pfixed")
-elseif profitfix == "modeled"
-    push!(suffixes, "pfixmo")
-end
-if !allowtime
-    push!(suffixes, "notime")
-end
-if holdcoeff
-    push!(suffixes, "histco")
-end
-if limityield != "ignore"
-    push!(suffixes, limityield)
-end
-if rcp != "rcp85"
-    push!(suffixes, rcp)
-end
-if length(biomodels) == 1
-    push!(suffixes, "$(biomodels[1])")
-end
-if domcmcdraws
-    push!(suffixes, "$mcmcdraw")
-end
-if length(suffixes) > 0
-    suffixes = [""; suffixes]
-end
-suffix = join(suffixes, "-")
-
 writedlm("all$(futureyear)profits$suffix.csv", allprofits', ',')
 writedlm("all$(futureyear)yields$suffix.csv", allyields', ',')
 
@@ -324,6 +332,7 @@ end
 
 CSV.write("max$(futureyear)$suffix.csv", result)
 end
+
 end
 end
 end

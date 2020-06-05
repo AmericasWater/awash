@@ -125,9 +125,9 @@ function getyield(rr, weatherrow, changeirr, trendyear, limityield, forceneg, pr
 
     # Also add log bias correction (sigma^2/2), because about to exponentiate
     if changeirr == "skip"
-        logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row + (bayes_sigma.^2) / 2
+        logyield = intercept .+ wreq_coeff * wreq_row .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row .+ (bayes_sigma.^2) / 2
     else
-        logyield = intercept .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row + (bayes_sigma.^2) / 2
+        logyield = intercept .+ gdds_coeff * gdds_row .+ kdds_coeff * kdds_row .+ time_coeff * time_row .+ (bayes_sigma.^2) / 2
     end
     if limityield == "lybymc"
         logyield = vec(logyield)

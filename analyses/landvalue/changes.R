@@ -1,6 +1,6 @@
 setwd("~/research/water/awash/analyses/landvalue")
 
-do.cornsoy.combo <- T
+do.cornsoy.combo <- F
 
 ##   Baseline
 ## Check

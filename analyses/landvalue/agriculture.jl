@@ -49,7 +49,7 @@ end
 
 fipsdf = CSV.read(expanduser("~/Dropbox/Agriculture Weather/fips_usa.csv"))
 
-for mcmcdraw in 1:3000 # XXX
+for mcmcdraw in 1:1000
 
 if domcmcdraws
     if do_cropdrop

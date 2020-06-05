@@ -1,6 +1,6 @@
-setwd("~/research/awash/analyses/landvalue")
+## setwd("~/research/awash/analyses/landvalue")
 
-do.cornsoy.combo <- T
+do.cornsoy.combo <- F
 
 ##   Baseline
 ## Check
@@ -41,7 +41,7 @@ biomodels  <- c("ac", "bc", "cc", "cn", "gf", "gs",
                 "hd", "he", "hg", "in", "ip", "mc",
                 "mg", "mi", "mp", "mr" , "no")
 
-nummc <- 403
+nummc <- 1000
 
 results <- array(NA, c(6, 7, nummc))
 row.names(results) <- optims
@@ -95,10 +95,19 @@ for (ii in 1:6)
 }
 
 results2 <- 1 - results
-results3 <- apply(results2, c(1, 2), function(x) ifelse(all(is.na(x)), NA, paste0("(", paste(format(100 * quantile(x, c(.025, .975), na.rm=T), digits=1), collapse=" - "), ")")))
 
 library(xtable)
 
-print(xtable(results3[, 1:4]))
+print("Mean estimates")
 
+results3 <- apply(results2, c(1, 2), function(x) ifelse(all(is.na(x)), NA, paste0("(", format(100 * mean(x, na.rm=T), digits=1), ")")))
+
+print(xtable(results3[, 1:4]))
+xtable(results3[4:6, c(1, 5:7)])
+
+print("Range of estimates")
+
+results3 <- apply(results2, c(1, 2), function(x) ifelse(all(is.na(x)), NA, paste0("(", paste(format(100 * quantile(x, c(.025, .975), na.rm=T), digits=1), collapse=" - "), ")")))
+
+print(xtable(results3[, 1:4]))
 xtable(results3[4:6, c(1, 5:7)])

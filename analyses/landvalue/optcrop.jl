@@ -11,20 +11,57 @@ includeus = true
 extraneg = true
 onefips = false #53009
 onecrops = nothing #["Barley", "Cotton"]
-onlyprefed = true # << for MC
-domcmcdraws = true # << for MC
+domcmcdraws = false # << for MC
+onlyprefed = domcmcdraws
 
 for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
-for mcmcdraw in 1:3000
 
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
 if (onefips != false || onlyprefed) && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
     continue
+end
+
+for mcmcdraw in 1:1000
+
+suffixes = []
+if !includeus
+    push!(suffixes, "erslimited")
+end
+if profitfix == true
+    push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
+end
+if limityield != "ignore"
+    push!(suffixes, limityield)
+end
+if changeirr == true
+    push!(suffixes, "chirr")
+elseif changeirr == "skip"
+    push!(suffixes, "allir")
+end
+if length(suffixes) > 0
+    suffixes = [""; suffixes]
+end
+if trendyear != 62
+    push!(suffixes, "$(2010+trendyear - 62)")
+end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
+suffix = join(suffixes, "-")
+
+if domcmcdraws
+    filename = "maxbayesian$suffix.csv"
+    if isfile(filename)
+        continue
+    end
+    touch(filename)
 end
 
 if profitfix != false
@@ -101,33 +138,6 @@ for ii in 1:length(bayes_crops)
 end
 
 if onefips == false
-suffixes = []
-if !includeus
-    push!(suffixes, "erslimited")
-end
-if profitfix == true
-    push!(suffixes, "pfixed")
-elseif profitfix == "modeled"
-    push!(suffixes, "pfixmo")
-end
-if limityield != "ignore"
-    push!(suffixes, limityield)
-end
-if changeirr == true
-    push!(suffixes, "chirr")
-elseif changeirr == "skip"
-    push!(suffixes, "allir")
-end
-if length(suffixes) > 0
-    suffixes = [""; suffixes]
-end
-if trendyear != 62
-    push!(suffixes, "$(2010+trendyear - 62)")
-end
-if domcmcdraws
-    push!(suffixes, "$mcmcdraw")
-end
-suffix = join(suffixes, "-")
 
 writedlm("currentprofits$suffix.csv", allprofits', ',')
 writedlm("currentyields$suffix.csv", allyields', ',')
@@ -140,11 +150,12 @@ end
 
 CSV.write("maxbayesian$suffix.csv", result)
 
+end
+
 if !domcmcdraws
     break
 end
 
-end
 end
 end
 end

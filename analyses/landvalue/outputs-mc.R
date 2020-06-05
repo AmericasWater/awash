@@ -1,7 +1,7 @@
-setwd("~/research/water/awash/analyses/landvalue")
+## setwd("~/research/water/awash/analyses/landvalue")
 
 do.notime <- T
-nummc <- 403
+nummc <- 1000
 
 if (do.notime) {
     periods <- c("Observed", "Optimal\nCurrent", "Unadapted\n2050", "Optimal\n2050", "Unadapted\n2070", "Optimal\n2070")
@@ -163,7 +163,19 @@ if (do.notime) {
         scale_fill_discrete(name="") +
         theme_bw() + xlab(NULL) + ylab("Production (Bbu. and Blb)")
 
+    ## Total profits under various scenarios
+    df3 <- df %>% group_by(mcmc, period, optimized) %>% summarize(profit=sum(profit)) %>%
+      group_by(period, optimized) %>% summarize(prof=mean(profit), prof.025=quantile(profit, .025), prof.975=quantile(profit, .975))
+    print("Profit by scenario")
+    print(df3)
+
+    ## Production changes
+
     df$prode9 <- df$production / 1e9
+    df$year <- NA
+    df$year[df$period %in% c("Observed", "Optimal\nCurrent")] <- 2010
+    df$year[df$period %in% c("Unadapted\n2050", "Optimal\n2050")] <- 2050
+    df$year[df$period %in% c("Unadapted\n2070", "Optimal\n2070")] <- 2070
 
     printdf <- data.frame(crop=c(), ch2010obs=c(), ch2070obs=c(), ch2070opt=c())
     for (crop in unique(df$crop)) {
@@ -177,86 +189,6 @@ if (do.notime) {
         printdf <- rbind(printdf, data.frame(crop, ch2010obs, ch2070obs, ch2070opt))
     }
 
+    print("Production by scenario")
     print(xtable(printdf), include.rownames=F)
-
-
-    ## START Not yet re-run (going to show graph)
-    printdf <- dcast(df, crop ~ period + optimized, value.var='prode9')
-    printdf$crop <- c("Barley (Bbu.)", "Corn (Bbu.)", "Cotton (Blb)", "Rice (Blb)", "Soybeans (Bbu.)", "Wheat (Bbu.)")
-    print(xtable(printdf), digits=3, include.rownames=F)
-
-    printdf <- cbind(data.frame(crop=printdf$crop),
-                 rbind(100 * printdf[1, 2:7] / printdf[1, 2],
-                       100 * printdf[2, 2:7] / printdf[2, 2],
-                       100 * printdf[3, 2:7] / printdf[3, 2],
-                       100 * printdf[4, 2:7] / printdf[4, 2],
-                       100 * printdf[5, 2:7] / printdf[5, 2],
-                       100 * printdf[6, 2:7] / printdf[6, 2]))
-    printdf$crop <- c("Barley (\\%)", "Corn (\\%)", "Cotton (\\%)", "Rice (\\%)", "Soybeans (\\%)", "Wheat (\\%)")
-    print(xtable(printdf, digits=0), include.rownames=F)
-    ## STOP Not yet re-run
-
-    df2.total <- df %>% group_by(period, optimized, mcmc) %>% summarize(production=sum(production), profit=sum(profit)) %>% group_by(period, optimized) %>% summarize(prod=mean(production), prod.025=quantile(production, .025), prod.975=quantile(production, .975), prof=mean(profit), prof.025=quantile(profit, .025), prof.975=quantile(profit, .975))
-
-    ggplot(df2, aes(optimized, prof / 1e9)) +
-        facet_grid(. ~ period) +
-        geom_bar(stat="identity", aes(fill=crop)) +
-        geom_errorbar(data=df2.total, aes(ymin=prof.025 / 1e9, ymax=prof.975 / 1e9)) +
-        scale_fill_discrete(name="") +
-        theme_bw() + xlab(NULL) + ylab("Profit (billion USD)")
-
-    df2 <- df %>% group_by(mcmc, period) %>% summarize(profit=sum(profit), optimized=optimized[1])
-
-    df2$year <- NA
-    df2$year[df2$period %in% c("Observed", "Optimal\nCurrent")] <- 2010
-    df2$year[df2$period %in% c("Unadapted\n2050", "Optimal\n2050")] <- 2050
-    df2$year[df2$period %in% c("Unadapted\n2070", "Optimal\n2070")] <- 2070
-
-    mean(df2$profit[df2$year == 2010 & df2$optimized == 'Observed'] / 1e9)
-    mean(df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'] / 1e9)
-    mean(df2$profit[df2$year == 2050 & df2$optimized == 'Observed'] / 1e9)
-    mean(df2$profit[df2$year == 2050 & df2$optimized == 'Optimized'] / 1e9)
-    mean(df2$profit[df2$year == 2070 & df2$optimized == 'Observed'] / 1e9)
-    mean(df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / 1e9)
-    quantile(df2$profit[df2$year == 2010 & df2$optimized == 'Observed'] / 1e9, c(.025, .5, .975))
-    quantile(df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'] / 1e9, c(.025, .5, .975))
-    quantile(df2$profit[df2$year == 2050 & df2$optimized == 'Observed'] / 1e9, c(.025, .5, .975))
-    quantile(df2$profit[df2$year == 2050 & df2$optimized == 'Optimized'] / 1e9, c(.025, .5, .975))
-    quantile(df2$profit[df2$year == 2070 & df2$optimized == 'Observed'] / 1e9, c(.025, .5, .975))
-    quantile(df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / 1e9, c(.025, .5, .975))
-
-    mean(df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'] - 1) # benefits of optimization
-    quantile(df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'] - 1, c(.025, .25, .5, .75, .975))
-
-    mean(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Observed'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'])
-    quantile(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Observed'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'], c(.025, .25, .5, .75, .975))
-
-    mean(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'])
-    quantile(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Observed'], c(.025, .25, .5, .75, .975))
-
-    mean(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'])
-    quantile(1 - df2$profit[df2$year == 2070 & df2$optimized == 'Optimized'] / df2$profit[df2$year == 2010 & df2$optimized == 'Optimized'], c(.025, .25, .5, .75, .975))
-} else {
-    ## START Not yet re-run (going to show graph)
-    df$prode9 <- df$production / 1e9
-
-    printdf <- dcast(df, crop ~ period, value.var='prode9')
-    printdf$crop <- c("Barley (Bbu.)", "Corn (Bbu.)", "Cotton (Blb)", "Rice (Blb)", "Soybeans (Bbu.)", "Wheat (Bbu.)")
-    print(xtable(printdf), digits=3, include.rownames=F)
-
-    printdf <- cbind(data.frame(crop=printdf$crop),
-                     rbind(100 * printdf[1, 2:5] / c(printdf[1, 2], printdf[1, 2], printdf[1, 4], printdf[1, 4]),
-                           100 * printdf[2, 2:5] / c(printdf[2, 2], printdf[2, 2], printdf[2, 4], printdf[2, 4]),
-                           100 * printdf[3, 2:5] / c(printdf[3, 2], printdf[3, 2], printdf[3, 4], printdf[3, 4]),
-                           100 * printdf[4, 2:5] / c(printdf[4, 2], printdf[4, 2], printdf[4, 4], printdf[4, 4]),
-                           100 * printdf[5, 2:5] / c(printdf[5, 2], printdf[5, 2], printdf[5, 4], printdf[5, 4]),
-                           100 * printdf[6, 2:5] / c(printdf[6, 2], printdf[6, 2], printdf[6, 4], printdf[6, 4])))
-    printdf$crop <- c("Barley (\\%)", "Corn (\\%)", "Cotton (\\%)", "Rice (\\%)", "Soybeans (\\%)", "Wheat (\\%)")
-    print(xtable(printdf, digits=0), include.rownames=F)
-
-    ggplot(df2, aes(period, profit, fill=crop)) +
-        geom_bar(stat="identity") +
-        scale_fill_discrete(name="") +
-        theme_bw() + xlab(NULL) + ylab("Profit (USD)")
-    ## STOP Not yet re-run
 }

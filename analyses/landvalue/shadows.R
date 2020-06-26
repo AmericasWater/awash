@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+## setwd("~/research/water/awash/analyses/landvalue")
 
 df <- read.csv("results/shadows.csv")
 df.map <- df[1:3109,]
@@ -53,11 +53,10 @@ ggplot(cnty2.df1, aes(long, lat, group = group)) +
 coord_quickmap() + theme_minimal() + xlab("") + ylab("")
 
 ggsave("shadowmap.pdf", width=8, height=4)
-ggsave("shadowmap.png", width=8, height=4)
 
 pts <- cnty2.df1 %>% group_by(group) %>% summarize(long=mean(long), lat=mean(lat), level0=mean(currentprofits.pfixmo.chirr), level1=mean(all2070profits.pfixmo.notime.histco), diff1=mean(all2050profits.pfixmo.notime.histco - currentprofits.pfixmo.chirr), diff2=mean(all2070profits.pfixmo.notime.histco - currentprofits.pfixmo.chirr), logdiff=mean(log(-all2070profits.pfixmo.notime.histco) - log(-currentprofits.pfixmo.chirr)))
 
-ggplot(pts[pts$diff != 0,], aes(lat, diff)) +
+ggplot(pts[pts$diff2 != 0,], aes(lat, diff2)) +
     geom_point() + geom_smooth()
 
 pts$latgrp <- factor(floor((pts$lat - min(pts$lat)) / 5))
@@ -66,6 +65,7 @@ ggplot(pts[pts$level0 != 0 & pts$lat > 27,], aes(factor(round(lat)), -diff2)) +
     geom_boxplot(outlier.shape = NA) + geom_hline(yintercept=0, colour="#A0A0A0") +
     ylim(-750, 250) + coord_flip() + xlab("Latitude") +
     ylab("Change in shadow price by 2070 ($/Ha)") + theme_bw()
+ggsave("shadows.pdf", width=6, height=3)
 
 pts2 <- data.frame(latgrp=rep(pts$latgrp[pts$level0 != 0], 2), diff=c(pts$diff1[pts$level0 != 0], pts$diff2[pts$level0 != 0]), period=rep(c('2050', '2070'), each=sum(pts$level0 != 0)))
 pts2$latgrp <- factor(pts2$latgrp)
@@ -73,13 +73,13 @@ pts2$latgrp <- factor(pts2$latgrp)
 ggplot(pts2, aes(latgrp, diff, fill=period)) +
     geom_boxplot(outlier.shape = NA) + ylim(-300, 500)
 
-ggplot(pts, aes(lat, diff)) +
+ggplot(pts, aes(lat, diff2)) +
     geom_point() + scale_y_log10()
 ggplot(pts, aes(lat, logdiff)) +
     geom_point() + geom_smooth()
 
 summary(lm(logdiff ~ lat, data=pts[is.finite(pts$logdiff),]))
-summary(lm(diff ~ lat, data=pts[pts$diff != 0,]))
+summary(lm(diff2 ~ lat, data=pts[pts$diff2 != 0,]))
 
 df.bycrop <- df[3110:3115, c('fips', 'currentprofits.pfixmo.chirr', 'all2050profits.pfixmo.notime.histco', 'all2070profits.pfixmo.notime.histco')]
 names(df.bycrop) <- c("Crop", "Current", "2050", "2070")

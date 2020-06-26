@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+## setwd("~/research/water/awash-crops/analyses/landvalue")
 
 library(dplyr)
 
@@ -109,11 +109,18 @@ ggplot(results, aes(bin, count, fill=as.character(topcrop))) +
     xlab("Temperature (C)") + ylab("Counties with average temperature") +
     scale_fill_discrete(name=NULL)
 ##scale_fill_manual(breaks=breaks, values=values)
-ggsave("tempdists.pdf", width=6, height=4)
+ggsave("figures/tempdists.pdf", width=6, height=4)
 
 ggplot(allres[!is.na(allres$topcrop),], aes(bin, fill=as.character(topcrop))) +
     facet_grid(scenario ~ .) +
     geom_bar() + theme_bw() +
     xlab("Temperature (C)") + ylab("Counties with average temperature") +
     scale_fill_discrete(name=NULL)
-ggsave("tempdists2.pdf", width=6, height=4)
+ggsave("figures/tempdists2.pdf", width=6, height=4)
+
+ggplot(allres, aes(bin, fill=as.character(topcrop))) +
+    facet_grid(scenario ~ .) +
+    geom_bar() + theme_bw() +
+    xlab("Temperature (C)") + ylab("Counties with average temperature") +
+    scale_fill_discrete(name=NULL)
+ggsave("figures/tempdists3.png", width=4.5, height=4)

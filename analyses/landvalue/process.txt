@@ -15,7 +15,8 @@
 
  - basics.R
  - assumptions.R
- - cropribbon.R
+ - cropribbon.R -> figure 3
  - constopt-byprice.R
- - farmvalue-display.R ?
- - tempdists.R ?
+ - tempdists.R -> figure 2
+
+ - farmvalue-display.R

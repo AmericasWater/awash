@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/landvalue")
+## setwd("~/research/awash/analyses/landvalue")
 
 df <- read.csv("constopt-byprice.csv")
 

@@ -154,7 +154,7 @@ function regionindex(tbl, rows; tostr=true)
     # Allow any of the column names
     indexes = nothing
     for indexcol in config["indexcols"]
-        if indexcol in names(tbl)
+        if indexcol in names(tbl) || String(indexcol) in names(tbl)
             indexes = tbl[rows, indexcol]
             lastindexcol = indexcol
             break
@@ -174,9 +174,6 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
-    if typeof(indexes) <: CSV.Column{Int64, Int64}
-        indexes = convert(Vector{Int64}, indexes)
-    end
     if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end

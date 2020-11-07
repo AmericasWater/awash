@@ -1,6 +1,6 @@
 ## setwd("~/research/water/awash/analyses/landvalue")
 
-df <- read.csv("results/shadows.csv")
+df <- read.csv("~/OneDrive - London School of Economics/crops-data/results/shadows.csv")
 df.map <- df[1:3109,]
 df.map$fips <- as.numeric(as.character(df.map$fips))
 
@@ -53,6 +53,17 @@ ggplot(cnty2.df1, aes(long, lat, group = group)) +
 coord_quickmap() + theme_minimal() + xlab("") + ylab("")
 
 ggsave("shadowmap.pdf", width=8, height=4)
+
+## Can I make the legend linear?
+ggplot(cnty2.df1, aes(long, lat, group = group)) +
+    geom_polygon(aes(fill = pmin(diff, 2) - 1), lwd=0) +
+    scale_fill_gradient2(name="Change\n in Profits", low='#a6611a', high='#018571', labels=scales::percent) +
+    new_scale_fill() +
+    geom_polygon(aes(fill = dclass)) +
+    scale_fill_manual(values=c('#808080', '#808080', '#d95f02', '#00000000')) +
+coord_quickmap() + theme_minimal() + xlab("") + ylab("")
+ggsave("shadowmap-linear.pdf", width=8, height=4)
+
 
 pts <- cnty2.df1 %>% group_by(group) %>% summarize(long=mean(long), lat=mean(lat), level0=mean(currentprofits.pfixmo.chirr), level1=mean(all2070profits.pfixmo.notime.histco), diff1=mean(all2050profits.pfixmo.notime.histco - currentprofits.pfixmo.chirr), diff2=mean(all2070profits.pfixmo.notime.histco - currentprofits.pfixmo.chirr), logdiff=mean(log(-all2070profits.pfixmo.notime.histco) - log(-currentprofits.pfixmo.chirr)))
 

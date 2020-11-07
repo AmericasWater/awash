@@ -146,7 +146,7 @@ if (do.notime) {
         df$optimized[31:36] <- "Optimized"
     }
 
-    df2 <- df %>% group_by(period, crop, optimized) %>% summarize(prod=mean(production), prod.025=quantile(production, .025), prod.975=quantile(production, .975), prof=mean(profit), prof.025=quantile(profit, .025), prof.975=quantile(profit, .975))
+    df2 <- df %>% group_by(period, crop, optimized) %>% summarize(prod=mean(production), prod.025=quantile(production, .025), prod.975=quantile(production, .975), prod.min=min(production), prod.max=max(production), prof=mean(profit), prof.025=quantile(profit, .025), prof.975=quantile(profit, .975), prof.min=min(profit), prof.max=max(profit))
 
     df2$period <- as.character(df2$period)
     df2$period[df2$period %in% c("Observed", "Optimal\nCurrent")] <- "2010"
@@ -157,7 +157,8 @@ if (do.notime) {
     ggplot(df2, aes(period, prod / 1e9, fill=optimized)) +
         facet_wrap(~ crop, scales="free") +
         geom_bar(stat="identity", position=position_dodge()) +
-        geom_errorbar(aes(ymin=prod.025 / 1e9, ymax=prod.975 / 1e9), position=position_dodge()) +
+        geom_linerange(aes(ymin=prod.min / 1e9, ymax=prod.max / 1e9), position=position_dodge(.9), alpha=.5) +
+        geom_errorbar(aes(ymin=prod.025 / 1e9, ymax=prod.975 / 1e9), position=position_dodge(.9), width=.7) +
         scale_fill_discrete(name="") +
         theme_bw() + xlab(NULL) + ylab("Production (Bbu. and Blb)")
     ggsave("figures/barprod-mc.pdf", width=10, height=3)

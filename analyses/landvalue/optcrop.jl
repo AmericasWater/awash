@@ -65,7 +65,11 @@ if domcmcdraws
 end
 
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
+    if !domcmcdraws
+        profitfixdf = CSV.read("farmvalue-limited.csv", copycols=true)
+    else
+        profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
+    end
     profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] .= "Barley"
     profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] .= "Corn"
     profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] .= "Cotton"

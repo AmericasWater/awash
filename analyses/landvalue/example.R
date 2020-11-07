@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+setwd("~/research/water/awash-crops/analyses/landvalue")
 
 df <- read.csv("soydata.csv")
 
@@ -33,6 +33,13 @@ ggplot(cnty2.df1, aes(long, lat, group = group)) +
     theme(legend.justification=c(1,0), legend.position=c(1,0)) +
     scale_fill_gradient(name="Op. costs\n($/acre)")
 ggsave("soy-opcost-full.png", width=8, height=4)
+
+ggplot(cnty2.df1, aes(long, lat, group = group)) +
+    geom_polygon(aes(fill = soy_price_full), colour = rgb(1,1,1,0.2))  +
+    coord_quickmap() + theme_minimal() + xlab("") + ylab("") +
+    theme(legend.justification=c(1,0), legend.position=c(1,0)) +
+    scale_fill_gradient(name="Price\n($/bushel)")
+ggsave("soy-price-full.png", width=8, height=4)
 
 
 library(dplyr)

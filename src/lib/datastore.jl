@@ -139,7 +139,7 @@ Remove all jld files for this configuration
 """
 function cache_clear()
     for filename in readdir(cachepath(""))
-        if contains(filename, ".jld")
+        if occursin(".jld", filename)
             rm(cachepath(filename))
         end
     end
@@ -174,6 +174,9 @@ end
 
 """Represent the values in an index in a standardized way."""
 function canonicalindex(indexes)
+    if typeof(indexes) <: CSV.Column{Int64, Int64}
+        indexes = convert(Vector{Int64}, indexes)
+    end
     if typeof(indexes) <: Vector{Int64} || typeof(indexes) <: Vector{Union{Missings.Missing, Int64}}
         return map(index -> lpad("$index", config["indexlen"], config["indexpad"]), indexes)
     end

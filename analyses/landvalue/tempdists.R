@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+## setwd("~/research/water/awash-crops/analyses/landvalue")
 
 library(dplyr)
 
@@ -10,6 +10,9 @@ tcol <- c('bio1_mean', 'bio1_2050', 'bio1_2070')
 sname <- c('Current', '2050', '2070')
 
 fipsorder <- read.csv("../../data/global/counties.csv")
+knownareas <- read.csv("../../data/counties/agriculture/knownareas.csv")
+knownareas$mytotal <- knownareas$BARLEY + knownareas$CORN + knownareas$COTTON +
+    knownareas$RICE + knownareas$SOYBEANS + knownareas$WHEAT
 
 df <- read.csv("~/Dropbox/Agriculture Weather/us-bioclims-new.csv")
 for (year in c(2050, 2070)) {
@@ -33,6 +36,7 @@ allprof <- data.frame()
 for (scenario in 1:3) {
     topcrops <- read.csv(paste0("results/", maps[scenario]))
     topcrops <- topcrops %>% left_join(df)
+    topcrops <- subset(topcrops, fips %in% knownareas$fips[knownareas$mytotal > 0])
     ## Determine max crop by 1 C bins
 
     topcrops$bin <- round(topcrops[, tcol[scenario]] / 5) / 2
@@ -105,11 +109,18 @@ ggplot(results, aes(bin, count, fill=as.character(topcrop))) +
     xlab("Temperature (C)") + ylab("Counties with average temperature") +
     scale_fill_discrete(name=NULL)
 ##scale_fill_manual(breaks=breaks, values=values)
-ggsave("tempdists.pdf", width=6, height=4)
+ggsave("figures/tempdists.pdf", width=6, height=4)
 
 ggplot(allres[!is.na(allres$topcrop),], aes(bin, fill=as.character(topcrop))) +
     facet_grid(scenario ~ .) +
     geom_bar() + theme_bw() +
     xlab("Temperature (C)") + ylab("Counties with average temperature") +
     scale_fill_discrete(name=NULL)
-ggsave("tempdists2.pdf", width=6, height=4)
+ggsave("figures/tempdists2.pdf", width=6, height=4)
+
+ggplot(allres, aes(bin, fill=as.character(topcrop))) +
+    facet_grid(scenario ~ .) +
+    geom_bar() + theme_bw() +
+    xlab("Temperature (C)") + ylab("Counties with average temperature") +
+    scale_fill_discrete(name=NULL)
+ggsave("figures/tempdists3.png", width=4.5, height=4)

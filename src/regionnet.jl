@@ -37,7 +37,7 @@ if isfile(cachepath("regionsources$suffix.jld"))
     regverts = deserialize(open(cachepath("regionvertices$suffix.jld"), "r")); # Mapping from indexcol to vertex
     sourceiis = deserialize(open(cachepath("regionsources$suffix.jld"), "r")); # Neighbor indexes from region index
 else
-    println("Trying to create a new region network...")
+    println("Trying to create a new new region network...")
 
     # Load the network of counties
     counties = knowndf("region-info")

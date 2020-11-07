@@ -1,9 +1,13 @@
- - actualcrops.R
- - agriculture.jl
- - optcrop.jl
- - futureyield.jl
- - mv max*.csv results; mv current*.csv results; mv all20*.csv results
- - constrainopt.jl
+ - actualcrops.R -> actualcrops.csv
+ - agriculture.jl -> farmvalue-limited<-N>.csv
+
+ - optcrop.jl -> currentprofits, currentyields, maxbayesian
+ - futureyield.jl -> all20XX, max20XX
+
+ - mv max*.csv results-mc; mv current*.csv results-mc; mv all20*.csv results-mc OR
+   mv max*.csv results; mv current*.csv results; mv all20*.csv results
+
+ - constrainopt.jl -> results-mc/constopt-*.csv, results/shadows.csv
  - display.R any time
  - changes.R
  - outputs.R
@@ -11,7 +15,8 @@
 
  - basics.R
  - assumptions.R
- - cropribbon.R
+ - cropribbon.R -> figure 3
  - constopt-byprice.R
- - farmvalue-display.R ?
- - tempdists.R ?
+ - tempdists.R -> figure 2
+
+ - farmvalue-display.R

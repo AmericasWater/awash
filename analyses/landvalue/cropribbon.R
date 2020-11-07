@@ -1,4 +1,4 @@
-setwd("~/research/awash/analyses/landvalue")
+## setwd("~/research/water/awash-crops/analyses/landvalue")
 
 library(dplyr)
 
@@ -36,6 +36,7 @@ width <- 1.25 * length(comparefiles)
 croplist2 <- c("BARLEY", "CORN", "COTTON", "RICE", "SOYBEANS", "WHEAT", "NONE")
 colors <- c('#f8766d', '#b79f00', '#00ba38', '#00bfc4', '#619cff', '#f564e3', '#808080')
 
+pdf("figures/cropribbon.pdf", width=10, height=5.3)
 plot.new()
 par(mar=c(0,0,0,0)+.1)
 plot.window(xlim=c(0, width), ylim=c(0,105))
@@ -85,3 +86,4 @@ for (ff in 1:length(comparefiles)) {
         print(paste("% end", crop, "=", sum(sumdf$portion[sumdf$cropjj == crop])))
     }
 }
+dev.off()

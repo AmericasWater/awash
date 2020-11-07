@@ -11,26 +11,71 @@ includeus = true
 extraneg = true
 onefips = false #53009
 onecrops = nothing #["Barley", "Cotton"]
+domcmcdraws = false # << for MC
+onlyprefed = domcmcdraws
 
 for limityield in ["ignore", "lybymc"]
 for profitfix in ["modeled", true]
 for trendyear in [62, 62 + 40, 62 + 60]
 for changeirr in ["skip", false, true]
+
 if changeirr == "skip" && (trendyear != 62 || profitfix == "modeled")
     continue
 end
-if onefips != false && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
+if (onefips != false || onlyprefed) && (limityield != "ignore" || profitfix != "modeled" || trendyear != 62 || changeirr != true)
     continue
 end
 
+for mcmcdraw in 1:1000
+
+suffixes = []
+if !includeus
+    push!(suffixes, "erslimited")
+end
+if profitfix == true
+    push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
+end
+if limityield != "ignore"
+    push!(suffixes, limityield)
+end
+if changeirr == true
+    push!(suffixes, "chirr")
+elseif changeirr == "skip"
+    push!(suffixes, "allir")
+end
+if length(suffixes) > 0
+    suffixes = [""; suffixes]
+end
+if trendyear != 62
+    push!(suffixes, "$(2010+trendyear - 62)")
+end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
+suffix = join(suffixes, "-")
+
+if domcmcdraws
+    filename = "maxbayesian$suffix.csv"
+    if isfile(filename)
+        continue
+    end
+    touch(filename)
+end
+
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited.csv")
-    profitfixdf[profitfixdf[:obscrop] .== "barl", :obscrop] = "Barley"
-    profitfixdf[profitfixdf[:obscrop] .== "corn", :obscrop] = "Corn"
-    profitfixdf[profitfixdf[:obscrop] .== "cott", :obscrop] = "Cotton"
-    profitfixdf[profitfixdf[:obscrop] .== "rice", :obscrop] = "Rice"
-    profitfixdf[profitfixdf[:obscrop] .== "soyb", :obscrop] = "Soybean"
-    profitfixdf[profitfixdf[:obscrop] .== "whea", :obscrop] = "Wheat"
+    if !domcmcdraws
+        profitfixdf = CSV.read("farmvalue-limited.csv", copycols=true)
+    else
+        profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
+    end
+    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] .= "Barley"
+    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] .= "Corn"
+    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] .= "Cotton"
+    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] .= "Rice"
+    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] .= "Soybean"
+    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] .= "Wheat"
 end
 
 maxprofit = Dict{Int64, Vector{Any}}()
@@ -45,7 +90,11 @@ for ii in 1:length(bayes_crops)
     end
     println(crop)
 
-    prepdata = preparecrop(crop, false, true, changeirr)
+    if domcmcdraws
+        prepdata = preparecrop(crop, false, true, changeirr, mcmcdraw)
+    else
+        prepdata = preparecrop(crop, false, true, changeirr)
+    end
 
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus);
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus);
@@ -57,7 +106,7 @@ for ii in 1:length(bayes_crops)
             continue
         end
         println(rr)
-        weatherrow = findfirst(masterregions[:fips] .== canonicalindex(regionid))
+        weatherrow = findfirst(masterregions[!, :fips] .== canonicalindex(regionid))
 
         try # fails if weatherrow == 0 or NAs in gdds or kdds
             forceneg = extraneg && isextrapolate(regionid, crop)
@@ -93,30 +142,6 @@ for ii in 1:length(bayes_crops)
 end
 
 if onefips == false
-suffixes = []
-if !includeus
-    push!(suffixes, "erslimited")
-end
-if profitfix == true
-    push!(suffixes, "pfixed")
-elseif profitfix == "modeled"
-    push!(suffixes, "pfixmo")
-end
-if limityield != "ignore"
-    push!(suffixes, limityield)
-end
-if changeirr == true
-    push!(suffixes, "chirr")
-elseif changeirr == "skip"
-    push!(suffixes, "allir")
-end
-if length(suffixes) > 0
-    suffixes = [""; suffixes]
-end
-if trendyear != 62
-    push!(suffixes, "$(2010+trendyear - 62)")
-end
-suffix = join(suffixes, "-")
 
 writedlm("currentprofits$suffix.csv", allprofits', ',')
 writedlm("currentyields$suffix.csv", allyields', ',')
@@ -128,6 +153,13 @@ for fips in keys(maxprofit)
 end
 
 CSV.write("maxbayesian$suffix.csv", result)
+
+end
+
+if !domcmcdraws
+    break
+end
+
 end
 end
 end

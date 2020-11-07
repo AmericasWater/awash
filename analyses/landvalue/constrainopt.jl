@@ -11,15 +11,18 @@ config = readconfig("../../configs/single.yml")
 include("../../src/world-minimal.jl")
 include("../../src/lib/datastore.jl")
 
+resdir = "results" # "results-mc"
 crops = ["Barley", "Corn", "Cotton", "Rice", "Soybean", "Wheat"]
 
-for filename in readdir("results")
+shadows = DataFrame(fips=[masterregions[:fips]; crops])
+
+for filename in readdir(resdir)
     if !occursin("profits", filename) || filename[end-3:end] != ".csv" || occursin("constopt", filename)
         continue
     end
     println(filename)
 
-filepath = "results/$filename"
+filepath = resdir * "/$filename"
 
 mat = readdlm(filepath, ',')' # Transpose to crop x county
 
@@ -33,7 +36,7 @@ knownareas = getfilteredtable("agriculture/knownareas.csv", :fips)
 areacrops = [:BARLEY, :CORN, :COTTON, :RICE, :SOYBEANS, :WHEAT]
 mytotal = zeros(nrow(knownareas))
 for crop in areacrops
-    mytotal += knownareas[crop]
+    mytotal += knownareas[!, crop]
 end
 
 function areagen(subA, rr)
@@ -44,7 +47,7 @@ bb = convert(Vector{Float64}, mytotal * 0.404686) # Convert to Ha
 
 # Constrain total area per crop to existing
 for cc in 1:length(areacrops)
-    total = sum(knownareas[areacrops[cc]] * 0.404686)
+    total = sum(knownareas[!, areacrops[cc]] * 0.404686)
     subAA = spzeros(size(mat)[1], size(mat)[2])
     subAA[cc, :] .= 1
     AA = [AA; vec(subAA)']
@@ -68,5 +71,8 @@ for cc in 1:length(crops)
     df[Symbol(crops[cc])] = optareas[cc, :]
 end
 
-CSV.write("results/constopt-$filename", df)
+    CSV.write(resdir * "/constopt-$filename", df)
+    shadows[Symbol(filename[1:end-4])] = sol.attrs[:lambda]
 end
+
+CSV.write("results/shadows.csv", shadows)

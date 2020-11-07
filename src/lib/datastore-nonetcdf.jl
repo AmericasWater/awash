@@ -27,7 +27,7 @@ end
 """
 Get an array from a CSV file, downloading as needed
 """
-function dncload{T<:AbstractString}(name::AbstractString, variable::AbstractString, dims::Vector{T})
+function dncload(name::AbstractString, variable::AbstractString, dims::Vector{T}) where T <: AbstractString
     filepath = cachepath(config["ncdatasets"][name]["filename"] * ".csv")
 
     if !isfile(filepath)

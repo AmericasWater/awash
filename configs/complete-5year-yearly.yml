@@ -13,4 +13,4 @@ endmonth: 12/2010
 startweather: 676
 
 # Months per time step
-timestep: 1
+timestep: 12

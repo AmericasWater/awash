@@ -1,11 +1,11 @@
-setwd("~/research/water/awash/analyses/gaugecompare")
+setwd("~/james/awash/analyses/gaugecompare")
 
 library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 676
 do.monthly <- F
-do.allyear <- T
+do.allyear <- F
 
 source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {

@@ -1,6 +1,6 @@
 using CSV
 
-for do_monthly in ["allyear"] #[false, true, "allyear"]
+for do_monthly in [false, true] #[false, true, "allyear"]
     global config
 
     include("../../src/lib/readconfig.jl")

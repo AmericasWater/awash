@@ -1,0 +1,5 @@
+1. Run stress-monthly.jl
+1b. Run stress-monthly-fix.jl for any incomplete years.
+2. Move results to results/ folder
+3. Run stress-monthly.R
+4. Run stress-local-monthly-consistent.R

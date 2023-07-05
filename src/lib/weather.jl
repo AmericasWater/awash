@@ -33,19 +33,23 @@ end
 """
 Takes T x N and returns N x S x T for scenario spans.
 """
-function scenarioextract(weather, eachstep)
-    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+function scenarioextract(weather, eachstep; dropstart::Bool=true)
+    if dropstart
+        weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    else
+        weatherfromstart = weather
+    end
     scenarios = get(config, "scenarios", [1])
 
     if eachstep
-        bytimestep = zeros(size(weather, 2), numscenarios, numsteps * config["timestep"])
+        bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps * config["timestep"])
         for ss in 1:length(scenarios)
-            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps*config["timestep"]-1, :]'
+            bytimestep[:, ss, :] = weatherfromstart[scenarios[ss]:scenarios[ss]+numsteps*config["timestep"]-1, :]'
         end
     else
-        bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+        bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps)
         for ss in 1:length(scenarios)
-            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
+            bytimestep[:, ss, :] = weatherfromstart[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
         end
     end
 
@@ -57,19 +61,23 @@ Sum values within each timestep, and reorder dimensions, returning a N x S x T m
 
 Assumes that `config` is defined globally
 """
-function sum2timestep(weather)
+function sum2timestep(weather; dropstart::Bool=true)
     if config["timestep"] == 1
-        return scenarioextract(weather, true)
+        return scenarioextract(weather, true; dropstart=dropstart)
     end
 
-    weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    if dropstart
+        weatherfromstart = weather[get(config, "startweather", 1):end, :]
+    else
+        weatherfromstart = weather
+    end
     scenarios = get(config, "scenarios", [1])
 
-    bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+    bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps)
 
     for ss in 1:length(scenarios)
         for timestep in 1:numsteps
-            allcounties = zeros(size(weather, 2))
+            allcounties = zeros(size(weatherfromstart, 2))
             for month in 1:config["timestep"]
                 allcounties += weatherfromstart[round.(Int64, (timestep - 1) * config["timestep"] + month + scenarios[ss] - 1), :]
             end
@@ -98,6 +106,8 @@ function getadded(stations::DataFrame)
 
     added = zeros(size(gage_totalflow, 2), nrow(stations)) # contributions (1000 m^3)
 
+    stationmatches = repeat([false], nrow(stations))
+    gagematches = repeat([false], length(gage_latitude))
     for ii in 1:nrow(stations)
         gage = findall((abs.(stations[ii, :lat] .- gage_latitude) .< 1e-6) .& (abs.(stations[ii, :lon] .- gage_longitude) .< 1e-6))
         if length(gage) != 1 || gage[1] > size(gage_totalflow)[1]
@@ -105,6 +115,21 @@ function getadded(stations::DataFrame)
         end
 
         added[:, ii] = vec(gage_totalflow[gage[1], :]) * gage_area[gage[1]]
+        stationmatches[ii] = true
+        gagematches[gage[1]] = true
+    end
+
+    # Fill all remaining unmatched flow data to closest unmatched station
+    for jj in findall(.!gagematches)
+        dists = sqrt.((stations[:, :lat] .- gage_latitude[jj]).^2 + (stations[:, :lon] .- gage_longitude[jj]).^2)
+        ii = argmin(dists)
+        if dists[ii] > 1 && !("filterstate" in keys(config))
+            println("Gage $jj cannot be matched: $(gage_latitude[jj]), $(gage_longitude[jj]) closest to $(stations[ii, :lat]), $(stations[ii, :lon])")
+        end
+
+        added[:, ii] = vec(gage_totalflow[jj, :]) * gage_area[jj]
+        stationmatches[ii] = true
+        gagematches[jj] = true
     end
 
     added[isnan.(added)] .= 0 # if NaN, set to 0 so doesn't propagate

@@ -3,7 +3,7 @@ load("../../data/counties/waternet/waternet.RData")
 
 library(ncdf4)
 
-ncin <- nc_open("../../data/cache/counties/contributing_runoff_by_gage.nc")
+ncin <- nc_open("~/Dropbox/America's Water/Public Model Data/contributing_runoff_by_gage.nc") #"../../data/cache/counties/contributing_runoff_by_gage.nc")
 gages <- ncvar_get(ncin, "gage_id")
 flows <- ncvar_get(ncin, "totalflow")
 areas <- ncvar_get(ncin, "contributing_area")
@@ -40,6 +40,12 @@ for (ii in 1:nrow(network)) {
     print(ii)
     basin.areas[ii] <- get.basin.area(ii)
 }
+
+library(ggplot2)
+
+ggplot(data.frame(area=basin.areas), aes(area)) +
+    geom_histogram(bins=100) + theme_bw() +
+    scale_y_continuous("Gauge count", expand=c(0, 0)) + scale_x_log10("Total basin area (sq. km)")
 
 write.csv(data.frame(network$collection, network$colid, basin.areas), "basinareas.csv", row.names=F)
 

@@ -58,15 +58,7 @@ end
 
 function constraintoffset_environmentalflows(m::Model)
     b = copy(addeds) # Start with direct added
-
-    # Propogate in downstream order
-    for hh in 1:numgauges
-        gg = vertex_index(downstreamorder[hh])
-        gauge = downstreamorder[hh].label
-        for upstream in out_neighbors(wateridverts[gauge], waternet)
-            b[gg, :, :] += DOWNSTREAM_FACTOR * b[vertex_index(upstream, waternet), :, :]
-        end
-    end
+    propagate_downstream!(b)
 
     function generate(gg, ss, tt)
         (config["proportionnaturalflowforenvironment"])*b[gg, ss, tt]

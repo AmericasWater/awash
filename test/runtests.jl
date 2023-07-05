@@ -40,5 +40,6 @@ requirepackage("WeakRefStrings")
 requirepackage("PooledArrays")
 requirepackage("Distributions")
 requirepackage("MathProgBase")
+requirepackage("GeoArrays", true)
 
 include("thetests.jl")

@@ -107,12 +107,12 @@ struct StatisticalAgricultureModel
 end
 
 function StatisticalAgricultureModel(df::DataFrame, filter::Symbol, fvalue::Any)
-    interceptrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "intercept"))
-    gddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gdds"))
-    kddsrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kdds"))
-    wreqrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "wreq"))
-    gddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "gddoffset"))
-    kddoffsetrow = findfirst((df[filter] .== fvalue) .& (df[!, :coef] .== "kddoffset"))
+    interceptrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "intercept"))
+    gddsrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "gdds"))
+    kddsrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "kdds"))
+    wreqrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "wreq"))
+    gddoffsetrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "gddoffset"))
+    kddoffsetrow = findfirst((df[!, filter] .== fvalue) .& (df[!, :coef] .== "kddoffset"))
 
     if interceptrow != nothing
         intercept = df[interceptrow, :mean]
@@ -266,13 +266,13 @@ Return the current crop area for every crop, in Ha
 """
 function currentcroparea(crop::AbstractString)
     df = getfilteredtable("agriculture/totalareas.csv")
-    if Symbol(crop) in names(df)
+    if crop in names(df) || Symbol(crop) in names(df)
         return df[:, Symbol(crop)] * 0.404686
     end
 
     cropnames = uniquemapping[crop]
     for cropname in cropnames
-        if Symbol(cropname) in names(df)
+        if cropname in names(df) || Symbol(cropname) in names(df)
             return df[:, Symbol(cropname)] * 0.404686
         end
     end

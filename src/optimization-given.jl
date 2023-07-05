@@ -28,7 +28,7 @@ include("WaterRight.jl")
 """
 allowgw: can be false (only surface optimization), true (conjunctive use), or "demandonly" (water stress test)
 """
-function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing; nocache=redogwwo)
+function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=nothing, waterrightconst=nothing; nocache=redogwwo, storage0=nothing)
     # First solve entire problem in a single timestep
     m = newmodel();
 
@@ -38,6 +38,9 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
     watercost = initwatercost(m);
     if allowreservoirs
         reservoir = initreservoir(m); # Allocation or optimization-only
+        if storage0 != nothing
+            reservoir[:storage0] = storage0
+        end
     end
     returnflows = initreturnflows(m, allowreservoirs, demandmodel); # dep. Allocation
     waternetwork = initwaternetwork(m); # dep. ReturnFlows
@@ -151,11 +154,11 @@ function optimization_given(allowgw=false, allowreservoirs=true, demandmodel=not
         # min storage is reservoir min
         # max storage is reservoir max
 
-        # Constrain storage > min or -storage < -min
+        # Constrain storage0 + storage > min or -storage < -min + storage0
         setconstraint!(house, -room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemin)) # -
         setconstraintoffset!(house, hall_relabel(-constraintoffset_reservoir_storagecapacitymin(m)+constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemin))
 
-        # Constrain storage < max
+        # Constrain storage0 + storage < max or storage < max - storage0
         setconstraint!(house, room_relabel(grad_reservoir_storage_captures(m), :storage, :Reservoir, :storagemax)) # +
         setconstraintoffset!(house, hall_relabel(constraintoffset_reservoir_storagecapacitymax(m)-constraintoffset_reservoir_storage0(m), :storage, :Reservoir, :storagemax))
 

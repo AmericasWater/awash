@@ -1,0 +1,21 @@
+parent-dataset: counties
+
+# External, large-file dataset used by ncload
+# Dictionary specifies the local filename, excluding the extension, the NetCDF link, the CSV link, and the column dimension.
+# CRC from julia -e "using CRC; main(ARGS)" (uses CRC_32)
+# Currently CRCs are ignored
+ncdatasets:
+  weather:
+    filename: VIC_WB
+    ncurl: https://www.dropbox.com/s/j7fi1kgw461icwa/VIC_WB.nc?dl=1
+    csvurl: https://www.dropbox.com/s/rhuvdi7iu5wa3tl/VIC_WB.csv?dl=1
+    csvcoldim: county
+    nccrc32: 0x468f7994
+    csvcrc: 0xcefed8fe
+  runoff:
+    filename: contributing_runoff_by_gage
+    ncurl: https://www.dropbox.com/s/m4ssmb4kfzw839n/contributing_runoff_by_gage_NLDAS2.nc?dl=1
+    csvurl: https://www.dropbox.com/s/vpqmos2uzbsmn48/contributing_runoff_by_gage_NLDAS2.csv?dl=1
+    nccrc32: 0x3e947be6
+    csvcrc: 0xe29ee1df
+    csvcoldim: gage

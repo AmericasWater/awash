@@ -201,7 +201,7 @@ end
 
 function grad_univariateagriculture_production_totalareas(m::Model)
     ## Common rr, cc, tt
-    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (ss1) -> m.md.external_params[:yield].values[:, :, ss1, :] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
+    roomdiagonalintersect(m, :UnivariateAgriculture, :production, :totalareas, (ss1) -> m.md.external_params[:UnivariateAgriculture_yield].values[:, :, ss1, :] * 2.47105 * config["timestep"]/12) # Convert Ha to acres
 end
 
 function grad_univariateagriculture_areasumregion_totalareas(m::Model)
@@ -213,7 +213,7 @@ function grad_univariateagriculture_totalirrigation_totalareas(m::Model)
         for ss in 1:numscenarios
             for rr in 1:numcounties
                 for cc in 1:numunicrops
-                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc], [numcounties, numunicrops])] = m.md.external_params[:irrigation_rate].values[rr, cc, ss, tt] / 100
+                    A[fromindex([rr, ss], [numcounties, numscenarios]), fromindex([rr, cc], [numcounties, numunicrops])] = m.md.external_params[:UnivariateAgriculture_irrigation_rate].values[rr, cc, ss, tt] / 100
                 end
             end
         end

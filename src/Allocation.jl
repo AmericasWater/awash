@@ -143,9 +143,27 @@ function constraintoffset_allocation_recordedbalance(m::Model, optimtype)
 	hallsingle(m, :Allocation, :balance, genuu)
     else
         recorded = knowndf("exogenous-withdrawals")
+        if config["timestep"] % 12 != 0
+            # Disaggregate water demands by month
+            agdivision = knowndf("irrigation-bymonth")
+            master2agdiv = getregionindices(regionindex(agdivision, !), false)
+            totals = (optimtype ? recorded[:, :TO_To] : recorded[:, :TO_SW])
+            irrigations = (optimtype ? recorded[:, :IR_To] : recorded[:, :IR_SW])
+	    function gen(rr, ss, tt)
+                if (master2agdiv[rr] == nothing) || (master2agdiv[rr] == 0)
+                    config["timestep"] * totals[rr] * 1383. / 12
+                else
+                    mm = ((index2time(tt) - 1) % 12 + 1)
+                    portion = sum(agdivision[master2agdiv[rr], mm:(mm + config["timestep"] - 1)])
+                    config["timestep"] * (totals[rr] - irrigations[rr]) * 1383. / 12 + portion * irrigations[rr] * 1383.
+                end
+            end
+	    hallsingle(m, :Allocation, :balance, gen)
+        else
+	    gen = (rr, ss, tt) -> config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
+	    hallsingle(m, :Allocation, :balance, gen)
+        end
 	# MISSING HERE BREAKDOWN IN FUNCTION OF WHAT WE WANT TO OPTIMIZE
-	gen(rr, ss, tt) = config["timestep"] * (optimtype ? recorded[rr, :TO_To] : recorded[rr, :TO_SW]) * 1383. / 12
-	hallsingle(m, :Allocation, :balance, gen)
     end
 end
 

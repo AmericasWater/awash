@@ -95,7 +95,7 @@ function vector_canalreturns(m::Model, includegw::Bool, demandmodel::Union{Model
 
     # Rearrange to canals
     canalreturns = zeros(nrow(draws))
-    if :justif in names(draws)
+    if :justif in names(draws) || "justif" in names(draws)
         for pp in 1:nrow(draws)
             if draws[pp, :justif] == "contains"
                 regionid = regionindex(draws, pp)

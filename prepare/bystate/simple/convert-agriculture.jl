@@ -133,3 +133,94 @@ orderedconverttable("agriculture/knownareas.csv", config, translate)
 orderedconverttable("agriculture/totalareas.csv", config, translate)
 
 mirrorfile("agriculture/nationals.csv", config)
+
+## Return flows
+
+using Statistics, CSV
+
+df = readtable(joinpath(todata, "data/counties/returnflows/returnfracs.csv"))
+regioncol = :STATE
+outpath = joinpath(todata, "data/states/returnflows/returnfracs.csv")
+
+function regionaverage(df, regioncol, outpath)
+    columns = Dict{Symbol, Any}()
+    dropcols = []
+    for region in unique(df[!, regioncol])
+        if ismissing(region)
+            continue
+        end
+        println(region)
+        subdf = df[.!ismissing.(df[!, regioncol]) .& (df[!, regioncol] .== region), :]
+
+        for name in names(subdf)
+            println(name)
+            if subdf[!, name] isa Vector{Float64} || subdf[!, name] isa Vector{Union{Float64, Missing}} || subdf[!, name] isa Vector{Int64} || subdf[!, name] isa Vector{Union{Missing, Int64}}
+                value = mean(skipmissing(subdf[!, name]))
+            elseif all(subdf[!, name] .== subdf[1, name])
+                value = subdf[1, name]
+            else
+                push!(dropcols, name)
+                continue
+            end
+
+            if !in(name, keys(columns))
+                columns[name] = Vector{Union{typeof(value), Missing}}([])
+            end
+            push!(columns[name], value)
+        end
+    end
+
+    dropcols = unique(dropcols)
+
+    result = DataFrame()
+    for name in filter(name -> !in(name, dropcols), names(df))
+        result[!, name] = columns[name]
+    end
+
+    CSV.write(outpath, result)
+end
+
+## Monthly crop demands
+using Statistics, CSV
+
+states = CSV.read(joinpath(todata, "data/global/states.csv"))
+
+df = CSV.read(joinpath(todata, "data/counties/demand/agmonthshares.csv"))
+outpath = joinpath(todata, "data/states/demand/agmonthshares.csv")
+
+columns = Dict{Symbol, Any}(:ST => [])
+for stfips in unique(floor.(df[!, :fips] / 1000))
+    region = states[states[:fips] .== stfips, :state]
+    if (length(region) == 0)
+        println(stfips)
+        continue
+    end
+    println(region)
+    subdf = df[floor.(df[!, :fips] / 1000) .== stfips, :]
+
+    for name in names(subdf)
+        if (name == :fips)
+            continue
+        end
+        value = mean(subdf[!, name])
+
+        if !in(name, keys(columns))
+            columns[name] = Vector{Float64}()
+        end
+        push!(columns[name], value)
+    end
+
+    push!(columns[:ST], region)
+end
+
+result = DataFrame()
+for name in names(df)
+    if name == :fips
+        result[!, :ST] = columns[:ST]
+    else
+        result[!, name] = columns[name]
+    end
+end
+
+CSV.write(outpath, result)
+

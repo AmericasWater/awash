@@ -1,130 +1,81 @@
 setwd("~/research/water/awash/analyses/waterstressindex")
 library(dplyr)
 library(ggplot2)
+library(maps)
 
-suffix <- "alldemand-nores"
+do.commonbias <- T
 
-df <- read.csv(paste0("stress-monthly-", suffix, ".csv"))
+source("vsenv-lib.R")
 
-ggplot(df, aes(x=startyear + (time - .5) / 12, group=minefp, colour=as.factor(minefp), fill=as.factor(minefp))) +
-    geom_bar() + scale_x_continuous(expand=c(0, 0)) +
-    scale_y_continuous(expand=c(0, 0)) + coord_cartesian(ylim=c(1000, 3109)) +
-    scale_fill_discrete(name=NULL) + scale_colour_discrete(name=NULL) +
-    xlab(NULL) + ylab("Counties with available flow")
-ggsave(paste0("time-natflowa-monthly-", suffix, ".pdf"), width=7, height=4)
+df <- read.csv("demands.csv")
+df <- subset(df, scale == "monthly")
+df <- df %>% left_join(read.csv("../../data/counties/county-info.csv"), by=c('fips'='FIPS'))
 
-## Comparison timeseries
+if (do.commonbias) {
+    flowdf.sw <- read.csv("results/stress-monthly-withres.csv")
+    flowdf.sw$timestep <- (flowdf.sw$startyear - 1949) * 12 + flowdf.sw$time
 
-library(ncdf4)
+    ## Plot the bias correction
+    df2 <- df %>% left_join(flowdf.sw)
 
-do.local.excess <- T
+    df$commonbias <- df2$supersource
 
-df <- read.csv("../../data/counties/extraction/USGS-2010.csv")
-df <- df %>% left_join(read.csv("../../data/counties/county-info.csv"))
-df$demand <- df$TO_To * 1383
-df$swdemand <- df$TO_SW * 1383
+    df2$failurefrac.correct <- pmin(df2$supersource / df2$alldemand, 1)
 
-ncin <- nc_open("../../data/cache/counties/VIC_WB.nc")
-ncfips <- ncvar_get(ncin, "state_fips") * 1000 + ncvar_get(ncin, "county_fips")
-ncflow <- ncvar_get(ncin, "runoff") + ncvar_get(ncin, "baseflow")
+    df3 <- df2 %>% group_by(fips) %>% summarize(failurefrac.correct.median=median(failurefrac.correct, na.rm=T), failurefrac.correct.worst=max(failurefrac.correct, na.rm=T))
 
-localdf.all <- data.frame(startyear=c(), fips=c(), time=c(), supersource=c(), minefp=c())
-localdf.sw <- data.frame(startyear=c(), fips=c(), time=c(), supersource=c(), minefp=c())
-for (ii in 1:nrow(df)) {
-    print(ii)
-    ncii <- which(ncfips == df$FIPS[ii])
-    if (length(ncii) == 0)
-        next
-    ## mm * mi2 * k km2 / mi2 * (1000 m / km)^2 * m / 1000 mm = m^3
-    flow <- ncflow[, ncii] * df$TotalArea.sqmi[ii] * 2.58999 # 1000 m^3
-
-    demand <- df$demand[ii] / 12
-    supersource <- (demand - (1 - .37) * flow)
-    supersource[supersource < 0] <- 0
-
-    minefp <- 100 * (1 - demand / flow)
-    minefp[minefp < 0] <- 0
-
-    localdf.all <- rbind(localdf.all, data.frame(startyear=1949, fips=df$FIPS[ii],
-                                                 time=9 + (1:length(flow)), supersource, minefp))
-
-    demand <- df$swdemand[ii] / 12
-    supersource <- (demand - (1 - .37) * flow)
-    supersource[supersource < 0] <- 0
-
-    minefp <- 100 * (1 - demand / flow)
-    minefp[minefp < 0] <- 0
-
-    localdf.sw <- rbind(localdf.sw, data.frame(startyear=1949, fips=df$FIPS[ii],
-                                               time=9 + (1:length(flow)), supersource, minefp))
+    gl <- rasterGrob(readPNG("failfrac-legend.png"), interpolate=TRUE)
+    gg <- gg.usmap(df3$failurefrac.correct.median, df3$fips, df3$failurefrac.correct.worst, extra.polygon.aes=aes(size=borders)) +
+        scale_fill_gradientn(name="Correction\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+    scale_colour_gradientn(name="Correction\nFraction", colours=c("#91bfdb", "#ffffe5", "#fe9929", "#662506"), values=c(0, .001, .5, 1), labels = scales::percent, limits=c(0, 1)) +
+    scale_size(range=c(0, .5)) + guides(size=F) +
+        theme(legend.justification=c(1,0), legend.position=c(1,0),
+              panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+              axis.text.x=element_blank(), axis.text.y=element_blank(),
+              plot.margin=unit(rep(0, 4), "cm")) + scale_x_continuous(expand=c(0, 0)) + scale_y_continuous(expand=c(0, 0))
+    hh <- ggdraw(gg)
+    hh + draw_grob(gl, 0.05, 0.02, 0.22, 0.2)
+    ggsave("biascorrect.pdf", width=5.9, height=3.2)
 }
 
-get.df <- function(infix, localdf) {
-    df <- cbind(data.frame(assump="Default"), read.csv(paste0("results/stress-monthly-", infix, "nores.csv")))
-    df <- rbind(df, cbind(data.frame(assump="Storage"), read.csv(paste0("results/stress-monthly-", infix, "withres.csv"))))
-    df <- rbind(df, cbind(data.frame(assump="No canals"), read.csv(paste0("results/stress-monthly-", infix, "nores-nocanal.csv"))))
-    df$time <- df$time + 9 # Actually starts in October
+for (suffix in c('nores-nocanal', 'nores', 'withres')) {
+    flowdf.all <- read.csv(paste0("results/stress-monthly-alldemand-", suffix, ".csv"))
+    flowdf.sw <- read.csv(paste0("results/stress-monthly-", suffix, ".csv"))
+    flowdf <- flowdf.all %>% left_join(flowdf.sw, by=c('startyear', 'fips', 'time'), suffix=c('.all', '.sw'))
+    ## Always start with calcs with Oct., and timestep 1 = 10/1949
+    flowdf$timestep <- (flowdf$startyear - 1949) * 12 + flowdf$time
 
-    df <- rbind(df, cbind(data.frame(assump="Local flow"), localdf))
+    df2 <- df %>% left_join(flowdf)
+    if (do.commonbias) {
+        df2$supersource.excess <- pmax(0, df2$supersource.all - df2$commonbias)
+        df2$failurefrac.excess <- pmin(df2$supersource.excess / df2$alldemand, 1)
+        ## 1 - alldemand / (flow + commonbias) = nf.excess
+        ## Also, 1 - alldemand / flow = nf.all => flow = alldemand / (1 - nf.all)
+        df2$natflowav.excess <- 1 - df2$alldemand / (df2$alldemand / (1 - df2$minefp.all / 100) + df2$commonbias)
+    } else {
+        df2$supersource.excess <- pmax(0, df2$supersource.all - df2$supersource.sw)
+        df2$failurefrac.excess <- pmin(df2$supersource.excess / df2$alldemand, 1)
+        ## 1 - alldemand / (flow + ss.sw) = nf.excess
+        ## Also, 1 - alldemand / flow = nf.all => flow = alldemand / (1 - nf.all)
+        df2$natflowav.excess <- 1 - df2$alldemand / (df2$alldemand / (1 - df2$minefp.all / 100) + df2$supersource.sw)
+    }
 
-    df <- subset(df, startyear + (time - 1) / 12 < 2006 & startyear + (time - 1) / 12 > 1951.75)
-    df
-}
+    df3 <- df2 %>% group_by(fips) %>% summarize(reliability.model=sum(supersource.sw == 0, na.rm=T) / sum(!is.na(supersource.sw)), reliability.excess=sum(failurefrac.excess == 0, na.rm=T) / sum(!is.na(failurefrac.excess)), failurefrac.excess.median=median(failurefrac.excess, na.rm=T), failurefrac.excess.worst=max(failurefrac.excess, na.rm=T), natflowav.excess=median(natflowav.excess, na.rm=T), natflowav.excess.worst=min(natflowav.excess, na.rm=T))
 
-infix <- "" #"alldemand-"
-df <- get.df(infix, localdf.sw)
+    plot.relity.both(df3$fips, df3$reliability.model, df3$reliability.excess, paste0("monthly-excess-", suffix))
+    plot.failavail(df3$fips, df3$failurefrac.excess.median, df3$failurefrac.excess.worst, df3$natflowav.excess, df3$natflowav.excess.worst, paste0("monthly-excess-", suffix))
 
-timedf <- df %>% group_by(startyear, time, assump) %>% summarize(supersource=sum(supersource, na.rm=T), minefp=mean(minefp, na.rm=T))
+    write.csv(df2[, c('timestep', 'fips', 'supersource.sw', 'supersource.excess', 'failurefrac.excess', 'natflowav.excess')], paste0("fipstime-monthly-excess-", suffix, ".csv"), row.names=F)
 
-yeardf <- timedf %>% group_by(year=round(startyear + (time - .5) / 12), assump) %>% summarize(peakfail=max(supersource, na.rm=T))
+    df2$yearoct <- floor(df2$timestep / 12) + 1949
+    df4 <- df2 %>% group_by(yearoct, fips) %>% summarize(failurefrac.excess.worst=max(failurefrac.excess), natflowav.excess.worst=min(natflowav.excess))
 
-ggplot() +
-    geom_line(data=timedf, aes(startyear + (time - .5) / 12, supersource, colour=assump)) +
-    geom_smooth(data=yeardf, aes(year, peakfail, colour=assump), method="lm", formula=y ~ 1, se=F) +
-    theme_minimal() + scale_colour_discrete(name="Assumption", breaks=c("Local flow", "No canals", "Default", "Storage")) +
-    xlab(NULL) + ylab("Demand Failure (1000 m^3)") + scale_x_continuous(expand=c(0, 0))
-ggsave(paste0("time-failfrac-monthly-", infix, "compare.pdf"), width=10, height=4)
+    df5 <- df4 %>% group_by(fips) %>% summarize(failurefrac.excess.worstbest=min(failurefrac.excess.worst, na.rm=T), natflowav.excess.worstbest=max(natflowav.excess.worst, na.rm=T), failurefrac.excess.worstmedian=median(failurefrac.excess.worst, na.rm=T), natflowav.excess.worstmedian=median(natflowav.excess.worst, na.rm=T))
 
-df0 <- get.df("", localdf.sw)
-df1 <- get.df("alldemand-", localdf.all)
-df0$mytime <- df0$startyear + (df0$time - .5) / 12
-df1$mytime <- df1$startyear + (df1$time - .5) / 12
+    df6 <- df3 %>% left_join(df5)
+    write.csv(df6, paste0("byfips-monthly-excess-", suffix, ".csv"), row.names=F)
 
-if (!do.local.excess) {
-    df0 <- subset(df0, assump != "Local flow")
-    df1 <- subset(df1, assump != "Local flow")
-}
-
-df <- df0 %>% left_join(df1, by=c("assump", "mytime", "fips"))
-df$supersource <- df$supersource.y - df$supersource.x
-df$minefp.y[df$minefp.y == 37] <- 0
-df$minefp <- df$minefp.y + (100 - df$minefp.x)
-
-if (!do.local.excess) {
-    df <- rbind(df[, c('assump', 'fips', 'mytime', 'supersource', 'minefp')],
-                subset(cbind(data.frame(assump="Local flow", mytime=localdf.all$startyear + (localdf.all$time - .5) / 12),
-                             localdf.all[, c('fips', 'supersource', 'minefp')]), mytime < 2006 & mytime > 1951.75))
-}
-
-timedf <- df %>% group_by(mytime, assump) %>% summarize(supersource=sum(supersource, na.rm=T), minefp=mean(minefp, na.rm=T))
-
-yeardf <- timedf %>% group_by(year=round(mytime), assump) %>% summarize(peakfail=max(supersource, na.rm=T))
-
-ggplot() +
-    geom_line(data=timedf, aes(mytime, supersource, colour=assump)) +
-    geom_smooth(data=yeardf, aes(year, peakfail, colour=assump), method="lm", formula=y ~ 1, se=F) +
-    theme_minimal() + scale_colour_discrete(name="Assumption", breaks=c("Local flow", "No canals", "Default", "Storage")) +
-    xlab(NULL) + ylab("Demand Failure (1000 m^3)") + scale_x_continuous(expand=c(0, 0))
-if (do.local.excess) {
-    ggsave(paste0("time-failfrac-monthly-excess-compare.pdf"), width=10, height=4)
-} else {
-    ggsave(paste0("time-failfrac-monthly-excess-exclocal-compare.pdf"), width=10, height=4)
-}
-
-## Make worst month files, to feed through annual map process
-
-for (filename in list.files(".", ".*?monthly.*?\\.csv")) {
-    df <- read.csv(filename)
-    yeardf <- df %>% group_by(time=floor(startyear + (time - .5) / 12), fips) %>% summarize(supersource=12*max(supersource), minefp=min(minefp))
-    write.csv(yeardf, gsub("monthly", "annual-worst", filename), row.names=F)
+    ## Numbers for paper
+    df.byyear <- df2 %>% group_by(floor(timestep / 12 - 1)) %>% summarize(numstressed=sum(failurefrac.excess > 0, na.rm=T) / length(unique(timestep)), unmet=sum(failurefrac.excess * alldemand, na.rm=T) / sum(alldemand, na.rm=T))
+    print(c(suffix, median(df.byyear$numstressed) / length(unique(df2$fips)), median(df.byyear$unmet)))
 }

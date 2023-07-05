@@ -2,7 +2,7 @@
 #
 # Functions for accessing external data.
 
-using Pkg
+using Pkg, CSV, DelimitedFiles
 using WeakRefStrings, PooledArrays
 include("inputcache.jl")
 
@@ -76,6 +76,25 @@ function getsuffix()
 end
 
 """
+Check if a header definition matches a given file.
+"""
+function checkheader(filepath, types=Vector{Type}, count=10)
+    df, header = readdlm(filepath, ',', String, header=true)
+    for cc in 1:length(types)
+        if types[cc] <: String
+            continue
+        end
+        for rr in 1:min(count, size(df)[1])
+            xx = tryparse(types[cc], df[rr, cc])
+            if xx == nothing && !(df[rr, cc] in ["NA", "NaN"])
+                return false
+            end
+        end
+    end
+    return true
+end
+
+"""
 Retrieve only the part of a file within filterstate, if one is set.
 """
 function getfilteredtable(filepath, fipscol=:FIPS; kwargs...)
@@ -84,7 +103,7 @@ function getfilteredtable(filepath, fipscol=:FIPS; kwargs...)
     end
     recorded = CSV.read(filepath; kwargs...)
     if get(config, "filterstate", nothing) != nothing
-        if typeof(recorded[fipscol]) <: Vector{String}
+        if typeof(recorded[!, fipscol]) <: Vector{String}
             recorded = recorded[findall([value[1:2] for value in recorded[fipscol]] .== config["filterstate"]), :]
 	else
             recorded = recorded[findall(floor.(recorded[fipscol]/1e3) .== parse(Int64,config["filterstate"])), :]
@@ -146,23 +165,31 @@ function cache_clear()
 end
 
 """
+Get the available index column
+"""
+function getindexcol(tbl)
+    for indexcol in config["indexcols"]
+        if indexcol in names(tbl) || String(indexcol) in names(tbl)
+            return indexcol
+        end
+    end
+    return nothing
+end
+
+"""
 Get the region index for one or more rows
 """
 function regionindex(tbl, rows; tostr=true)
     global lastindexcol
 
     # Allow any of the column names
-    indexes = nothing
-    for indexcol in config["indexcols"]
-        if indexcol in names(tbl)
-            indexes = tbl[rows, indexcol]
-            lastindexcol = indexcol
-            break
-        end
-    end
-
-    if indexes == nothing
+    indexcol = getindexcol(tbl)
+    if indexcol == nothing
+        println(names(tbl))
         error("Could not find any index column in table.")
+    else
+        indexes = tbl[rows, indexcol]
+        lastindexcol = indexcol
     end
 
     if !tostr
@@ -307,11 +334,11 @@ end
 Reorder values to match the master region indexes.
 Value is NA if a given region isn't in fipses.
 """
-function dataonmaster(fipses, values)
+function dataonmaster(fipses, values, mastercol=:fips)
     if typeof(fipses) <: Vector{Int64} || typeof(fipses) <: Vector{Union{Missing, Int64}}
-        masterfips = map(x -> parse(Int64, x), masterregions[!, :fips])
+        masterfips = map(x -> parse(Int64, x), masterregions[!, mastercol])
     else
-        masterfips = masterregions[!, :fips]
+        masterfips = masterregions[!, mastercol]
     end
     if typeof(fipses) <: Vector{Union{Missing, Int64}}
         fipses = collect(Missings.replace(fipses, 0))

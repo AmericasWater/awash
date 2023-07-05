@@ -100,11 +100,13 @@ function initreservoir(m::Model, name=nothing)
         rcmax = convert(Vector{Float64}, reservoirdata[!, :MAXCAP])./1000 #data in cubic meters, change to 1000m3
      	reservoir[:storagecapacitymax] = rcmax;
      	reservoir[:storagecapacitymin] = zeros(numreservoirs);
-        reservoir[:storage0] = zeros(numreservoirs);
+        storage0 = zeros(numreservoirs);
         if "reshalf" in keys(config) && config["reshalf"] == "half"
-            reservoir[:storage0] = (rcmax-reservoir[:storagecapacitymin])/2; #half full
+            storage0 = (rcmax-reservoir[:storagecapacitymin])/2; #half full
         end
-        reservoir[:evaporation] = 0.05*ones(numreservoirs, numscenarios, numsteps);
+        reservoir[:storage0] = storage0
+        println(size(evaporation_matrix(storage0)))
+        reservoir[:evaporation] = evaporation_matrix(storage0) #0.05*ones(numreservoirs, numscenarios, numsteps);
     end
 
     reservoir[:captures] = cached_fallback("extraction/captures", () -> zeros(numreservoirs, numscenarios, numsteps));
@@ -137,24 +139,24 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm(0 => (1 .- m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt))), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm(0 => (1 .- m.md.external_params[:Reservoir_evaporation].values[:, vss, TimestepIndex(vtt)]).^(config["timestep"]*(vtt-ptt))), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-    gen(rr) = m.md.external_params[:storagecapacitymin].values[rr]
+    gen(rr) = m.md.external_params[:Reservoir_storagecapacitymin].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
-    gen(rr) = m.md.external_params[:storagecapacitymax].values[rr]
+    gen(rr) = m.md.external_params[:Reservoir_storagecapacitymax].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, ss, tt) = (1 .- m.md.external_params[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.md.external_params[:storage0].values[rr]
+    gen(rr, ss, tt) = (1 .- m.md.external_params[:Reservoir_evaporation].values[rr, ss, TimestepIndex(tt)])^(tt*config["timestep"]) * m.md.external_params[:Reservoir_storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 
 function grad_reservoir_cost_captures(m::Model)
-    roomdiagonal(m, :Reservoir, :cost, :captures, m.md.external_params[:unitcostcaptures].value)
+    roomdiagonal(m, :Reservoir, :cost, :captures, m.md.external_params[:Reservoir_unitcostcaptures].value)
 end

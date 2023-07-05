@@ -1,9 +1,10 @@
 using NetCDF
+using DelimitedFiles
 
-function netcdf2csv{T<:AbstractString}(ncpath::T, csvpath::T, coldimname::T, skipdimnames::Vector{T}=T[])
+function netcdf2csv(ncpath::T, csvpath::T, coldimname::T, skipdimnames::Vector{T}=T[]) where {T<:AbstractString}
     println("Understanding dimensions...")
 
-    nc4 = ncinfo(ncpath)
+    nc4 = NetCDF.open(ncpath)
 
     coldim = nc4.dim[coldimname]
     skipdims = [nc4.dim[skipdimname] for skipdimname in skipdimnames]
@@ -18,13 +19,13 @@ function netcdf2csv{T<:AbstractString}(ncpath::T, csvpath::T, coldimname::T, ski
 
     rownames = []
     cols = Int64(length(rowdims) + coldim.dimlen)
-    result = DataArray(Float64, 0, cols)
+    result = Array{Union{Float64, Missing}}(missing, 0, cols)
 
     # Find any variable that follows the column dimension
     for varname in keys(nc4.vars)
         if length(nc4.vars[varname].dim) == 1 && nc4.vars[varname].dim[1] == coldim
             push!(rownames, varname)
-            result = [result; [@data(repmat([NaN], length(rowdims))); vec(nc4.vars[varname])]']
+            result = [result; [repeat([NaN], length(rowdims)); vec(nc4.vars[varname])]']
         end
     end
 
@@ -38,7 +39,7 @@ function netcdf2csv{T<:AbstractString}(ncpath::T, csvpath::T, coldimname::T, ski
         else
             println("  $varname")
             rows = Int64(prod(map(dim -> (dim == coldim ? 1 : dim.dimlen), nc4.vars[varname].dim)))
-            addition = DataArray(Float64, rows, cols)
+            addition = Array{Union{Float64, Missing}}(missing, rows, cols)
             for ii in 1:rows
                 push!(rownames, varname)
 
@@ -65,7 +66,7 @@ function netcdf2csv{T<:AbstractString}(ncpath::T, csvpath::T, coldimname::T, ski
         end
     end
 
-    writecsv(csvpath, [rownames result])
+    writedlm(csvpath, [rownames result], ',')
 end
 
 # netcdf2csv(expanduser("~/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.nc"), expanduser("~/Dropbox/America\'s\ Water/Public\ Model\ Data/VIC_WB.csv"), "county")

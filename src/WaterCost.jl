@@ -83,25 +83,25 @@ function soleobjective_allocation(m::Model)
 end
 
 function grad_watercost_costgw(m::Model)
-	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, ss, tt) -> m.md.external_params[:unitgwextractioncost].values[rr, ss, tt] + m.md.external_params[:unitgwtreatmentcost].values[rr, ss, tt] + m.md.external_params[:unitdistributioncost].values[rr, ss, tt])
+	roomdiagonal(m, :WaterCost, :gwcost, :gwextraction, (rr, ss, tt) -> m.md.external_params[:WaterCost_unitgwextractioncost].values[rr, ss, TimestepIndex(tt)] + m.md.external_params[:WaterCost_unitgwtreatmentcost].values[rr, ss, TimestepIndex(tt)] + m.md.external_params[:WaterCost_unitdistributioncost].values[rr, ss, TimestepIndex(tt)])
 end
 
 function grad_watercost_costsupersource(m::Model)
-	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, ss, tt) -> m.md.external_params[:unitsupersourcecost].values[rr, ss, tt])
+	roomdiagonal(m, :WaterCost, :supersourcecost, :supersourcesupply, (rr, ss, tt) -> m.md.external_params[:WaterCost_unitsupersourcecost].values[rr, ss, TimestepIndex(tt)])
 end
 
 function grad_watercost_costswwithdrawals(m::Model)
     # Check if cost data is duplicated across s and t
     isduplicated = true
     for pp in 1:nrow(draws)
-        if !all(m.md.external_params[:unitswextractioncost].values[pp, :, :] .== m.md.external_params[:unitswextractioncost].values[pp, 1, 1])
+        if !all(m.md.external_params[:WaterCost_unitswextractioncost].values[pp, :, :] .== m.md.external_params[:WaterCost_unitswextractioncost].values[pp, 1, TimestepIndex(1)])
             isduplicated = false
             break
         end
     end
     if isduplicated
         for rr in 1:numregions
-            if !all(m.md.external_params[:unitswtreatmentcost].values[rr, :, :] .== m.md.external_params[:unitswtreatmentcost].values[rr, 1, 1]) || !all(m.md.external_params[:unitdistributioncost].values[rr, :, :] .== m.md.external_params[:unitdistributioncost].values[rr, 1, 1])
+            if !all(m.md.external_params[:WaterCost_unitswtreatmentcost].values[rr, :, :] .== m.md.external_params[:WaterCost_unitswtreatmentcost].values[rr, 1, TimestepIndex(1)]) || !all(m.md.external_params[:WaterCost_unitdistributioncost].values[rr, :, :] .== m.md.external_params[:WaterCost_unitdistributioncost].values[rr, 1, TimestepIndex(1)])
                 isduplicated = false
                 break
             end
@@ -115,7 +115,7 @@ function grad_watercost_costswwithdrawals(m::Model)
                 regionids = regionindex(draws, pp)
                 rr = findfirst(regionindex(masterregions, :) .== regionids)
                 if rr != nothing
-		    A[rr, pp] = m.md.external_params[:unitswextractioncost].values[pp, 1, 1] + m.md.external_params[:unitswtreatmentcost].values[rr, 1, 1] + m.md.external_params[:unitdistributioncost].values[rr, 1, 1]
+		    A[rr, pp] = m.md.external_params[:WaterCost_unitswextractioncost].values[pp, 1, TimestepIndex(1)] + m.md.external_params[:WaterCost_unitswtreatmentcost].values[rr, 1, TimestepIndex(1)] + m.md.external_params[:WaterCost_unitdistributioncost].values[rr, 1, TimestepIndex(1)]
                 end
             end
         end
@@ -129,7 +129,7 @@ function grad_watercost_costswwithdrawals(m::Model)
             regionids = regionindex(draws, pp)
             rr = findfirst(regionindex(masterregions, :) .== regionids)
             if rr != nothing
-		A[rr, pp] = m.md.external_params[:unitswextractioncost].values[pp, ss, tt] + m.md.external_params[:unitswtreatmentcost].values[rr, ss, tt] + m.md.external_params[:unitdistributioncost].values[rr, ss, tt]
+		A[rr, pp] = m.md.external_params[:WaterCost_unitswextractioncost].values[pp, ss, TimestepIndex(tt)] + m.md.external_params[:WaterCost_unitswtreatmentcost].values[rr, ss, TimestepIndex(tt)] + m.md.external_params[:WaterCost_unitdistributioncost].values[rr, ss, TimestepIndex(tt)]
             end
         end
     end

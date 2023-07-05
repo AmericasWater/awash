@@ -84,23 +84,39 @@ function grad_waterdemand_swdemandbalance_livestockuse(m::Model)
 end
 
 function grad_waterdemand_totalreturn_totalirrigation(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], [:scenarios])
+    fullpath = datapath("returnflows/returnfracs.csv")
+    if isfile(fullpath)
+        df = CSV.read(fullpath)
+        if config["dataset"] == "states"
+            regids = df[!, :ST]
+            mastercol = :state
+        else
+            regids = canonicalindex(df[!, :FIPS])
+            mastercol = :fips
+        end
+        rflows = dataonmaster(regids, tryparse.(Float64, df[!, :rfmean]), mastercol)
+        rflows[ismissing.(rflows) .| (rflows .== nothing)] .= returnpart["irrigation/livestock"]
+        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, (ii, tt) -> -rflows[ii], diagdupover=[:scenarios])
+    else
+        @warn "Cannot find regional return flows; using constant."
+        roomdiagonal(m, :WaterDemand, :totalreturn, :totalirrigation, -returnpart["irrigation/livestock"], diagdupover=[:scenarios])
+    end
 end
 
 function grad_waterdemand_totalreturn_domesticuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"], [:scenarios])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :domesticuse, -returnpart["domestic/commercial"], diagdupover=[:scenarios])
 end
 
 function grad_waterdemand_totalreturn_industrialuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"], [:scenarios])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :industrialuse, -returnpart["industrial/mining"], diagdupover=[:scenarios])
 end
 
 function grad_waterdemand_totalreturn_thermoelectricuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"], [:scenarios])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :thermoelectricuse, -returnpart["thermoelectric"], diagdupover=[:scenarios])
 end
 
 function grad_waterdemand_totalreturn_livestockuse(m::Model)
-    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"], [:scenarios])
+    roomdiagonal(m, :WaterDemand, :totalreturn, :livestockuse, -returnpart["irrigation/livestock"], diagdupover=[:scenarios])
 end
 
 function values_waterdemand_recordedirrigation(m::Model, includegw::Bool, demandmodel::Union{Model, Nothing}=nothing)

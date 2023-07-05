@@ -2,6 +2,7 @@ using Graphs
 using NetCDF
 using RData
 using DataFrames
+using Serialization
 
 oldwaternet = deserialize(open("../../../data/cache/counties/waternet.jld"))
 newwaternet = deserialize(open("../../../data/states/waternet/waternet.jld"))
@@ -36,11 +37,11 @@ num = length(newlabels)
 # Get all the data
 contributing_area = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "contributing_area")
 runoff = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "runoff")
-runoff[isnan.(runoff)] = 0
+runoff[isnan.(runoff)] .= 0
 baseflow = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "baseflow")
-baseflow[isnan.(baseflow)] = 0
+baseflow[isnan.(baseflow)] .= 0
 totalflow = ncread("../../../data/cache/counties/contributing_runoff_by_gage.nc", "totalflow")
-totalflow[isnan.(totalflow)] = 0
+totalflow[isnan.(totalflow)] .= 0
 
 # Set up repositories for results
 newcontributing_area = zeros(num)
@@ -66,18 +67,19 @@ for ii in 1:length(newlabels)
     indices = []
     for oldupstream in oldupstreams
         row = findfirst(waternetwork[:gaugeid] .== oldupstream)
-        index = find((gage_latitude .== waternetwork[row, :lat]) .& (gage_longitude .== waternetwork[row, :lon]))
-        append!(indices, index) 
-   end
+        index = findall((gage_latitude .== waternetwork[row, :lat]) .& (gage_longitude .== waternetwork[row, :lon]))
+        append!(indices, index)
+    end
 
     newcontributing_area[ii] = sum(contributing_area[indices])
-    if length(indices) > 0
-        newlatitude[ii] = gage_latitude[indices[1]]
-        newlongitude[ii] = gage_longitude[indices[1]]
-    end
-    newrunoff[ii, :] = sum(runoff[indices, :], 1)
-    newbaseflow[ii, :] = sum(baseflow[indices, :], 1)
-    newtotalflow[ii, :] = sum(totalflow[indices, :], 1)
+
+    row = findfirst(waternetwork[:gaugeid] .== oldupstreams[1])
+    newlatitude[ii] = waternetwork[row, :lat]
+    newlongitude[ii] = waternetwork[row, :lon]
+
+    newrunoff[ii, :] = sum(runoff[indices, :], dims=1)
+    newbaseflow[ii, :] = sum(baseflow[indices, :], dims=1)
+    newtotalflow[ii, :] = sum(totalflow[indices, :], dims=1)
 end
 
 rm("../../../data/cache/states/contributing_runoff_by_gage.nc")
@@ -106,4 +108,4 @@ ncwrite(collect(1:num), "../../../data/cache/states/contributing_runoff_by_gage.
 nccreate("../../../data/cache/states/contributing_runoff_by_gage.nc", "month", "month", 735)
 ncwrite(collect(1:735), "../../../data/cache/states/contributing_runoff_by_gage.nc", "month")
 
-cp("../../../data/cache/states/contributing_runoff_by_gage.nc", expanduser("~/Dropbox/America\'s\ Water/Public\ Model\ Data/contributing_runoff_by_gage-states.nc"), remove_destination=true)
+cp("../../../data/cache/states/contributing_runoff_by_gage.nc", expanduser("~/Dropbox/America\'s Water/Public Model Data/runoff.v2/contributing_runoff_by_gage-states.nc"), force=true)

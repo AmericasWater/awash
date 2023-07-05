@@ -41,7 +41,7 @@ function initindustrialdemand(m::Model)
 end
 
 function constraintoffset_industrialdemand_waterdemand(m::Model)
-    gen(rr, tt) = m.md.external_params[:miningwaterdemand].values[rr, tt] + m.md.external_params[:industrywaterdemand].values[rr,tt]
+    gen(rr, tt) = m.md.external_params[:IndustrialDemand_miningwaterdemand].values[rr, tt] + m.md.external_params[:IndustrialDemand_industrywaterdemand].values[rr,tt]
     hallsingle(m, :IndustrialDemand, :waterdemand, gen, [:scenarios])
 end
 

@@ -1,4 +1,4 @@
-using DataFrames
+using DataFrames, CSV
 
 include("../../src/lib/readconfig.jl")
 config = readconfig("../../configs/complete.yml")
@@ -6,30 +6,33 @@ config = readconfig("../../configs/complete.yml")
 using Gurobi
 solver = GurobiSolver()
 
-allowgw = false #"demandonly"
-suffixbase = "monthly" #"monthly-alldemand"
-
 burnyears = 2
 saveyears = 2
 
-for filtercanals in [false, true]
-    for allowreservoirs in [false, true]
-        if allowreservoirs
-            suffix = "$suffixbase-withres"
-        else
-            suffix = "$suffixbase-nores"
-        end
+scenarios = ["-withres", "-nores-nocanal", "-nores"]
+
+for allowgw in ["demandonly", false]
+    if allowgw == "demandonly"
+        suffixbase = "monthly-alldemand"
+    else
+        suffixbase = "monthly"
+    end
+
+    for scenario in scenarios
+        filtercanals = occursin("nocanal", scenario)
+        allowreservoirs = occursin("withres", scenario)
+
+        suffix = "$suffixbase$scenario"
 
         if filtercanals
             config["filtercanals"] = "direct"
-            suffix *= "-nocanal"
         else
             config["filtercanals"] = nothing
         end
 
         println(suffix)
         if isfile("stress-$suffix.csv")
-            finaldf = readtable("stress-$suffix.csv")
+            finaldf = CSV.read("stress-$suffix.csv")
             startyear0 = maximum(finaldf[:startyear]) - burnyears + saveyears
             if startyear0 >= 2005
                 continue
@@ -50,7 +53,7 @@ for filtercanals in [false, true]
 
             house = optimization_given(allowgw, allowreservoirs, nocache=true)
             sol = houseoptimize(house, solver)
-            supersource0 = getparametersolution(house, sol.sol, :quarterwaterfromsupersource) + getparametersolution(house, sol.sol, :waterfromsupersource)
+            supersource0 = getparametersolution(house, sol.sol, :quartersupersourcesupply) + getparametersolution(house, sol.sol, :supersourcesupply)
 
             # Calculate remaining flow in rivers-- not used because bad display
             # runoff = constraintoffset_waternetwork_outflows(house.model).f
@@ -70,17 +73,17 @@ for filtercanals in [false, true]
                 println("$startyear: $efp")
                 setconstraintoffset!(house, offset0 - LinearProgrammingHall(envflow1.component, envflow1.name, (efp / 100.) * envflow1.f))
                 sol = houseoptimize(house, solver)
-                supersource = getparametersolution(house, sol.sol, :waterfromsupersource)
-                minefp[(supersource .> 0) .& (minefp .== 0)] = efp
+                supersource = getparametersolution(house, sol.sol, :supersourcesupply)
+                minefp[(supersource .> 0) .& (minefp .== 0)] .= efp
 
                 df = vcat(finaldf, DataFrame(startyear=(startyear + burnyears) * ones(Int64, numregions * saveyears * 12), fips=repeat(masterregions[:fips], outer=saveyears * 12), time=repeat(1:(saveyears * 12), inner=numregions), supersource=supersource0[(numregions * burnyears * 12 + 1):end], minefp=minefp[(numregions * burnyears * 12 + 1):end]))
-                writetable("stress-$suffix.csv", df)
+                CSV.write("stress-$suffix.csv", df)
             end
 
-            minefp[(minefp .== 0)] = 100.
+            minefp[(minefp .== 0)] .= 100.
 
             finaldf = vcat(finaldf, DataFrame(startyear=(startyear + burnyears) * ones(Int64, numregions * saveyears * 12), fips=repeat(masterregions[:fips], outer=saveyears * 12), time=repeat(1:(saveyears * 12), inner=numregions), supersource=supersource0[(numregions * burnyears * 12 + 1):end], minefp=minefp[(numregions * burnyears * 12 + 1):end]))
-            writetable("stress-$suffix.csv", finaldf)
+            CSV.write("stress-$suffix.csv", finaldf)
         end
     end
 end

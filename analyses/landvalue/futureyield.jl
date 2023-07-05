@@ -7,6 +7,7 @@ config = readconfig("../../configs/single.yml")
 
 include("../../src/world-minimal.jl")
 include("../../src/lib/agriculture-ers.jl")
+include("curryield.jl")
 
 wheatshares = CSV.read("wheat-shares.csv", copycols=true)
 wheatshares[!, :fips] = convert(Vector{Int64}, wheatshares[!, :fips])
@@ -22,14 +23,17 @@ onecrops = nothing #["Barley", "Cotton"]
 
 includeus = true
 extraneg = true
+domcmcdraws = false
+onlyprefed = domcmcdraws
 
 #profitfix = true
+for mcmcdraw in 1:1000
 for profitfix in [true, "modeled"]
     for holdcoeff in [false, true]
         for allowtime in [false, true]
             for futureyear in [2050, 2070]
                 for limityield in ["ignore", "lybymc"]
-if onefips != false && (limityield != "ignore" || profitfix != "modeled" || holdcoeff != true || allowtime != false)
+if (onefips != false || onlyprefed) && (limityield != "ignore" || profitfix != "modeled" || holdcoeff != true || allowtime != false)
     continue
 end
 
@@ -45,15 +49,56 @@ eddmodels = ["access1-0", "bcc-csm1-1", "ccsm4", "cnrm-cm5", "gfdl-cm3", "giss-e
 biomodels = ["ac", "bc", "cc", "cn", "gf", "gs",
              "hd", "he", "hg", "in", "ip", "mc",
              "mg", "mi", "mp", "mr" , "no"]
+if domcmcdraws
+    eddmodels = [eddmodels[mcmcdraw % length(eddmodels) + 1]]
+    biomodels = [biomodels[mcmcdraw % length(biomodels) + 1]]
+end
+
+suffixes = []
+if profitfix == true
+    push!(suffixes, "pfixed")
+elseif profitfix == "modeled"
+    push!(suffixes, "pfixmo")
+end
+if !allowtime
+    push!(suffixes, "notime")
+end
+if holdcoeff
+    push!(suffixes, "histco")
+end
+if limityield != "ignore"
+    push!(suffixes, limityield)
+end
+if rcp != "rcp85"
+    push!(suffixes, rcp)
+end
+if length(biomodels) == 1
+    push!(suffixes, "$(biomodels[1])")
+end
+if domcmcdraws
+    push!(suffixes, "$mcmcdraw")
+end
+if length(suffixes) > 0
+    suffixes = [""; suffixes]
+end
+suffix = join(suffixes, "-")
+
+if domcmcdraws
+    filename = "max$(futureyear)$suffix.csv"
+    if isfile(filename)
+	continue
+    end
+    touch(filename)
+end
 
 if profitfix != false
-    profitfixdf = CSV.read("farmvalue-limited.csv", copycols=true)
-    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] = "Barley"
-    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] = "Corn"
-    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] = "Cotton"
-    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] = "Rice"
-    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] = "Soybean"
-    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] = "Wheat"
+    profitfixdf = CSV.read("farmvalue-limited-$mcmcdraw.csv", copycols=true)
+    profitfixdf[profitfixdf[!, :obscrop] .== "barl", :obscrop] .= "Barley"
+    profitfixdf[profitfixdf[!, :obscrop] .== "corn", :obscrop] .= "Corn"
+    profitfixdf[profitfixdf[!, :obscrop] .== "cott", :obscrop] .= "Cotton"
+    profitfixdf[profitfixdf[!, :obscrop] .== "rice", :obscrop] .= "Rice"
+    profitfixdf[profitfixdf[!, :obscrop] .== "soyb", :obscrop] .= "Soybean"
+    profitfixdf[profitfixdf[!, :obscrop] .== "whea", :obscrop] .= "Wheat"
 end
 
 maximum_yields = Dict("Barley" => 176.5, "Corn" => 246, "Cotton" => 3433.,
@@ -93,6 +138,14 @@ for ii in 1:length(bayes_crops)
     b2s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b2.txt"), ' '))
     b3s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b3.txt"), ' '))
     b4s = convert(Matrix{Float64}, readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_b4.txt"), ' '))
+
+    if mcmcdraw != nothing
+        b0s = b0s[[mcmcdraw], :]
+        b1s = b1s[[mcmcdraw], :]
+        b2s = b2s[[mcmcdraw], :]
+        b3s = b3s[[mcmcdraw], :]
+        b4s = b4s[[mcmcdraw], :]
+    end
 
     price = ers_information(ers_crop(crop), "price", 2010; includeus=includeus)
     costs = ers_information(ers_crop(crop), "opcost", 2010; includeus=includeus)
@@ -164,6 +217,17 @@ for ii in 1:length(bayes_crops)
     bayes_gdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta3.txt"), ' ')[:, 1:3111];
     bayes_kdds = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/coeff_beta4.txt"), ' ')[:, 1:3111];
 
+    bayes_sigma = readdlm(expanduser("~/Dropbox/Agriculture Weather/usa cropyield model revised runs May16/$fullcropdir/sigma_y.txt"), ' ')
+
+    if mcmcdraw != nothing
+        bayes_intercept = bayes_intercept[[mcmcdraw], :]
+        bayes_time = bayes_time[[mcmcdraw], :]
+        bayes_wreq = bayes_wreq[[mcmcdraw], :]
+        bayes_gdds = bayes_gdds[[mcmcdraw], :]
+        bayes_kdds = bayes_kdds[[mcmcdraw], :]
+        bayes_sigma = bayes_sigma[[mcmcdraw], :]
+    end
+
     for kk in 1:nrow(bios)
         fips = bios[!, :fips][kk]
         if onefips != false && onefips != fips
@@ -213,6 +277,9 @@ for ii in 1:length(bayes_crops)
             end
         end
 
+        # Also add log bias correction (sigma^2/2), because about to exponentiate
+        logyield += (bayes_sigma.^2) / 2
+
         if limityield == "lybymc"
             logyield[logyield .> log(maximum_yields[crop])] .= NaN
         end
@@ -254,29 +321,6 @@ end
 
 if onefips == false
 
-suffixes = []
-if profitfix == true
-    push!(suffixes, "pfixed")
-elseif profitfix == "modeled"
-    push!(suffixes, "pfixmo")
-end
-if !allowtime
-    push!(suffixes, "notime")
-end
-if holdcoeff
-    push!(suffixes, "histco")
-end
-if limityield != "ignore"
-    push!(suffixes, limityield)
-end
-if rcp != "rcp85"
-    push!(suffixes, rcp)
-end
-if length(suffixes) > 0
-    suffixes = [""; suffixes]
-end
-suffix = join(suffixes, "-")
-
 writedlm("all$(futureyear)profits$suffix.csv", allprofits', ',')
 writedlm("all$(futureyear)yields$suffix.csv", allyields', ',')
 
@@ -288,8 +332,14 @@ end
 
 CSV.write("max$(futureyear)$suffix.csv", result)
 end
+
 end
 end
 end
+end
+end
+
+if !domcmcdraws
+    break
 end
 end

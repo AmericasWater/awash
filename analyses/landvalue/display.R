@@ -1,4 +1,4 @@
-setwd("~/research/water/awash/analyses/landvalue")
+## setwd("~/research/water/awash-crops/analyses/landvalue")
 
 for (filename in list.files("results", "(max|constopt).+\\.csv")) {
     if (filename == "constopt-byprice.csv")

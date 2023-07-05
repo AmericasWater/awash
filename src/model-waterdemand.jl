@@ -25,7 +25,7 @@ end
 storedresult = cached_fallback("extraction/withdrawals", () -> false)
 if storedresult == false
     @warn "Missing saved allocation files.  Please run optimize-surface.jl"
-elseif size(storedresult)[1] != numcanals || size(storedresult)[2] != numsteps
+elseif size(storedresult)[1] != numcanals || size(storedresult)[3] != numsteps
     @warn "Cache file does not match current configuration.  Please remove."
 end
 

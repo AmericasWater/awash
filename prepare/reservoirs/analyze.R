@@ -8,6 +8,12 @@ df$logcost <- log(df$Estimated.2008.Construction.Cost..INEEL....M.)
 df$logheight <- log(df$Height..m.)
 summary(lm(logcost ~ logheight, data=df))
 
+library(ggplot2)
+ggplot(df, aes(Height..m., Estimated.2008.Construction.Cost..INEEL....M.)) +
+    geom_point() + stat_smooth(method='lm', fullrange=T) +
+    scale_x_log10() + scale_y_log10() + xlab("Height (m)") + ylab("Construction cost ($M(2008))") +
+    theme_bw()
+
 df$logcost2 <- log(df$Removal.Cost.Inflated.to.2008.using.USACE.Index...M.)
 summary(lm(logcost2 ~ logheight, data=df))
 

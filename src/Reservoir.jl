@@ -139,24 +139,24 @@ function grad_reservoir_outflows_captures(m::Model)
 end
 
 function grad_reservoir_storage_captures(m::Model)
-    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm(0 => (1 .- m.md.external_params[:evaporation].values[:, vss, vtt]).^(config["timestep"]*(vtt-ptt))), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
+    roomchunks(m, :Reservoir, :storage, :captures, (vss, vtt, pss, ptt) -> ifelse(vtt >= ptt && vss == pss, spdiagm(0 => (1 .- m.md.external_params[:Reservoir_evaporation].values[:, vss, TimestepIndex(vtt)]).^(config["timestep"]*(vtt-ptt))), spzeros(numreservoirs, numreservoirs)), [:scenarios, :time], [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymin(m::Model)
-    gen(rr) = m.md.external_params[:storagecapacitymin].values[rr]
+    gen(rr) = m.md.external_params[:Reservoir_storagecapacitymin].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storagecapacitymax(m::Model)
-    gen(rr) = m.md.external_params[:storagecapacitymax].values[rr]
+    gen(rr) = m.md.external_params[:Reservoir_storagecapacitymax].values[rr]
     hallsingle(m, :Reservoir, :storage, gen, [:scenarios, :time])
 end
 
 function constraintoffset_reservoir_storage0(m::Model)
-    gen(rr, ss, tt) = (1 .- m.md.external_params[:evaporation].values[rr, ss, tt])^(tt*config["timestep"]) * m.md.external_params[:storage0].values[rr]
+    gen(rr, ss, tt) = (1 .- m.md.external_params[:Reservoir_evaporation].values[rr, ss, TimestepIndex(tt)])^(tt*config["timestep"]) * m.md.external_params[:Reservoir_storage0].values[rr]
     hallsingle(m, :Reservoir, :storage, gen)
 end
 
 function grad_reservoir_cost_captures(m::Model)
-    roomdiagonal(m, :Reservoir, :cost, :captures, m.md.external_params[:unitcostcaptures].value)
+    roomdiagonal(m, :Reservoir, :cost, :captures, m.md.external_params[:Reservoir_unitcostcaptures].value)
 end

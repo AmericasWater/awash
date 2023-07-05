@@ -9,9 +9,9 @@ solver = GurobiSolver()
 burnyears = 2
 saveyears = 2
 
-scenarios = ["-nores-nocanal", "-nores", "-withres"]
+scenarios = ["-withres", "-nores-nocanal", "-nores"]
 
-for allowgw in [false, "demandonly"]
+for allowgw in ["demandonly", false]
     if allowgw == "demandonly"
         suffixbase = "monthly-alldemand"
     else
@@ -19,7 +19,7 @@ for allowgw in [false, "demandonly"]
     end
 
     for scenario in scenarios
-        filtercanals = occursin("nores", scenario)
+        filtercanals = occursin("nocanal", scenario)
         allowreservoirs = occursin("withres", scenario)
 
         suffix = "$suffixbase$scenario"

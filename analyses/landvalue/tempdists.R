@@ -36,7 +36,7 @@ for (scenario in 1:3) {
     ## Determine max crop by 1 C bins
 
     topcrops$bin <- round(topcrops[, tcol[scenario]] / 5) / 2
-    for (bin in unique(topcrops$bin)) {
+    for (bin in unique(topcrops$bin[!is.na(topcrops$topcrop)])) {
         results <- rbind(results, data.frame(scenario=sname[scenario], bin, count=sum(topcrops$bin == bin), density=mean(topcrops$bin == bin), topcrop=names(which.max(table(topcrops$topcrop[topcrops$bin == bin])))))
         allres <- rbind(allres, data.frame(scenario=sname[scenario], bin, topcrop=topcrops$topcrop[topcrops$bin == bin]))
     }
@@ -113,3 +113,13 @@ ggplot(allres[!is.na(allres$topcrop),], aes(bin, fill=as.character(topcrop))) +
     xlab("Temperature (C)") + ylab("Counties with average temperature") +
     scale_fill_discrete(name=NULL)
 ggsave("tempdists2.pdf", width=6, height=4)
+
+for (scen in unique(allres$scenario)) {
+    ggplot(allres[!is.na(allres$topcrop) & allres$scenario == scen,], aes(bin, fill=as.character(topcrop))) +
+        geom_bar() + theme_bw() +
+        xlab("Temperature (C)") + ylab("Counties") +
+        xlim(min(allres$bin), max(allres$bin)) +
+        scale_fill_discrete(name=NULL) + theme(legend.position="none")
+    ggsave(paste0("tempdists2-", scen, ".pdf"), width=6, height=1)
+}
+

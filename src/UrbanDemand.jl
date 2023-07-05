@@ -42,6 +42,6 @@ function initurbandemand(m::Model)
 end
 
 function constraintoffset_urbandemand_waterdemand(m::Model)
-    gen(rr, tt) = m.md.external_params[:domesticdemand].values[rr,tt]
+    gen(rr, tt) = m.md.external_params[:UrbanDemand_domesticdemand].values[rr,tt]
     hallsingle(m, :UrbanDemand, :waterdemand, gen, [:scenarios])
 end

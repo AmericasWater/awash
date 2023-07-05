@@ -196,6 +196,8 @@ params[which.min(params$logrmse.yearly),]
 params[which.min(params$rmse),]
 params[which.min(params$rmse.yearly),]
 
+params[which.max(params$nse),]
+
 
 library(gg3D)
 
@@ -203,3 +205,11 @@ ggplot(params, aes(x=LOSSFACTOR_DIST, y=LOSSFACTOR_DISTTAS, z=CANAL_FACTOR, colo
     axes_3D() +
     stat_3D() +
     theme_void()
+
+
+## Final result
+pdf <- data.frame(param=rep(c('beta1', 'beta2'), each=nrow(params)), value=c(params$LOSSFACTOR_DIST, params$LOSSFACTOR_DISTTAS),
+                  lognse=rep(params$lognse.yearly, 2), chosen=rep(params$lognse.yearly == max(params$lognse.yearly), 2))
+ggplot(pdf, aes(value, lognse, colour=chosen)) +
+    facet_wrap(~ param, nrow=1, scales="free") +
+    geom_point()

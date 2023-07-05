@@ -42,14 +42,14 @@ function scenarioextract(weather, eachstep; dropstart::Bool=true)
     scenarios = get(config, "scenarios", [1])
 
     if eachstep
-        bytimestep = zeros(size(weather, 2), numscenarios, numsteps * config["timestep"])
+        bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps * config["timestep"])
         for ss in 1:length(scenarios)
-            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps*config["timestep"]-1, :]'
+            bytimestep[:, ss, :] = weatherfromstart[scenarios[ss]:scenarios[ss]+numsteps*config["timestep"]-1, :]'
         end
     else
-        bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+        bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps)
         for ss in 1:length(scenarios)
-            bytimestep[:, ss, :] = weather[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
+            bytimestep[:, ss, :] = weatherfromstart[scenarios[ss]:scenarios[ss]+numsteps-1, :]'
         end
     end
 
@@ -63,7 +63,7 @@ Assumes that `config` is defined globally
 """
 function sum2timestep(weather; dropstart::Bool=true)
     if config["timestep"] == 1
-        return scenarioextract(weather, true)
+        return scenarioextract(weather, true; dropstart=dropstart)
     end
 
     if dropstart
@@ -73,11 +73,11 @@ function sum2timestep(weather; dropstart::Bool=true)
     end
     scenarios = get(config, "scenarios", [1])
 
-    bytimestep = zeros(size(weather, 2), numscenarios, numsteps)
+    bytimestep = zeros(size(weatherfromstart, 2), numscenarios, numsteps)
 
     for ss in 1:length(scenarios)
         for timestep in 1:numsteps
-            allcounties = zeros(size(weather, 2))
+            allcounties = zeros(size(weatherfromstart, 2))
             for month in 1:config["timestep"]
                 allcounties += weatherfromstart[round.(Int64, (timestep - 1) * config["timestep"] + month + scenarios[ss] - 1), :]
             end

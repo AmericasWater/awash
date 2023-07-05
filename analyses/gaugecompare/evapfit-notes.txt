@@ -15,3 +15,11 @@ Newton's logkge
 > params[which.max(params$logkge),]
    iter DOWNSTREAM_FACTOR LOSSFACTOR_DIST LOSSFACTOR_DISTTAS CANAL_FACTOR     lognse      logkge
 82   81         0.9847768   -1.701192e-06      -7.749796e-08       1.0004 -0.7455441 -0.02072255
+
+ACTUALLY USED:
+
+> params[which.max(params$lognse.yearly),]
+   iter DOWNSTREAM_FACTOR LOSSFACTOR_DIST LOSSFACTOR_DISTTAS CANAL_FACTOR     lognse      logkge  logrmse        nse        kge     rmse lognse.yearly logkge.yearly
+98   97         0.9978293               0      -4.798689e-08            1 -0.6615199 -0.04361686 1.522934 -0.7684889 -0.2931673 17043.71     -4.227058     -0.732353
+   logrmse.yearly nse.yearly kge.yearly rmse.yearly chosen      avgloss
+98       0.851465  -5.361454 -0.8297443    106882.9   <NA> -0.009596435

@@ -4,8 +4,9 @@ library(ggplot2)
 
 do.only.hcdn <- F
 startmonth <- 673
-do.monthly <- T
+do.monthly <- F
 do.other <- F #"allyear" #"10year" #### NOTE: best on F
+do.localtoo <- T
 
 source("../../../network4/discharges.R", chdir=T)
 if (do.monthly) {
@@ -85,6 +86,10 @@ if (do.only.hcdn) {
         theme_minimal() + xlab("Ratio of simulated to observed")
 }
 
+if (do.localtoo) {
+    local <- read.csv("local-compare.csv")
+}
+
 ##### Collect data for evaporation run
 
 ## df2 <- df[, c('gauge', 'time', 'observed')]
@@ -151,6 +156,17 @@ if (do.monthly) {
 ava <- df$nonzero & df$modified
 aval <- df$nonzero & df$modified & df$largish
 
+local$modified <- local$flow - local$remaining > mean(local$flow - local$remaining, na.rm=T)
+local$nonzero <- local$observed > 0 & local$flow > 0
+if (do.monthly) {
+    local$largish <- local$observed > 1e3 / 12
+} else {
+    local$largish <- local$observed > 1e3
+}
+
+local.ava <- local$nonzero & local$modified
+local.aval <- local$nonzero & local$modified & local$largish
+
 ## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nw[ava]), x=log(df$observed[ava]))))
 ## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_nrnr[ava]), x=log(df$observed[ava]))))
 ## summary(lm(y ~ 0 + x, data.frame(y=log(df$flows_rfnr[ava]), x=log(df$observed[ava]))))
@@ -170,6 +186,9 @@ mm.nrnr <- format(median(df$flows_nrnr[aval] / df$observed[aval], na.rm=T), digi
 mm.rfnr <- format(median(df$flows_rfnr[aval] / df$observed[aval], na.rm=T), digits=3)
 mm.rfwr <- format(median(df$flows_rfwr[aval] / df$observed[aval], na.rm=T), digits=3)
 
+mm.local.nw <- format(median(local$flow[local.aval] / local$observed[local.aval], na.rm=T), digits=3)
+mm.local.ww <- format(median(local$remaining[local.aval] / local$observed[local.aval], na.rm=T), digits=3)
+
 df$flowsize.label <- "Large Flows"
 df$flowsize.label[!df$largish] <- "Small Flows"
 df$modified.label <- "Modified Flows"
@@ -180,17 +199,27 @@ if (do.other == "allyear") {
 } else
     df$period.label <- NA
 
+local$modified.label <- "Modified Flows"
+local$modified.label[!local$modified] <- "Unmodified Flows"
+
+quantile(subset(local, nonzero & largish & modified)$flow / subset(local, nonzero & largish & modified)$observed)
+quantile(subset(df, nonzero & largish & modified)$flows_nw / subset(df, nonzero & largish & modified)$observed)
+quantile(subset(df, nonzero & largish & !modified)$flows_rfwr / subset(df, nonzero & largish & !modified)$observed)
+
 if (do.monthly) {
     ggplot(subset(df, nonzero & largish)) +
         facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
-        geom_density(aes(flows_nw / observed, colour='a')) +
-        geom_density(aes(flows_nrnr / observed, colour='b')) +
-        geom_density(aes(flows_rfnr / observed, colour='c')) +
-        geom_density(aes(flows_rfwr / observed, colour='d')) +
+        geom_density(data=subset(local, nonzero & largish), aes(flow / observed, colour='e', linetype='e')) +
+        geom_density(data=subset(local, nonzero & largish), aes(remaining / observed, colour='f', linetype='f')) +
+        geom_density(aes(flows_nw / observed, colour='a', linetype='a')) +
+        geom_density(aes(flows_nrnr / observed, colour='b', linetype='b')) +
+        geom_density(aes(flows_rfnr / observed, colour='c', linetype='c')) +
+        geom_density(aes(flows_rfwr / observed, colour='d', linetype='d')) +
         scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
-        scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (Medium: ", mm.nw, ")"), paste0(" + Withdrawals (Medium: ", mm.nrnr, ")"), paste0("  + Returns (Medium: ", mm.rfnr, ")"), paste0("  + Reservoirs (Medium: ", mm.rfwr, ")"))) +
-        theme_minimal() + xlab("Ratio of simulated to observed") +
-        theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.2)
+        scale_colour_manual(name="Simulation Assumption", breaks=c('e', 'f', 'a', 'b', 'c', 'd'), labels=c(paste0("Total county runoff (Median: ", mm.local.nw, ")"), paste0(" + Withdrawals (Median: ", mm.local.ww, ")"), paste0("Network natural flows (Median: ", mm.nw, ")"), paste0(" + Withdrawals (Median: ", mm.nrnr, ")"), paste0("  + Returns (Median: ", mm.rfnr, ")"), paste0("  + Reservoirs (Median: ", mm.rfwr, ")")), values=c('#648fff', '#785ef0', '#648fff', '#785ef0', '#dc267f', '#fe6100')) +
+        scale_linetype_manual(name="Simulation Assumption", breaks=c('e', 'f', 'a', 'b', 'c', 'd'), labels=c(paste0("Total county runoff (Median: ", mm.local.nw, ")"), paste0(" + Withdrawals (Median: ", mm.local.ww, ")"), paste0("Network natural flows (Median: ", mm.nw, ")"), paste0(" + Withdrawals (Median: ", mm.nrnr, ")"), paste0("  + Returns (Median: ", mm.rfnr, ")"), paste0("  + Reservoirs (Median: ", mm.rfwr, ")")), values=c('dashed', 'dashed', 'solid', 'solid', 'solid', 'solid')) +
+            theme_minimal() + xlab("Ratio of simulated to observed") +
+        theme(legend.justification=c(.5,1), legend.position=c(.5,1)) + ylim(0, 1.75)
     ggsave("compare-monthly.pdf", width=7, height=4)
 } else {
     if (do.other %in% c("allyear", "10year")) {
@@ -208,15 +237,20 @@ if (do.monthly) {
     } else {
         ggplot(subset(df, nonzero & largish)) +
             facet_grid(. ~ modified.label) + #facet_grid(modified.label ~ flowsize.label) +
-            geom_density(aes(flows_nw / observed, colour='a')) +
-            geom_density(aes(flows_nrnr / observed, colour='b')) +
-            geom_density(aes(flows_rfnr / observed, colour='c')) +
-            geom_density(aes(flows_rfwr / observed, colour='d')) +
+            geom_density(data=subset(local, nonzero & largish), aes(flow / observed, colour='e', linetype='e')) +
+            geom_density(data=subset(local, nonzero & largish), aes(remaining / observed, colour='f', linetype='f')) +
+            geom_density(aes(flows_nw / observed, colour='a', linetype='a')) +
+            geom_density(aes(flows_nrnr / observed, colour='b', linetype='b')) +
+            geom_density(aes(flows_rfnr / observed, colour='c', linetype='c')) +
+            geom_density(aes(flows_rfwr / observed, colour='d', linetype='d')) +
             scale_x_log10(breaks=c(1e-3, 1e-2, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6), limits=c(1e-1, 1e1)) +
-            scale_colour_discrete(name="Simulation Assumption", breaks=c('a', 'b', 'c', 'd'), labels=c(paste0("Natural flows (Medium: ", mm.nw, ")"), paste0(" + Withdrawals (Medium: ", mm.nrnr, ")"), paste0("  + Returns (Medium: ", mm.rfnr, ")"), paste0("  + Reservoirs (Medium: ", mm.rfwr, ")"))) +
+            scale_colour_manual(name="Simulation Assumption", breaks=c('e', 'f', 'a', 'b', 'c', 'd'), labels=c(paste0("Total county runoff (Median: ", mm.local.nw, ")"), paste0(" + Withdrawals (Median: ", mm.local.ww, ")"), paste0("Network natural flows (Median: ", mm.nw, ")"), paste0(" + Withdrawals (Median: ", mm.nrnr, ")"), paste0("  + Returns (Median: ", mm.rfnr, ")"), paste0("  + Reservoirs (Median: ", mm.rfwr, ")")), values=c('#648fff', '#785ef0', '#648fff', '#785ef0', '#dc267f', '#fe6100')) +
+        scale_linetype_manual(name="Simulation Assumption", breaks=c('e', 'f', 'a', 'b', 'c', 'd'), labels=c(paste0("Total county runoff (Median: ", mm.local.nw, ")"), paste0(" + Withdrawals (Median: ", mm.local.ww, ")"), paste0("Network natural flows (Median: ", mm.nw, ")"), paste0(" + Withdrawals (Median: ", mm.nrnr, ")"), paste0("  + Returns (Median: ", mm.rfnr, ")"), paste0("  + Reservoirs (Median: ", mm.rfwr, ")")), values=c('dashed', 'dashed', 'solid', 'solid', 'solid', 'solid')) +
             theme_minimal() + xlab("Ratio of simulated to observed") +
             theme(legend.justification=c(.5,1), legend.position=c(.5,1))
         ggsave("compare.pdf", width=7, height=4)
+
+        quantile(subset(df, nonzero & largish & !modified)$flows_rfwr / subset(df, nonzero & largish & !modified)$observed)
     }
 }
 
